@@ -1,0 +1,110 @@
+-- © IBM Corp. 2020
+-- This softcore is licensed under and subject to the terms of the CC-BY 4.0
+-- license (https://creativecommons.org/licenses/by/4.0/legalcode). 
+-- Additional rights, including the right to physically implement a softcore 
+-- that is compliant with the required sections of the Power ISA 
+-- Specification, will be available at no cost via the OpenPOWER Foundation. 
+-- This README will be updated with additional information when OpenPOWER's 
+-- license is available.
+
+
+
+
+
+LIBRARY ieee;       USE ieee.std_logic_1164.all;
+                    USE ieee.numeric_std.all;
+LIBRARY ibm;        
+                    USE ibm.std_ulogic_support.all;
+                    USE ibm.std_ulogic_unsigned.all;
+                    USE ibm.std_ulogic_function_support.all;
+LIBRARY support;    
+                    USE support.power_logic_pkg.all;
+LIBRARY tri;        USE tri.tri_latches_pkg.all;
+
+
+entity iuq_ic_dir_cmp30 is
+generic( expand_type: integer := 2  ); 
+port(
+       d0_b                :in  std_ulogic_vector(0 to 29);
+       d1                  :in  std_ulogic_vector(0 to 29);
+       eq_b                :out std_ulogic
+);
+
+-- synopsys translate_off
+
+-- synopsys translate_on
+
+
+
+end iuq_ic_dir_cmp30; 
+
+architecture iuq_ic_dir_cmp30 of iuq_ic_dir_cmp30 is
+   constant tiup : std_ulogic := '1';
+   constant tidn : std_ulogic := '0';
+
+   signal                         eq01      :std_ulogic_vector(0 to 29) ;
+-- synopsys translate_off
+-- synopsys translate_on
+
+   signal eq02_b   : std_ulogic_vector(0 to 14);
+   signal eq04     : std_ulogic_vector(0 to 7);
+   signal eq08_b   : std_ulogic_vector(0 to 3);
+   signal eq16     : std_ulogic_vector(0 to 1);
+
+-- synopsys translate_off
+
+
+
+
+
+
+-- synopsys translate_on
+
+
+begin
+
+
+  u_eq01: eq01(0 to 29) <= ( d0_b(0 to 29) xor d1(0 to 29) ); 
+
+
+  u_00_eq02: eq02_b( 0) <= not( eq01  ( 0) and eq01  ( 1) );  
+  u_02_eq02: eq02_b( 1) <= not( eq01  ( 2) and eq01  ( 3) );  
+  u_04_eq02: eq02_b( 2) <= not( eq01  ( 4) and eq01  ( 5) );  
+  u_06_eq02: eq02_b( 3) <= not( eq01  ( 6) and eq01  ( 7) );  
+  u_08_eq02: eq02_b( 4) <= not( eq01  ( 8) and eq01  ( 9) );  
+  u_10_eq02: eq02_b( 5) <= not( eq01  (10) and eq01  (11) );  
+  u_12_eq02: eq02_b( 6) <= not( eq01  (12) and eq01  (13) );  
+  u_14_eq02: eq02_b( 7) <= not( eq01  (14) and eq01  (15) );  
+  u_16_eq02: eq02_b( 8) <= not( eq01  (16) and eq01  (17) );  
+  u_18_eq02: eq02_b( 9) <= not( eq01  (18) and eq01  (19) );  
+  u_20_eq02: eq02_b(10) <= not( eq01  (20) and eq01  (21) );  
+  u_22_eq02: eq02_b(11) <= not( eq01  (22) and eq01  (23) );  
+  u_24_eq02: eq02_b(12) <= not( eq01  (24) and eq01  (25) );  
+  u_26_eq02: eq02_b(13) <= not( eq01  (26) and eq01  (27) );  
+  u_28_eq02: eq02_b(14) <= not( eq01  (28) and eq01  (29) );  
+
+  u_01_eq04: eq04  ( 0) <= not( eq02_b( 0) or  eq02_b( 1) );  
+  u_05_eq04: eq04  ( 1) <= not( eq02_b( 2) or  eq02_b( 3) );  
+  u_09_eq04: eq04  ( 2) <= not( eq02_b( 4) or  eq02_b( 5) );  
+  u_13_eq04: eq04  ( 3) <= not( eq02_b( 6) or  eq02_b( 7) );  
+  u_17_eq04: eq04  ( 4) <= not( eq02_b( 8) or  eq02_b( 9) );  
+  u_21_eq04: eq04  ( 5) <= not( eq02_b(10) or  eq02_b(11) );  
+  u_25_eq04: eq04  ( 6) <= not( eq02_b(12) or  eq02_b(13) );  
+  u_29_eq04: eq04  ( 7) <= not( eq02_b(14)                );  
+
+  u_03_eq08: eq08_b( 0) <= not( eq04  ( 0) and eq04  ( 1) );  
+  u_11_eq08: eq08_b( 1) <= not( eq04  ( 2) and eq04  ( 3) );  
+  u_19_eq08: eq08_b( 2) <= not( eq04  ( 4) and eq04  ( 5) );  
+  u_27_eq08: eq08_b( 3) <= not( eq04  ( 6) and eq04  ( 7) );  
+
+  u_07_eq16: eq16  ( 0) <= not( eq08_b( 0) or  eq08_b( 1) );  
+  u_23_eq16: eq16  ( 1) <= not( eq08_b( 2) or  eq08_b( 3) );  
+
+  u_15_eq32: eq_b       <= not( eq16  ( 0) and eq16  ( 1) );  
+
+end; 
+
+
+
+
+

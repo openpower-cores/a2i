@@ -1,0 +1,12 @@
+#-----------------------------------------------------------
+# Vivado v2019.1.3 (64-bit)
+# SW Build 2644227 on Wed Sep  4 09:44:18 MDT 2019
+# IP Build 2633630 on Wed Sep  4 12:30:14 MDT 2019
+# Start of session at: Fri Jun 26 10:16:40 2020
+# Process ID: 89782
+# Current directory: /gsa/pokgsa-h3/15/wtf/github/a2x/rel/build/ip_user/a2x_axi
+# Command line: vivado -mode tcl -source tcl/create_ip_a2x_axi.tcl
+# Log file: /gsa/pokgsa-h3/15/wtf/github/a2x/rel/build/ip_user/a2x_axi/vivado.log
+# Journal file: /gsa/pokgsa-h3/15/wtf/github/a2x/rel/build/ip_user/a2x_axi/vivado.jou
+#-----------------------------------------------------------
+source tcl/create_ip_a2x_axi.tcl
