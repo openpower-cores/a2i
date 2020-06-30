@@ -21,11 +21,6 @@ LIBRARY support;
                     USE support.power_logic_pkg.all;
 LIBRARY tri;        USE tri.tri_latches_pkg.all;
 LIBRARY clib ;
--- pragma translate_off
-LIBRARY latches ;
-LIBRARY macros ;
--- pragma translate_on
-
 
 entity xuq_lsu_cmp_cmp31 is
 generic( expand_type: integer := 2  ); 

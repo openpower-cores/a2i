@@ -9,7 +9,7 @@
 
 
 
-library ieee,ibm,latches,clib, support;
+library ieee,ibm,clib,support;
 use ieee.std_logic_1164.all;
 use ibm.std_ulogic_support.all;
 use ibm.std_ulogic_function_support.all;
