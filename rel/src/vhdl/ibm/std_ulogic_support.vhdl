@@ -22,6 +22,18 @@ use ieee.numeric_std.all ;
 
 package std_ulogic_support is
 
+  attribute like_builtin: boolean;
+  attribute dc_allow: boolean;
+  attribute type_convert: boolean;
+  attribute recursive_synthesis: boolean;
+  attribute functionality: string;  
+  attribute btr_name: string;  
+  attribute block_data: string;
+  type pbi_el_t is array(0 to 3) of string;
+  type pbi_t is array(integer range <>) of pbi_el_t;
+  attribute pin_bit_information: pbi_t;
+  attribute dynamic_block_data: string;
+
   type base_t is ( bin, oct, dec, hex );
 
   -------------------------------------------------------------------
