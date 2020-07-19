@@ -50,9 +50,11 @@ package std_ulogic_function_support is
   attribute tce_seqcond     : string;
 
   --  Global Signals
+  -- Synopsys translate_off
   signal audit_bit_dump    : std_ulogic ;
   signal assertion_summary : boolean    ;
   signal assertion_clock   : std_ulogic ;
+  -- Synopsys translate_on
 
   -- Synopsys translate_off
   component assertion
