@@ -1,0 +1,325 @@
+CAPI=2:
+
+name : ::a2i:0
+description : A2I POWER processor core
+
+filesets:
+  ibm:
+    files:
+      - rel/src/vhdl/ibm/std_ulogic_ao_support.vhdl
+      - rel/src/vhdl/ibm/std_ulogic_unsigned.vhdl
+      - rel/src/vhdl/ibm/std_ulogic_function_support.vhdl
+      - rel/src/vhdl/ibm/std_ulogic_mux_support.vhdl
+      - rel/src/vhdl/ibm/std_ulogic_support.vhdl
+    file_type : vhdlSource-2008
+    logical_name : ibm
+
+  support:
+    files:
+      - rel/src/vhdl/support/power_logic_pkg.vhdl
+    file_type : vhdlSource-2008
+    logical_name : support
+
+  clib:
+    files:
+      - rel/src/vhdl/clib/c_scom_addr_decode.vhdl
+      - rel/src/vhdl/clib/c_prism_csa32.vhdl
+      - rel/src/vhdl/clib/c_event_mux.vhdl
+      - rel/src/vhdl/clib/c_debug_mux8.vhdl
+      - rel/src/vhdl/clib/c_prism_bthmx.vhdl
+      - rel/src/vhdl/clib/c_debug_mux4.vhdl
+      - rel/src/vhdl/clib/c_prism_csa42.vhdl
+      - rel/src/vhdl/clib/c_debug_mux32.vhdl
+      - rel/src/vhdl/clib/c_debug_mux16.vhdl
+    file_type : vhdlSource-2008
+    logical_name : clib
+
+  tri:
+    files:
+      - rel/src/vhdl/tri/tri_cam_16x143_1r1w1c.vhdl
+      - rel/src/vhdl/tri/tri_slat_scan.vhdl
+      - rel/src/vhdl/tri/tri_plat.vhdl
+      - rel/src/vhdl/tri/tri_64x36_4w_1r1w.vhdl
+      - rel/src/vhdl/tri/ramb16_s9_s9.vhdl
+      - rel/src/vhdl/tri/tri_lcbcntl_mac.vhdl
+      - rel/src/vhdl/tri/tri_144x78_2r2w_eco.vhdl
+      - rel/src/vhdl/tri/tri_psro_soft.vhdl
+      - rel/src/vhdl/tri/tri_cam_32x143_1r1w1c.vhdl
+      - rel/src/vhdl/tri/tri_nand2_nlats.vhdl
+      - rel/src/vhdl/tri/tri_rlmlatch_p.vhdl
+      - rel/src/vhdl/tri/tri_inv_nlats.vhdl
+      - rel/src/vhdl/tri/tri_64x42_4w_1r1w.vhdl
+      - rel/src/vhdl/tri/tri_regk.vhdl
+      - rel/src/vhdl/tri/tri_inv_nlats_wlcb.vhdl
+      - rel/src/vhdl/tri/tri_32x35_8w_1r1w.vhdl
+      - rel/src/vhdl/tri/tri_direct_err_rpt.vhdl
+      - rel/src/vhdl/tri/ramb16_s18_s18.vhdl
+      - rel/src/vhdl/tri/tri_aoi22_nlats_wlcb.vhdl
+      - rel/src/vhdl/tri/tri_nlat_scan.vhdl
+      - rel/src/vhdl/tri/tri_144x78_2r2w.vhdl
+      - rel/src/vhdl/tri/tri_128x16_1r1w_1.vhdl
+      - rel/src/vhdl/tri/tri_256x162_4w_0.vhdl
+      - rel/src/vhdl/tri/tri_lcbcntl_array_mac.vhdl
+      - rel/src/vhdl/tri/tri_caa_prism_abist.vhdl
+      - rel/src/vhdl/tri/ramb16_s36_s36.vhdl
+      - rel/src/vhdl/tri/tri_cam_16x143_1r1w1c_matchline.vhdl
+      - rel/src/vhdl/tri/tri_lcbnd.vhdl
+      - rel/src/vhdl/tri/tri_cam_parerr_mac.vhdl
+      - rel/src/vhdl/tri/tri_nor2_nlats.vhdl
+      - rel/src/vhdl/tri/tri_bht.vhdl
+      - rel/src/vhdl/tri/tri_128x168_1w_0.vhdl
+      - rel/src/vhdl/tri/tri_regs.vhdl
+      - rel/src/vhdl/tri/tri_oai22_nlats.vhdl
+      - rel/src/vhdl/tri/tri_nlat.vhdl
+      - rel/src/vhdl/tri/tri_latches_pkg.vhdl
+      - rel/src/vhdl/tri/tri_lcbor.vhdl
+      - rel/src/vhdl/tri/tri_aoi22_nlats.vhdl
+      - rel/src/vhdl/tri/tri_512x288_9.vhdl
+      - rel/src/vhdl/tri/tri_lcbs.vhdl
+      - rel/src/vhdl/tri/tri_ser_rlmreg_p.vhdl
+      - rel/src/vhdl/tri/tri_serial_scom2.vhdl
+      - rel/src/vhdl/tri/tri_err_rpt.vhdl
+      - rel/src/vhdl/tri/tri_cam_32x143_1r1w1c_matchline.vhdl
+      - rel/src/vhdl/tri/tri_64x72_1r1w.vhdl
+      - rel/src/vhdl/tri/tri_rlmreg_p.vhdl
+      - rel/src/vhdl/tri/tri_boltreg_p.vhdl
+    file_type : vhdlSource-2008
+    logical_name : tri
+
+  rtl:
+    files:
+      - rel/src/vhdl/work/xuq_fxu_a.vhdl
+      - rel/src/vhdl/work/xuq_cpl_spr_cspr.vhdl
+      - rel/src/vhdl/work/a2x_axi_reg.vhdl
+      - rel/src/vhdl/work/fuq_nrm_sh.vhdl
+      - rel/src/vhdl/work/xuq_debug_mux32.vhdl
+      - rel/src/vhdl/work/xuq_agen_loca.vhdl
+      - rel/src/vhdl/work/a2x_axi_reg_S00.vhdl
+      - rel/src/vhdl/work/xuq_dec_sspr.vhdl
+      - rel/src/vhdl/work/xuq_spr_dacen.vhdl
+      - rel/src/vhdl/work/iuq_fxu_issue.vhdl
+      - rel/src/vhdl/work/fuq_add_glbc.vhdl
+      - rel/src/vhdl/work/xuq_lsu_cmd.vhdl
+      - rel/src/vhdl/work/xuq_add_glbglbci.vhdl
+      - rel/src/vhdl/work/fuq_tblexp.vhdl
+      - rel/src/vhdl/work/xuq_add_glbloc.vhdl
+      - rel/src/vhdl/work/xuq_agen_csmuxe.vhdl
+      - rel/src/vhdl/work/a2x_axi.vhdl
+      - rel/src/vhdl/work/xuq_alu_mult_boothdcd.vhdl
+      - rel/src/vhdl/work/fuq_dcd.vhdl
+      - rel/src/vhdl/work/xuq_lsu_debug.vhdl
+      - rel/src/vhdl/work/pcq_clks.vhdl
+      - rel/src/vhdl/work/fuq_loc8inc_lsb.vhdl
+      - rel/src/vhdl/work/xuq_alu_mult_core.vhdl
+      - rel/src/vhdl/work/iuq_ic_insmux.vhdl
+      - rel/src/vhdl/work/pcq_psro_soft.vhdl
+      - rel/src/vhdl/work/xuq_lsu_fgen.vhdl
+      - rel/src/vhdl/work/xuq_lsu_dir_val32.vhdl
+      - rel/src/vhdl/work/xuq_agen_lo.vhdl
+      - rel/src/vhdl/work/fuq_add.vhdl
+      - rel/src/vhdl/work/fuq_loc8inc.vhdl
+      - rel/src/vhdl/work/iuq_rp.vhdl
+      - rel/src/vhdl/work/fuq_tblsqo.vhdl
+      - rel/src/vhdl/work/xuq_fxu_b.vhdl
+      - rel/src/vhdl/work/iuq_spr.vhdl
+      - rel/src/vhdl/work/fuq_byp.vhdl
+      - rel/src/vhdl/work/pcq_abist_bolton_stg.vhdl
+      - rel/src/vhdl/work/fuq_gst_loa.vhdl
+      - rel/src/vhdl/work/xuq_alu_mask.vhdl
+      - rel/src/vhdl/work/iuq_dbg.vhdl
+      - rel/src/vhdl/work/iuq_ic_dir_cmp.vhdl
+      - rel/src/vhdl/work/xuq_spr.vhdl
+      - rel/src/vhdl/work/iuq_misc.vhdl
+      - rel/src/vhdl/work/xuq_alu_caor.vhdl
+      - rel/src/vhdl/work/pcq_regs.vhdl
+      - rel/src/vhdl/work/iuq_ram.vhdl
+      - rel/src/vhdl/work/xuq_lsu_dir.vhdl
+      - rel/src/vhdl/work/xuq_alu_or3232.vhdl
+      - rel/src/vhdl/work/a2l2_axi.vhdl
+      - rel/src/vhdl/work/xuq_byp_xer.vhdl
+      - rel/src/vhdl/work/fuq_tblmul.vhdl
+      - rel/src/vhdl/work/xuq_fxu_gpr.vhdl
+      - rel/src/vhdl/work/fuq_hc16pp_lsb.vhdl
+      - rel/src/vhdl/work/xuq_cpl.vhdl
+      - rel/src/vhdl/work/xuq_lsu_dir_tag_arr.vhdl
+      - rel/src/vhdl/work/pcq_clks_ctrl.vhdl
+      - rel/src/vhdl/work/xuq_ctrl_spr.vhdl
+      - rel/src/vhdl/work/mmq_tlb_cmp.vhdl
+      - rel/src/vhdl/work/fuq_mad.vhdl
+      - rel/src/vhdl/work/fuq_fmt.vhdl
+      - rel/src/vhdl/work/iuq.vhdl
+      - rel/src/vhdl/work/xuq_lsu_dir_lru32.vhdl
+      - rel/src/vhdl/work/xuq_spr_dvccmp.vhdl
+      - rel/src/vhdl/work/iuq_uc.vhdl
+      - rel/src/vhdl/work/xuq_lsu_data.vhdl
+      - rel/src/vhdl/work/fuq_dcd_uc_hooks.vhdl
+      - rel/src/vhdl/work/fuq_alg.vhdl
+      - rel/src/vhdl/work/xuq_lsu_dir_val16.vhdl
+      - rel/src/vhdl/work/xuq_agen_csmux.vhdl
+      - rel/src/vhdl/work/fuq_sa3.vhdl
+      - rel/src/vhdl/work/fuq_nrm_or16.vhdl
+      - rel/src/vhdl/work/xuq_alu_add.vhdl
+      - rel/src/vhdl/work/fuq_fpr.vhdl
+      - rel/src/vhdl/work/xuq_ctrl.vhdl
+      - rel/src/vhdl/work/xuq_agen_glbloc.vhdl
+      - rel/src/vhdl/work/fuq_alg_sh16.vhdl
+      - rel/src/vhdl/work/fuq_add_all1.vhdl
+      - rel/src/vhdl/work/fuq_lza_clz.vhdl
+      - rel/src/vhdl/work/xuq_lsu_cmp_cmp31.vhdl
+      - rel/src/vhdl/work/xuq_alu_mult.vhdl
+      - rel/src/vhdl/work/xuq_debug.vhdl
+      - rel/src/vhdl/work/a2x_dbug.vhdl
+      - rel/src/vhdl/work/xuq_lsu_derat.vhdl
+      - rel/src/vhdl/work/pcq_spr.vhdl
+      - rel/src/vhdl/work/iuq_axu_fu_dep_cmp.vhdl
+      - rel/src/vhdl/work/pcq_abist.vhdl
+      - rel/src/vhdl/work/iuq_ic_dir.vhdl
+      - rel/src/vhdl/work/xuq_alu_div.vhdl
+      - rel/src/vhdl/work/xuq_dec_b.vhdl
+      - rel/src/vhdl/work/fuq_mul_62.vhdl
+      - rel/src/vhdl/work/xuq_eccchk.vhdl
+      - rel/src/vhdl/work/iuq_slice.vhdl
+      - rel/src/vhdl/work/fuq_sto.vhdl
+      - rel/src/vhdl/work/xuq_lsu_dir_lru16.vhdl
+      - rel/src/vhdl/work/mmq_htw.vhdl
+      - rel/src/vhdl/work/fuq_mul_bthmux.vhdl
+      - rel/src/vhdl/work/fuq_perv.vhdl
+      - rel/src/vhdl/work/pcq_ctrl.vhdl
+      - rel/src/vhdl/work/xuq_perf.vhdl
+      - rel/src/vhdl/work/xuq_lsu_l2cmdq.vhdl
+      - rel/src/vhdl/work/xuq_lsu_data_rot32_ru.vhdl
+      - rel/src/vhdl/work/fuq_tblmul_bthdcd.vhdl
+      - rel/src/vhdl/work/xuq_byp_cr.vhdl
+      - rel/src/vhdl/work/xuq_agen_glbglb.vhdl
+      - rel/src/vhdl/work/iuq_pkg.vhdl
+      - rel/src/vhdl/work/xuq_agen_locae.vhdl
+      - rel/src/vhdl/work/fuq.vhdl
+      - rel/src/vhdl/work/fuq_eie.vhdl
+      - rel/src/vhdl/work/xuq_cpl_pri.vhdl
+      - rel/src/vhdl/work/fuq_gst.vhdl
+      - rel/src/vhdl/work/xuq_lsu_data_rot32_lu.vhdl
+      - rel/src/vhdl/work/fuq_tblsqe.vhdl
+      - rel/src/vhdl/work/iuq_ic_select.vhdl
+      - rel/src/vhdl/work/fuq_tbllut.vhdl
+      - rel/src/vhdl/work/iuq_axu_fu_dec.vhdl
+      - rel/src/vhdl/work/xuq_lsu_data_ld.vhdl
+      - rel/src/vhdl/work/fuq_gst_add11.vhdl
+      - rel/src/vhdl/work/fuq_scr.vhdl
+      - rel/src/vhdl/work/mmq_dbg.vhdl
+      - rel/src/vhdl/work/xuq_fxu_spr_tspr.vhdl
+      - rel/src/vhdl/work/xuq_lsu_dc_cntrl.vhdl
+      - rel/src/vhdl/work/xuq_dec_a.vhdl
+      - rel/src/vhdl/work/pcq_dbg.vhdl
+      - rel/src/vhdl/work/iuq_bp.vhdl
+      - rel/src/vhdl/work/mmq_tlb_matchline.vhdl
+      - rel/src/vhdl/work/pcq.vhdl
+      - rel/src/vhdl/work/xuq_alu_mult_csa22.vhdl
+      - rel/src/vhdl/work/iuq_fxu_dep.vhdl
+      - rel/src/vhdl/work/iuq_ic_miss.vhdl
+      - rel/src/vhdl/work/acq_soft.vhdl
+      - rel/src/vhdl/work/iuq_uc_control.vhdl
+      - rel/src/vhdl/work/fuq_tblmul_bthrow.vhdl
+      - rel/src/vhdl/work/iuq_fxu_dep_cmp.vhdl
+      - rel/src/vhdl/work/iuq_ifetch.vhdl
+      - rel/src/vhdl/work/xuq.vhdl
+      - rel/src/vhdl/work/fuq_cr2.vhdl
+      - rel/src/vhdl/work/iuq_axu_fu_dep.vhdl
+      - rel/src/vhdl/work/iuq_perf.vhdl
+      - rel/src/vhdl/work/xuq_byp.vhdl
+      - rel/src/vhdl/work/mmq_inval.vhdl
+      - rel/src/vhdl/work/fuq_gst_inc19.vhdl
+      - rel/src/vhdl/work/iuq_ic_dir_cmp30.vhdl
+      - rel/src/vhdl/work/xuq_fxua_data.vhdl
+      - rel/src/vhdl/work/fuq_csa22_h2.vhdl
+      - rel/src/vhdl/work/fuq_lze.vhdl
+      - rel/src/vhdl/work/xuq_lsu_dc.vhdl
+      - rel/src/vhdl/work/mmq_perf.vhdl
+      - rel/src/vhdl/work/xuq_spr_tspr.vhdl
+      - rel/src/vhdl/work/fuq_lza.vhdl
+      - rel/src/vhdl/work/fuq_tblres.vhdl
+      - rel/src/vhdl/work/a2x_axi_intr.vhdl
+      - rel/src/vhdl/work/xuq_pkg.vhdl
+      - rel/src/vhdl/work/pcq_regs_fir.vhdl
+      - rel/src/vhdl/work/xuq_alu_rol64.vhdl
+      - rel/src/vhdl/work/fuq_alg_or16.vhdl
+      - rel/src/vhdl/work/iuq_uc_rom.vhdl
+      - rel/src/vhdl/work/mmq_tlb_lrat.vhdl
+      - rel/src/vhdl/work/fuq_mul.vhdl
+      - rel/src/vhdl/work/iuq_fxu_decode.vhdl
+      - rel/src/vhdl/work/bxq.vhdl
+      - rel/src/vhdl/work/iuq_ib_buff.vhdl
+      - rel/src/vhdl/work/a2x_pkg.vhdl
+      - rel/src/vhdl/work/xuq_fxu_spr.vhdl
+      - rel/src/vhdl/work/fuq_eov.vhdl
+      - rel/src/vhdl/work/mmq_perv.vhdl
+      - rel/src/vhdl/work/mmq_tlb_lrat_matchline.vhdl
+      - rel/src/vhdl/work/pcq_local_fir2.vhdl
+      - rel/src/vhdl/work/xuq_alu_ins.vhdl
+      - rel/src/vhdl/work/xuq_lsu_perf.vhdl
+      - rel/src/vhdl/work/fuq_hc16pp.vhdl
+      - rel/src/vhdl/work/xuq_cpl_spr_tspr.vhdl
+      - rel/src/vhdl/work/xuq_add_loc.vhdl
+      - rel/src/vhdl/work/xuq_cpl_fctr.vhdl
+      - rel/src/vhdl/work/mmq.vhdl
+      - rel/src/vhdl/work/pcq_dbg_event.vhdl
+      - rel/src/vhdl/work/xuq_alu_mrg.vhdl
+      - rel/src/vhdl/work/xuq_eccgen.vhdl
+      - rel/src/vhdl/work/xuq_agen_cmp.vhdl
+      - rel/src/vhdl/work/iuq_axu_fu_iss.vhdl
+      - rel/src/vhdl/work/fuq_mul_bthdcd.vhdl
+      - rel/src/vhdl/work/iuq_ib_buff_wrap.vhdl
+      - rel/src/vhdl/work/xuq_lsu_data_rot32s_ru.vhdl
+      - rel/src/vhdl/work/fuq_alg_sh4.vhdl
+      - rel/src/vhdl/work/xuq_lsu_data_st.vhdl
+      - rel/src/vhdl/work/iuq_ic_ierat.vhdl
+      - rel/src/vhdl/work/iuq_perv.vhdl
+      - rel/src/vhdl/work/xuq_alu_mult_boothrow.vhdl
+      - rel/src/vhdl/work/xuq_perv.vhdl
+      - rel/src/vhdl/work/xuq_add_csmux.vhdl
+      - rel/src/vhdl/work/xuq_cpl_spr.vhdl
+      - rel/src/vhdl/work/fuq_mul_92.vhdl
+      - rel/src/vhdl/work/xuq_cpl_br.vhdl
+      - rel/src/vhdl/work/iuq_ic.vhdl
+      - rel/src/vhdl/work/iuq_slice_wrap.vhdl
+      - rel/src/vhdl/work/xuq_cpl_fxub.vhdl
+      - rel/src/vhdl/work/fuq_pic.vhdl
+      - rel/src/vhdl/work/fuq_alg_add.vhdl
+      - rel/src/vhdl/work/a2x_scom.vhdl
+      - rel/src/vhdl/work/xuq_byp_gpr.vhdl
+      - rel/src/vhdl/work/xuq_lsu_cmp.vhdl
+      - rel/src/vhdl/work/fuq_nrm.vhdl
+      - rel/src/vhdl/work/pcq_abist_bolton_frontend.vhdl
+      - rel/src/vhdl/work/xuq_agen.vhdl
+      - rel/src/vhdl/work/xuq_spr_cspr.vhdl
+      - rel/src/vhdl/work/fuq_lza_ej.vhdl
+      - rel/src/vhdl/work/xuq_lsu_mux41.vhdl
+      - rel/src/vhdl/work/mmq_tlb_req.vhdl
+      - rel/src/vhdl/work/xuq_dec_dcdmrg.vhdl
+      - rel/src/vhdl/work/xuq_fxu_spr_cspr.vhdl
+      - rel/src/vhdl/work/pcq_clks_stg.vhdl
+      - rel/src/vhdl/work/fuq_mul_bthrow.vhdl
+      - rel/src/vhdl/work/xuq_lsu_dir_tag.vhdl
+      - rel/src/vhdl/work/iuq_bd.vhdl
+      - rel/src/vhdl/work/fuq_hc16pp_msb.vhdl
+      - rel/src/vhdl/work/xuq_add.vhdl
+      - rel/src/vhdl/work/fuq_alg_bypmux.vhdl
+      - rel/src/vhdl/work/xuq_alu.vhdl
+      - rel/src/vhdl/work/xuq_agen_glbloc_lsb.vhdl
+      - rel/src/vhdl/work/xuq_lsu_dc_arr.vhdl
+      - rel/src/vhdl/work/xuq_lsu_cmp_cmp36e.vhdl
+      - rel/src/vhdl/work/mmq_spr.vhdl
+      - rel/src/vhdl/work/mmq_tlb_ctl.vhdl
+      - rel/src/vhdl/work/a2x_reset.vhdl
+      - rel/src/vhdl/work/fuq_rnd.vhdl
+    file_type : vhdlSource-2008
+
+targets:
+  default:
+    filesets : [ibm, support, clib, tri, rtl]
+
+  synth:
+    filesets : [ibm, support, clib, tri, rtl]
+    toplevel : a2x_axi
+    tools:
+      vivado:
+        pnr : none
