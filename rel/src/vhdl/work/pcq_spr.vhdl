@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--
+--  Description: Pervasive Core SPRs and slowSPR Interface
+--
+--*****************************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library ibm;
@@ -21,11 +26,12 @@ use tri.tri_latches_pkg.all;
 
 entity pcq_spr is
 generic(regmode     : integer := 6;
-        expand_type : integer := 2 ); 
+        expand_type : integer := 2 ); -- 0 = ibm umbra, 1 = xilinx, 2 = ibm mpg
 port(
      vdd                        : inout power_logic;
      gnd                        : inout power_logic;
      nclk                       : in  clk_logic;
+     -- pervasive signals
      scan_dis_dc_b              : in  std_ulogic;
      lcb_clkoff_dc_b            : in  std_ulogic;
      lcb_mpw1_dc_b              : in  std_ulogic;
@@ -36,6 +42,7 @@ port(
      pc_pc_sg_0                 : in  std_ulogic;
      func_scan_in               : in  std_ulogic;
      func_scan_out              : out std_ulogic;
+     -- slowSPR Interface
      slowspr_val_in             : in  std_ulogic;
      slowspr_rw_in              : in  std_ulogic;
      slowspr_etid_in            : in  std_ulogic_vector(0 to 1);
@@ -48,6 +55,7 @@ port(
      slowspr_addr_out           : out std_ulogic_vector(0 to 9);
      slowspr_data_out           : out std_ulogic_vector(64-(2**regmode) to 63);
      slowspr_done_out           : out std_ulogic;
+     -- register outputs
      sp_rg_trace_bus_enable     : out std_ulogic;
      pc_fu_instr_trace_mode     : out std_ulogic;
      pc_fu_instr_trace_tid      : out std_ulogic_vector(0 to 1);
@@ -68,6 +76,7 @@ port(
      pc_rp_event_bus_enable     : out std_ulogic;
      pc_xu_event_bus_enable     : out std_ulogic;
      sp_db_event_bus_enable     : out std_ulogic;
+     -- Trace/Trigger Signals
      dbg_spr                    : out   std_ulogic_vector(0 to 46)
 );
 
@@ -79,6 +88,11 @@ end pcq_spr;
 
 
 architecture pcq_spr of pcq_spr is
+--=====================================================================
+-- Signal Declarations
+--=====================================================================
+-- Scan Ring Constants:
+-- Register sizes
 constant cesr_size              : positive :=  32;
 constant aesr_size              : positive :=  32;
 constant iesr1_size             : positive :=  24;
@@ -91,6 +105,7 @@ constant xesr3_size             : positive :=  24;
 constant xesr4_size             : positive :=  24;
 constant pc_data_size           : positive :=  2**regmode;
 
+-- start of func scan chain ordering
 constant slowspr_val_offset     : natural := 0;
 constant slowspr_rw_offset      : natural := slowspr_val_offset  + 1;
 constant slowspr_etid_offset    : natural := slowspr_rw_offset   + 1;
@@ -114,12 +129,16 @@ constant xesr2_offset           : natural := xesr1_offset + xesr1_size;
 constant xesr3_offset           : natural := xesr2_offset + xesr2_size;
 constant xesr4_offset           : natural := xesr3_offset + xesr3_size;
 constant func_right             : natural := xesr4_offset + xesr4_size - 1;
+-- end of func scan chain ordering
 
 constant CESR_MASK              : std_ulogic_vector(32 to 63) := "11111111111111111111111111111111";
 constant EVENTMUX_32_MASK       : std_ulogic_vector(32 to 63) := "11111111111111111111111111111111";
 constant EVENTMUX_64_MASK       : std_ulogic_vector(32 to 63) := "11111111111111111111000000000000";
 constant EVENTMUX_128_MASK      : std_ulogic_vector(32 to 63) := "11111111111111111111111100000000";
 
+----------------------------
+-- signals
+----------------------------
 signal slowspr_val_d    : std_ulogic;
 signal slowspr_val_l2   : std_ulogic;
 signal slowspr_rw_d     : std_ulogic;
@@ -219,6 +238,7 @@ signal xesr4_d          : std_ulogic_vector(32 to 32+xesr4_size-1);
 signal xesr4_l2         : std_ulogic_vector(32 to 32+xesr4_size-1);
 signal xesr4_out        : std_ulogic_vector(32 to 63);
 
+-- misc, pervasive signals
 signal tiup                     : std_ulogic;
 signal pc_pc_func_sl_thold_0_b  : std_ulogic;
 signal force_func               : std_ulogic;
@@ -230,6 +250,9 @@ begin
 
 tiup    <= '1';
 
+-------------------------------------------------
+-- latches
+-------------------------------------------------
 slowspr_val_reg: tri_rlmlatch_p
   generic map (init => 0, expand_type => expand_type)
   port map (vd      => vdd,
@@ -604,6 +627,9 @@ xesr4_reg: tri_ser_rlmreg_p
             din         => xesr4_d,
             dout        => xesr4_l2);
 
+-------------------------------------------------
+-- inputs + staging
+-------------------------------------------------
 slowspr_val_d   <= slowspr_val_in;
 slowspr_rw_d    <= slowspr_rw_in;
 slowspr_etid_d  <= slowspr_etid_in;
@@ -619,6 +645,9 @@ pc_data_d       <= slowspr_data_l2 or pc_data_int;
 pc_done_d       <= slowspr_done_l2 or pc_done_int;
 
 
+-------------------------------------------------
+-- outputs
+-------------------------------------------------
 slowspr_val_out   <= pc_val_l2;
 slowspr_rw_out    <= pc_rw_l2;
 slowspr_etid_out  <= pc_etid_l2;
@@ -626,6 +655,7 @@ slowspr_addr_out  <= pc_addr_l2;
 slowspr_data_out  <= pc_data_l2;
 slowspr_done_out  <= pc_done_l2;
 
+-- Event Select Controls
 sp_rg_trace_bus_enable    <= cesr_out(36);
 
 pc_fu_instr_trace_mode    <= cesr_out(37);
@@ -652,22 +682,28 @@ pc_xu_lsu_event_mux_ctrls <= xesr3_out(32 to 55) & xesr4_out(32 to 55);
 sp_db_event_mux_ctrls     <= cesr_out(40 to 63);
 
 
-cesr_sel     <= slowspr_val_l2 and slowspr_addr_l2 = "1110010000";   
-aesr_sel     <= slowspr_val_l2 and slowspr_addr_l2 = "1110010001";   
-iesr1_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110010010";   
-iesr2_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110010011";   
-mesr1_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110010100";   
-mesr2_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110010101";   
-xesr1_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110010110";   
-xesr2_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110010111";   
-xesr3_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110011000";   
-xesr4_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110011001";   
+-------------------------------------------------
+-- register select
+-------------------------------------------------
+cesr_sel     <= slowspr_val_l2 and slowspr_addr_l2 = "1110010000";   -- 912
+aesr_sel     <= slowspr_val_l2 and slowspr_addr_l2 = "1110010001";   -- 913
+iesr1_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110010010";   -- 914
+iesr2_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110010011";   -- 915
+mesr1_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110010100";   -- 916
+mesr2_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110010101";   -- 917
+xesr1_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110010110";   -- 918
+xesr2_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110010111";   -- 919
+xesr3_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110011000";   -- 920
+xesr4_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110011001";   -- 921
 
 pc_done_int  <= cesr_sel  or aesr_sel  or iesr1_sel or iesr2_sel or
                 mesr1_sel or mesr2_sel or xesr1_sel or xesr2_sel or
                 xesr3_sel or xesr4_sel;
 
 
+-------------------------------------------------
+-- register write
+-------------------------------------------------
 cesr_wren    <=  cesr_sel   and  slowspr_rw_l2 = '0';
 aesr_wren    <=  aesr_sel   and  slowspr_rw_l2 = '0';
 iesr1_wren   <=  iesr1_sel  and  slowspr_rw_l2 = '0';
@@ -691,6 +727,9 @@ xesr3_d      <=  EVENTMUX_128_MASK(32 to 32+xesr3_size-1)  and  slowspr_data_l2(
 xesr4_d      <=  EVENTMUX_128_MASK(32 to 32+xesr4_size-1)  and  slowspr_data_l2(32 to 32+xesr4_size-1);
 
 
+-------------------------------------------------
+-- register read
+-------------------------------------------------
 cesr_rden    <=  cesr_sel     and  slowspr_rw_l2 = '1';
 aesr_rden    <=  aesr_sel     and  slowspr_rw_l2 = '1';
 iesr1_rden   <=  iesr1_sel    and  slowspr_rw_l2 = '1';
@@ -732,14 +771,21 @@ end generate;
 pc_data_int(32 to 63)   <= pc_reg_data(32 to 63);
 
 
-   dbg_spr      <=     slowspr_val_l2                   & 
-                       slowspr_rw_l2                    & 
-                       slowspr_etid_l2(0 to 1)          & 
-                       slowspr_addr_l2(0 to 9)          & 
-                       slowspr_data_l2(32 to 63)        & 
-                       pc_done_l2                       ; 
+--=====================================================================
+-- Trace/Trigger Signals
+--=====================================================================
+   dbg_spr      <=     slowspr_val_l2                   & --    0
+                       slowspr_rw_l2                    & --    1
+                       slowspr_etid_l2(0 to 1)          & --  2:3
+                       slowspr_addr_l2(0 to 9)          & --  4:13
+                       slowspr_data_l2(32 to 63)        & -- 14:45
+                       pc_done_l2                       ; -- 46
 
 
+--=====================================================================
+-- Thold/SG Staging
+--=====================================================================
+-- func_slp lcbor
 lcbor_funcslp: tri_lcbor
 generic map (expand_type => expand_type )
 port map (
@@ -751,8 +797,13 @@ port map (
     thold_b  => pc_pc_func_sl_thold_0_b );
 
 
+--=====================================================================
+-- Scan Connections
+--=====================================================================
+-- Func ring
 func_siv(0 TO func_right) <=  func_scan_in & func_sov(0 to func_right-1);
 func_scan_out  <=  func_sov(func_right) and scan_dis_dc_b;
 
 
+-----------------------------------------------------------------------
 end pcq_spr;

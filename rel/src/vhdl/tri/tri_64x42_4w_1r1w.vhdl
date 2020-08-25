@@ -19,10 +19,12 @@ entity tri_64x42_4w_1r1w is
 generic(
    expand_type                         : integer :=  1);
 port (
+   -- Power
    vdd                                 : INOUT power_logic; 
    vcs                                 : INOUT power_logic; 
    gnd                                 : INOUT power_logic; 
 
+   -- Clock Pervasive
    nclk                                : in clk_logic;
    sg_0                                : in  std_ulogic;
    abst_sl_thold_0                     : in  std_ulogic;
@@ -30,15 +32,18 @@ port (
    time_sl_thold_0                     : in  std_ulogic;
    repr_sl_thold_0                     : in  std_ulogic;
 
+   -- Reads
    rd0_act                             : in std_ulogic;
    rd0_adr                             : in std_ulogic_vector(0 to 5);  
    do0                                 : out std_ulogic_vector(0 to 167);
    
+   -- Writes
    wr_way                              : in std_ulogic_vector (0 to 3);
    wr_act            		       : in std_ulogic;
    wr_adr            		       : in std_ulogic_vector(0 to 5);    		
    di                		       : in std_ulogic_vector(0 to 167);
      
+   -- Scan
    abst_scan_in                        : in  std_ulogic;
    abst_scan_out                       : out std_ulogic;
    time_scan_in                        : in  std_ulogic;
@@ -46,6 +51,7 @@ port (
    repr_scan_in                        : in  std_ulogic;
    repr_scan_out                       : out std_ulogic;
    
+   -- Misc Pervasive
    scan_dis_dc_b                       : in  std_ulogic;
    scan_diag_dc                        : in  std_ulogic;
    ccflush_dc                          : in  std_ulogic;
@@ -60,14 +66,15 @@ port (
    ary1_mpw2_dc_b                      : in  std_ulogic;
    ary1_delay_lclkr_dc                 : in  std_ulogic_vector(0 to 4);
 
+   -- BOLT-ON
    lcb_bolt_sl_thold_0                 : in  std_ulogic;
-   pc_bo_enable_2                      : in  std_ulogic; 
-   pc_bo_reset                         : in  std_ulogic; 
-   pc_bo_unload                        : in  std_ulogic; 
-   pc_bo_repair                        : in  std_ulogic; 
-   pc_bo_shdata                        : in  std_ulogic; 
-   pc_bo_select                        : in  std_ulogic_vector(0 to 1); 
-   bo_pc_failout                       : out std_ulogic_vector(0 to 1); 
+   pc_bo_enable_2                      : in  std_ulogic; -- general bolt-on enable
+   pc_bo_reset                         : in  std_ulogic; -- reset
+   pc_bo_unload                        : in  std_ulogic; -- unload sticky bits
+   pc_bo_repair                        : in  std_ulogic; -- execute sticky bit decode
+   pc_bo_shdata                        : in  std_ulogic; -- shift data for timing write and diag loop
+   pc_bo_select                        : in  std_ulogic_vector(0 to 1); -- select for mask and hier writes
+   bo_pc_failout                       : out std_ulogic_vector(0 to 1); -- fail/no-fix reg
    bo_pc_diagloop                      : out std_ulogic_vector(0 to 1);
    tri_lcb_mpw1_dc_b                   : in  std_ulogic;
    tri_lcb_mpw2_dc_b                   : in  std_ulogic;
@@ -75,6 +82,7 @@ port (
    tri_lcb_clkoff_dc_b                 : in  std_ulogic;
    tri_lcb_act_dis_dc                  : in  std_ulogic;
 
+   -- ABIST
    abist_di                            : in  std_ulogic_vector(0 to 3);
    abist_bw_odd                        : in  std_ulogic;
    abist_bw_even                       : in  std_ulogic;
@@ -103,7 +111,7 @@ a : if expand_type = 1 generate
 component RAMB16_S36_S36
 -- pragma translate_off
 generic(
-		SIM_COLLISION_CHECK : string := "none"); 
+		SIM_COLLISION_CHECK : string := "none"); -- all, none, warning_only, GENERATE_X_ONLY
 -- pragma translate_on
 port(
 		DOA : out std_logic_vector(31 downto 0);
@@ -137,6 +145,7 @@ signal bdo0, bdo1, bdo2, bdo3             : std_logic_vector(0 to 71);
 signal bdi0, bdi1, bdi2, bdi3             : std_ulogic_vector(0 to 71);
 signal sreset                             : std_ulogic;
 signal tidn                               : std_ulogic_vector(36 to 65);
+-- Latches
 signal reset_q                            : std_ulogic;
 signal gate_fq,         gate_d            : std_ulogic;
 signal bdo_d,           bdo_fq            : std_ulogic_vector(0 to 167);
@@ -227,6 +236,7 @@ with gate_fq select
 bram0a : ramb16_s36_s36
 -- pragma translate_off
 generic map(
+-- all, none, warning_only, generate_x_only
    sim_collision_check => "none")
 -- pragma translate_on
 port map(
@@ -253,6 +263,7 @@ port map(
 bram0b : ramb16_s36_s36
 -- pragma translate_off
 generic map(
+-- all, none, warning_only, generate_x_only
    sim_collision_check => "none")
 -- pragma translate_on
 port map(
@@ -279,6 +290,7 @@ port map(
 bram0c : ramb16_s36_s36
 -- pragma translate_off
 generic map(
+-- all, none, warning_only, generate_x_only
    sim_collision_check => "none")
 -- pragma translate_on
 port map(
@@ -306,6 +318,7 @@ port map(
 bram0d : ramb16_s36_s36
 -- pragma translate_off
 generic map(
+-- all, none, warning_only, generate_x_only
    sim_collision_check => "none")
 -- pragma translate_on
 port map(
@@ -356,7 +369,3 @@ unused <= or_reduce( sg_0 & abst_sl_thold_0 & ary_nsl_thold_0 & time_sl_thold_0 
 end generate;
 
 end architecture tri_64x42_4w_1r1w;
-
-
-
-

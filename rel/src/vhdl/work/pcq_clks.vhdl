@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--
+--  Description: Pervasive Core LCB Controls
+--
+--*****************************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library support;
@@ -15,7 +20,7 @@ library tri;
 use tri.tri_latches_pkg.all;
 
 entity pcq_clks is
-generic(expand_type             : integer := 2          
+generic(expand_type             : integer := 2          -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
 );         
 port(
     vdd                         : inout power_logic;
@@ -37,6 +42,7 @@ port(
     rg_ck_fast_xstop            : in    std_ulogic;
     ct_ck_pm_ccflush_disable    : in    std_ulogic;
     ct_ck_pm_raise_tholds       : in    std_ulogic;
+-- Thold + control from bolton frontend
     bolton_enable_dc            : in    std_ulogic;
     bolton_enable_sync          : in    std_ulogic;
     bolton_ccflush              : in    std_ulogic;
@@ -50,6 +56,7 @@ port(
     bo_pc_time_sl_thold_6       : in    std_ulogic;
     bo_pc_repr_sl_thold_6       : in    std_ulogic;
     bo_pc_sg_6                  : in    std_ulogic;
+--  --Thold + control outputs to the units
     pc_xu_ccflush_dc            : out   std_ulogic;
     pc_xu_gptr_sl_thold_3       : out   std_ulogic;
     pc_xu_time_sl_thold_3       : out   std_ulogic;
@@ -126,6 +133,7 @@ port(
     pc_pc_cfg_sl_thold_0        : out   std_ulogic;
     pc_pc_cfg_slp_sl_thold_0    : out   std_ulogic;
     pc_pc_sg_0                  : out   std_ulogic;
+--  --Trace/Trigger Signals
     dbg_clks_ctrls              : out   std_ulogic_vector(0 to 13)
 );
 
@@ -210,6 +218,7 @@ port map(
     rg_ck_fast_xstop            =>  rg_ck_fast_xstop,
     ct_ck_pm_ccflush_disable    =>  ct_ck_pm_ccflush_disable,
     ct_ck_pm_raise_tholds       =>  ct_ck_pm_raise_tholds,       
+--  --Thold + control outputs to the units
     pc_pc_ccflush_out_dc        =>  pc_pc_ccflush_out_dc,
     pc_pc_gptr_sl_thold_4       =>  pc_pc_gptr_sl_thold_4,     
     pc_pc_time_sl_thold_4       =>  pc_pc_time_sl_thold_4,     
@@ -256,6 +265,7 @@ port map(
     pc_pc_rtim_sl_thold_4       =>  pc_pc_rtim_sl_thold_4,
     pc_pc_sg_4                  =>  pc_pc_sg_4,                
     pc_pc_fce_4                 =>  pc_pc_fce_4,               
+-- Thold + control from bolton frontend
     bolton_enable               =>  bolton_enable_sync,
     bolton_fcshdata             =>  bolton_fcshdata,
     bolton_fcreset              =>  bolton_fcreset,
@@ -267,6 +277,7 @@ port map(
     bo_pc_time_sl_thold_4       =>  bo_pc_time_sl_thold_4,
     bo_pc_repr_sl_thold_4       =>  bo_pc_repr_sl_thold_4,
     bo_pc_sg_4                  =>  bo_pc_sg_4,
+--  --Thold + control outputs to the units
     pc_xu_ccflush_dc            =>  pc_xu_ccflush_dc,          
     pc_xu_gptr_sl_thold_3       =>  pc_xu_gptr_sl_thold_3,     
     pc_xu_time_sl_thold_3       =>  pc_xu_time_sl_thold_3,     
@@ -420,13 +431,15 @@ lvl5to4_plat: tri_plat
            ); 
 
 
-   dbg_clks_ctrls <= ccenable_dc                  &     
-                     gsd_test_enable_dc           &     
-                     gsd_test_acmode_dc           &     
-                     lbist_en_dc                  &     
-                     lbist_ip_dc                  &     
-                     scan_type_dc(0 to 7)         &     
-                     rg_ck_fast_xstop             ;     
+--=====================================================================
+-- Trace/Trigger Signals
+--=====================================================================
+   dbg_clks_ctrls <= ccenable_dc                  &     -- 0
+                     gsd_test_enable_dc           &     -- 1
+                     gsd_test_acmode_dc           &     -- 2
+                     lbist_en_dc                  &     -- 3
+                     lbist_ip_dc                  &     -- 4
+                     scan_type_dc(0 to 7)         &     -- 5:12
+                     rg_ck_fast_xstop             ;     -- 13
        
 end pcq_clks;
-

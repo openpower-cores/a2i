@@ -9,6 +9,14 @@
 
 			
 
+--********************************************************************
+--*
+--* TITLE: IU Microcode
+--*
+--* NAME: iuq_uc.vhdl
+--*
+--*********************************************************************
+
 library ieee,ibm,support,tri,work;
 use ieee.std_logic_1164.all;
 use ibm.std_ulogic_unsigned.all;
@@ -85,6 +93,7 @@ end iuq_uc;
 ARCHITECTURE IUQ_UC
           OF IUQ_UC
           IS
+--@@  Signal Declarations
 SIGNAL GET_ADDRESS_PT                    : STD_ULOGIC_VECTOR(1 TO 96)  := 
 (OTHERS=> 'U');
 SIGNAL ROM_ISSUE_TABLE_PT                : STD_ULOGIC_VECTOR(1 TO 16)  := 
@@ -134,6 +143,7 @@ constant trace_bus_enable_offset: natural := spare_offset + 12;
 constant scan_right             : natural := trace_bus_enable_offset + 1 - 1;
 signal trace_bus_enable_d                   : std_ulogic;
 signal trace_bus_enable_q                   : std_ulogic;
+-- Latches
 signal iu_pc_err_ucode_illegal_d         : std_ulogic_vector(0 to 3);
 signal iu_pc_err_ucode_illegal_l2        : std_ulogic_vector(0 to 3);
 signal fiss_uc_is2_ucode_vld_d  : std_ulogic;
@@ -231,21 +241,148 @@ signal uc_dbg_data_d    : std_ulogic_vector(44 to 59);
 signal uc_dbg_data_l2   : std_ulogic_vector(44 to 59);
 -- synopsys translate_off
 -- synopsys translate_on
-  BEGIN 
+  BEGIN --@@ START OF EXECUTABLE CODE FOR IUQ_UC
 
 tiup  <=  '1';
 act_dis  <=  '0';
 d_mode  <=  '0';
 mpw2_b  <=  '1';
+-----------------------------------------------------------------------
+-- latch inputs
+-----------------------------------------------------------------------
 fiss_uc_is2_ucode_vld_d  <=  fiss_uc_is2_ucode_vld;
 fiss_uc_is2_tid_d        <=  fiss_uc_is2_tid and not xu_iu_flush;
 fiss_uc_is2_instr_d      <=  fiss_uc_is2_instr;
 fiss_uc_is2_2ucode_d     <=  fiss_uc_is2_2ucode;
 fiss_uc_is2_2ucode_type_d  <=  fiss_uc_is2_2ucode_type;
+-----------------------------------------------------------------------
+-- select thread
+-----------------------------------------------------------------------
 load_command  <=  gate_and(fiss_uc_is2_ucode_vld_l2, fiss_uc_is2_tid_l2);
+-- output
 uc_flush_tid  <=  gate_and(fiss_uc_is2_ucode_vld_l2, fiss_uc_is2_tid_l2);
 early_end  <=  not late_end;
+-- If '1', will skip lines with skip_cond bit set
 new_cond  <=  not fiss_uc_is2_2ucode_type_l2;
+-----------------------------------------------------------------------
+-- look up address
+-----------------------------------------------------------------------
+--
+-- Final Table Listing
+--      *INPUTS*===========================================*OUTPUTS*==================*
+--      |                                                  |                          |
+--      | fiss_uc_is2_instr_l2                             | start_addr               |
+--      | |      fiss_uc_is2_instr_l2                      | |                        |
+--      | |      |            fiss_uc_is2_2ucode_l2        | |          xer_type      |
+--      | |      |            | fiss_uc_is2_2ucode_type_l2 | |          | late_end    | # For update form, etc.
+--      | |      |            | |                          | |          | | force_ep  |
+--      | |      |            | |                          | |          | | | uc_legal|
+--      | |      22222222233  | |                          | |          | | | |       |
+--      | 012345 12345678901  | |                          | 0123456789 | | | |       |
+--      *TYPE*=============================================+==========================+
+--      | PPPPPP PPPPPPPPPPP  P P                          | SSSSSSSSSS S S S S       |
+--      *POLARITY*---------------------------------------->| ++++++++++ + + + +       |
+--      *PHASE*------------------------------------------->| TTTTTTTTTT T T T T       |
+--      *TERMS*============================================+==========================+
+--    1 | 011111 10-1011111-  - -                          | .......... . . 1 .       |
+--    2 | 011111 0000111010-  - -                          | .....111.. . . . .       |
+--    3 | 011111 1000010101-  - -                          | .....1..11 1 . . .       |
+--    4 | 011111 0101110101-  1 -                          | ...1..11.. . 1 . 1       |
+--    5 | -11111 01-1111010-  - -                          | .....11... . . . .       |
+--    6 | 011111 1000000000-  - -                          | .11.1..... . 1 . 1       |
+--    7 | 000-00 11-1001110-  - -                          | 111.1111.. . 1 . 1       |
+--    8 | 011111 0000110101-  1 -                          | ...11..1.. . 1 . 1       |
+--    9 | 011111 1110010110-  - -                          | ...111.1.. . . . .       |
+--   10 | -11111 0111111010-  - -                          | .1..1..... . 1 . 1       |
+--   11 | 011111 00-00111-1-  - -                          | .......... . . 1 .       |
+--   12 | 011111 1010-10111-  - -                          | ......1..1 . . . .       |
+--   13 | 011111 0--0011111-  - -                          | .......... . . 1 .       |
+--   14 | 011111 0101-10111-  - -                          | .....1.1.. . . . .       |
+--   15 | 011111 1000-10111-  - -                          | .......11. . . . .       |
+--   16 | 011111 0101010101-  - -                          | ...1..11.. . . . 1       |
+--   17 | 011111 0101110101-  0 -                          | 1....111.. . 1 . 1       |
+--   18 | -11111 0000110101-  0 -                          | 1...1..... . 1 . 1       |
+--   19 | 011111 0010011010-  - -                          | .1.11..... . 1 . 1       |
+--   20 | 011111 1000010100-  - -                          | ...11..1.. . . . 1       |
+--   21 | 011111 010-110111-  1 -                          | ......1.11 . 1 . 1       |
+--   22 | 011111 0000110111-  1 -                          | ....11.1.. . 1 . 1       |
+--   23 | 011111 0000110111-  0 -                          | 1....11... . 1 . 1       |
+--   24 | 011111 010-110111-  0 -                          | 1....1.... . 1 . 1       |
+--   25 | -11111 0-01111010-  - -                          | .1........ . 1 . 1       |
+--   26 | 011111 0000-11010-  - -                          | ..11...... . 1 . 1       |
+--   27 | 011111 0010111010-  - -                          | .1.1.11... . 1 . 1       |
+--   28 | 011111 10-1-10111-  - -                          | ....1..... . . . .       |
+--   29 | 011111 10--110111-  - -                          | .......... . 1 . .       |
+--   30 | 011111 1010010110-  - -                          | ..1..1.11. . . . 1       |
+--   31 | 011111 0011111100-  - -                          | .1.11.1... . 1 . 1       |
+--   32 | 011111 1000010110-  - -                          | ....11.1.. . . . 1       |
+--   33 | 011111 11-0010110-  - -                          | ......1.11 . . . 1       |
+--   34 | 011111 011001-111-  - -                          | ...111.1.. . . . .       |
+--   35 | 011111 1010010100-  - -                          | ..1.1.11.1 . . . 1       |
+--   36 | 011111 010-010111-  - -                          | ......1.11 . . . 1       |
+--   37 | 111111 0010000000-  - -                          | 111.11.1.1 . 1 . 1       |
+--   38 | 011111 1011010101-  - -                          | 1..1.1.1.. . 1 . 1       |
+--   39 | 011111 0001110111-  - -                          | 1.....11.. . 1 . 1       |
+--   40 | 011111 000001-101-  - -                          | ...11..1.. . . . 1       |
+--   41 | 011111 0010110111-  - -                          | ..1..1.11. . 1 . 1       |
+--   42 | 011111 1010010101-  - -                          | 1..11..1.. 1 1 . 1       |
+--   43 | 111111 1011000111-  - -                          | 111.111... . 1 . 1       |
+--   44 | 011111 0010110101-  - -                          | ..1.1.11.1 . 1 . 1       |
+--   45 | 011111 001001-111-  - -                          | ..1..1.11. . . . 1       |
+--   46 | 111111 00-0100000-  - -                          | 111.111... . 1 . 1       |
+--   47 | 011111 000001-111-  - -                          | ....11.1.. . . . 1       |
+--   48 | 011111 01-001-111-  - -                          | ......1.11 . . . 1       |
+--   49 | 011111 101101-111-  - -                          | 11.11...1. . . . 1       |
+--   50 | 011111 1101010111-  - -                          | 1.111.1... . 1 . 1       |
+--   51 | 100001 -----------  0 -                          | .......1.. . . . .       |
+--   52 | 111111 0000-00000-  - -                          | 111.111... . 1 . 1       |
+--   53 | 011111 100101-111-  - -                          | 11..1.1... . . . 1       |
+--   54 | 011111 001001-101-  - -                          | ..1.1.11.1 . . . 1       |
+--   55 | 011111 1111010111-  - -                          | 11..11.11. . 1 . 1       |
+--   56 | 011111 1101110111-  - -                          | 1.1111..11 . 1 . 1       |
+--   57 | 011111 101--10111-  - -                          | 11.1....1. . . . 1       |
+--   58 | 011111 100--10111-  - -                          | 11....1... . . . 1       |
+--   59 | 011111 0110110111-  - -                          | ...1111111 . 1 . 1       |
+--   60 | -11111 100-010101-  - -                          | 1...1.1... . 1 . 1       |
+--   61 | 10000- -----------  1 -                          | ....1.1... . . . .       |
+--   62 | 11-010 ---------01  0 -                          | 1.....1... . . . 1       |
+--   63 | 10-001 -----------  0 -                          | 1.......1. . . . .       |
+--   64 | 111-11 11-10-1110-  - -                          | 111.111... . 1 . 1       |
+--   65 | 11-011 -----1--10-  - -                          | .....1.... . . . .       |
+--   66 | 100000 -----------  - -                          | ....1.1... . . . 1       |
+--   67 | 111-10 ---------01  - -                          | .......... . 1 . .       |
+--   68 | 101011 -----------  0 -                          | 1......1.. . . . .       |
+--   69 | 111010 ---------10  - -                          | ...1...... . 1 . 1       |
+--   70 | 10101- -----------  1 -                          | .....1.1.. . . . .       |
+--   71 | 111010 ---------00  - -                          | ...1.11... . . . 1       |
+--   72 | 000-00 -----0-0-1-  - -                          | 111.111... . 1 . 1       |
+--   73 | 101010 -----------  - -                          | .....1.1.. . . . .       |
+--   74 | 111010 ---------0-  1 -                          | ...1.11... . . . 1       |
+--   75 | 111-11 -----1-1-0-  - -                          | ....1..... . . . .       |
+--   76 | 000-00 -----11--0-  - -                          | 111.111... . 1 . 1       |
+--   77 | 000-00 -----111---  - -                          | 111.111... . 1 . 1       |
+--   78 | 000-00 -----1-10--  - -                          | 111.111... . 1 . 1       |
+--   79 | 10010- -----------  - -                          | ..1...1.1. . . . 1       |
+--   80 | 11001- -----------  - -                          | .....11..1 . . . .       |
+--   81 | 111110 ---------0-  - -                          | ..1.1....1 . . . 1       |
+--   82 | 110--1 -----------  - -                          | .......... . 1 . .       |
+--   83 | 101--1 -----------  - -                          | .......... . 1 . .       |
+--   84 | 1-0-01 -----------  - -                          | .......... . 1 . 1       |
+--   85 | 10110- -----------  - -                          | ...111.1.. . . . .       |
+--   86 | 101110 -----------  - -                          | 1...1..1.. . 1 . .       |
+--   87 | 101111 -----------  - -                          | 1..1.1.... . . . .       |
+--   88 | 111-11 -----10-10-  - -                          | 1111...... . 1 . 1       |
+--   89 | 11011- -----------  - -                          | .....1.11. . . . .       |
+--   90 | 1-0011 -----------  - -                          | 1......... . 1 . 1       |
+--   91 | 1100-- -----------  - -                          | 11......1. . . . 1       |
+--   92 | 101--- -----------  - -                          | .......... . . . 1       |
+--   93 | 1101-- -----------  - -                          | 11.1...... . . . 1       |
+--   94 | 111-11 -----11--0-  - -                          | 111.111... . 1 . 1       |
+--   95 | 111-11 -----111---  - -                          | 111.111... . 1 . 1       |
+--   96 | 111-11 -----1-10--  - -                          | 111.111... . 1 . 1       |
+--      *=============================================================================*
+--
+-- Table GET_ADDRESS Signal Assignments for Product Terms
 MQQ1:GET_ADDRESS_PT(1) <=
     Eq(( FISS_UC_IS2_INSTR_L2(0) & FISS_UC_IS2_INSTR_L2(1) & 
     FISS_UC_IS2_INSTR_L2(2) & FISS_UC_IS2_INSTR_L2(3) & 
@@ -998,6 +1135,7 @@ MQQ96:GET_ADDRESS_PT(96) <=
     FISS_UC_IS2_INSTR_L2(5) & FISS_UC_IS2_INSTR_L2(26) & 
     FISS_UC_IS2_INSTR_L2(28) & FISS_UC_IS2_INSTR_L2(29)
      ) , STD_ULOGIC_VECTOR'("11111110"));
+-- Table GET_ADDRESS Signal Assignments for Outputs
 MQQ97:START_ADDR(0) <= 
     (GET_ADDRESS_PT(7) OR GET_ADDRESS_PT(17)
      OR GET_ADDRESS_PT(18) OR GET_ADDRESS_PT(23)
@@ -1237,6 +1375,9 @@ MQQ110:UC_LEGAL <=
      OR GET_ADDRESS_PT(94) OR GET_ADDRESS_PT(95)
      OR GET_ADDRESS_PT(96));
 
+-----------------------------------------------------------------------
+-- illegal op
+-----------------------------------------------------------------------
 iu_pc_err_ucode_illegal_d         <=  gate_and(fiss_uc_is2_ucode_vld_l2 and not uc_legal, fiss_uc_is2_tid_l2);
 err_ucode_illegal: tri_direct_err_rpt
   generic map (width => 4, expand_type => expand_type)
@@ -1245,6 +1386,9 @@ err_ucode_illegal: tri_direct_err_rpt
             gd          => gnd,
             err_in      => iu_pc_err_ucode_illegal_L2,
             err_out     => iu_pc_err_ucode_illegal);
+-----------------------------------------------------------------------
+-- create instruction
+-----------------------------------------------------------------------
 xu_iu_flush_d            <=  xu_iu_flush;
 xu_iu_ucode_restart_d    <=  xu_iu_ucode_restart;
 xu_iu_uc_flush_ifar0_d   <=  xu_iu_uc_flush_ifar0;
@@ -1447,6 +1591,85 @@ port map(
    hold_thread          => uc_ic_hold_thread(3),
    uc_control_dbg_data  => uc_control_dbg_data3
 );
+-----------------------------------------------------------------------
+-- ROM Priority
+-----------------------------------------------------------------------
+--     ?TABLE rom_issue_table LISTING(final) OPTIMIZE PARMS(ON-SET, OFF-SET);
+--     *INPUTS*=====++===========*OUTPUTS*==========*
+--     |                         |                  |
+--     | romtoken_L2             |                  |
+--     | |  vld_mask             |  romtoken_d      |
+--     | |  |                    |  |               |
+--     | |  |                    |  |               |
+--     | |  |                    |  |               |
+--     | |  |                    |  |               |
+--     | |  |                    |  |               |
+--     | 01 0123                 |  01              |
+--     *TYPE*=====++=============+==================+
+--     | SS SSSS                 |  SS              |
+--     *TERMS*==++===============+==================+
+--     | 00 0000                 |  00              |
+--     | 00 .001                 |  11              |
+--     | 00 .01.                 |  10              |
+--     | 00 .1..                 |  01              |
+--     | 00 1000                 |  00              |
+--     |                         |                  |
+--     | 01 0000                 |  01              |
+--     | 01 ..01                 |  11              |
+--     | 01 ..1.                 |  10              |
+--     | 01 0100                 |  01              |
+--     | 01 1.00                 |  00              |
+--     |                         |                  |
+--     | 10 0000                 |  10              |
+--     | 10 ...1                 |  11              |
+--     | 10 0010                 |  10              |
+--     | 10 01.0                 |  01              |
+--     | 10 1..0                 |  00              |
+--     |                         |                  |
+--     | 11 0000                 |  11              |
+--     | 11 0001                 |  11              |
+--     | 11 001.                 |  10              |
+--     | 11 01..                 |  01              |
+--     | 11 1...                 |  00              |
+--     |                         |                  |
+--     *END*=====================+==================+
+--     ?TABLE END rom_issue_table;
+--
+-- Final Table Listing
+--           *INPUTS*====================*OUTPUTS*==========*
+--           |                           |                  |
+--           | romtoken_L2               |                  |
+--           | |    vld_fast             |  romtoken_d      |
+--           | |    |                    |  |               |
+--           | |    |                    |  |               |
+--           | |    |                    |  |               |
+--           | |    |                    |  |               |
+--           | |    |                    |  |               |
+--           | 0123 0123                 |  0123            |
+--           *TYPE*======================+==================+
+--           | SSSS SSSS                 |  SSSS            |
+--           *POLARITY*----------------->|  ++++            |
+--           *PHASE*-------------------->|  TTTT            |
+--           *TERMS*=====================+==================+
+--    1      | ---1 01--                 |  .1..            |
+--    2      | --1- 1--0                 |  1...            |
+--    3      | --00 -01-                 |  ..1.            |
+--    4      | -1-- 0-00                 |  .1..            |
+--    5      | 1--- -001                 |  ...1            |
+--    6      | --1- 00-0                 |  ..1.            |
+--    7      | ---1 000-                 |  ...1            |
+--    8      | 1--- -000                 |  1...            |
+--    9      | -1-- --01                 |  ...1            |
+--   10      | 0--- 1-00                 |  1...            |
+--   11      | -0-- 01-0                 |  .1..            |
+--   12      | --0- 001-                 |  ..1.            |
+--   13      | -1-- --1-                 |  ..1.            |
+--   14      | ---1 1---                 |  1...            |
+--   15      | 1--- -1--                 |  .1..            |
+--   16      | --1- ---1                 |  ...1            |
+--           *==============================================*
+--
+-- Table ROM_ISSUE_TABLE Signal Assignments for Product Terms
 MQQ111:ROM_ISSUE_TABLE_PT(1) <=
     Eq(( ROMTOKEN_L2(3) & VLD_FAST(0) & 
     VLD_FAST(1) ) , STD_ULOGIC_VECTOR'("101"));
@@ -1504,6 +1727,7 @@ MQQ125:ROM_ISSUE_TABLE_PT(15) <=
 MQQ126:ROM_ISSUE_TABLE_PT(16) <=
     Eq(( ROMTOKEN_L2(2) & VLD_FAST(3)
      ) , STD_ULOGIC_VECTOR'("11"));
+-- Table ROM_ISSUE_TABLE Signal Assignments for Outputs
 MQQ127:ROMTOKEN_D(0) <= 
     (ROM_ISSUE_TABLE_PT(2) OR ROM_ISSUE_TABLE_PT(8)
      OR ROM_ISSUE_TABLE_PT(10) OR ROM_ISSUE_TABLE_PT(14)
@@ -1530,6 +1754,9 @@ uc_any_act  <=  or_reduce(uc_act);
 rom_act  <=  uc_any_act;
 rom_data_tid  <=  romtoken_L2;
 data_valid  <=  romvalid_l2 and rom_data_tid;
+-----------------------------------------------------------------------
+-- ROM Lookup
+-----------------------------------------------------------------------
 uc_rom: entity work.iuq_uc_rom
   generic map( ucode_width => ucode_width,
                regmode     => regmode,
@@ -1552,6 +1779,9 @@ port map(
    rom_data             => rom_data
 );
 rom_data_late_d          <=  rom_data(0 to 31);
+-----------------------------------------------------------------------
+-- Staging latches
+-----------------------------------------------------------------------
 iu4_stage_act  <=  or_reduce(data_valid);
 iu4_valid_tid_d  <=  ucode_valid and not xu_iu_flush_d;
 iu4_is_ucode_d   <=  gate_and(rom_data_tid(0), ucode_is_ucode0) or
@@ -1566,6 +1796,7 @@ iu4_ext_d        <=  gate_and(rom_data_tid(0), ucode_ext0) or
                    gate_and(rom_data_tid(1), ucode_ext1) or 
                    gate_and(rom_data_tid(2), ucode_ext2) or 
                    gate_and(rom_data_tid(3), ucode_ext3) ;
+--late data
 iu4_data_tid_d   <=  rom_data_tid;
 iu4_instr_l2     <=  gate_and(iu4_data_tid_l2(0), ucode_instr0) or 
                    gate_and(iu4_data_tid_l2(1), ucode_instr1) or 
@@ -1576,12 +1807,19 @@ uc_ib_iu4_ifar  <=  iu4_ifar_l2;
 uc_ib_iu4_instr  <=  iu4_instr_l2;
 uc_ib_iu4_is_ucode  <=  iu4_is_ucode_l2;
 uc_ib_iu4_ext  <=  iu4_ext_l2;
+-----------------------------------------------------------------------
+-- IB Buffer Flush
+-----------------------------------------------------------------------
+-- Only need to flush if ucode uses more ifar bits than kept in each buffer
 ib_flush  <=  "0000";
 iu5_ifar_l2  <=  (others => '0');
 sov(iu5_valid_tid_offset TO iu5_valid_tid_offset+4-1) <= 
       siv(iu5_valid_tid_offset to iu5_valid_tid_offset + 4 - 1);
 sov(iu5_ifar_offset TO iu5_ifar_offset+iu5_ifar_l2'length-1) <= 
       siv(iu5_ifar_offset to iu5_ifar_offset + iu5_ifar_l2'length-1);
+-----------------------------------------------------------------------
+-- Debug
+-----------------------------------------------------------------------
 ib_uc_buff_avail_d  <=  ib_uc_buff0_avail & ib_uc_buff1_avail & ib_uc_buff2_avail & ib_uc_buff3_avail;
 uc_dbg_data(0 TO 3) <=  uc_control_dbg_data0;
 uc_dbg_data(4 TO 7) <=  uc_control_dbg_data1;
@@ -1602,6 +1840,9 @@ uc_dbg_data(74) <=  iu4_ifar_l2(48);
 uc_dbg_data(75 TO 79) <=  iu4_ifar_l2(43 to 47);
 uc_dbg_data(80 TO 83) <=  iu4_valid_tid_l2;
 uc_dbg_data(84 TO 87) <=  romtoken_l2;
+-----------------------------------------------------------------------
+-- Latches
+-----------------------------------------------------------------------
 iu_pc_err_ucode_illegal_0_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 0, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1670,6 +1911,7 @@ iu_pc_err_ucode_illegal_3_latch:   tri_rlmlatch_p
             scout   => sov(iu_pc_err_ucode_illegal_offset + 3),
             din     => iu_pc_err_ucode_illegal_d(3),
             dout    => iu_pc_err_ucode_illegal_l2(3));
+-- For Debug only
 ib_uc_buff_avail_latch: tri_rlmreg_p
   generic map (width => ib_uc_buff_avail_l2'length, init => 0, needs_sreset => 0, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1789,6 +2031,7 @@ xu_iu_uc_flush_ifar3_latch: tri_rlmreg_p
             scout   => sov(xu_iu_uc_flush_ifar3_offset to xu_iu_uc_flush_ifar3_offset + xu_iu_uc_flush_ifar3_l2'length-1),
             din     => xu_iu_uc_flush_ifar3_d,
             dout    => xu_iu_uc_flush_ifar3_l2);
+-- Input staging latches
 fiss_uc_is2_ucode_vld_latch: tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1874,6 +2117,7 @@ fiss_uc_is2_2ucode_type_latch: tri_rlmlatch_p
             scout   => sov(fiss_uc_is2_2ucode_type_offset),
             din     => fiss_uc_is2_2ucode_type_d,
             dout    => fiss_uc_is2_2ucode_type_l2);
+-- ROM priority
 romtoken_latch: tri_rlmreg_p
   generic map (width => romtoken_l2'length, init => 8, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1925,6 +2169,7 @@ rom_data_late_latch: tri_rlmreg_p
             scout   => sov(rom_data_late_offset to rom_data_late_offset + rom_data_late_l2'length-1),
             din     => rom_data_late_d,
             dout    => rom_data_late_l2);
+-- Staging latches
 iu4_valid_tid_0_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2113,6 +2358,9 @@ spare_latch: tri_rlmreg_p
             scout   => sov(spare_offset to spare_offset + spare_l2'length-1),
             din     => spare_l2,
             dout    => spare_l2);
+-----------------------------------------------------------------------
+-- pervasive thold/sg latches
+-----------------------------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 2, expand_type => expand_type)
   port map (vd          => vdd,
@@ -2141,7 +2389,9 @@ perv_lcbor: tri_lcbor
             act_dis     => act_dis,
             forcee => forcee,
             thold_b     => pc_iu_func_sl_thold_0_b);
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv(0 TO scan_right+5) <=  sov(1 to scan_right+5) & scan_in;
 scan_out  <=  sov(0) and an_ac_scan_dis_dc_b;
 END IUQ_UC;
-

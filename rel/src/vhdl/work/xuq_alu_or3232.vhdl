@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU ALU or reduce component
+--
 LIBRARY ieee;       USE ieee.std_logic_1164.all;
                     use ieee.numeric_std.all;
 LIBRARY ibm;        
@@ -19,9 +21,9 @@ use tri.tri_latches_pkg.all;
 
 entity xuq_alu_or3232 is  generic(expand_type: integer := 2 );   port (
 
-        d            :in  std_ulogic_vector(0 to 63) ;
-        or_hi_b      :out std_ulogic ;
-        or_lo_b      :out std_ulogic  
+        d            :in  std_ulogic_vector(0 to 63) ;--data
+        or_hi_b      :out std_ulogic ;-- upper 32 ORed together
+        or_lo_b      :out std_ulogic  -- lower 32 ORed together
 );
 
 -- synopsys translate_off
@@ -37,12 +39,6 @@ architecture xuq_alu_or3232 of xuq_alu_or3232 is
    signal or_lv3_b :std_ulogic_vector(0 to  7) ;
    signal or_lv4   :std_ulogic_vector(0 to  3) ;
    signal or_lv5_b :std_ulogic_vector(0 to  1) ;
-
-
-
-
-
-
 
 
 begin
@@ -116,7 +112,7 @@ begin
  u_or_15:    or_lv5_b( 0) <= not(    or_lv4  ( 0) or     or_lv4  ( 1) );
  u_or_47:    or_lv5_b( 1) <= not(    or_lv4  ( 2) or     or_lv4  ( 3) );
 
- or_hi_b <=    or_lv5_b(0); 
- or_lo_b <=    or_lv5_b(1); 
+ or_hi_b <=    or_lv5_b(0); -- rename --output--
+ or_lo_b <=    or_lv5_b(1); -- rename --output--
 
 end architecture xuq_alu_or3232;

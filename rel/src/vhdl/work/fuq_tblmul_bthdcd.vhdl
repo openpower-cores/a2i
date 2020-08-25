@@ -52,8 +52,31 @@ ARCHITECTURE fuq_tblmul_bthdcd OF fuq_tblmul_bthdcd IS
 
 
 BEGIN
+--//    -- 000  add  sh1=0 sh2=0  sub_adj=0
+--//    -- 001  add  sh1=1 sh2=0  sub_adj=0
+--//    -- 010  add  sh1=1 sh2=0  sub_adj=0
+--//    -- 011  add  sh1=0 sh2=1  sub_adj=0
+--//    -- 100  sub  sh1=0 sh2=1  sub_adj=1
+--//    -- 101  sub  sh1=1 sh2=0  sub_adj=1
+--//    -- 110  sub  sh1=1 sh2=0  sub_adj=1
+--//    -- 111  sub  sh1=0 sh2=0  sub_adj=0
+--//
+--//    s_neg    <= (     i0                       );
+--//
+--//    s_x      <= (            not i1 and     i2 ) or
+--//                (                i1 and not i2 );
+--//    s_x2     <= (     i0 and not i1 and not i2 ) or
+--//                ( not i0 and     i1 and     i2 );
+--//
+--//    sub_adj  <= i0 and not( i1 and i2 );
+--//
 
 
+-- logically correct
+------------------------------------
+--  s_neg <= (i0);
+--  s_x   <= (       not i1 and     i2) or (           i1 and not i2);
+--  s_x2  <= (i0 and not i1 and not i2) or (not i0 and i1 and     i2);
 
 
 u_0i: i0_b <= not( i0 );
@@ -78,8 +101,3 @@ u_sx2_ii: s_x2     <= not( sx2_i );
 
 
 END;
-
-
-
-
-

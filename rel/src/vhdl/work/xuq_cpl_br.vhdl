@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Branch Unit
+--
 library ieee,ibm,support,work,tri;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -24,8 +26,10 @@ generic(
     uc_ifar                         :     integer := 21;
    regsize                          :     integer := 64);
 port(
+   -- Clocks
    nclk                             : in  clk_logic;
 
+   -- Pervasive
    d_mode_dc                        : in  std_ulogic;
    delay_lclkr_dc                   : in  std_ulogic;
    mpw1_dc_b                        : in  std_ulogic;
@@ -70,6 +74,7 @@ port(
    
    br_debug                         : out std_ulogic_vector(0 to 11);
 
+   -- Power
    vdd                              : inout power_logic;
    gnd                              : inout power_logic
 );
@@ -88,6 +93,7 @@ signal ex1_is_branch_cond_q,  ex1_is_branch_cond_d    : std_ulogic;
 signal ex1_xu_ifar_q                                  : std_ulogic_vector(62-eff_ifar to 61);   
 signal ex2_br_flush_q,        ex2_br_flush_d          : std_ulogic_vector(0 to threads-1);
 signal ex2_br_flush_ifar_q,   ex2_br_flush_ifar_d     : std_ulogic_vector(62-eff_ifar to 61);   
+-- Scanchains
 constant ex1_instr_offset                          : integer := 0;
 constant ex1_is_b_offset                           : integer := ex1_instr_offset               + ex1_instr_q'length;
 constant ex1_is_bcctr_offset                       : integer := ex1_is_b_offset                + 1;
@@ -99,8 +105,10 @@ constant ex1_ifar_offset                           : integer := ex1_is_branch_co
 constant ex2_br_flush_offset                       : integer := ex1_ifar_offset                + ex1_xu_ifar_q'length;
 constant ex2_br_flush_ifar_offset                  : integer := ex2_br_flush_offset            + ex2_br_flush_q'length;
 constant scan_right                                : integer := ex2_br_flush_ifar_offset       + ex2_br_flush_ifar_q'length;
+-- Scanchains
 signal siv                                         : std_ulogic_vector(0 to scan_right-1);
 signal sov                                         : std_ulogic_vector(0 to scan_right-1);
+-- Signals
 signal tiup                                        : std_ulogic;
 signal rf1_ctr                                     : std_ulogic_vector(64-regsize to 63);
 signal rf1_instr                                   : std_ulogic_vector(0 to 31);
@@ -124,13 +132,21 @@ tiup <= '1';
 
 rf1_instr      <= dec_cpl_rf1_instr;
 
+--          T(AA=1)           T(AA=0)              NT
+--==========================================================
+-- b        IMM(6:29)         CIA+IMM(6:29)        N/A
+-- bc       IMM(16:29)        CIA+IMM(16:29)       CIA+4
+-- bclr                 LR                         CIA+4
+-- bcctr                CTR                        CIA+4
 
-rf1_opcode_is_19  <=                                  rf1_instr( 0 to  5)  = "010011";                
-rf1_is_b          <= '1' when                         rf1_instr( 0 to  5)  = "010010"     else '0';   
-rf1_is_bc         <= '1' when                         rf1_instr( 0 to  5)  = "010000"     else '0';   
-rf1_is_bcctr      <= '1' when rf1_opcode_is_19  and   rf1_instr(21 to 30)  = "1000010000" else '0';   
-rf1_is_bclr       <= '1' when rf1_opcode_is_19  and   rf1_instr(21 to 30)  = "0000010000" else '0';   
+-- Deocodes
+rf1_opcode_is_19  <=                                  rf1_instr( 0 to  5)  = "010011";                -- 19
+rf1_is_b          <= '1' when                         rf1_instr( 0 to  5)  = "010010"     else '0';   -- 18
+rf1_is_bc         <= '1' when                         rf1_instr( 0 to  5)  = "010000"     else '0';   -- 16
+rf1_is_bcctr      <= '1' when rf1_opcode_is_19  and   rf1_instr(21 to 30)  = "1000010000" else '0';   -- 19/528
+rf1_is_bclr       <= '1' when rf1_opcode_is_19  and   rf1_instr(21 to 30)  = "0000010000" else '0';   -- 19/16
 
+-- The CTR is always decremented before the test
 rf1_msr_cm                 <= or_reduce(spr_msr_cm and rf1_tid);
 rf1_ctr                    <= mux_t(spr_ctr,rf1_tid);
 rf1_ctr_low_zero           <= not or_reduce(rf1_ctr(32 to 62));
@@ -192,7 +208,7 @@ ex1_br_taken               <= (ex1_taken and ex1_is_branch_cond_q) or ex1_is_b_q
 ex1_br_update              <= ex1_is_b_q or (ex1_is_branch_cond_q and ex1_taken);
 ex1_is_bcctr               <= ex1_is_bcctr_q;
 ex1_is_bclr                <= ex1_is_bclr_q;
-ex1_ctr_dec_update         <= ex1_is_branch_cond_q and not ex1_instr_q(8); 
+ex1_ctr_dec_update         <= ex1_is_branch_cond_q and not ex1_instr_q(8); -- !B02
 ex1_lr_update              <= (ex1_is_branch_cond_q or ex1_is_b_q) and ex1_instr_q(31);
 ex1_instr                  <= ex1_instr_q;
 
@@ -201,6 +217,7 @@ mark_unused(ex1_ctr(62 to 63));
 
 br_debug                   <= rf1_msr_cm & rf1_ctr_low_zero & rf1_ctr_hi_zero & rf1_ctr_one & ex1_ctr_ok_q & ex1_taken & ex1_pred_taken_cnt_q & byp_cpl_ex1_cr_bit & ex2_br_flush_q;
                   
+-- Latch Instances
 ex1_instr_latch : tri_rlmreg_p
   generic map (width => ex1_instr_q'length, init => 0, expand_type => expand_type, needs_sreset => 1)
   port map (nclk    => nclk, vd => vdd, gd => gnd,

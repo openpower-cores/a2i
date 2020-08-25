@@ -18,21 +18,46 @@ entity tri_144x78_2r2w is
 generic(
    expand_type                         :     integer :=  1);
 port (
+   -- Clocks and Scan Cntls  -----------------------------------------------------------------
    vdd                            :inout power_logic;    
    gnd                            :inout power_logic;    
    nclk                           :in   clk_logic;                 
-   abist_en                       :in   std_ulogic;  
-   abist_raw_dc_b                 :in   std_ulogic;  
-   r0e_abist_comp_en              :in   std_ulogic;  
-   r1e_abist_comp_en              :in   std_ulogic;  
-   lbist_en                      :in   std_ulogic;  
+   abist_en                       :in   std_ulogic;  -- when abist tested
+   abist_raw_dc_b                 :in   std_ulogic;  -- during abist (disables the xor in miser)
+   r0e_abist_comp_en              :in   std_ulogic;  -- when abist tested
+   r1e_abist_comp_en              :in   std_ulogic;  -- when abist tested
+   lbist_en                      :in   std_ulogic;  -- for LBIST mode
 
+   -- LCB Signals --------------- Rd & Wr domains use same LCB controls -----------------------
    lcb_act_dis_dc                 :in   std_ulogic; 
    lcb_clkoff_dc_b                :in   std_ulogic_vector(0 to 1);
+                                        --0 other
    lcb_d_mode_dc                  :in   std_ulogic;
-   lcb_delay_lclkr_dc             :in   std_ulogic_vector(0 to 9); 
+                                        --0 all other
+                                        --1 read address late <tie to pulse mode>
+   lcb_delay_lclkr_dc             :in   std_ulogic_vector(0 to 9); --<lclk delay>
+                                       -- 0: read  clk      lcb
+                                        -- 1: read  addr     lcb
+                                        -- 2: write clk  E   lcb
+                                        -- 3: write addr E   lcb
+                                        -- 4: write clk  L   lcb
+                                        -- 5: write addr L   lcb
+                                        -- 6: read  data 0   lcb
+                                        -- 7: read  data 1   lcb
+                                        -- 8: write data E   lcb
+                                        -- 9: write data L   lcb
    lcb_fce_0                      :in   std_ulogic; 
-   lcb_mpw1_dc_b                  :in   std_ulogic_vector(1 to 9); 
+   lcb_mpw1_dc_b                  :in   std_ulogic_vector(1 to 9); -- <clock shaping>
+                                        -- 0: none
+                                        -- 1: read  addr    lcb
+                                        -- 2: write clk  E  lcb
+                                        -- 3: write addr E  lcb
+                                        -- 4: write clk  L  lcb
+                                        -- 5: write addr L  lcb
+                                        -- 6: read  data 0  lcb
+                                        -- 7: write data 1  lcb
+                                        -- 8: write data E  lcb
+                                        -- 9: write data L  lcb
    lcb_mpw2_dc_b                  :in   std_ulogic; 
    lcb_scan_diag_dc               :in   std_ulogic; 
    lcb_scan_dis_dc_b              :in   std_ulogic; 
@@ -47,6 +72,7 @@ port (
    lcb_time_sl_thold_0            :in   std_ulogic; 
    lcb_ary_nsl_thold_0            :in   std_ulogic;  
 
+   -- Scan In ----------------------------------------------------------
    r_scan_in                      :in   std_ulogic;                 
    r_scan_out                     :out  std_ulogic;   
    w_scan_in                      :in   std_ulogic;                 
@@ -58,14 +84,15 @@ port (
    obs1_scan_in                   :in   std_ulogic; 
    obs1_scan_out                  :out  std_ulogic; 
 
+   -- BOLT-ON
    lcb_bolt_sl_thold_0            :in   std_ulogic;
-   pc_bo_enable_2                 :in   std_ulogic; 
-   pc_bo_reset                    :in   std_ulogic; 
+   pc_bo_enable_2                 :in   std_ulogic; -- general bolt-on enable, probably DC
+   pc_bo_reset                    :in   std_ulogic; -- execute sticky bit decode
    pc_bo_unload                   :in   std_ulogic;
    pc_bo_load                     :in   std_ulogic;
-   pc_bo_shdata                   :in   std_ulogic; 
-   pc_bo_select                   :in   std_ulogic; 
-   bo_pc_failout                  :out  std_ulogic; 
+   pc_bo_shdata                   :in   std_ulogic; -- shift data for timing write
+   pc_bo_select                   :in   std_ulogic; -- select for mask and hier writes
+   bo_pc_failout                  :out  std_ulogic; -- fail/no-fix reg
    bo_pc_diagloop                 :out  std_ulogic;
    tri_lcb_mpw1_dc_b              :in    std_ulogic;
    tri_lcb_mpw2_dc_b              :in    std_ulogic;
@@ -73,28 +100,31 @@ port (
    tri_lcb_clkoff_dc_b            :in    std_ulogic;
    tri_lcb_act_dis_dc             :in    std_ulogic;
 
+   -- Read Port: 0 -----------------------------------------------------
    r0e_act                        :in   std_ulogic;                 
    r0e_en_func                    :in   std_ulogic;                 
    r0e_en_abist                   :in   std_ulogic;                 
    r0e_addr_func                  :in   std_ulogic_vector(0 to 7);  
    r0e_addr_abist                 :in   std_ulogic_vector(0 to 7);   
    r0e_data_out                   :out  std_ulogic_vector(0 to 77); 
-   r0e_byp_e                      :in   std_ulogic; 
-   r0e_byp_l                      :in   std_ulogic; 
+   r0e_byp_e                      :in   std_ulogic; --// bypass control
+   r0e_byp_l                      :in   std_ulogic; --// bypass control
    r0e_byp_r                      :in   std_ulogic;
    r0e_sel_lbist                  :in   std_ulogic; 
 
+   -- Read Port: 1 -----------------------------------------------------
    r1e_act                        :in   std_ulogic;                 
    r1e_en_func                    :in   std_ulogic;                 
    r1e_en_abist                   :in   std_ulogic;                 
    r1e_addr_func                  :in   std_ulogic_vector(0 to 7);  
    r1e_addr_abist                 :in   std_ulogic_vector(0 to 7);   
    r1e_data_out                   :out  std_ulogic_vector(0 to 77);
-   r1e_byp_e                      :in   std_ulogic; 
-   r1e_byp_l                      :in   std_ulogic; 
+   r1e_byp_e                      :in   std_ulogic; --// bypass control
+   r1e_byp_l                      :in   std_ulogic; --// bypass control
    r1e_byp_r                      :in   std_ulogic;
    r1e_sel_lbist                  :in   std_ulogic; 
 
+   -- Write Port: 0 ---------------------------------------------------- EARLY
    w0e_act                        :in   std_ulogic;                 
    w0e_en_func                    :in   std_ulogic;                 
    w0e_en_abist                   :in   std_ulogic;                 
@@ -124,7 +154,7 @@ a : if expand_type = 1 generate
 component RAMB16_S36_S36
 -- pragma translate_off
 	generic(
-		SIM_COLLISION_CHECK : string := "none"); 
+		SIM_COLLISION_CHECK : string := "none"); -- all, none, warning_only, GENERATE_X_ONLY
 -- pragma translate_on
 	port(
 		DOA : out std_logic_vector(31 downto 0);
@@ -181,10 +211,10 @@ signal  w0l_en_q                       : std_ulogic;
 signal  w0l_addr_q                     : std_ulogic_vector(0 to 7);
 signal  r1e_addr_q                     : std_ulogic_vector(0 to 7);
 
-signal   r0e_byp_e_q                   :   std_ulogic; 
-signal   r0e_byp_l_q                   :   std_ulogic; 
-signal   r1e_byp_e_q                   :   std_ulogic; 
-signal   r1e_byp_l_q                   :   std_ulogic; 
+signal   r0e_byp_e_q                   :   std_ulogic; --// bypass control
+signal   r0e_byp_l_q                   :   std_ulogic; --// bypass control
+signal   r1e_byp_e_q                   :   std_ulogic; --// bypass control
+signal   r1e_byp_l_q                   :   std_ulogic; --// bypass control
 signal   r0_byp_sel                    :   std_ulogic_vector(0 to 1);
 signal   r1_byp_sel                    :   std_ulogic_vector(0 to 1);
 
@@ -208,6 +238,7 @@ begin
 
    flipper_d <= not flipper_q;
 
+   -- Slow Latches (nclk)
    slatch: process (correct_clk,reset) begin
    if rising_edge(correct_clk) then
     if (reset = '1') then
@@ -246,6 +277,7 @@ begin
    end if;
    end process;
 
+   -- repower latches for resets
    rlatch: process (correct_clk) begin
     if(rising_edge(correct_clk)) then
       reset_q   <= reset_hi;
@@ -255,15 +287,18 @@ begin
    end process;
 
 
+   -- need to make 2 write ports
    addra(0)       <= '0';
-   addra(1 to 8)  <= (tconv((w0e_addr_func and (0 to  7 => flipper_q)) or (w0l_addr_q and (0 to  7 => not flipper_q))))  after 1 ns ; 
+   addra(1 to 8)  <= (tconv((w0e_addr_func and (0 to  7 => flipper_q)) or (w0l_addr_q and (0 to  7 => not flipper_q))))  after 1 ns ; --2 write ports (A)
    weaf           <= ((      w0e_en_func   and             flipper_q)  or (  w0l_en_q and             not  flipper_q))   after 1 ns;
    dinfa          <= (tconv((w0e_data_func and (0 to 77 => flipper_q)) or (w0l_data_q and (0 to 77 => not flipper_q))))  after 1 ns;
  
+   -- need to make 2 read ports
    dinfb          <= (others => '0');
    addrb0(0)      <= '0';
-   addrb0(1 to 8) <= (tconv((r0e_addr_func and (0 to 7 => flipper_q)) or (r1e_addr_q  and (0 to 7 => not flipper_q)))) after 1 ns ;  
+   addrb0(1 to 8) <= (tconv((r0e_addr_func and (0 to 7 => flipper_q)) or (r1e_addr_q  and (0 to 7 => not flipper_q)))) after 1 ns ;  --2 read ports (B)
 
+   --Bypass
    r0_byp_sel <= r0e_byp_e & r0e_byp_l;
    with r0_byp_sel select 
    r0e_data_out   <= w0e_data_q when "10",
@@ -280,6 +315,7 @@ begin
 U0 : RAMB16_S36_S36
 -- pragma translate_off
 generic map(
+-- all, none, warning_only, generate_x_only
    sim_collision_check => "none")
 -- pragma translate_on
 	port map 
@@ -306,6 +342,7 @@ generic map(
 U1 : RAMB16_S36_S36
 -- pragma translate_off
 generic map(
+-- all, none, warning_only, generate_x_only
    sim_collision_check => "none")
 -- pragma translate_on
 
@@ -337,6 +374,7 @@ dinfa0_par(64 to 95) <= dinfa(64 to 77) & (78 to 95 => '0');
 U2 : RAMB16_S36_S36
 -- pragma translate_off
 generic map(
+-- all, none, warning_only, generate_x_only
    sim_collision_check => "none")
 -- pragma translate_on
 	port map 

@@ -141,13 +141,13 @@ port(
      au_iu_is1_dep_hit                  : in std_ulogic;
      au_iu_is1_dep_hit_b                : in std_ulogic;  
      au_iu_is2_axubusy                  : in std_ulogic;   
-     iu_au_is1_hold                     : out std_ulogic;
      iu_au_is1_stall                    : out std_ulogic;
      fdep_fdec_buff_stall               : out std_ulogic;
      fdep_fdec_weak_stall               : out std_ulogic;
 
      xu_iu_slowspr_done                 : in std_ulogic;
      xu_iu_multdiv_done                 : in std_ulogic;
+     iu_au_is1_hold                     : out std_ulogic;
      xu_iu_loadmiss_vld			: in std_ulogic;                         
      xu_iu_loadmiss_qentry		: in std_ulogic_vector(0 to lmq_entries-1);
      xu_iu_loadmiss_target		: in std_ulogic_vector(0 to 5);
@@ -185,6 +185,7 @@ end iuq_fxu_dep;
 ARCHITECTURE IUQ_FXU_DEP
           OF IUQ_FXU_DEP
           IS
+--@@  Signal Declarations
 SIGNAL BARRIER_PT                        : STD_ULOGIC_VECTOR(1 TO 24)  := 
 (OTHERS=> 'U');
 SIGNAL SLOWSPR_TABLE_PT                  : STD_ULOGIC_VECTOR(1 TO 20)  := 
@@ -193,6 +194,7 @@ SIGNAL is_bar                            : STD_ULOGIC  :=
 'U';
 SIGNAL is_slowspr                        : STD_ULOGIC  := 
 'U';
+-- Scan chain connenctions
 constant is2_vld_offset                 : natural := 0;
 constant is2_instr_offset               : natural := is2_vld_offset + 1;
 constant is2_ta_vld_offset              : natural := is2_instr_offset + 32;
@@ -429,6 +431,9 @@ signal xu_barrier_d             : std_ulogic;
 signal xu_barrier_l2            : std_ulogic;
 signal en_dcr_d                 : std_ulogic;
 signal en_dcr_l2                : std_ulogic;
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Shadow Pipe		
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 type PIPE_STAGE is record
   i_nobyp_vld   : std_ulogic;                                 
   i_vld         : std_ulogic;                                 
@@ -470,19 +475,29 @@ signal sp_L2_LM						   : MACHINE_LM;
 signal loadmiss_qentry		: std_ulogic_vector(0 to lmq_entries-1);
 signal loadmiss_target          : std_ulogic_vector(0 to 5);
 signal loadmiss_complete	: std_ulogic_vector(0 to lmq_entries-1);
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- ISYNC
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 signal shadow_pipe_vld           : std_ulogic;
 signal sync_dep_hit              : std_ulogic;
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- barrier		
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 signal set_barrier               : std_ulogic;
 signal clr_barrier               : std_ulogic;
 signal barrier_d                 : std_ulogic;
 signal barrier_L2                : std_ulogic;
 signal barrier_in_progress       : std_ulogic;
 signal quiesce_barrier           : std_ulogic;
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- General Use		
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 subtype s2 is std_ulogic_vector(0 to 1);
 subtype s15 is std_ulogic_vector(0 to 14);
 signal quiesce_d                : std_ulogic;
 signal quiesce_l2               : std_ulogic;
 signal core64                   : std_ulogic;
+--mapping
 signal is1_force_ram_b                  : std_ulogic;
 signal is1_valid                        : std_ulogic;
 signal is1_dep                          : std_ulogic;
@@ -501,18 +516,26 @@ signal is2_iss_stall_b                  : std_ulogic;
 
 tiup  <=  '1';
 tidn  <=  '0';
+--64-bit mode
 c64: if (regmode = 6) generate
 begin
 core64                   <=  '1';
 end generate;
+--32-bit core
 c32: if (regmode = 5) generate
 begin
 core64                   <=  '0';
 end generate;
 en_dcr_d                 <=  xu_iu_spr_ccr2_en_dcr;
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Mmmmmmm IS1 Decode
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 is1_instr_is_ISYNC       <=  (fdec_fdep_is1_instr(0 to 5) = "010011") and (fdec_fdep_is1_instr(21 to 30) = "0010010110");
 is1_instr_is_SYNC        <=  (fdec_fdep_is1_instr(0 to 5) = "011111") and (fdec_fdep_is1_instr(21 to 30) = "1001010110");
 is1_instr_is_TLBSYNC     <=  (fdec_fdep_is1_instr(0 to 5) = "011111") and (fdec_fdep_is1_instr(21 to 30) = "1000110110");
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- RAW hazard dependency tree.  GPR, and VRF
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 raw_s1_cmp: entity work.iuq_fxu_dep_cmp(iuq_fxu_dep_cmp) 
 port map (
@@ -627,6 +650,9 @@ port map (
      ad_hit_b   => RAW_s3_hit_b
 );
 raw_dep_nand3:  RAW_dep_hit  <=  not(RAW_s1_hit_b and RAW_s2_hit_b and RAW_s3_hit_b);
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Dependency tree for branch related setters and users
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 lr_dep_hit  <=   (sp_L2(IS2).i_vld and fdec_fdep_is1_UsesLR  and sp_L2(IS2).UpdatesLR) or   
                (sp_L2(RF0).i_vld and fdec_fdep_is1_UsesLR  and sp_L2(RF0).UpdatesLR) or               
                (sp_L2(RF1).i_vld and fdec_fdep_is1_UsesLR  and sp_L2(RF1).UpdatesLR) or               
@@ -658,6 +684,9 @@ spr_dep_hit  <=  (sp_L2(IS2).i_vld and fdec_fdep_is1_UsesSPR  and sp_L2(IS2).Upd
                (sp_L2(EX1).i_vld and fdec_fdep_is1_UsesSPR  and sp_L2(EX1).UpdatesSPR) or               
                (sp_L2(EX2).i_vld and fdec_fdep_is1_UsesSPR  and sp_L2(EX2).UpdatesSPR);
 br_sprs_dep_hit  <=  lr_dep_hit or cr_dep_hit or ctr_dep_hit or xer_dep_hit or msr_dep_hit or spr_dep_hit;
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- WAW hazard dependency tree for load miss targets against instructions that could be issued under the load miss
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 waw_cmp: entity work.iuq_fxu_dep_cmp(iuq_fxu_dep_cmp) 
@@ -697,11 +726,22 @@ port map (
      ad_hit_b   => WAW_LMQ_dep_hit_b
 );
 WAW_LMQ_dep_hit  <=  not WAW_LMQ_dep_hit_b;
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- single instruction outstanding mode OR run control.  these two modes should not be used in concert
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 single_instr_mode_d      <=  xu_iu_single_instr_mode;
 single_instr_dep_hit     <=  ((shadow_pipe_vld or au_iu_is2_axubusy) and single_instr_mode_l2);
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- dep_hit calculation
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 dep_hit  <=  (not fdec_fdep_is1_force_ram and (RAW_dep_hit or WAW_LMQ_dep_hit or sync_dep_hit or single_instr_dep_hit or br_sprs_dep_hit or barrier_in_progress)) or au_iu_is1_dep_hit or internal_is2_stall;
 dep_hit_no_stall  <=  (not fdec_fdep_is1_force_ram and (RAW_dep_hit or WAW_LMQ_dep_hit or sync_dep_hit or single_instr_dep_hit or br_sprs_dep_hit or barrier_in_progress)) or au_iu_is1_dep_hit;
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- derivation of internal_is1_stall and dp_ib_instr_stall
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+--mapping
 is1_force_ram_b                          <=  not fdec_fdep_is1_force_ram;
+--is1 stall
 is1_valid                                <=  fdec_fdep_is1_vld or i_afd_is1_instr_v;
 is1_dep0_nor2:          is1_dep0_b       <=  not (RAW_dep_hit or br_sprs_dep_hit);
 is1_dep1_nor3:          is1_dep1_b       <=  not (sync_dep_hit or single_instr_dep_hit or barrier_in_progress);
@@ -709,13 +749,19 @@ is1_dep_nand3:          is1_dep          <=  not (WAW_LMQ_dep_hit_b and is1_dep0
 is1_stall_nand2:        is1_stall_b      <=  not (is1_dep and fdec_fdep_is1_vld and is1_force_ram_b);
 is2_stall_nand2:        is2_stall_b      <=  not (internal_is2_stall and is1_valid);
 fxu_stall_nand3:        iu_au_is1_stall  <=  not (au_iu_is1_dep_hit_b and is1_stall_b and is2_stall_b);
+--buffer stall
 buf_stall_nand3:        fdep_fdec_buff_stall  <=  not (au_iu_is1_dep_hit_b and is1_stall_b and is2_stall_b);
+--fxu dep hit
 fxu_dep0_nor2:          fxu_dep0_b       <=  not (RAW_dep_hit or br_sprs_dep_hit);
 fxu_dep1_nor3:          fxu_dep1_b       <=  not (sync_dep_hit or single_instr_dep_hit or barrier_in_progress);
 fxu_dep_nand3:          fxu_dep_hit      <=  not (WAW_LMQ_dep_hit_b and fxu_dep0_b and fxu_dep1_b);
 fxu_dep_nand2:          fxu_dep_hit_b    <=  not (fxu_dep_hit and is1_force_ram_b);
 xu_dep_hit                               <=  not fxu_dep_hit_b;
+--weak stall for clock gating
 fdep_fdec_weak_stall  <=  (sync_dep_hit or single_instr_dep_hit or barrier_in_progress) and fdec_fdep_is1_vld and is1_force_ram_b;
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Dependency shadow pipeline
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 loadmiss_qentry		 <=  gate_and(not xu_iu_ex5_flush and xu_iu_loadmiss_vld and xu_iu_loadmiss_target_type, xu_iu_loadmiss_qentry);
 loadmiss_target  	 <=  gate_and(not xu_iu_ex5_flush and xu_iu_loadmiss_vld and xu_iu_loadmiss_target_type, xu_iu_loadmiss_target);
 loadmiss_complete	 <=  gate_and(                        xu_iu_complete_vld and xu_iu_complete_target_type, xu_iu_complete_qentry);
@@ -873,6 +919,7 @@ end loop;
 
       
 end process sp_d_proc;
+--tie off unused SP signals
 unused(0 TO 4) <=  sp_L2(EX2).complete(0 to 4);
 
 is2_instr_proc : process (
@@ -1038,6 +1085,9 @@ end if;
 
 
 end process is2_instr_proc;
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Mmmmmmm IS2 Decode
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 mult_hole_barrier_d(0) <=  not xu_iu_is2_flush and (                                         mult_hole_barrier_L2(1));
 mult_hole_barrier_d(1) <=  not xu_iu_is2_flush and (                                         mult_hole_barrier_L2(2));
 mult_hole_barrier_d(2) <=  not xu_iu_is2_flush and (                                         mult_hole_barrier_L2(3));
@@ -1049,6 +1099,50 @@ mult_hole_barrier_act            <=  is2_mult_hole_barrier;
 is1_is_slowspr           <=  is_slowspr and (isMTSPR or isMFSPR);
 is1_is_barrier           <=  is_bar or is1_is_slowspr or fdec_fdep_is1_to_ucode;
 is2_instr_is_barrier     <=  is2_vld_l2 and is2_is_barrier_L2;
+--
+-- Final Table Listing
+--      *INPUTS*========================*OUTPUTS*==*
+--      |                               |          |
+--      | core64                        |          |
+--      | | en_dcr_l2                   |          |
+--      | | |                           |          |
+--      | | | fdec_fdep_is1_instr       | is_bar   |
+--      | | | |      fdec_fdep_is1_instr| |        |
+--      | | | |      |                  | |        |
+--      | | | |      22222222233        | |        |
+--      | | | 012345 12345678901        | |        |
+--      *TYPE*==========================+==========+
+--      | P P PPPPPP PPPPPPPPPPP        | S        |
+--      *POLARITY*--------------------->| +        |
+--      *PHASE*------------------------>| T        |
+--      *TERMS*=========================+==========+
+--    1 | - - 011111 11-1010-101        | 1        |
+--    2 | - - 011111 1111010-10-        | 1        |
+--    3 | - - 010011 000-100110-        | 1        |
+--    4 | 1 - 011111 000-010100-        | 1        |
+--    5 | - - 010011 000011001--        | 1        |
+--    6 | - - 010011 0010010110-        | 1        |
+--    7 | 1 - 011111 001-0101101        | 1        |
+--    8 | - - 011111 0000010100-        | 1        |
+--    9 | - - 011111 1-01010110-        | 1        |
+--   10 | 1 - 011111 -11--010-1-        | 1        |
+--   11 | - - 011111 1000110110-        | 1        |
+--   12 | - - 011111 0-100101101        | 1        |
+--   13 | - - 011111 1110110-101        | 1        |
+--   14 | - - 011111 00-0010010-        | 1        |
+--   15 | - 1 011111 01--000011-        | 1        |
+--   16 | - 1 011111 01-0-00011-        | 1        |
+--   17 | - - 011111 00-0110011-        | 1        |
+--   18 | - - 011111 0100001110-        | 1        |
+--   19 | - - 011111 -11--01011-        | 1        |
+--   20 | - - 011111 11-0010010-        | 1        |
+--   21 | - - 011111 1111011111-        | 1        |
+--   22 | - - 011111 1100110011-        | 1        |
+--   23 | - - 011111 1110-10010-        | 1        |
+--   24 | - - 010001 ---------1-        | 1        |
+--      *==========================================*
+--
+-- Table BARRIER Signal Assignments for Product Terms
 MQQ1:BARRIER_PT(1) <=
     Eq(( FDEC_FDEP_IS1_INSTR(0) & FDEC_FDEP_IS1_INSTR(1) & 
     FDEC_FDEP_IS1_INSTR(2) & FDEC_FDEP_IS1_INSTR(3) & 
@@ -1269,6 +1363,7 @@ MQQ24:BARRIER_PT(24) <=
     FDEC_FDEP_IS1_INSTR(2) & FDEC_FDEP_IS1_INSTR(3) & 
     FDEC_FDEP_IS1_INSTR(4) & FDEC_FDEP_IS1_INSTR(5) & 
     FDEC_FDEP_IS1_INSTR(30) ) , STD_ULOGIC_VECTOR'("0100011"));
+-- Table BARRIER Signal Assignments for Outputs
 MQQ25:IS_BAR <= 
     (BARRIER_PT(1) OR BARRIER_PT(2)
      OR BARRIER_PT(3) OR BARRIER_PT(4)
@@ -1286,6 +1381,42 @@ MQQ25:IS_BAR <=
 
 isMFSPR  <=  (fdec_fdep_is1_instr(0 to 5) = "011111") and (fdec_fdep_is1_instr(21 to 30) = "0101010011");
 isMTSPR  <=  (fdec_fdep_is1_instr(0 to 5) = "011111") and (fdec_fdep_is1_instr(21 to 30) = "0111010011");
+--
+-- Final Table Listing
+--         *INPUTS*=============*OUTPUTS*========*
+--         |                    |                |
+--         | fdec_fdep_is1_instr|                |
+--         | |                  |  is_slowspr    |
+--         | 1111211111         |  |             |
+--         | 6789012345         |  |             |
+--         *TYPE*===============+================+
+--         | PPPPPPPPPP         |  S             |
+--         *POLARITY*---------->|  +             |
+--         *PHASE*------------->|  T             |
+--         *TERMS*=*=*==========+================+
+--    1    | 01010111-0         |  1             |
+--    2    | 010101-101         |  1             |
+--    3    | 111--10100         |  1             |
+--    4    | 1001110-1-         |  1             |
+--    5    | 11-1111-00         |  1             |
+--    6    | 11-1110-11         |  1             |
+--    7    | 1-0111000-         |  1             |
+--    8    | 1-011101-0         |  1             |
+--    9    | 11100-0010         |  1             |
+--   10    | 000011100-         |  1             |
+--   11    | 1-10110000         |  1             |
+--   12    | 000011-000         |  1             |
+--   13    | 010011111-         |  1             |
+--   14    | 111--10011         |  1             |
+--   15    | 0101011-00         |  1             |
+--   16    | 0101010-1-         |  1             |
+--   17    | 1111-111--         |  1             |
+--   18    | 11011110--         |  1             |
+--   19    | -10111010-         |  1             |
+--   20    | 111-01----         |  1             |
+--         *=====================================*
+--
+-- Table SLOWSPR_TABLE Signal Assignments for Product Terms
 MQQ26:SLOWSPR_TABLE_PT(1) <=
     Eq(( FDEC_FDEP_IS1_INSTR(16) & FDEC_FDEP_IS1_INSTR(17) & 
     FDEC_FDEP_IS1_INSTR(18) & FDEC_FDEP_IS1_INSTR(19) & 
@@ -1403,6 +1534,7 @@ MQQ45:SLOWSPR_TABLE_PT(20) <=
     Eq(( FDEC_FDEP_IS1_INSTR(16) & FDEC_FDEP_IS1_INSTR(17) & 
     FDEC_FDEP_IS1_INSTR(18) & FDEC_FDEP_IS1_INSTR(20) & 
     FDEC_FDEP_IS1_INSTR(11) ) , STD_ULOGIC_VECTOR'("11101"));
+-- Table SLOWSPR_TABLE Signal Assignments for Outputs
 MQQ46:IS_SLOWSPR <= 
     (SLOWSPR_TABLE_PT(1) OR SLOWSPR_TABLE_PT(2)
      OR SLOWSPR_TABLE_PT(3) OR SLOWSPR_TABLE_PT(4)
@@ -1416,13 +1548,37 @@ MQQ46:IS_SLOWSPR <=
      OR SLOWSPR_TABLE_PT(19) OR SLOWSPR_TABLE_PT(20)
     );
 
+--   | 1101110010         |  1             | IAR        882
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- axu hold
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 iu_au_is1_hold  <=  (barrier_in_progress or single_instr_dep_hit);
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Creation of internal_is2_stall
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 is2_vld_b                                <=  not is2_vld_L2;
 fxu_iss_stall_nor2:     fxu_iss_stall    <=  not (fiss_fdep_is2_take or is2_vld_b);
 is2_iss_stall_nor2:     is2_iss_stall_b  <=  not (fxu_iss_stall or au_iu_issue_stall);
 internal_is2_stall                       <=  not is2_iss_stall_b;
 iu_au_is2_stall          <=  internal_is2_stall;
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- ISYNC
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Notes:
+--    ISYNC is a context synchronizing instruction.  Simple to implement in dependency.
+--    Just make ISYNC dependent on all instructions that are valid in the shadow pipe.
+--    Then it is allowed to issue.  The FXU generates an N+1 flush when ISYNC hits the
+--    appropriate flush point
 sync_dep_hit  <=  (is1_instr_is_ISYNC or is1_instr_is_SYNC or is1_instr_is_TLBSYNC) and (shadow_pipe_vld or au_iu_is2_axubusy);
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- BARRIER
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+--    Barrier is allowed to issue, it is not dependent on any instruction in front of it.
+--    When Barrier moves from IS1 to IS2 an IS2 latch is set that represents an barrier in
+--    progress.  This status bit is cleared by the IU when it is finished handling the barrier.
+--    barrier  inprogress is logically or'd into dep_hit.  Therefore when the IU is finished
+--    handling the barrier, the issue block will be released.  A flush will also cause
+--    barrier_in_progress to be cleared.
 sp_barrier_clr       <=  (xu_iu_rf0_flush and sp_L2(RF0).barrier) or
                        (xu_iu_rf1_flush and sp_L2(RF1).barrier) or
                        (xu_iu_ex1_flush and sp_L2(EX1).barrier) or
@@ -1459,6 +1615,9 @@ barrier_in_progress  <=  barrier_L2 or is2_instr_is_barrier or is2_mult_hole_bar
 quiesce_barrier      <=  barrier_L2 or is2_instr_is_barrier or is2_mult_hole_barrier or xu_barrier_L2;
 quiesce_d        <=  ic_fdep_load_quiesce and not quiesce_barrier and not au_iu_is2_axubusy;
 iu_xu_quiesce    <=  quiesce_L2;
+-----------------------------------
+-- Perf
+-----------------------------------
 perf_early_d(0) <=  dep_hit;
 perf_early_d(1) <=  fdec_fdep_is1_vld;
 perf_early_d(2) <=  internal_is2_stall;
@@ -1498,6 +1657,9 @@ perf_event_d(9) <=  perf_xu_dep_hit and perf_fdec_fdep_is1_vld;
 perf_event_d(10) <=  (perf_xu_dep_hit and perf_fdec_fdep_is1_vld) or perf_au_iu_is1_dep_hit;
 perf_event_d(11) <=  '0';
 fdep_perf_event(0 TO 11) <=  perf_event_l2(0 to 11);
+-----------------------------------
+-- Debug
+-----------------------------------
 fdep_dbg_data_d(0) <=  barrier_l2;
 fdep_dbg_data_d(1) <=  is2_instr_is_barrier;
 fdep_dbg_data_d(2) <=  is2_mult_hole_barrier;
@@ -1521,7 +1683,9 @@ fdep_dbg_data_d(19) <=  single_instr_dep_hit;
 fdep_dbg_data_d(20) <=  WAW_LMQ_dep_hit;
 fdep_dbg_data_d(21) <=  fdec_fdep_is1_force_ram;
 fdep_dbg_data(0 TO 21) <=  fdep_dbg_data_l2(0 to 21);
+-- Reduce power using act pins to hold state
 act_nonvalid  <=  fdec_fdep_is1_vld or i_afd_is1_instr_v;
+-- Latches
 is2_vld: tri_rlmlatch_p
   generic map (init => 0, expand_type => expand_type)
   port map (vd          => vdd,
@@ -1906,6 +2070,7 @@ is2_error: tri_rlmreg_p
             scout   => sov(is2_error_offset to is2_error_offset + is2_error_l2'length-1),
             din     => is2_error_d,
             dout    => is2_error_l2);
+--?generate begin a(IS2, RF0, RF1, EX1, EX2, EX3, EX4);
 sp_IS2_d                 <=  sp_d(IS2).i_nobyp_vld & sp_d(IS2).i_vld & sp_d(IS2).ta_vld & sp_d(IS2).ta &
                            sp_d(IS2).UpdatesLR & sp_d(IS2).UpdatesCR & sp_d(IS2).UpdatesCTR & sp_d(IS2).UpdatesXER & sp_d(IS2).UpdatesMSR & sp_d(IS2).UpdatesSPR &
                            sp_d(IS2).complete & sp_d(IS2).barrier;
@@ -2857,6 +3022,9 @@ spare_latch: tri_rlmreg_p
             scout   => sov(spare_offset to spare_offset + spare_l2'length-1),
             din     => spare_l2,
             dout    => spare_l2);
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Instruction routed to issue
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 fdep_fiss_is2_instr              <=  is2_instr_l2;
 fdep_fiss_is2_ta_vld             <=  is2_ta_vld_l2;
 fdep_fiss_is2_ta                 <=  is2_ta_l2;
@@ -2892,7 +3060,9 @@ fdep_fiss_is2_to_ucode           <=  is2_to_ucode_L2;
 fdep_fiss_is2_is_ucode           <=  is2_is_ucode_L2;
 fdep_fiss_is2early_vld           <=  fdec_fdep_is1_vld;
 fdep_fiss_is1_xu_dep_hit_b       <=  fxu_dep_hit_b;
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv(0 TO scan_right) <=  sov(1 to scan_right) & scan_in;
 scan_out  <=  sov(0);
 END IUQ_FXU_DEP;
-

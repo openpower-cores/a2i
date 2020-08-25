@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU SlowSPR Decode & Hole generation
+--
 library ieee,ibm,support,work,tri;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -45,6 +47,7 @@ port(
    ex1_is_slowspr_rd                : out std_ulogic;
    ex1_is_slowspr_wr                : out std_ulogic;
 
+   -- Power
    vdd                              : inout power_logic;
    gnd                              : inout power_logic
 );
@@ -57,19 +60,23 @@ architecture xuq_dec_sspr of xuq_dec_sspr is
 
 subtype s2        is std_ulogic_vector(0 to 1);
 type T_ctr  is array (0 to threads-1) of std_ulogic_vector(0 to ctr_size-1);
+-- Latches
 signal slowspr_ctr_q,         slowspr_ctr_d           : T_ctr;
-signal spr_xucr0_ssdly_q                              : std_ulogic_vector(0 to ctr_size-1);     
+signal spr_xucr0_ssdly_q                              : std_ulogic_vector(0 to ctr_size-1);     -- spr_dec_spr_xucr0_ssdly
 signal ex1_is_slowspr_wr_q,   rf1_is_slowspr_wr       : std_ulogic;
 signal ex1_is_slowspr_rd_q,   rf1_is_slowspr_rd       : std_ulogic;
 signal slowspr_hole_q,        slowspr_hole_d          : std_ulogic;
+-- Scanchains
 constant slowspr_ctr_offset                           : integer := 0;
 constant spr_xucr0_ssdly_offset                       : integer := slowspr_ctr_offset             + slowspr_ctr_q(0)'length*threads;
 constant ex1_is_slowspr_wr_offset                     : integer := spr_xucr0_ssdly_offset         + spr_xucr0_ssdly_q'length;
 constant ex1_is_slowspr_rd_offset                     : integer := ex1_is_slowspr_wr_offset       + 1;
 constant slowspr_hole_offset                          : integer := ex1_is_slowspr_rd_offset       + 1;
 constant scan_right                                   : integer := slowspr_hole_offset            + 1;
+-- Latch Instances
 signal siv                                            : std_ulogic_vector(0 to scan_right-1);
 signal sov                                            : std_ulogic_vector(0 to scan_right-1);
+-- Signals
 signal tiup                                           : std_ulogic;
 signal rf1_opcode_is_31                               : std_ulogic;
 signal rf1_is_mfspr,          rf1_is_mtspr            : std_ulogic;
@@ -135,6 +142,7 @@ begin
 
 tiup <= '1';
 
+-- Slow SPR Hole
 slowspr_hole_gen : for t in 0 to threads-1 generate
 
    rf1_sspr_ctr_act(t)     <= rf1_val(t) or not slowspr_ctr_zero(t);
@@ -144,9 +152,9 @@ slowspr_hole_gen : for t in 0 to threads-1 generate
    slowspr_ctr_m1(t)       <= std_ulogic_vector(unsigned(slowspr_ctr_q(t)) - 1);
 
    with s2'(rf1_sspr_ctr_init(t) & slowspr_ctr_zero(t)) select
-      slowspr_ctr_d(t)     <= slowspr_ctr_m1(t)       when "00",     
-                              (others=>'0')           when "01",     
-                              spr_xucr0_ssdly_q       when others;   
+      slowspr_ctr_d(t)     <= slowspr_ctr_m1(t)       when "00",     -- Decrement
+                              (others=>'0')           when "01",     -- Hold
+                              spr_xucr0_ssdly_q       when others;   -- Init
 
    slowspr_ctr_zero(t)     <= not or_reduce(slowspr_ctr_q(t));
    
@@ -163,60 +171,61 @@ slowspr_need_hole          <= slowspr_hole_q;
 ex1_is_slowspr_wr          <= ex1_is_slowspr_wr_q;
 ex1_is_slowspr_rd          <= ex1_is_slowspr_rd_q;
 
+-- Deocde
 rf1_opcode_is_31  <= rf1_instr(0 to 5) = "011111";
-rf1_is_mfspr      <= '1' when rf1_opcode_is_31='1' and rf1_instr(21 to 30) = "0101010011" else '0'; 
-rf1_is_mtspr      <= '1' when rf1_opcode_is_31='1' and rf1_instr(21 to 30) = "0111010011" else '0'; 
-rf1_slowspr_range <=((rf1_instr(16 to 20) =      "11110") or   
-                     (rf1_instr(16 to 20) =      "11100"))     
+rf1_is_mfspr      <= '1' when rf1_opcode_is_31='1' and rf1_instr(21 to 30) = "0101010011" else '0'; -- 31/339
+rf1_is_mtspr      <= '1' when rf1_opcode_is_31='1' and rf1_instr(21 to 30) = "0111010011" else '0'; -- 31/467
+rf1_slowspr_range <=((rf1_instr(16 to 20) =      "11110") or   -- 976-991
+                     (rf1_instr(16 to 20) =      "11100"))     -- 912-927
                                         and rf1_instr(11);
-rf1_dvc1_rdec     <= (rf1_instr(11 to 20) = "1111001001");   
-rf1_dvc2_rdec     <= (rf1_instr(11 to 20) = "1111101001");   
-rf1_eplc_rdec     <= (rf1_instr(11 to 20) = "1001111101");   
-rf1_epsc_rdec     <= (rf1_instr(11 to 20) = "1010011101");   
-rf1_eptcfg_rdec   <= (rf1_instr(11 to 20) = "1111001010");   
-rf1_immr_rdec     <= (rf1_instr(11 to 20) = "1000111011");   
-rf1_imr_rdec      <= (rf1_instr(11 to 20) = "1000011011");   
-rf1_iucr0_rdec    <= (rf1_instr(11 to 20) = "1001111111");   
-rf1_iucr1_rdec    <= (rf1_instr(11 to 20) = "1001111011");   
-rf1_iucr2_rdec    <= (rf1_instr(11 to 20) = "1010011011");   
-rf1_iudbg0_rdec   <= (rf1_instr(11 to 20) = "1100011011");   
-rf1_iudbg1_rdec   <= (rf1_instr(11 to 20) = "1100111011");   
-rf1_iudbg2_rdec   <= (rf1_instr(11 to 20) = "1101011011");   
-rf1_iulfsr_rdec   <= (rf1_instr(11 to 20) = "1101111011");   
-rf1_iullcr_rdec   <= (rf1_instr(11 to 20) = "1110011011");   
-rf1_lper_rdec     <= (rf1_instr(11 to 20) = "1100000001");   
-rf1_lperu_rdec    <= (rf1_instr(11 to 20) = "1100100001");   
-rf1_lpidr_rdec    <= (rf1_instr(11 to 20) = "1001001010");   
-rf1_lratcfg_rdec  <= (rf1_instr(11 to 20) = "1011001010");   
-rf1_lratps_rdec   <= (rf1_instr(11 to 20) = "1011101010");   
-rf1_mas0_rdec     <= (rf1_instr(11 to 20) = "1000010011");   
-rf1_mas0_mas1_rdec<= (rf1_instr(11 to 20) = "1010101011");   
-rf1_mas1_rdec     <= (rf1_instr(11 to 20) = "1000110011");   
-rf1_mas2_rdec     <= (rf1_instr(11 to 20) = "1001010011");   
-rf1_mas2u_rdec    <= (rf1_instr(11 to 20) = "1011110011");   
-rf1_mas3_rdec     <= (rf1_instr(11 to 20) = "1001110011");   
-rf1_mas4_rdec     <= (rf1_instr(11 to 20) = "1010010011");   
-rf1_mas5_rdec     <= (rf1_instr(11 to 20) = "1001101010");   
-rf1_mas5_mas6_rdec<= (rf1_instr(11 to 20) = "1110001010");   
-rf1_mas6_rdec     <= (rf1_instr(11 to 20) = "1011010011");   
-rf1_mas7_rdec     <= (rf1_instr(11 to 20) = "1000011101");   
-rf1_mas7_mas3_rdec<= (rf1_instr(11 to 20) = "1010001011");   
-rf1_mas8_rdec     <= (rf1_instr(11 to 20) = "1010101010");   
-rf1_mas8_mas1_rdec<= (rf1_instr(11 to 20) = "1110101010");   
-rf1_mmucfg_rdec   <= (rf1_instr(11 to 20) = "1011111111");   
-rf1_mmucr0_rdec   <= (rf1_instr(11 to 20) = "1110011111");   
-rf1_mmucr1_rdec   <= (rf1_instr(11 to 20) = "1110111111");   
-rf1_mmucr2_rdec   <= (rf1_instr(11 to 20) = "1111011111");   
-rf1_mmucr3_rdec   <= (rf1_instr(11 to 20) = "1111111111");   
-rf1_mmucsr0_rdec  <= (rf1_instr(11 to 20) = "1010011111");   
-rf1_pid_rdec      <= (rf1_instr(11 to 20) = "1000000001");   
-rf1_ppr32_rdec    <= (rf1_instr(11 to 20) = "0001011100");   
-rf1_tlb0cfg_rdec  <= (rf1_instr(11 to 20) = "1000010101");   
-rf1_tlb0ps_rdec   <= (rf1_instr(11 to 20) = "1100001010");   
-rf1_xucr2_rdec    <= (rf1_instr(11 to 20) = "1100011111");   
-rf1_xudbg0_rdec   <= (rf1_instr(11 to 20) = "1010111011");   
-rf1_xudbg1_rdec   <= (rf1_instr(11 to 20) = "1011011011");   
-rf1_xudbg2_rdec   <= (rf1_instr(11 to 20) = "1011111011");   
+rf1_dvc1_rdec     <= (rf1_instr(11 to 20) = "1111001001");   --  318
+rf1_dvc2_rdec     <= (rf1_instr(11 to 20) = "1111101001");   --  319
+rf1_eplc_rdec     <= (rf1_instr(11 to 20) = "1001111101");   --  947
+rf1_epsc_rdec     <= (rf1_instr(11 to 20) = "1010011101");   --  948
+rf1_eptcfg_rdec   <= (rf1_instr(11 to 20) = "1111001010");   --  350
+rf1_immr_rdec     <= (rf1_instr(11 to 20) = "1000111011");   --  881
+rf1_imr_rdec      <= (rf1_instr(11 to 20) = "1000011011");   --  880
+rf1_iucr0_rdec    <= (rf1_instr(11 to 20) = "1001111111");   -- 1011
+rf1_iucr1_rdec    <= (rf1_instr(11 to 20) = "1001111011");   --  883
+rf1_iucr2_rdec    <= (rf1_instr(11 to 20) = "1010011011");   --  884
+rf1_iudbg0_rdec   <= (rf1_instr(11 to 20) = "1100011011");   --  888
+rf1_iudbg1_rdec   <= (rf1_instr(11 to 20) = "1100111011");   --  889
+rf1_iudbg2_rdec   <= (rf1_instr(11 to 20) = "1101011011");   --  890
+rf1_iulfsr_rdec   <= (rf1_instr(11 to 20) = "1101111011");   --  891
+rf1_iullcr_rdec   <= (rf1_instr(11 to 20) = "1110011011");   --  892
+rf1_lper_rdec     <= (rf1_instr(11 to 20) = "1100000001");   --   56
+rf1_lperu_rdec    <= (rf1_instr(11 to 20) = "1100100001");   --   57
+rf1_lpidr_rdec    <= (rf1_instr(11 to 20) = "1001001010");   --  338
+rf1_lratcfg_rdec  <= (rf1_instr(11 to 20) = "1011001010");   --  342
+rf1_lratps_rdec   <= (rf1_instr(11 to 20) = "1011101010");   --  343
+rf1_mas0_rdec     <= (rf1_instr(11 to 20) = "1000010011");   --  624
+rf1_mas0_mas1_rdec<= (rf1_instr(11 to 20) = "1010101011");   --  373
+rf1_mas1_rdec     <= (rf1_instr(11 to 20) = "1000110011");   --  625
+rf1_mas2_rdec     <= (rf1_instr(11 to 20) = "1001010011");   --  626
+rf1_mas2u_rdec    <= (rf1_instr(11 to 20) = "1011110011");   --  631
+rf1_mas3_rdec     <= (rf1_instr(11 to 20) = "1001110011");   --  627
+rf1_mas4_rdec     <= (rf1_instr(11 to 20) = "1010010011");   --  628
+rf1_mas5_rdec     <= (rf1_instr(11 to 20) = "1001101010");   --  339
+rf1_mas5_mas6_rdec<= (rf1_instr(11 to 20) = "1110001010");   --  348
+rf1_mas6_rdec     <= (rf1_instr(11 to 20) = "1011010011");   --  630
+rf1_mas7_rdec     <= (rf1_instr(11 to 20) = "1000011101");   --  944
+rf1_mas7_mas3_rdec<= (rf1_instr(11 to 20) = "1010001011");   --  372
+rf1_mas8_rdec     <= (rf1_instr(11 to 20) = "1010101010");   --  341
+rf1_mas8_mas1_rdec<= (rf1_instr(11 to 20) = "1110101010");   --  349
+rf1_mmucfg_rdec   <= (rf1_instr(11 to 20) = "1011111111");   -- 1015
+rf1_mmucr0_rdec   <= (rf1_instr(11 to 20) = "1110011111");   -- 1020
+rf1_mmucr1_rdec   <= (rf1_instr(11 to 20) = "1110111111");   -- 1021
+rf1_mmucr2_rdec   <= (rf1_instr(11 to 20) = "1111011111");   -- 1022
+rf1_mmucr3_rdec   <= (rf1_instr(11 to 20) = "1111111111");   -- 1023
+rf1_mmucsr0_rdec  <= (rf1_instr(11 to 20) = "1010011111");   -- 1012
+rf1_pid_rdec      <= (rf1_instr(11 to 20) = "1000000001");   --   48
+rf1_ppr32_rdec    <= (rf1_instr(11 to 20) = "0001011100");   --  898
+rf1_tlb0cfg_rdec  <= (rf1_instr(11 to 20) = "1000010101");   --  688
+rf1_tlb0ps_rdec   <= (rf1_instr(11 to 20) = "1100001010");   --  344
+rf1_xucr2_rdec    <= (rf1_instr(11 to 20) = "1100011111");   -- 1016
+rf1_xudbg0_rdec   <= (rf1_instr(11 to 20) = "1010111011");   --  885
+rf1_xudbg1_rdec   <= (rf1_instr(11 to 20) = "1011011011");   --  886
+rf1_xudbg2_rdec   <= (rf1_instr(11 to 20) = "1011111011");   --  887
 rf1_dvc1_re       <=  rf1_dvc1_rdec;
 rf1_dvc2_re       <=  rf1_dvc2_rdec;
 rf1_eplc_re       <=  rf1_eplc_rdec;
@@ -377,6 +386,7 @@ rf1_is_slowspr_rd <= (rf1_is_mfspr and (rf1_slowspr_range or
 mark_unused(rf1_instr(6 to 10));
 mark_unused(rf1_instr(31));
 
+-- Latch Instances
 slowspr_ctr_gen : for t in 0 to threads-1 generate
 slowspr_ctr_latch : tri_rlmreg_p
   generic map (width => slowspr_ctr_q(t)'length, init => 0, expand_type => expand_type, needs_sreset => 1)

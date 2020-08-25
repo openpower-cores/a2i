@@ -9,6 +9,13 @@
 
 
 
+--//############################################################################
+--//#####  FUQ_GEST_add11.VHDL                                         #########
+--//#####  side pipe for graphics estimates                            #########
+--//#####  flogefp, fexptefp                                           #########
+--//#####                                                              #########
+--//############################################################################
+
 
 library ieee; 
   use ieee.std_logic_1164.all ; 
@@ -24,8 +31,8 @@ library tri; use tri.tri_latches_pkg.all;
 
 entity fuq_gst_add11 is
   port(
-     a_b   :in  std_ulogic_vector(0 to 10);
-     b_b   :in  std_ulogic_vector(0 to 10);
+     a_b   :in  std_ulogic_vector(0 to 10);-- inverted adder input
+     b_b   :in  std_ulogic_vector(0 to 10);-- inverted adder input
      s0    :out std_ulogic_vector(0 to 10)  
 
  );
@@ -60,6 +67,9 @@ u_p1:  p1(0 to 10) <=    ( a_b(0 to 10) xor b_b(0 to 10) );
 u_g1:  g1(1 to 10) <= not( a_b(1 to 10) or  b_b(1 to 10) );
 u_t1:  t1(1 to  9) <= not( a_b(1 to  9) and b_b(1 to  9) );
 
+-----------------------------------------------
+--  carry chain                             ---
+-----------------------------------------------
 
  u_g2_01: g2_b(1)  <= not( g1(1)  or ( t1(1) and g1(2)  ) );
  u_g2_02: g2_b(2)  <= not( g1(2)  or ( t1(2) and g1(3)  ) );
@@ -129,6 +139,9 @@ u_t1:  t1(1 to  9) <= not( a_b(1 to  9) and b_b(1 to  9) );
  u_c16_10: c16(10) <= not( g8_b(10) );
           
 
+-----------------------------------------------
+-- final result                             ---
+-----------------------------------------------
 
 
  s0(0 to 9) <= p1(0 to 9) xor c16(1 to 10);
@@ -136,5 +149,6 @@ u_t1:  t1(1 to  9) <= not( a_b(1 to  9) and b_b(1 to  9) );
 
     
 end fuq_gst_add11     ;
+
 
 

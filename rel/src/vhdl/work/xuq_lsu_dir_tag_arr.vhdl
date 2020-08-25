@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU LSU L1 Data Directory Tag Array
+--
 
 library ibm, ieee, work, tri, support;
 use ibm.std_ulogic_support.all;
@@ -17,61 +19,88 @@ use ieee.numeric_std.all;
 use tri.tri_latches_pkg.all;
 use support.power_logic_pkg.all;
 
+-- ##########################################################################################
+-- Tag Compare
+-- 1) Contains an Array of Tags
+-- 2) Updates Tag on Reload
+-- ##########################################################################################
 
 entity xuq_lsu_dir_tag_arr is
-generic(expand_type     : integer := 2;         
-        dc_size         : natural := 14;        
-        cl_size         : natural := 6;         
-        wayDataSize     : natural := 35;        
-        parityBits      : natural := 4;         
-	real_data_add	: integer := 42);	
+generic(expand_type     : integer := 2;         -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
+        dc_size         : natural := 14;        -- 2^14 = 16384 Bytes L1 D$
+        cl_size         : natural := 6;         -- 2^6 = 64 Bytes CacheLines
+        wayDataSize     : natural := 35;        -- TagSize + Parity Bits
+        parityBits      : natural := 4;         -- Parity Bits
+	real_data_add	: integer := 42);	-- 42 bit real address
    PORT (
 
-     waddr			:in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size);		
+     -- Write Path
+     waddr			:in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size);		-- Reload Addr, will update a Tag
+     -- Reload Tag, will update a Tag with this value
      wdata			:in  std_ulogic_vector(64-real_data_add to 63-(dc_size-3));
-     way_wen_a                  :in  std_ulogic;                        
-     way_wen_b                  :in  std_ulogic;                        
-     way_wen_c                  :in  std_ulogic;                        
-     way_wen_d                  :in  std_ulogic;                        
-     way_wen_e                  :in  std_ulogic;                        
-     way_wen_f                  :in  std_ulogic;                        
-     way_wen_g                  :in  std_ulogic;                        
-     way_wen_h                  :in  std_ulogic;                        
+     way_wen_a                  :in  std_ulogic;                        -- Reload Way A Write Enable
+     way_wen_b                  :in  std_ulogic;                        -- Reload Way B Write Enable
+     way_wen_c                  :in  std_ulogic;                        -- Reload Way C Write Enable
+     way_wen_d                  :in  std_ulogic;                        -- Reload Way D Write Enable
+     way_wen_e                  :in  std_ulogic;                        -- Reload Way E Write Enable
+     way_wen_f                  :in  std_ulogic;                        -- Reload Way F Write Enable
+     way_wen_g                  :in  std_ulogic;                        -- Reload Way G Write Enable
+     way_wen_h                  :in  std_ulogic;                        -- Reload Way H Write Enable
 
-     raddr_01			:in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size); 	
-     raddr_23			:in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size); 	
-     raddr_45			:in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size); 	
-     raddr_67			:in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size); 	
+     -- Read Path
+     raddr_01			:in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size); 	-- Addr for Tag Read
+     raddr_23			:in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size); 	-- Addr for Tag Read
+     raddr_45			:in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size); 	-- Addr for Tag Read
+     raddr_67			:in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size); 	-- Addr for Tag Read
      inj_parity_err             :in  std_ulogic;
 
+     -- Directory Array Read Data
      dir_arr_rd_addr_01         :out std_ulogic_vector(64-(dc_size-3) to 63-cl_size);
      dir_arr_rd_addr_23         :out std_ulogic_vector(64-(dc_size-3) to 63-cl_size);
      dir_arr_rd_addr_45         :out std_ulogic_vector(64-(dc_size-3) to 63-cl_size);
      dir_arr_rd_addr_67         :out std_ulogic_vector(64-(dc_size-3) to 63-cl_size);
      dir_arr_rd_data            :in  std_ulogic_vector(0 to 8*wayDataSize-1);
 
+     -- Directory Array Write Controls
      dir_wr_way                 :out std_ulogic_vector(0 to 7);
      dir_arr_wr_addr            :out std_ulogic_vector(64-(dc_size-3) to 63-cl_size);
      dir_arr_wr_data            :out std_ulogic_vector(64-real_data_add to 64-real_data_add+wayDataSize-1);
 
+     -- Way A Tag Data
      way_tag_a			:out std_ulogic_vector(64-real_data_add to 63-(dc_size-3));
+     -- Way B Tag Data
      way_tag_b			:out std_ulogic_vector(64-real_data_add to 63-(dc_size-3));
+     -- Way C Tag Data
      way_tag_c			:out std_ulogic_vector(64-real_data_add to 63-(dc_size-3));
+     -- Way D Tag Data
      way_tag_d			:out std_ulogic_vector(64-real_data_add to 63-(dc_size-3));
+     -- Way E Tag Data
      way_tag_e			:out std_ulogic_vector(64-real_data_add to 63-(dc_size-3));
+     -- Way F Tag Data
      way_tag_f			:out std_ulogic_vector(64-real_data_add to 63-(dc_size-3));
+     -- Way G Tag Data
      way_tag_g			:out std_ulogic_vector(64-real_data_add to 63-(dc_size-3));
+     -- Way H Tag Data
      way_tag_h			:out std_ulogic_vector(64-real_data_add to 63-(dc_size-3));
 
+     -- Way A Tag Parity
      way_arr_par_a              :out std_ulogic_vector(0 to parityBits-1);
+     -- Way B Tag Parity
      way_arr_par_b              :out std_ulogic_vector(0 to parityBits-1);
+     -- Way C Tag Parity
      way_arr_par_c              :out std_ulogic_vector(0 to parityBits-1);
+     -- Way D Tag Parity
      way_arr_par_d              :out std_ulogic_vector(0 to parityBits-1);
+     -- Way E Tag Parity
      way_arr_par_e              :out std_ulogic_vector(0 to parityBits-1);
+     -- Way F Tag Parity
      way_arr_par_f              :out std_ulogic_vector(0 to parityBits-1);
+     -- Way G Tag Parity
      way_arr_par_g              :out std_ulogic_vector(0 to parityBits-1);
+     -- Way H Tag Parity
      way_arr_par_h              :out std_ulogic_vector(0 to parityBits-1);
 
+     -- Parity Error Detected
      par_gen_a_1b               :out std_ulogic_vector(0 to parityBits-1);
      par_gen_a_2b               :out std_ulogic_vector(0 to parityBits-1);
      par_gen_b_1b               :out std_ulogic_vector(0 to parityBits-1);
@@ -92,15 +121,25 @@ generic(expand_type     : integer := 2;
 -- synopsys translate_off
 -- synopsys translate_on
 end xuq_lsu_dir_tag_arr;
+----
 architecture xuq_lsu_dir_tag_arr of xuq_lsu_dir_tag_arr is
 
+----------------------------
+-- components
+----------------------------
 
+----------------------------
+-- constants
+----------------------------
 constant uprTagBit                      :natural := 64-real_data_add;
 constant lwrTagBit                      :natural := 63-(dc_size-3);
 constant tagSize                        :natural := lwrTagBit-uprTagBit+1;
 constant parExtCalc                     :natural := 8 - (tagSize mod 8);
 constant parBits                        :natural := (tagSize+parExtCalc) / 8;
 
+----------------------------
+-- signals
+----------------------------
 signal wr_data                  :std_ulogic_vector(uprTagBit to lwrTagBit);
 signal wr_wayA                  :std_ulogic;
 signal wr_wayB                  :std_ulogic;
@@ -191,6 +230,9 @@ signal parity_genH_2b           :std_ulogic_vector(0 to parBits-1);
 
 begin
 
+-- ####################################################
+-- Inputs
+-- ####################################################
 
 wr_wayA <= way_wen_a;
 wr_wayB <= way_wen_b;
@@ -203,6 +245,9 @@ wr_wayH <= way_wen_h;
 arr_rd_data <= dir_arr_rd_data;
 wr_data <= wdata;
 
+-- ####################################################
+-- Array Parity Generation
+-- ####################################################
 
 extra_byte : for t in 0 to 7 generate begin
   R0:if(t < (tagSize mod 8))  generate begin extra_byte_par(t) <= wr_data(uprTagBit+(8*(tagSize/8))+t);
@@ -221,10 +266,17 @@ end generate par_gen_x;
 
 arr_wr_data <= wr_data & arr_parity;
 
+-- ####################################################
+-- Array Input Selection
+-- ####################################################
 wr_way <= wr_wayA & wr_wayB & wr_wayC & wr_wayD &
           wr_wayE & wr_wayF & wr_wayG & wr_wayH;
 
+-- ####################################################
+-- Tag Array Read
+-- ####################################################
 
+-- Inject Parity Error
 rd_wayA(uprTagBit)                <= arr_rd_data(0) xor inj_parity_err;
 rd_wayA(uprTagBit+1 to lwrTagBit) <= arr_rd_data(1 to (0*wayDataSize)+tagSize-1);
 
@@ -245,6 +297,9 @@ rd_parF <= arr_rd_data((5*wayDataSize)+tagSize to (5*wayDataSize)+tagSize+parBit
 rd_parG <= arr_rd_data((6*wayDataSize)+tagSize to (6*wayDataSize)+tagSize+parBits-1);
 rd_parH <= arr_rd_data((7*wayDataSize)+tagSize to (7*wayDataSize)+tagSize+parBits-1);
 
+-- ####################################################
+-- Tag Parity Generation
+-- ####################################################
 
 rdExtraByte : for t in 0 to 7 generate begin
   R0: if(t < (tagSize mod 8))  generate
@@ -390,7 +445,9 @@ begin
   EparGenH2b : parity_genH_2b(parBits-1)   <= not (par_genH_1stlvlc(parBits-1) xor par_genH_1stlvld(parBits-1));
 end generate rdParGenx;
 
-
+-- ####################################################
+-- Parity Error Check
+-- ####################################################
 
 par_gen_a_1b <= parity_genA_1b;
 par_gen_b_1b <= parity_genB_1b;
@@ -409,7 +466,11 @@ par_gen_f_2b <= parity_genF_2b;
 par_gen_g_2b <= parity_genG_2b;
 par_gen_h_2b <= parity_genH_2b;
 
+-- ####################################################
+-- Outputs
+-- ####################################################
 
+-- Directory Array Control and Data
 dir_wr_way         <= wr_way;
 dir_arr_rd_addr_01 <= raddr_01;
 dir_arr_rd_addr_23 <= raddr_23;
@@ -437,4 +498,3 @@ way_arr_par_g <= rd_parG;
 way_arr_par_h <= rd_parH;
 
 end xuq_lsu_dir_tag_arr;
-

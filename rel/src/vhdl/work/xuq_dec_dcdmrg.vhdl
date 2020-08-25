@@ -174,15 +174,19 @@ architecture xuq_dec_dcdmrg of xuq_dec_dcdmrg is
 
 begin
 
+    ----------------------------------------------------
+    -- decode primary field opcode bits [0:5]        ---
+    ----------------------------------------------------
     isel                        <= '1' when x31='1' and i(26 to 30) = "01111" else '0';
 
-    cmp_byt                     <= '1' when x31='1' and i(21 to 30) = "0111111100" else '0';   
+    cmp_byt                     <= '1' when x31='1' and i(21 to 30) = "0111111100" else '0';   -- 31/508
 
-    cr_log                      <=  not i(0) and     i(1) and not i(2) and  not i(3) and     i(4) and     i(5) ;    
-    rotlw                       <=  not i(0) and     i(1) and not i(2) and      i(3)                           ;    
-    imm_log                     <=  not i(0) and     i(1) and     i(2) and (not i(3) or  not i(4)             );    
-    rotld                       <=  not i(0) and     i(1) and     i(2) and      i(3) and     i(4) and not i(5) ;    
-    x31                         <=  not i(0) and     i(1) and     i(2) and      i(3) and     i(4) and     i(5) ;    
+    cr_log                      <=  not i(0) and     i(1) and not i(2) and  not i(3) and     i(4) and     i(5) ;    --010011 (19)
+    rotlw                       <=  not i(0) and     i(1) and not i(2) and      i(3)                           ;    --0101xx (20:23)
+    imm_log                     <=  not i(0) and     i(1) and     i(2) and (not i(3) or  not i(4)             );    --0110xx (24:27)
+                                                                                                                    --01110x (28,29)
+    rotld                       <=  not i(0) and     i(1) and     i(2) and      i(3) and     i(4) and not i(5) ;    --011110 (30)
+    x31                         <=  not i(0) and     i(1) and     i(2) and      i(3) and     i(4) and     i(5) ;    --011111 (31)
 
     f0_xxxx00                   <=                                                       not i(4) and not i(5) ;
     f0_xxx0xx                   <=                                          not i(3)                           ;
@@ -190,6 +194,9 @@ begin
     f0_xxxx11                   <=                                                           i(4) and     i(5) ;
 
 
+    -----------------------------------------------------
+    -- decode i(21:25)
+    -----------------------------------------------------
 
     f1_0xxxx                    <= not i(21)                                                      ;
     f1_110xx                    <=     i(21) and i(22) and not i(23)                              ;
@@ -208,9 +215,12 @@ begin
     f1_xxx00                    <=                                        not i(24) and not i(25) ;
     f1_xxx10                    <=                                            i(24) and not i(25) ;
 
+    -----------------------------------------------------
+    -- decode i(26:30)
+    -----------------------------------------------------
 
-    f2_11xxx                    <= i(26) and     i(27)                                           ; 
-    f2_xxx0x                    <=                                       not i(29)               ; 
+    f2_11xxx                    <= i(26) and     i(27)                                           ; -- shifts / logicals / sign_xtd
+    f2_xxx0x                    <=                                       not i(29)               ; -- word / double
     f2_111xx                    <= i(26) and     i(27) and     i(28)                             ;
     f2_xx01x                    <=                         not i(28) and     i(29)               ;
     f2_xx00x                    <=                         not i(28) and not i(29)               ;
@@ -242,7 +252,11 @@ begin
     sh_rgt_imm_dw               <= x31 and i(21) and i(25) and i(29) ;
     sh_rgt_imm                  <= x31 and i(21) and i(25) ;
 
+    -----------------------------------------------------
+    -- output signal
+    -----------------------------------------------------
 
+    -- (select to rot/log result instead of the adder result)
     dec_alu_rf1_sel_rot_log     <= (cmp_byt  ) or
                                    (cr_log   ) or
                                    (rotlw    ) or
@@ -250,18 +264,21 @@ begin
                                    (rotld    ) or
                                    (x31_sh_log_sgn );
 
+    -- (zero out the mask to pass "insert_data" as the result)
     dec_alu_rf1_zm_ins          <= (isel       ) or
                                    (cmp_byt    ) or
                                    (cr_log     ) or
                                    (xtd_log    ) or
                                    (imm_log    ) or
-                                   (op_sgn_xtd ); 
+                                   (op_sgn_xtd ); -- sgn extends
 
+    -- (only needs to be correct when shifting)
     dec_alu_rf1_sh_right         <= sh_rgt;
 
     sh_word_int                 <=(rotlw ) or
                                   (wd_if_sh );
 
+    -- (only needs to be correct when shifting)
     dec_alu_rf1_sh_word                     <=  sh_word_int ;
     dec_alu_rf1_cr_logical                  <= cr_log ;
 
@@ -293,37 +310,38 @@ begin
                               rf1_log_fcn       when others;
 
 
-    rf1_log_fcn(0)      <= (xtd_log and xtd_nor           ) or 
-                           (xtd_log and xtd_eqv_orc_nand  ) or 
-                           (cmp_byt                       )  ; 
+    rf1_log_fcn(0)      <= (xtd_log and xtd_nor           ) or -- xtd_log nor
+                           (xtd_log and xtd_eqv_orc_nand  ) or -- xtd_log eqv,orc,nand
+                           (cmp_byt                       )  ; -- xnor
 
-    rf1_log_fcn(1)      <= (xtd_log and xtd_xor_or        ) or 
-                           (xtd_log and xtd_nand          ) or 
-                           (imm_log and imm_xor_or        ) or 
-                           (rotlw_pass                    ) or 
-                           (rotld_pass                    )  ; 
+    rf1_log_fcn(1)      <= (xtd_log and xtd_xor_or        ) or -- xtd_log xor,or
+                           (xtd_log and xtd_nand          ) or -- xtd_log nand
+                           (imm_log and imm_xor_or        ) or -- xor,or
+                           (rotlw_pass                    ) or -- pass  rlwimi
+                           (rotld_pass                    )  ; -- pass  rldimi
 
-    rf1_log_fcn(2)      <= (xtd_log and xtd_andc_xor_or   ) or 
-                           (xtd_log and xtd_nand_or_orc   ) or 
-                           (imm_log and imm_xor_or        )  ; 
+    rf1_log_fcn(2)      <= (xtd_log and xtd_andc_xor_or   ) or -- xtd_log andc,xor,or
+                           (xtd_log and xtd_nand_or_orc   ) or -- xtd_log nand_or_orc
+                           (imm_log and imm_xor_or        )  ; -- xor,or
 
 
-    rf1_log_fcn(3)      <= (cmp_byt                       ) or 
-                           (xtd_log and xtd_and_eqv_orc   ) or 
-                           (xtd_log and xtd_or_orc        ) or 
-                           (imm_log and imm_and_or        ) or 
-                           (rotlw_pass                    ) or 
-                           (rotld_pass                    )  ; 
+    rf1_log_fcn(3)      <= (cmp_byt                       ) or -- xnor
+                           (xtd_log and xtd_and_eqv_orc   ) or -- xtd_log and,eqv_orc
+                           (xtd_log and xtd_or_orc        ) or -- xtd_log or,orc
+                           (imm_log and imm_and_or        ) or -- and,or
+                           (rotlw_pass                    ) or -- pass  rlwimi
+                           (rotld_pass                    )  ; -- pass  rldimi
 
 
     dec_alu_rf1_chk_shov_dw                 <= (sh_rb_dw );
     dec_alu_rf1_chk_shov_wd                 <= (sh_rb_wd );
 
 
+    -----------------------------------------------
 
     dec_alu_rf1_me_ins_b(0 to 5)            <= not me_ins(0 to 5) ;
 
-    me_ins(0)                   <= ( rotlw                        ) or 
+    me_ins(0)                   <= ( rotlw                        ) or -- force_msb
                                    (     i(26) and sel_ins_me_hi  ) or
                                    ( not i(30) and sel_ins_amt_hi ) ;
 
@@ -353,11 +371,12 @@ begin
     rld_cr                      <= rotld and     i(27)                             and     i(30);
 
 
+    -----------------------------------------------
 
     dec_alu_rf1_mb_ins(0)       <= ( i(26) and rot_imm_mb   ) or
                                    ( i(30) and shift_imm ) or
-                                   ( rotlw               ) or 
-                                   ( wd_if_sh            ) ;  
+                                   ( rotlw               ) or -- force_msb
+                                   ( wd_if_sh            ) ;  -- force_msb
 
 
     dec_alu_rf1_mb_ins(1 to 5)  <= ( i(21 to 25) and (1 to 5=> rot_imm_mb   ) ) or
@@ -374,6 +393,7 @@ begin
    dec_alu_rf1_use_mb_ins_lo               <=  rld_cl or rld_icl or rld_imi or rld_ic or rotlw or sh_rgt_imm    ;
 
 
+    -----------------------------------------------
 
     dec_alu_rf1_use_rb_amt_hi   <= ( rld_cr    ) or
                                    ( rld_cl    ) or
@@ -383,7 +403,7 @@ begin
 
     dec_alu_rf1_use_rb_amt_lo   <= ( rld_cr    ) or
                                    ( rld_cl    ) or
-                                   ( rotlw_nm  ) or 
+                                   ( rotlw_nm  ) or -- rlwnm
                                    ( sh_rb     )  ;
 
 
@@ -391,22 +411,25 @@ begin
     dec_alu_rf1_sh_amt(0)                   <= i(30) and not sh_word_int   ;
     dec_alu_rf1_sh_amt(1 to 5)              <= i(16 to 20)                 ;
 
+    -----------------------------------------------
 
 
     rotld_en_mbgtme             <= rld_imi or rld_ic ;
 
     dec_alu_rf1_mb_gt_me                    <= (mb_gt_me_cmp_wd and rotlw    ) or
-                                   (mb_gt_me_cmp_dw and rotld_en_mbgtme ) ; 
+                                   (mb_gt_me_cmp_dw and rotld_en_mbgtme ) ; -- rldic,rldimi
 
 
 
+    ---------------------------------------------
 
-    gt5_in1(1 to 5)             <=                 i(21 to 25) ; 
-    gt5_in0(1 to 5)             <=             not i(26 to 30) ; 
+    gt5_in1(1 to 5)             <=                 i(21 to 25) ; -- mb
+    gt5_in0(1 to 5)             <=             not i(26 to 30) ; -- me
 
-    gt6_in1(0 to 5)             <=     i(26) &     i(21 to 25) ; 
-    gt6_in0(0 to 5)             <=     i(30) &     i(16 to 20) ; 
+    gt6_in1(0 to 5)             <=     i(26) &     i(21 to 25) ; -- mb
+    gt6_in0(0 to 5)             <=     i(30) &     i(16 to 20) ; -- me not( not amt )
 
+    --------------------------------------------
 
     gt5_g_b(1 to 5)             <= not( gt5_in0(1 to 5) and gt5_in1(1 to 5) );
     gt5_t_b(1 to 4)             <= not( gt5_in0(1 to 4) or  gt5_in1(1 to 4) );
@@ -424,6 +447,7 @@ begin
 
     mb_gt_me_cmp_wd             <= not( mb_gt_me_cmp_wd0_b and mb_gt_me_cmp_wd1_b and mb_gt_me_cmp_wd2_b );
 
+    ----------------------------------------------
 
     gt6_g_b(0 to 5)             <= not( gt6_in0(0 to 5) and gt6_in1(0 to 5) );
     gt6_t_b(0 to 4)             <= not( gt6_in0(0 to 4) or  gt6_in1(0 to 4) );
@@ -441,10 +465,10 @@ begin
 
     mb_gt_me_cmp_dw             <= not( mb_gt_me_cmp_dw0_b and mb_gt_me_cmp_dw1_b and mb_gt_me_cmp_dw2_b );
 
+    ----------------------------------------------
     
     mark_unused(i(6 to 15));
     mark_unused(i(31));
 
 
 end architecture xuq_dec_dcdmrg;
-

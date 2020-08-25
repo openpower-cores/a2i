@@ -20,24 +20,24 @@ library ieee,ibm,support,tri,work;
 
  
 entity fuq_rnd is 
-generic( expand_type  : integer := 2  ); 
+generic( expand_type  : integer := 2  ); -- 0 - ibm tech, 1 - other );
 port( 
        vdd                                       :inout power_logic;
        gnd                                       :inout power_logic;
-       clkoff_b                                  :in   std_ulogic; 
-       act_dis                                   :in   std_ulogic; 
-       flush                                     :in   std_ulogic; 
-       delay_lclkr                               :in   std_ulogic_vector(5 to 6); 
-       mpw1_b                                    :in   std_ulogic_vector(5 to 6); 
-       mpw2_b                                    :in   std_ulogic_vector(1 to 1); 
+       clkoff_b                                  :in   std_ulogic; -- tiup
+       act_dis                                   :in   std_ulogic; -- ??tidn??
+       flush                                     :in   std_ulogic; -- ??tidn??
+       delay_lclkr                               :in   std_ulogic_vector(5 to 6); -- tidn,
+       mpw1_b                                    :in   std_ulogic_vector(5 to 6); -- tidn,
+       mpw2_b                                    :in   std_ulogic_vector(1 to 1); -- tidn,
        sg_1                                      :in   std_ulogic;
        thold_1                                   :in   std_ulogic;
-       fpu_enable                                :in   std_ulogic; 
+       fpu_enable                                :in   std_ulogic; --dc_act
        nclk                                      :in   clk_logic;
 
-       f_rnd_si                                  :in   std_ulogic                    ;
-       f_rnd_so                                  :out  std_ulogic                    ;
-       ex3_act_b                                 :in   std_ulogic                    ;
+       f_rnd_si                                  :in   std_ulogic                    ;-- perv
+       f_rnd_so                                  :out  std_ulogic                    ;-- perv
+       ex3_act_b                                 :in   std_ulogic                    ;-- act
 
        f_nrm_ex5_res                             :in   std_ulogic_vector(0 to 52)    ;
        f_nrm_ex5_int_lsbs                        :in   std_ulogic_vector(1 to 12)    ;
@@ -51,8 +51,8 @@ port(
        f_nrm_ex5_exact_zero                      :in   std_ulogic                    ;
        f_tbl_ex5_recip_den                       :in   std_ulogic                    ;
 
-       f_pic_ex5_invert_sign                     :in   std_ulogic                    ;
-       f_pic_ex5_en_exact_zero                   :in   std_ulogic                    ;
+       f_pic_ex5_invert_sign                     :in   std_ulogic                    ;--//# nmadd nmsub
+       f_pic_ex5_en_exact_zero                   :in   std_ulogic                    ;--//# math, frsp (no specail override)
 
 
        f_pic_ex5_k_nan                           :in   std_ulogic                    ;
@@ -64,45 +64,45 @@ port(
        f_pic_ex5_k_int_maxneg                    :in   std_ulogic                    ;
        f_pic_ex5_k_int_zer                       :in   std_ulogic                    ;
 
-       f_pic_ex4_sel_est_b                       :in   std_ulogic                    ;
-       f_tbl_ex5_est_frac                        :in   std_ulogic_vector(0 to 26)    ;
+       f_pic_ex4_sel_est_b                       :in   std_ulogic                    ;--//# off for nan_pass
+       f_tbl_ex5_est_frac                        :in   std_ulogic_vector(0 to 26)    ;--//#
 
-       f_pic_ex4_rnd_ni_b                        :in   std_ulogic                    ;
-       f_pic_ex4_rnd_nr_b                        :in   std_ulogic                    ;
-       f_pic_ex4_rnd_inf_ok_b                    :in   std_ulogic                    ;
-       f_pic_ex5_uc_inc_lsb                      :in   std_ulogic                    ;
+       f_pic_ex4_rnd_ni_b                        :in   std_ulogic                    ;--//# for sign of exact zero
+       f_pic_ex4_rnd_nr_b                        :in   std_ulogic                    ;--//# (off for specials)
+       f_pic_ex4_rnd_inf_ok_b                    :in   std_ulogic                    ;--//# pi*pos/ ni*pos (off for specials)
+       f_pic_ex5_uc_inc_lsb                      :in   std_ulogic                    ;--//# ?? div ??
        f_pic_ex5_uc_guard                        :in   std_ulogic                    ;
        f_pic_ex5_uc_sticky                       :in   std_ulogic                    ;
        f_pic_ex5_uc_g_v                          :in   std_ulogic                    ;
        f_pic_ex5_uc_s_v                          :in   std_ulogic                    ;
             
-       f_pic_ex4_sel_fpscr_b                     :in   std_ulogic                    ;
-       f_pic_ex4_to_integer_b                    :in   std_ulogic                    ;
-       f_pic_ex4_word_b                          :in   std_ulogic                    ;
-       f_pic_ex4_uns_b                           :in   std_ulogic                    ;
-       f_pic_ex4_sp_b                            :in   std_ulogic                    ;
-       f_pic_ex4_spec_inf_b                      :in   std_ulogic                    ;
+       f_pic_ex4_sel_fpscr_b                     :in   std_ulogic                    ;--//#
+       f_pic_ex4_to_integer_b                    :in   std_ulogic                    ;--//# same for wd/dw
+       f_pic_ex4_word_b                          :in   std_ulogic                    ;--//# same for wd/dw
+       f_pic_ex4_uns_b                           :in   std_ulogic                    ;--//# same for wd/dw
+       f_pic_ex4_sp_b                            :in   std_ulogic                    ;--//# single precision round, output
+       f_pic_ex4_spec_inf_b                      :in   std_ulogic                    ;--//# for INF
        f_pic_ex4_quiet_b                         :in   std_ulogic                    ;
        f_pic_ex4_nj_deno                         :in   std_ulogic                    ;
-       f_pic_ex4_unf_en_ue0_b                    :in   std_ulogic                    ;
-       f_pic_ex4_unf_en_ue1_b                    :in   std_ulogic                    ;
-       f_pic_ex4_ovf_en_oe0_b                    :in   std_ulogic                    ;
-       f_pic_ex4_ovf_en_oe1_b                    :in   std_ulogic                    ;
-       f_pic_ex5_round_sign                      :in   std_ulogic                    ;
-       f_scr_ex5_fpscr_rd_dat_dfp                :in   std_ulogic_vector(0 to 3)     ;
-       f_scr_ex5_fpscr_rd_dat                    :in   std_ulogic_vector(0 to 31)    ;
+       f_pic_ex4_unf_en_ue0_b                    :in   std_ulogic                    ;--//# for ux (needs tiny)
+       f_pic_ex4_unf_en_ue1_b                    :in   std_ulogic                    ;--//# for ux
+       f_pic_ex4_ovf_en_oe0_b                    :in   std_ulogic                    ;--//#
+       f_pic_ex4_ovf_en_oe1_b                    :in   std_ulogic                    ;--//#
+       f_pic_ex5_round_sign                      :in   std_ulogic                    ;--//# includes special sign
+       f_scr_ex5_fpscr_rd_dat_dfp                :in   std_ulogic_vector(0 to 3)     ;--//#
+       f_scr_ex5_fpscr_rd_dat                    :in   std_ulogic_vector(0 to 31)    ;--//#
 
-       f_eov_ex5_sel_k_f                         :in   std_ulogic                    ;
-       f_eov_ex5_sel_k_e                         :in   std_ulogic                    ;
-       f_eov_ex5_sel_kif_f                       :in   std_ulogic                    ;
-       f_eov_ex5_sel_kif_e                       :in   std_ulogic                    ;
-       f_eov_ex5_ovf_expo                        :in   std_ulogic                    ;
-       f_eov_ex5_ovf_if_expo                     :in   std_ulogic                    ;
-       f_eov_ex5_unf_expo                        :in   std_ulogic                    ;
-       f_eov_ex5_expo_p0                         :in   std_ulogic_vector(1 to 13)    ;
-       f_eov_ex5_expo_p1                         :in   std_ulogic_vector(1 to 13)    ;
-       f_eov_ex5_expo_p0_ue1oe1                  :in   std_ulogic_vector(3 to 7)     ;
-       f_eov_ex5_expo_p1_ue1oe1                  :in   std_ulogic_vector(3 to 7)     ;
+       f_eov_ex5_sel_k_f                         :in   std_ulogic                    ;--//#
+       f_eov_ex5_sel_k_e                         :in   std_ulogic                    ;--//#
+       f_eov_ex5_sel_kif_f                       :in   std_ulogic                    ;--//#
+       f_eov_ex5_sel_kif_e                       :in   std_ulogic                    ;--//#
+       f_eov_ex5_ovf_expo                        :in   std_ulogic                    ;--//# for INF,ox
+       f_eov_ex5_ovf_if_expo                     :in   std_ulogic                    ;--//# for INF,ox
+       f_eov_ex5_unf_expo                        :in   std_ulogic                    ;--//# for ux
+       f_eov_ex5_expo_p0                         :in   std_ulogic_vector(1 to 13)    ;--//# result exponent
+       f_eov_ex5_expo_p1                         :in   std_ulogic_vector(1 to 13)    ;--//# result exponent if rnd_up_all1
+       f_eov_ex5_expo_p0_ue1oe1                  :in   std_ulogic_vector(3 to 7)     ;--//#
+       f_eov_ex5_expo_p1_ue1oe1                  :in   std_ulogic_vector(3 to 7)     ;--//#
        f_pic_ex5_frsp                            :in   std_ulogic                    ;
 
        f_gst_ex5_logexp_v                        :in  std_ulogic;  
@@ -110,27 +110,27 @@ port(
        f_gst_ex5_logexp_exp                      :in  std_ulogic_vector(1 to 11);  
        f_gst_ex5_logexp_fract                    :in  std_ulogic_vector(0 to 19);
 
-       f_rnd_ex6_res_sign                        :out  std_ulogic                    ;
-       f_rnd_ex6_res_expo                        :out  std_ulogic_vector(1 to 13)    ;
-       f_rnd_ex6_res_frac                        :out  std_ulogic_vector(0 to 52)    ;
+       f_rnd_ex6_res_sign                        :out  std_ulogic                    ;--//# dbyp / f_scr
+       f_rnd_ex6_res_expo                        :out  std_ulogic_vector(1 to 13)    ;--//# dbyp
+       f_rnd_ex6_res_frac                        :out  std_ulogic_vector(0 to 52)    ;--//# dbyp
 
-       f_rnd_ex6_flag_up                         :out  std_ulogic                    ;
-       f_rnd_ex6_flag_fi                         :out  std_ulogic                    ;
-       f_rnd_ex6_flag_ox                         :out  std_ulogic                    ;
-       f_rnd_ex6_flag_den                        :out  std_ulogic                    ;
-       f_rnd_ex6_flag_sgn                        :out  std_ulogic                    ;
-       f_rnd_ex6_flag_inf                        :out  std_ulogic                    ;
-       f_rnd_ex6_flag_zer                        :out  std_ulogic                    ;
-       f_rnd_ex6_flag_ux                         :out  std_ulogic                    ;
+       f_rnd_ex6_flag_up                         :out  std_ulogic                    ;--//# f_scr
+       f_rnd_ex6_flag_fi                         :out  std_ulogic                    ;--//# f_scr
+       f_rnd_ex6_flag_ox                         :out  std_ulogic                    ;--//# f_scr
+       f_rnd_ex6_flag_den                        :out  std_ulogic                    ;--//# f_scr
+       f_rnd_ex6_flag_sgn                        :out  std_ulogic                    ;--//# f_scr
+       f_rnd_ex6_flag_inf                        :out  std_ulogic                    ;--//# f_scr
+       f_rnd_ex6_flag_zer                        :out  std_ulogic                    ;--//# f_scr
+       f_rnd_ex6_flag_ux                         :out  std_ulogic                    ;--//# f_scr
 
        f_mad_ex6_uc_sign                         :out  std_ulogic ;
        f_mad_ex6_uc_zero                         :out  std_ulogic 
 
-); 
+); -- end ports
  
  
 
-end fuq_rnd; 
+end fuq_rnd; -- ENTITY
  
  
 architecture fuq_rnd of fuq_rnd is 
@@ -145,16 +145,18 @@ architecture fuq_rnd of fuq_rnd is
     signal ex5_act                                 :std_ulogic                   ;
     signal act_spare_unused                        :std_ulogic_vector(0 to 2)    ;
     signal flag_spare_unused                       :std_ulogic                   ;
-    signal act_so                                  :std_ulogic_vector(0 to 4)    ;
-    signal act_si                                  :std_ulogic_vector(0 to 4)    ;
-    signal ex5_ctl_so                              :std_ulogic_vector(0 to 15)   ;
-    signal ex5_ctl_si                              :std_ulogic_vector(0 to 15)   ;
-    signal ex6_frac_so                             :std_ulogic_vector(0 to 52)   ;
-    signal ex6_frac_si                             :std_ulogic_vector(0 to 52)   ;
-    signal ex6_expo_so                             :std_ulogic_vector(0 to 13)   ;
-    signal ex6_expo_si                             :std_ulogic_vector(0 to 13)   ;
-    signal ex6_flag_so                             :std_ulogic_vector(0 to 9)    ;
-    signal ex6_flag_si                             :std_ulogic_vector(0 to 9)    ;
+    -------------------
+    signal act_so                                  :std_ulogic_vector(0 to 4)    ;--SCAN
+    signal act_si                                  :std_ulogic_vector(0 to 4)    ;--SCAN
+    signal ex5_ctl_so                              :std_ulogic_vector(0 to 15)   ;--SCAN
+    signal ex5_ctl_si                              :std_ulogic_vector(0 to 15)   ;--SCAN
+    signal ex6_frac_so                             :std_ulogic_vector(0 to 52)   ;--SCAN
+    signal ex6_frac_si                             :std_ulogic_vector(0 to 52)   ;--SCAN
+    signal ex6_expo_so                             :std_ulogic_vector(0 to 13)   ;--SCAN
+    signal ex6_expo_si                             :std_ulogic_vector(0 to 13)   ;--SCAN
+    signal ex6_flag_so                             :std_ulogic_vector(0 to 9)    ;--SCAN
+    signal ex6_flag_si                             :std_ulogic_vector(0 to 9)    ;--SCAN
+    -------------------
     signal ex5_quiet                               :std_ulogic                   ;
     signal ex5_rnd_ni                              :std_ulogic                   ;
     signal ex5_rnd_nr                              :std_ulogic                   ;
@@ -165,6 +167,7 @@ architecture fuq_rnd of fuq_rnd is
     signal ex5_word                                :std_ulogic                   ;
     signal ex5_sp                                  :std_ulogic                   ;
     signal ex5_spec_inf                            :std_ulogic                   ;
+    -------------------
     signal ex5_flag_den                            :std_ulogic                   ;
     signal ex5_flag_inf                            :std_ulogic                   ;
     signal ex5_flag_zer                            :std_ulogic                   ;
@@ -190,6 +193,7 @@ architecture fuq_rnd of fuq_rnd is
     signal ex5_up_sp                               :std_ulogic                   ;
     signal ex5_up_dp                               :std_ulogic                   ;
     signal ex5_res_frac                            :std_ulogic_vector(0 to 52)   ;
+    -------------------
     signal ex5_res_sign                            :std_ulogic                   ;
     signal ex5_res_expo                            :std_ulogic_vector(1 to 13)   ;
     signal ex6_res_frac                            :std_ulogic_vector(0 to 52)   ;
@@ -291,8 +295,11 @@ begin
 
 
  unused <= ex5_frac_c(0)  or
-           f_nrm_ex5_int_lsbs(1) ; 
+           f_nrm_ex5_int_lsbs(1) ; -- primay input
 
+--//############################################
+--//# pervasive
+--//############################################
      
      
     thold_reg_0:  tri_plat  generic map (expand_type => expand_type) port map (
@@ -321,14 +328,17 @@ begin
         thold_b      => thold_0_b );
 
    
+--//############################################
+--//# ACT LATCHES
+--//############################################
 
     ex3_act <= not ex3_act_b ;
  
     act_lat:  tri_rlmreg_p generic map (width=> 5, expand_type => expand_type, needs_sreset => 0) port map ( 
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(5)  ,
-        mpw1_b           => mpw1_b(5)       ,
-        mpw2_b           => mpw2_b(1)       ,
+        forcee => forcee,--i-- tidn,
+        delay_lclkr      => delay_lclkr(5)  ,--i-- tidn,
+        mpw1_b           => mpw1_b(5)       ,--i-- tidn,
+        mpw2_b           => mpw2_b(1)       ,--i-- tidn,
         vd               => vdd,
         gd               => gnd,
         nclk             => nclk, 
@@ -337,11 +347,13 @@ begin
         act              => fpu_enable, 
         scout            => act_so   ,                     
         scin             => act_si   ,                   
+        -------------------
          din(0)             => act_spare_unused(0),
          din(1)             => act_spare_unused(1),
          din(2)             => ex3_act,
          din(3)             => ex4_act,
          din(4)             => act_spare_unused(2),
+        -------------------
         dout(0)             => act_spare_unused(0),
         dout(1)             => act_spare_unused(1),
         dout(2)             => ex4_act,
@@ -349,6 +361,9 @@ begin
         dout(4)             => act_spare_unused(2) );
 
 
+--//##############################################
+--//# EX5 latch inputs from ex4
+--//##############################################
 
         ex4_quiet            <= not f_pic_ex4_quiet_b            ;
         ex4_rnd_ni           <= not f_pic_ex4_rnd_ni_b           ;
@@ -369,10 +384,10 @@ begin
 
 
     ex5_ctl_lat:  tri_rlmreg_p generic map (width=> 16, expand_type => expand_type, needs_sreset => 0) port map ( 
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(5)  ,
-        mpw1_b           => mpw1_b(5)       ,
-        mpw2_b           => mpw2_b(1)       ,
+        forcee => forcee,--i-- tidn,
+        delay_lclkr      => delay_lclkr(5)  ,--i-- tidn,
+        mpw1_b           => mpw1_b(5)       ,--i-- tidn,
+        mpw2_b           => mpw2_b(1)       ,--i-- tidn,
         vd               => vdd,
         gd               => gnd,
         nclk             => nclk, 
@@ -381,15 +396,16 @@ begin
         act              => ex4_act, 
         scout            => ex5_ctl_so   ,                     
         scin             => ex5_ctl_si   ,                   
-         din( 0)            => ex4_quiet            ,
-         din( 1)            => ex4_rnd_ni           ,
-         din( 2)            => ex4_rnd_nr           ,
-         din( 3)            => ex4_rnd_inf_ok       ,
-         din( 4)            => ex4_sel_fpscr        ,
-         din( 5)            => ex4_to_integer       ,
-         din( 6)            => ex4_word             ,
-         din( 7)            => ex4_sp               ,
-         din( 8)            => ex4_spec_inf         ,
+        -------------------
+         din( 0)            => ex4_quiet            ,--//# for too int only
+         din( 1)            => ex4_rnd_ni           ,--//# for sign of exact zero
+         din( 2)            => ex4_rnd_nr           ,--//# (off for specials)
+         din( 3)            => ex4_rnd_inf_ok       ,--//# pi*pos/ ni*pos (off for specials)
+         din( 4)            => ex4_sel_fpscr        ,--//#
+         din( 5)            => ex4_to_integer       ,--//# same for wd/dw
+         din( 6)            => ex4_word             ,--//# single precision round, output
+         din( 7)            => ex4_sp               ,--//# single precision round, output
+         din( 8)            => ex4_spec_inf         ,--//# for INF
          din( 9)            => ex4_nj_deno          ,
          din(10)            => ex4_unf_en_ue0       ,
          din(11)            => ex4_unf_en_ue1       ,
@@ -397,16 +413,17 @@ begin
          din(13)            => ex4_ovf_en_oe1       ,
          din(14)            => ex4_sel_est          ,
          din(15)            => ex4_uns              ,
-        dout( 0)            => ex5_quiet              ,
-        dout( 1)            => ex5_rnd_ni             ,
-        dout( 2)            => ex5_rnd_nr             ,
-        dout( 3)            => ex5_rnd_inf_ok         ,
-        dout( 4)            => ex5_sel_fpscr          ,
-        dout( 5)            => ex5_to_integer         ,
-        dout( 6)            => ex5_word               ,
-        dout( 7)            => ex5_sp                 ,
-        dout( 8)            => ex5_spec_inf           ,
-        dout( 9)            => ex5_nj_deno            ,
+        -------------------
+        dout( 0)            => ex5_quiet              ,--LAT--//# for too int only
+        dout( 1)            => ex5_rnd_ni             ,--LAT--//# for sign of exact zero
+        dout( 2)            => ex5_rnd_nr             ,--LAT--//# (off for specials)
+        dout( 3)            => ex5_rnd_inf_ok         ,--LAT--//# pi*pos/ ni*pos (off for specials)
+        dout( 4)            => ex5_sel_fpscr          ,--LAT--//#
+        dout( 5)            => ex5_to_integer         ,--LAT--//# same for wd/dw
+        dout( 6)            => ex5_word               ,--LAT--//# word
+        dout( 7)            => ex5_sp                 ,--LAT--//# single precision round, output
+        dout( 8)            => ex5_spec_inf           ,--LAT--//# for INF
+        dout( 9)            => ex5_nj_deno            ,--LAT--//# for INF
         dout(10)            => ex5_unf_en_ue0    ,
         dout(11)            => ex5_unf_en_ue1    ,
         dout(12)            => ex5_ovf_en_oe0    ,
@@ -417,7 +434,13 @@ begin
         ex5_rnd_frc_up       <=     f_pic_ex5_uc_inc_lsb ;
 
  
+--//##############################################
+--//# EX5 logic
+--//##############################################
 
+  --//##-------------------------------------------
+  --//## round up decision
+  --//##-------------------------------------------
 
 
     ex5_guard_dp  <= ( f_nrm_ex5_nrm_guard_dp and not f_pic_ex5_uc_g_v ) or 
@@ -435,14 +458,14 @@ begin
 
 
     ex5_up_sp <=
-         ( ex5_rnd_frc_up                                           ) or 
+         ( ex5_rnd_frc_up                                           ) or -- may need for divide
          ( ex5_rnd_nr     and ex5_guard_sp and ex5_sticky_sp        ) or 
          ( ex5_rnd_nr     and ex5_guard_sp and f_nrm_ex5_nrm_lsb_sp ) or 
          ( ex5_rnd_inf_ok and ex5_guard_sp                          ) or 
          ( ex5_rnd_inf_ok and                  ex5_sticky_sp        ) ;
 
     ex5_up_dp <=
-         ( ex5_rnd_frc_up                                            ) or 
+         ( ex5_rnd_frc_up                                            ) or -- may need for divide
          ( ex5_rnd_nr     and ex5_guard_dp and ex5_sticky_dp        ) or 
          ( ex5_rnd_nr     and ex5_guard_dp and f_nrm_ex5_nrm_lsb_dp ) or 
          ( ex5_rnd_inf_ok and ex5_guard_dp                          ) or 
@@ -463,6 +486,9 @@ begin
          (not ex5_sp and ex5_guard_dp  ) or
          (not ex5_sp and ex5_sticky_dp ) ;
 
+  --//##-------------------------------------------
+  --//## conditional increment of round result
+  --//##-------------------------------------------
 
     ex5_nrm_res_b(0 to 52) <= not f_nrm_ex5_res(0 to 52);
 
@@ -731,16 +757,19 @@ begin
     ex5_frac_g(6) <= ex5_frac_g32(6) ;
 
 
-    ex5_frac_p1(0)       <= f_nrm_ex5_res(0)        or ex5_frac_c(1); 
+    ex5_frac_p1(0)       <= f_nrm_ex5_res(0)        or ex5_frac_c(1); -- roll over does not go to zero
     ex5_frac_p1(1 to 51) <= f_nrm_ex5_res(1 to 51) xor ex5_frac_c(2 to 52);
     ex5_frac_p1(52)      <= not f_nrm_ex5_res(52);
 
+  --//##-------------------------------------------
+  --//## final selection muxing fraction
+  --//##-------------------------------------------
 
 
-    ex5_to_int_data( 0)       <= f_nrm_ex5_int_sign  ; 
-    ex5_to_int_data( 1 to 10) <= f_nrm_ex5_res( 1 to 10) or  ( 1 to 10 =>     ex5_word) ; 
-    ex5_to_int_data(      11) <= f_nrm_ex5_res(11)  or not ex5_to_int_imp or  ex5_word  ; 
-    ex5_to_int_imp <= 
+    ex5_to_int_data( 0)       <= f_nrm_ex5_int_sign  ; ---and               not ex5_word  ; --sign
+    ex5_to_int_data( 1 to 10) <= f_nrm_ex5_res( 1 to 10) or  ( 1 to 10 =>     ex5_word) ; --expo
+    ex5_to_int_data(      11) <= f_nrm_ex5_res(11)  or not ex5_to_int_imp or  ex5_word  ; --expo
+    ex5_to_int_imp <= -- or together what will be the fraction bits
          f_nrm_ex5_res(1)  or 
          f_nrm_ex5_res(2)  or 
          f_nrm_ex5_res(3)  or 
@@ -753,8 +782,8 @@ begin
          f_nrm_ex5_res(10) or 
          f_nrm_ex5_res(11) or
          ex5_word ;
-    ex5_to_int_data(12)       <= f_nrm_ex5_res(12)       or                   ex5_word  ; 
-    ex5_to_int_data(13 to 31) <= f_nrm_ex5_res(13 to 31) and (13 to 31 => not ex5_word) ; 
+    ex5_to_int_data(12)       <= f_nrm_ex5_res(12)       or                   ex5_word  ; --frac start (no implicit)
+    ex5_to_int_data(13 to 31) <= f_nrm_ex5_res(13 to 31) and (13 to 31 => not ex5_word) ; --frac start (no implicit)
     ex5_to_int_data(32 to 52) <= f_nrm_ex5_res(32 to 52)     ;
     ex5_to_int_data(53 to 63) <= f_nrm_ex5_int_lsbs(2 to 12) ;
 
@@ -785,20 +814,20 @@ begin
     ex5_frac_misc(27 to 52) <=   (27 to 52 => ex5_sel_fpscr)  and f_scr_ex5_fpscr_rd_dat(6 to 31);
 
 
-    ex5_frac_p0(0) <= 
+    ex5_frac_p0(0) <= -- toInteger never rounds up
          ( ex5_p0_sel_dflt and f_nrm_ex5_res(0)    ) or
          ( ex5_to_integer  and ex5_to_int_imp      ) or 
          (                     ex5_frac_misc(0)    ) ; 
-    ex5_frac_p0(1) <= 
+    ex5_frac_p0(1) <= -- toInteger never rounds up
          ( ex5_p0_sel_dflt    and f_nrm_ex5_res(1)          ) or
          ( ex5_to_integer     and ex5_to_int_data(12)       ) or
          (                        ex5_frac_misc(1)          ) or 
          (                        ex5_quiet                 ) ;
-    ex5_frac_p0(2 to 19) <= 
+    ex5_frac_p0(2 to 19) <= -- toInteger never rounds up
          ( (2 to 19 => ex5_p0_sel_dflt)    and f_nrm_ex5_res( 2 to 19)     ) or
          ( (2 to 19 => ex5_to_integer )    and ex5_to_int_data(13 to 30)   ) or
          (                                     ex5_frac_misc(2 to 19)      ) ;
-    ex5_frac_p0(20 to 52) <= 
+    ex5_frac_p0(20 to 52) <= -- toInteger never rounds up
          ( (20 to 52 => ex5_p0_sel_dflt) and f_nrm_ex5_res( 20 to 52)    ) or
          ( (20 to 52 => ex5_to_integer ) and ex5_to_int_data(31 to 63)   ) or
          (                                   ex5_frac_misc(20 to 52)    ) ;
@@ -811,12 +840,13 @@ begin
         ( (24 to 52 => ex5_sel_up_dp_b) and ex5_frac_p0(24 to 52) ) or  
         ( (24 to 52 => ex5_sel_up_dp  ) and ex5_frac_p1(24 to 52) ) ;  
 
+   -- int 32:63 => frac 21:52  [21] is the integer sign bit
 
 
-    ex5_frac_k(0)        <=              ex5_k_notzer          or      ex5_word ; 
+    ex5_frac_k(0)        <=              ex5_k_notzer          or      ex5_word ; -- implicit bit
     ex5_frac_k(1)        <=              ex5_k_max_intmax_nan  or      ex5_word; 
     ex5_frac_k( 2 to 20) <= ( 2 to 20 => ex5_k_max_intmax      and not ex5_word    );
-    ex5_frac_k(21)       <=              ex5_k_max_intsgn      ; 
+    ex5_frac_k(21)       <=              ex5_k_max_intsgn      ; -- sign of int word
     ex5_frac_k(22)       <=              ex5_k_max_intmax      ;
     ex5_frac_k(23)       <=              ex5_k_max_intmax      ;
     ex5_frac_k(24 to 52) <= (24 to 52 => ex5_k_max_intmax_nsp );
@@ -826,14 +856,14 @@ begin
     ex5_k_max_intmax         <=      f_pic_ex5_k_max or f_pic_ex5_k_int_maxpos  ;
     ex5_k_max_intmax_nsp     <=     (f_pic_ex5_k_max or f_pic_ex5_k_int_maxpos )and not ex5_sp;
 
-    ex5_k_max_intsgn  <= ( f_pic_ex5_k_max                                         ) or 
-                         ( f_pic_ex5_k_int_maxpos and not ex5_word                 ) or 
-                         ( f_pic_ex5_k_int_maxneg and     ex5_word and not ex5_uns ) or 
-                         ( f_pic_ex5_k_int_maxpos and     ex5_word and     ex5_uns ) ;  
+    ex5_k_max_intsgn  <= ( f_pic_ex5_k_max                                         ) or -- not to-integer
+                         ( f_pic_ex5_k_int_maxpos and not ex5_word                 ) or -- dw-to_integer
+                         ( f_pic_ex5_k_int_maxneg and     ex5_word and not ex5_uns ) or -- wd-to-integer signed
+                         ( f_pic_ex5_k_int_maxpos and     ex5_word and     ex5_uns ) ;  -- wd-to-integer unsigned
                                                                                        
 
 
-    ex5_res_frac(0) <= 
+    ex5_res_frac(0) <= -- for to integer (impl needs extra logic)
         (ex5_frac_k(0)  and     ex5_res_sel_k_f ) or 
         (ex5_frac_px(0) and not ex5_res_sel_k_f ) ;
 
@@ -842,7 +872,12 @@ begin
         (ex5_frac_px  (1 to 52) and (1 to 52=> not ex5_res_sel_k_f) ) ;
 
 
+  --//##-------------------------------------------
+  --//## final selection muxing exponent
+  --//##-------------------------------------------
 
+    -- max sp expo 1151 is wrong 1151 =127+1024   0_0100_0111_1111
+    --             1150                           0_0100_0111_1110
 
     ex5_k_inf_nan_max <= f_pic_ex5_k_nan or
                          f_pic_ex5_k_inf or
@@ -859,22 +894,23 @@ begin
     ex5_k_zer_sp <= f_pic_ex5_k_zer and ex5_sp ; 
 
 
-    ex5_expo_k( 1) <= tidn           ;
-    ex5_expo_k( 2) <= tidn           ;
-    ex5_expo_k( 3) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word ; 
-    ex5_expo_k( 4) <= ex5_k_inf_nan_maxdp or f_pic_ex5_k_int_maxpos or ex5_k_zer_sp or ex5_word or f_pic_ex5_k_one ;
-    ex5_expo_k( 5) <= ex5_k_inf_nan_maxdp or f_pic_ex5_k_int_maxpos or ex5_k_zer_sp or ex5_word or f_pic_ex5_k_one  ;
-    ex5_expo_k( 6) <= ex5_k_inf_nan_maxdp or f_pic_ex5_k_int_maxpos or ex5_k_zer_sp or ex5_word or f_pic_ex5_k_one  ;
-    ex5_expo_k( 7) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word or f_pic_ex5_k_one  ;
-    ex5_expo_k( 8) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word or f_pic_ex5_k_one  ;
-    ex5_expo_k( 9) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word or f_pic_ex5_k_one  ;
-    ex5_expo_k(10) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word or f_pic_ex5_k_one  ;
-    ex5_expo_k(11) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word or f_pic_ex5_k_one  ;
-    ex5_expo_k(12) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word or f_pic_ex5_k_one  ;
+    ex5_expo_k( 1) <= tidn           ;-- 4096 sign
+    ex5_expo_k( 2) <= tidn           ;-- 2048
+    ex5_expo_k( 3) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word ; -- 1024
+    ex5_expo_k( 4) <= ex5_k_inf_nan_maxdp or f_pic_ex5_k_int_maxpos or ex5_k_zer_sp or ex5_word or f_pic_ex5_k_one ;-- 0512
+    ex5_expo_k( 5) <= ex5_k_inf_nan_maxdp or f_pic_ex5_k_int_maxpos or ex5_k_zer_sp or ex5_word or f_pic_ex5_k_one  ;-- 0256
+    ex5_expo_k( 6) <= ex5_k_inf_nan_maxdp or f_pic_ex5_k_int_maxpos or ex5_k_zer_sp or ex5_word or f_pic_ex5_k_one  ;-- 0128
+    ex5_expo_k( 7) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word or f_pic_ex5_k_one  ;-- 0064
+    ex5_expo_k( 8) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word or f_pic_ex5_k_one  ;-- 0032
+    ex5_expo_k( 9) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word or f_pic_ex5_k_one  ;-- 0016
+    ex5_expo_k(10) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word or f_pic_ex5_k_one  ;-- 0008
+    ex5_expo_k(11) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word or f_pic_ex5_k_one  ;-- 0004
+    ex5_expo_k(12) <= ex5_k_inf_nan_max   or f_pic_ex5_k_int_maxpos                 or ex5_word or f_pic_ex5_k_one  ;-- 0002
     ex5_expo_k(13) <= ex5_k_inf_nan_zer   or f_pic_ex5_k_int_maxpos or ex5_k_zero
-                                          or f_pic_ex5_k_int_maxneg                 or ex5_word or f_pic_ex5_k_one  ;
+                                          or f_pic_ex5_k_int_maxneg                 or ex5_word or f_pic_ex5_k_one  ;-- 0001
 
 
+    -----------
 
     ex5_expo_p0k(1 to 13) <=
         (  ex5_expo_k(1 to 13)                           and (1 to 13 => ex5_expo_p0_sel_k   ) ) or 
@@ -887,6 +923,7 @@ begin
         (  ex5_expo_k        (1 to 13) and (1 to 13 => ex5_expo_p1_sel_k   ) ) or 
         (  f_eov_ex5_expo_p1 (1 to 13) and (1 to 13 => ex5_expo_p1_sel_dflt) ) ; 
 
+    -------------
     ex5_expo_p0kx(1 to 7) <=
         ( ex5_expo_p0k(1 to 7) and (1 to 7 => not ex5_sel_p0_joke) ) or
         ( (tidn & tidn & f_eov_ex5_expo_p0_ue1oe1(3 to 7) )
@@ -898,48 +935,62 @@ begin
                                and (1 to 7 =>     ex5_sel_p1_joke) ) ;
 
 
-    ex5_expo_p0kx(8 to 12) <= ex5_expo_p0k(8 to 12); 
-    ex5_expo_p1kx(8 to 12) <= ex5_expo_p1k(8 to 12); 
+    ex5_expo_p0kx(8 to 12) <= ex5_expo_p0k(8 to 12); -- joke does not effect these bits
+    ex5_expo_p1kx(8 to 12) <= ex5_expo_p1k(8 to 12); -- joke does not effect these bits
 
+    -- the silly exceptions enabled logic could wrap around and hit the exponent Zero
+    -- if it is nonZero: it will normalize
+    -- overflow
+    -- DP constant = 1536 overflow = 2047       = 2047 Expo>=2047, subtracting 1536  cannot hit zero
+    -- SP constant =  192 overflow =  255 + 896 = 1151 Expo>=1151, subtracting  192  cannot hit zero
+    -- underflow
+    -- DP constant = 1536 underflow at zero ... worst expo = -53???
+    -- SP constant =  192 underflow at 896  ... worst expo =
      
 
-    ex5_expo_p0kx(13) <= ex5_expo_p0k(13);  
-    ex5_expo_p1kx(13) <= ex5_expo_p1k(13) ; 
+    ex5_expo_p0kx(13) <= ex5_expo_p0k(13);  --or not ex5_res_frac(0) ; -- joke does not effect these bits
+    ex5_expo_p1kx(13) <= ex5_expo_p1k(13) ; --or not ex5_res_frac(0) ; -- joke does not effect these bits
+    -------------
 
 
-   ex5_res_expo( 1) <= ( ex5_expo_p0kx( 1) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  
+   ex5_res_expo( 1) <= ( ex5_expo_p0kx( 1) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  -- 4096 /sign
                        ( ex5_expo_p1kx( 1) and     ex5_res_sel_p1_e                        );
-   ex5_res_expo( 2) <= ( ex5_expo_p0kx( 2) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  
+   ex5_res_expo( 2) <= ( ex5_expo_p0kx( 2) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  -- 2048
                        ( ex5_expo_p1kx( 2) and     ex5_res_sel_p1_e                        );
-   ex5_res_expo( 3) <= ( ex5_expo_p0kx( 3) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  
+   ex5_res_expo( 3) <= ( ex5_expo_p0kx( 3) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  -- 1024
                        ( ex5_expo_p1kx( 3) and     ex5_res_sel_p1_e                        );
 
-   ex5_res_expo( 4) <= ( ex5_expo_p0kx( 4) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  
+   ex5_res_expo( 4) <= ( ex5_expo_p0kx( 4) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  --  512
                        ( ex5_sp            and not ex5_res_sel_p1_e and     ex5_res_clip_e ) or 
                        ( ex5_expo_p1kx( 4) and     ex5_res_sel_p1_e                        );
-   ex5_res_expo( 5) <= ( ex5_expo_p0kx( 5) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  
+   ex5_res_expo( 5) <= ( ex5_expo_p0kx( 5) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  --  256
                        ( ex5_sp            and not ex5_res_sel_p1_e and     ex5_res_clip_e ) or 
                        ( ex5_expo_p1kx( 5) and     ex5_res_sel_p1_e                        );
-   ex5_res_expo( 6) <= ( ex5_expo_p0kx( 6) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  
+   ex5_res_expo( 6) <= ( ex5_expo_p0kx( 6) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  --  128
                        ( ex5_sp            and not ex5_res_sel_p1_e and     ex5_res_clip_e ) or 
                        ( ex5_expo_p1kx( 6) and     ex5_res_sel_p1_e                        );
 
-   ex5_res_expo( 7) <= ( ex5_expo_p0kx( 7) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  
+   ex5_res_expo( 7) <= ( ex5_expo_p0kx( 7) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  --   64
                        ( ex5_expo_p1kx( 7) and     ex5_res_sel_p1_e                        );
-   ex5_res_expo( 8) <= ( ex5_expo_p0kx( 8) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  
+   ex5_res_expo( 8) <= ( ex5_expo_p0kx( 8) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  --   32
                        ( ex5_expo_p1kx( 8) and     ex5_res_sel_p1_e                        );
-   ex5_res_expo( 9) <= ( ex5_expo_p0kx( 9) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  
+   ex5_res_expo( 9) <= ( ex5_expo_p0kx( 9) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  --   16
                        ( ex5_expo_p1kx( 9) and     ex5_res_sel_p1_e                        );
-   ex5_res_expo(10) <= ( ex5_expo_p0kx(10) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  
+   ex5_res_expo(10) <= ( ex5_expo_p0kx(10) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  --    8
                        ( ex5_expo_p1kx(10) and     ex5_res_sel_p1_e                        );
-   ex5_res_expo(11) <= ( ex5_expo_p0kx(11) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  
+   ex5_res_expo(11) <= ( ex5_expo_p0kx(11) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  --    4
                        ( ex5_expo_p1kx(11) and     ex5_res_sel_p1_e                        );
-   ex5_res_expo(12) <= ( ex5_expo_p0kx(12) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  
+   ex5_res_expo(12) <= ( ex5_expo_p0kx(12) and not ex5_res_sel_p1_e and not ex5_res_clip_e ) or  --    2
                        ( ex5_expo_p1kx(12) and     ex5_res_sel_p1_e                        );
    ex5_res_expo(13) <= ( ex5_expo_p0kx(13) and not ex5_res_sel_p1_e                        ) or  
                        (                       not ex5_res_sel_p1_e and     ex5_res_clip_e ) or 
                        ( ex5_expo_p1kx(13) and     ex5_res_sel_p1_e                        );
 
+  --//##-------------------------------------------
+  --//## final selection muxing sign
+  --//##-------------------------------------------
+    -- actually know to_integer sign for signed convert ahead of time.
+    -- may be unsigned converts in the future
 
     ex5_sgn_result_fp     <= f_pic_ex5_round_sign xor f_pic_ex5_invert_sign;
 
@@ -950,7 +1001,7 @@ begin
 
 
     ex5_exact_zero_rnd <= f_nrm_ex5_exact_zero and
-                      not f_nrm_ex5_nrm_sticky_dp ; 
+                      not f_nrm_ex5_nrm_sticky_dp ; -- really just after aligner sicky from shift underflow
 
 
     ex5_rnd_ni_adj <= ex5_rnd_ni xor f_pic_ex5_invert_sign;
@@ -961,6 +1012,9 @@ begin
     ex5_res_sign <= (ex5_res_sign_prez and not ex5_exact_sgn_rst) or ex5_exact_sgn_set;
 
 
+  --//##-------------------------------------------
+  --//## selects for final selection muxing
+  --//##-------------------------------------------
 
    ex5_res_sel_k_f <=
         ( f_eov_ex5_sel_kif_f  and ex5_all1 and ex5_up           ) or
@@ -968,17 +1022,20 @@ begin
         ( ex5_clip_deno                                          ) or  
         ( ex5_sel_est   and  f_tbl_ex5_recip_den and ex5_nj_deno ) ;   
 
+     ---------------------
 
    ex5_res_sel_p1_e <=            ex5_all1 and ex5_up ;
 
 
    ex5_est_log_pow <= f_gst_ex5_logexp_v or ex5_sel_est ;
 
+   -- ??? should al he sel_k override massive cancellation ???
+   --     i.e : unf_expo
    ex5_res_clip_e   <=
         ( ex5_unf_en_ue0 and not f_nrm_ex5_res(0)    and not ex5_expo_sel_k and not ex5_est_log_pow) or 
-        ( ex5_unf_en_ue0 and     f_eov_ex5_unf_expo  and not ex5_expo_sel_k and not ex5_est_log_pow) or 
-        ( ex5_all0       and not ex5_to_integer      and not ex5_expo_sel_k and not ex5_est_log_pow) or  
-        ( ex5_nj_deno    and not f_nrm_ex5_res(0)    and not ex5_expo_sel_k and not ex5_est_log_pow) ;  
+        ( ex5_unf_en_ue0 and     f_eov_ex5_unf_expo  and not ex5_expo_sel_k and not ex5_est_log_pow) or -- might NOT need this term since implicit catches it above
+        ( ex5_all0       and not ex5_to_integer      and not ex5_expo_sel_k and not ex5_est_log_pow) or  -- massive cancel (surprise)
+        ( ex5_nj_deno    and not f_nrm_ex5_res(0)    and not ex5_expo_sel_k and not ex5_est_log_pow) ;  -- force denorm result = 0;
 
     ex5_clip_deno <= ( ex5_nj_deno    and not f_nrm_ex5_res(0)    and not ex5_expo_sel_k and not ex5_est_log_pow) ;
 
@@ -995,20 +1052,37 @@ begin
     ex5_expo_p1_sel_k    <=     ex5_expo_sel_k_both;
     ex5_expo_p1_sel_dflt <= not ex5_expo_sel_k_both;
 
-    ex5_sel_p0_joke <=  
-        ( ex5_unf_en_ue1 and f_eov_ex5_unf_expo    ) or 
+    ex5_sel_p0_joke <=  -- ue1/oe1 exponent wrapping
+        ( ex5_unf_en_ue1 and f_eov_ex5_unf_expo    ) or -- for UX
         ( ex5_ovf_en_oe1 and f_eov_ex5_ovf_expo    );
  
-    ex5_sel_p1_joke <=  
-        ( ex5_unf_en_ue1 and f_eov_ex5_unf_expo    ) or 
+    ex5_sel_p1_joke <=  -- ue1/oe1/exponent wrapping
+        ( ex5_unf_en_ue1 and f_eov_ex5_unf_expo    ) or -- for UX
         ( ex5_ovf_en_oe1 and f_eov_ex5_ovf_expo    ) or
         ( ex5_ovf_en_oe1 and f_eov_ex5_ovf_if_expo );
 
 
 
 
+  --//##-------------------------------------------
+  --//## flags for fspscr
+  --//##-------------------------------------------
 
     ex5_pwr4_spec_frsp <= ex5_unf_en_ue1 and not f_nrm_ex5_res(0) and f_pic_ex5_frsp ;
+    -- frsp :
+    -- For ue=1 with sp output , normalize then add 192 to exponent.
+    -- the 192 thing works for madd when both operands are in sp range,
+    -- however it does not work with frsp and a small dp number, smaller than an sp madd can create.
+    -- also frsp needs to know ue=1 to set up a dummy pExpo in rf2 (early).
+    -- this is hard since we are not suppose to stall/flush for mvto_fpscr ops.
+    -- if we set up the constant like ue=0 for both modes, then
+    -- we math the spec up to emin - 160, then give zero as a result.
+    -- this is simillar to (but not exactly inclusive of all) the range where the +192 works.
+    -- power4 seems to do it the ignore ue=1 way.
+    --
+    -- power 4 sets the exact denorms to : fprf=+/-norm fi/fr=00
+    -- i like                              fprf=+/-zero fi/fr=10   fprf=+/-norm fi/fr=11
+    -- although that allows round up out of zero ????
 
     ex5_flag_ox       <=
        ( f_eov_ex5_ovf_expo                            ) or 
@@ -1018,43 +1092,47 @@ begin
 
     ex5_flag_inf      <= 
        ( ex5_spec_inf                       ) or
-       ( ex5_ov_oe0 and not f_pic_ex5_k_max ); 
+       ( ex5_ov_oe0 and not f_pic_ex5_k_max ); -- rnd mode decides if to use infinity
 
+    --fr is <was> undefined for the ovf case (usin Loki reference model that sets it to 1).
 
     ex5_flag_up       <= ex5_ov_oe0 or ex5_up;  
     ex5_flag_fi       <= ex5_ov_oe0 or ex5_gox; 
 
 
     
-    ex5_flag_ux       <= 
-       ( ex5_unf_en_ue0 and not f_nrm_ex5_res(0) and not ex5_exact_zero_rnd and ex5_gox and not ex5_sel_est ) or 
-       ( ex5_unf_en_ue0 and f_eov_ex5_unf_expo   and not ex5_exact_zero_rnd and ex5_gox                     ) or 
-       ( ex5_unf_en_ue1 and f_eov_ex5_unf_expo   and not ex5_exact_zero_rnd                                 ) or 
-       ( ex5_unf_en_ue1 and f_eov_ex5_unf_expo   and     ex5_sel_est                                        ) or 
-       ( ex5_unf_en_ue0 and f_eov_ex5_unf_expo   and     ex5_sel_est                                        ) or 
-       ( ex5_pwr4_spec_frsp                                                                                 );   
+    ex5_flag_ux       <= -- ue=0: lzo limits exponent to 381 ... look at pre-round implicit bit
+       ( ex5_unf_en_ue0 and not f_nrm_ex5_res(0) and not ex5_exact_zero_rnd and ex5_gox and not ex5_sel_est ) or -- tiny with precision loss
+       ( ex5_unf_en_ue0 and f_eov_ex5_unf_expo   and not ex5_exact_zero_rnd and ex5_gox                     ) or -- tiny with precision loss
+       ( ex5_unf_en_ue1 and f_eov_ex5_unf_expo   and not ex5_exact_zero_rnd                                 ) or -- tiny
+       ( ex5_unf_en_ue1 and f_eov_ex5_unf_expo   and     ex5_sel_est                                        ) or -- tiny
+       ( ex5_unf_en_ue0 and f_eov_ex5_unf_expo   and     ex5_sel_est                                        ) or -- tiny
+       ( ex5_pwr4_spec_frsp                                                                                 );   -- (power4 mode)
 
 
 
     ex5_k_zero <= f_pic_ex5_k_zer or f_pic_ex5_k_int_zer ;
  
     ex5_flag_zer      <=
-       ( not ex5_sel_est     and not ex5_res_sel_k_f and ex5_all0 and not ex5_up             ) or 
-       (                             ex5_res_sel_k_f and ex5_k_zero                          ) ;  
+       ( not ex5_sel_est     and not ex5_res_sel_k_f and ex5_all0 and not ex5_up             ) or -- start with zero
+       (                             ex5_res_sel_k_f and ex5_k_zero                          ) ;  -- forcing zero
 
     ex5_flag_den    <=
-       ( not ex5_sel_est and not ex5_res_frac(0)                   ) or 
+       ( not ex5_sel_est and not ex5_res_frac(0)                   ) or -- !implicit_bit :: denorm
        (     ex5_sel_est and f_tbl_ex5_recip_den                   ) or
        (     ex5_sel_est and ex5_unf_en_ue0 and f_eov_ex5_unf_expo ) ;  
 
 
  
+--//##############################################
+--//# EX6 latches
+--//##############################################
  
     ex6_frac_lat:  tri_rlmreg_p generic map (width=> 53, expand_type => expand_type, needs_sreset => 0) port map ( 
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(6)  ,
-        mpw1_b           => mpw1_b(6)       ,
-        mpw2_b           => mpw2_b(1)       ,
+        forcee => forcee,--i-- tidn,
+        delay_lclkr      => delay_lclkr(6)  ,--i-- tidn,
+        mpw1_b           => mpw1_b(6)       ,--i-- tidn,
+        mpw2_b           => mpw2_b(1)       ,--i-- tidn,
         vd               => vdd,
         gd               => gnd,
         nclk             => nclk, 
@@ -1063,14 +1141,16 @@ begin
         act              => ex5_act, 
         scout            => ex6_frac_so  ,                      
         scin             => ex6_frac_si  ,                    
+        -------------------
         din              => ex5_res_frac(0 to 52),
-        dout             => ex6_res_frac(0 to 52) );
+        -------------------
+        dout             => ex6_res_frac(0 to 52) );--LAT--
 
     ex6_expo_lat:  tri_rlmreg_p generic map (width=> 14, expand_type => expand_type, needs_sreset => 0) port map ( 
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(6)  ,
-        mpw1_b           => mpw1_b(6)       ,
-        mpw2_b           => mpw2_b(1)       ,
+        forcee => forcee,--i-- tidn,
+        delay_lclkr      => delay_lclkr(6)  ,--i-- tidn,
+        mpw1_b           => mpw1_b(6)       ,--i-- tidn,
+        mpw2_b           => mpw2_b(1)       ,--i-- tidn,
         vd               => vdd,
         gd               => gnd,
         nclk             => nclk, 
@@ -1079,16 +1159,18 @@ begin
         act              => ex5_act, 
         scout            => ex6_expo_so  ,                      
         scin             => ex6_expo_si  ,                    
+        -------------------
          din(0)             => ex5_res_sign ,
          din(1 to 13)       => ex5_res_expo(1 to 13) ,
-        dout(0)             => ex6_res_sign  ,
-        dout(1 to 13)       => ex6_res_expo(1 to 13) );
+        -------------------
+        dout(0)             => ex6_res_sign  ,--LAT--
+        dout(1 to 13)       => ex6_res_expo(1 to 13) );--LAT--
 
     ex6_flag_lat:  tri_rlmreg_p generic map (width=> 10, expand_type => expand_type, needs_sreset => 1) port map ( 
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(6)  ,
-        mpw1_b           => mpw1_b(6)       ,
-        mpw2_b           => mpw2_b(1)       ,
+        forcee => forcee,--i-- tidn,
+        delay_lclkr      => delay_lclkr(6)  ,--i-- tidn,
+        mpw1_b           => mpw1_b(6)       ,--i-- tidn,
+        mpw2_b           => mpw2_b(1)       ,--i-- tidn,
         vd               => vdd,
         gd               => gnd,
         nclk             => nclk, 
@@ -1097,6 +1179,7 @@ begin
         act              => ex5_act, 
         scout            => ex6_flag_so  ,                      
         scin             => ex6_flag_si  ,                    
+        -------------------
          din(0)             => flag_spare_unused   ,
          din(1)             => ex5_res_sign        ,
          din(2)             => ex5_flag_den        ,
@@ -1107,35 +1190,39 @@ begin
          din(7)             => ex5_flag_fi         ,
          din(8)             => ex5_flag_ox         ,
          din(9)             => ex5_nj_deno         ,
-        dout(0)             => flag_spare_unused   ,
-        dout(1)             => ex6_flag_sgn        ,
-        dout(2)             => ex6_flag_den        ,
-        dout(3)             => ex6_flag_inf        ,
-        dout(4)             => ex6_flag_zer        ,
-        dout(5)             => ex6_flag_ux         ,
-        dout(6)             => ex6_flag_up         ,
-        dout(7)             => ex6_flag_fi         ,
-        dout(8)             => ex6_flag_ox         ,
-        dout(9)             => ex6_nj_deno        );
+        -------------------
+        dout(0)             => flag_spare_unused   ,--LAT--
+        dout(1)             => ex6_flag_sgn        ,--LAT--
+        dout(2)             => ex6_flag_den        ,--LAT--
+        dout(3)             => ex6_flag_inf        ,--LAT--
+        dout(4)             => ex6_flag_zer        ,--LAT--
+        dout(5)             => ex6_flag_ux         ,--LAT--
+        dout(6)             => ex6_flag_up         ,--LAT--
+        dout(7)             => ex6_flag_fi         ,--LAT--
+        dout(8)             => ex6_flag_ox         ,--LAT--
+        dout(9)             => ex6_nj_deno        );--LAT--
 
 
-       f_rnd_ex6_res_sign          <= ex6_res_sign          ;
-       f_rnd_ex6_res_expo(1 to 13) <= ex6_res_expo(1 to 13) ;
-       f_rnd_ex6_res_frac(0 to 52) <= ex6_res_frac(0 to 52) ;
+       f_rnd_ex6_res_sign          <= ex6_res_sign          ;--output--
+       f_rnd_ex6_res_expo(1 to 13) <= ex6_res_expo(1 to 13) ;--output--
+       f_rnd_ex6_res_frac(0 to 52) <= ex6_res_frac(0 to 52) ;--output--
 
-       f_rnd_ex6_flag_sgn          <=     ex6_flag_sgn                                       ;
-       f_rnd_ex6_flag_den          <=     ex6_flag_den and                  not ex6_nj_deno  ;
-       f_rnd_ex6_flag_inf          <=     ex6_flag_inf                                       ;
-       f_rnd_ex6_flag_zer          <=     ex6_flag_zer or     (ex6_flag_den and ex6_nj_deno) ;
-       f_rnd_ex6_flag_ux           <=     ex6_flag_ux  and not(ex6_flag_den and ex6_nj_deno) ;
-       f_rnd_ex6_flag_up           <=     ex6_flag_up  and not(ex6_flag_den and ex6_nj_deno) ;
-       f_rnd_ex6_flag_fi           <=     ex6_flag_fi  and not(ex6_flag_den and ex6_nj_deno) ;
-       f_rnd_ex6_flag_ox           <=     ex6_flag_ox                                        ;
+       f_rnd_ex6_flag_sgn          <=     ex6_flag_sgn                                       ;--output--
+       f_rnd_ex6_flag_den          <=     ex6_flag_den and                  not ex6_nj_deno  ;--output--
+       f_rnd_ex6_flag_inf          <=     ex6_flag_inf                                       ;--output--
+       f_rnd_ex6_flag_zer          <=     ex6_flag_zer or     (ex6_flag_den and ex6_nj_deno) ;--output--
+       f_rnd_ex6_flag_ux           <=     ex6_flag_ux  and not(ex6_flag_den and ex6_nj_deno) ;--output--
+       f_rnd_ex6_flag_up           <=     ex6_flag_up  and not(ex6_flag_den and ex6_nj_deno) ;--output--
+       f_rnd_ex6_flag_fi           <=     ex6_flag_fi  and not(ex6_flag_den and ex6_nj_deno) ;--output--
+       f_rnd_ex6_flag_ox           <=     ex6_flag_ox                                        ;--output--
 
 
-       f_mad_ex6_uc_sign           <=  ex6_res_sign;
-       f_mad_ex6_uc_zero           <=  ex6_flag_zer and not ex6_flag_fi;
+       f_mad_ex6_uc_sign           <=  ex6_res_sign;--output--
+       f_mad_ex6_uc_zero           <=  ex6_flag_zer and not ex6_flag_fi;--output-- ??exact zero??
 
+--//############################################
+--//# scan
+--//############################################
 
     act_si  (0 to 4)       <= act_so  (1 to 4)       & f_rnd_si ;
     ex5_ctl_si   (0 to 15) <= ex5_ctl_so  (1 to 15)  & act_so  (0) ;
@@ -1145,12 +1232,4 @@ begin
     f_rnd_so               <= ex6_flag_so  (0);
  
 
-end; 
- 
-
-
-
-
- 
-
-
+end; -- fuq_rnd ARCHITECTURE

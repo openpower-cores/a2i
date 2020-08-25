@@ -29,7 +29,7 @@ use work.iuq_pkg.all;
 entity iuq_misc is
 generic(regmode     : integer := 6;
         a2mode      : integer := 1;
-        expand_type : integer := 2 ); 
+        expand_type : integer := 2 ); -- 0 = ibm umbra, 1 = xilinx, 2 = ibm mpg
 port(
      vdd                        : inout power_logic;
      gnd                        : inout power_logic;
@@ -130,6 +130,7 @@ port(
      iu_pc_bo_fail              : out std_ulogic;
      iu_pc_bo_diagout           : out std_ulogic;
 
+     -- bht
      r_act                      : in  std_ulogic;
      w_act                      : in  std_ulogic_vector(0 to 3);
      r_addr                     : in  std_ulogic_vector(0 to 7);
@@ -148,6 +149,7 @@ port(
      rm_ib_iu4_force_ram        : out std_ulogic;
      rm_ib_iu4_instr            : out std_ulogic_vector(0 to 35);
 
+     -- spr
      slowspr_val_in             : in std_ulogic;
      slowspr_rw_in              : in std_ulogic;
      slowspr_etid_in            : in std_ulogic_vector(0 to 1);
@@ -201,6 +203,7 @@ port(
      xu_iu_msr_gs               : in std_ulogic_vector(0 to 3);
      xu_iu_msr_pr               : in std_ulogic_vector(0 to 3);
 
+     --dbg
      pc_iu_trace_bus_enable     : in  std_ulogic;
      pc_iu_debug_mux_ctrls      : in  std_ulogic_vector(0 to 15);
      debug_data_in              : in  std_ulogic_vector(0 to 87);
@@ -220,6 +223,7 @@ port(
      axu_dbg_data_t3            : in std_ulogic_vector(0 to 37);
 
 
+     --perf
      ic_perf_event_t0           : in std_ulogic_vector(0 to 6);
      ic_perf_event_t1           : in std_ulogic_vector(0 to 6);
      ic_perf_event_t2           : in std_ulogic_vector(0 to 6);
@@ -249,6 +253,7 @@ port(
 -- synopsys translate_on
 
 end iuq_misc;
+----
 architecture iuq_misc of iuq_misc is
 
 signal iuq_pv_gptr_scan_in      : std_ulogic;
@@ -493,8 +498,8 @@ port map(
      delay_lclkr                        => int_delay_lclkr(0),
      mpw1_b                             => int_mpw1_b(0),
      mpw2_b                             => int_mpw2_b(0),
-     scan_in                            => iuq_rm_scan_in, 
-     scan_out                           => iuq_rm_scan_out, 
+     scan_in                            => iuq_rm_scan_in, --siv(3),
+     scan_out                           => iuq_rm_scan_out, --sov(3),
      pc_iu_ram_instr                    => pc_iu_ram_instr,    
      pc_iu_ram_instr_ext                => pc_iu_ram_instr_ext,
      pc_iu_ram_force_cmplt              => pc_iu_ram_force_cmplt,
@@ -580,8 +585,8 @@ port map(
      bcfg_scan_out              => iuq_sp_bcfg_scan_out,
      dcfg_scan_in               => iuq_sp_dcfg_scan_in,
      dcfg_scan_out              => iuq_sp_dcfg_scan_out,
-     scan_in                    => iuq_sp_scan_in, 
-     scan_out                   => iuq_sp_scan_out 
+     scan_in                    => iuq_sp_scan_in, --siv(10),
+     scan_out                   => iuq_sp_scan_out --sov(10)
 );
 
 iuq_perf0 : entity work.iuq_perf
@@ -680,6 +685,9 @@ port map(
 
 
 
+-------------------------------------------------
+-- scan
+-------------------------------------------------
 
 iuq_pf_scan_in          <= func_scan_in(0);
 iuq_sp_scan_in          <= iuq_pf_scan_out;            

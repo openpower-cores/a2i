@@ -7,18 +7,20 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_lcbor.vhdl
+-- *! DESCRIPTION : Used to generate LCB controls
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
 
 library support; 
                  use support.power_logic_pkg.all;
--- pragma translate_off
--- pragma translate_on
 
 entity tri_lcbor is
 
-  generic ( expand_type : integer := 1 ); 
+  generic ( expand_type : integer := 1 ); -- 1 = non-ibm, 2 = ibm (MPG)
 
   port (
         clkoff_b : in    std_ulogic;
@@ -29,16 +31,11 @@ entity tri_lcbor is
         thold_b  : out   std_ulogic
        );
 
-  -- synopsys translate_off
-  -- synopsys translate_on
-
 end entity tri_lcbor;
 
 architecture tri_lcbor of tri_lcbor is
 
   signal unused : std_ulogic;
-  -- synopsys translate_off
-  -- synopsys translate_on
 
 begin
 
@@ -49,4 +46,3 @@ begin
   end generate a;
 
 end tri_lcbor;
-

@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Debug Event Muxing
+--
 library ieee,ibm,support,work,tri,clib;
 use ieee.std_logic_1164.all;
 use support.power_logic_pkg.all;
@@ -16,8 +18,10 @@ entity xuq_debug is
 generic(
    expand_type                      :     integer := 2);
 port(
+   -- Clocks
    nclk                             : in  clk_logic;
 
+   -- Pervasive
    d_mode_dc                        : in  std_ulogic;
    delay_lclkr_dc                   : in  std_ulogic;
    mpw1_dc_b                        : in  std_ulogic;
@@ -59,6 +63,7 @@ port(
    trg_group2                       : in std_ulogic_vector(0 to 11) := (others=>'0');
    trg_group3                       : in std_ulogic_vector(0 to 11) := (others=>'0');
 
+   -- Power
    vdd                              : inout power_logic;
    gnd                              : inout power_logic
 );
@@ -70,12 +75,14 @@ end xuq_debug;
 architecture xuq_debug of xuq_debug is
 
 signal tiup                                           : std_ulogic;
-signal trace_bus_enable_q                             : std_ulogic;                       
-signal debug_mux_ctrls_q                              : std_ulogic_vector(0 to 15);       
-signal debug_mux_ctrls_int_q, debug_mux_ctrls_int     : std_ulogic_vector(0 to 15);       
-signal trigger_data_out_q,    trigger_data_out_d      : std_ulogic_vector(0 to 11);       
-signal debug_data_out_q,      debug_data_out_d        : std_ulogic_vector(0 to 87);       
-signal ex4_instr_trace_val_q                          : std_ulogic;                     
+-- Latches
+signal trace_bus_enable_q                             : std_ulogic;                       -- input=>pc_xu_trace_bus_enable,                              sleep=>Y,   needs_sreset=>0
+signal debug_mux_ctrls_q                              : std_ulogic_vector(0 to 15);       -- input=>debug_mux_ctrls,          act=>trace_bus_enable_q,   sleep=>Y,   needs_sreset=>0
+signal debug_mux_ctrls_int_q, debug_mux_ctrls_int     : std_ulogic_vector(0 to 15);       -- input=>debug_mux_ctrls_int,      act=>trace_bus_enable_q,   sleep=>Y,   needs_sreset=>0
+signal trigger_data_out_q,    trigger_data_out_d      : std_ulogic_vector(0 to 11);       --                                  act=>trace_bus_enable_q,   sleep=>Y,   needs_sreset=>0
+signal debug_data_out_q,      debug_data_out_d        : std_ulogic_vector(0 to 87);       --                                  act=>trace_bus_enable_q,   sleep=>Y,   needs_sreset=>0
+signal ex4_instr_trace_val_q                          : std_ulogic;                     -- input=>dec_byp_ex3_instr_trace_val,act=>trace_bus_enable_q,   sleep=>Y,   needs_sreset=>0
+-- Scanrings
 constant trace_bus_enable_offset                      : integer := 0;
 constant debug_mux_ctrls_offset                       : integer := trace_bus_enable_offset        + 1;
 constant debug_mux_ctrls_int_offset                   : integer := debug_mux_ctrls_offset         + debug_mux_ctrls_q'length;
@@ -126,6 +133,7 @@ port map(
    trigger_data_out     => trigger_data_out_d,
    trace_data_out       => debug_data_out_d);
 
+-- Latches
 trace_bus_enable_latch : tri_rlmlatch_p
   generic map (init => 0, expand_type => expand_type, needs_sreset => 0)
   port map (nclk    => nclk, vd => vdd, gd => gnd,
@@ -210,3 +218,4 @@ scan_out                            <= sov(0);
 
 
 end architecture xuq_debug;
+

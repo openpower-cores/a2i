@@ -7,6 +7,7 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU LSU L1 Data Directory Tag Wrapper
 
 library ibm, ieee, work, tri, support;
 use ibm.std_ulogic_support.all;
@@ -17,38 +18,47 @@ use ieee.numeric_std.all;
 use tri.tri_latches_pkg.all;
 use support.power_logic_pkg.all;
 
+-- ##########################################################################################
+-- Tag Compare
+-- 1) Contains an Array of Tags
+-- 2) Updates Tag on Reload
+-- 3) Contains Hit Logic
+-- 4) Outputs Way Hit indicators
+-- ##########################################################################################
 entity xuq_lsu_dir_tag is
-generic(expand_type     : integer := 2;                 
-        dc_size         : natural := 14;        
-        cl_size         : natural := 6;         
-        wayDataSize     : natural := 35;        
+generic(expand_type     : integer := 2;
+        dc_size         : natural := 14;        -- 2^14 = 16384 Bytes L1 D$
+        cl_size         : natural := 6;         -- 2^6 = 64 Bytes CacheLines
+        wayDataSize     : natural := 35;        -- TagSize + Parity Bits
         parBits         : natural := 4;
-	real_data_add	: integer := 42);               
+	real_data_add	: integer := 42);
 port(
 
+     -- Stage ACT Signals
      ex2_stg_act                :in  std_ulogic;
      binv2_stg_act              :in  std_ulogic;
 
      rel_addr_early             :in  std_ulogic_vector(64-real_data_add to 63-cl_size);
-     rel_way_upd_a              :in  std_ulogic;                        
-     rel_way_upd_b              :in  std_ulogic;                        
-     rel_way_upd_c              :in  std_ulogic;                        
-     rel_way_upd_d              :in  std_ulogic;                        
-     rel_way_upd_e              :in  std_ulogic;                        
-     rel_way_upd_f              :in  std_ulogic;                        
-     rel_way_upd_g              :in  std_ulogic;                        
-     rel_way_upd_h              :in  std_ulogic;                        
+     rel_way_upd_a              :in  std_ulogic;
+     rel_way_upd_b              :in  std_ulogic;
+     rel_way_upd_c              :in  std_ulogic;
+     rel_way_upd_d              :in  std_ulogic;
+     rel_way_upd_e              :in  std_ulogic;
+     rel_way_upd_f              :in  std_ulogic;
+     rel_way_upd_g              :in  std_ulogic;
+     rel_way_upd_h              :in  std_ulogic;
 
-     inv1_val                   :in  std_ulogic;                        
+     inv1_val                   :in  std_ulogic;
 
      xu_lsu_spr_xucr0_dcdis     :in  std_ulogic;
 
-     ex1_p_addr_01              :in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size);       
-     ex1_p_addr_23              :in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size);       
-     ex1_p_addr_45              :in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size);       
-     ex1_p_addr_67              :in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size); 
+     ex1_p_addr_01              :in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size);
+     ex1_p_addr_23              :in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size);
+     ex1_p_addr_45              :in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size);
+     ex1_p_addr_67              :in  std_ulogic_vector(64-(dc_size-3) to 63-cl_size);
      ex2_ddir_acc_instr         :in  std_ulogic;
 
+     -- Error Inject
      pc_xu_inj_dcachedir_parity :in  std_ulogic;
 
      dir_arr_rd_addr_01         :out std_ulogic_vector(64-(dc_size-3) to 63-cl_size);
@@ -94,13 +104,20 @@ port(
      mpw1_dc_b                  :in  std_ulogic;
      mpw2_dc_b                  :in  std_ulogic;
      scan_in                    :in  std_ulogic;
-     scan_out                   :out std_ulogic     
+     scan_out                   :out std_ulogic
    );
 -- synopsys translate_off
 -- synopsys translate_on
 end xuq_lsu_dir_tag;
+----
 architecture xuq_lsu_dir_tag of xuq_lsu_dir_tag is
+----------------------------
+-- components
+----------------------------
 
+----------------------------
+-- signals
+----------------------------
 constant uprTagBit              :natural := 64-real_data_add;
 constant lwrTagBit              :natural := 63-(dc_size-3);
 constant tagSize                :natural := lwrTagBit-uprTagBit+1;
@@ -234,6 +251,9 @@ signal my_spare1_d2clk          :std_ulogic;
 signal my_spare1_latches_d      :std_ulogic_vector(0 to 15);
 signal my_spare1_latches_q      :std_ulogic_vector(0 to 15);
 
+----------------------------
+-- constants
+----------------------------
 constant inval_val_offset               :natural := 0;
 constant ex3_en_par_chk_offset          :natural := inval_val_offset + 1;
 constant spr_xucr0_dcdis_offset         :natural := ex3_en_par_chk_offset + 8;
@@ -273,6 +293,9 @@ signal siv                              :std_ulogic_vector(0 to scan_right);
 signal sov                              :std_ulogic_vector(0 to scan_right);
 
 begin
+-- ####################################################
+-- Inputs
+-- ####################################################
 
 tiup <= '1';
 ex2_binv2_stg_act <= ex2_stg_act or binv2_stg_act;
@@ -292,15 +315,23 @@ inval_val_d <= inv1_val;
 spr_xucr0_dcdis_d      <= xu_lsu_spr_xucr0_dcdis;
 inj_dcachedir_parity_d <= pc_xu_inj_dcachedir_parity;
 
+-- ####################################################
+-- Dcache Number of Cachelines Configurations
+-- ####################################################
 
 arr_wr_addr <= relu_addr_q(uprCClassBit to lwrCClassBit);
 arr_wr_data <= rel_addr_early(uprTagBit to lwrTagBit);
 
+-- Select Between Back-Invalidate Pipe or Execution Pipe
 arr_rd_addr_01 <= ex1_p_addr_01;
 arr_rd_addr_23 <= ex1_p_addr_23;
 arr_rd_addr_45 <= ex1_p_addr_45;
 arr_rd_addr_67 <= ex1_p_addr_67;
 
+-- ####################################################
+-- Tag Array Access
+-- 1) Contains the Array of Tags
+-- ####################################################
 
 l1dcta : entity work.xuq_lsu_dir_tag_arr(xuq_lsu_dir_tag_arr)
 GENERIC MAP(expand_type         => expand_type,		
@@ -308,7 +339,7 @@ GENERIC MAP(expand_type         => expand_type,
             cl_size             => cl_size,
             wayDataSize         => wayDataSize,
             parityBits          => parBits,
-            real_data_add       => real_data_add)       
+            real_data_add       => real_data_add)
 port map(
 
      waddr                      => arr_wr_addr,
@@ -328,10 +359,10 @@ port map(
      raddr_67			=> arr_rd_addr_67,
      inj_parity_err             => inj_dcachedir_parity_q,
 
-     dir_arr_rd_addr_01         => dir_arr_rd_addr_01,    
-     dir_arr_rd_addr_23         => dir_arr_rd_addr_23,    
-     dir_arr_rd_addr_45         => dir_arr_rd_addr_45,    
-     dir_arr_rd_addr_67         => dir_arr_rd_addr_67,    
+     dir_arr_rd_addr_01         => dir_arr_rd_addr_01,
+     dir_arr_rd_addr_23         => dir_arr_rd_addr_23,
+     dir_arr_rd_addr_45         => dir_arr_rd_addr_45,
+     dir_arr_rd_addr_67         => dir_arr_rd_addr_67,
      dir_arr_rd_data            => dir_arr_rd_data,
 
      dir_wr_way                 => dir_wr_way,
@@ -344,7 +375,7 @@ port map(
      way_tag_d                  => arr_wayD_tag,
      way_tag_e                  => arr_wayE_tag,
      way_tag_f                  => arr_wayF_tag,
-     way_tag_g                  => arr_wayG_tag,                             
+     way_tag_g                  => arr_wayG_tag,
      way_tag_h                  => arr_wayH_tag,
 
      way_arr_par_a              => ex3_way_tag_par_a_d,
@@ -374,7 +405,11 @@ port map(
      par_gen_h_2b               => ex2_par_gen_h_2b
 );
 
+-- ####################################################
+-- Parity Reporting
+-- ####################################################
 
+-- Parity Check Enable
 ex3_en_par_chk_d(0) <= (ex2_ddir_acc_instr or inval_val_q) and not spr_xucr0_dcdis_q;
 ex3_en_par_chk_d(1) <= (ex2_ddir_acc_instr or inval_val_q) and not spr_xucr0_dcdis_q;
 ex3_en_par_chk_d(2) <= (ex2_ddir_acc_instr or inval_val_q) and not spr_xucr0_dcdis_q;
@@ -384,6 +419,7 @@ ex3_en_par_chk_d(5) <= (ex2_ddir_acc_instr or inval_val_q) and not spr_xucr0_dcd
 ex3_en_par_chk_d(6) <= (ex2_ddir_acc_instr or inval_val_q) and not spr_xucr0_dcdis_q;
 ex3_en_par_chk_d(7) <= (ex2_ddir_acc_instr or inval_val_q) and not spr_xucr0_dcdis_q;
 
+-- Latching up Parity Bits
 ex3_par_gen_a_1b_d  <= ex2_par_gen_a_1b;
 ex3_par_gen_a_2b_d  <= ex2_par_gen_a_2b;
 ex3_par_gen_b_1b_d  <= ex2_par_gen_b_1b;
@@ -401,6 +437,7 @@ ex3_par_gen_g_2b_d  <= ex2_par_gen_g_2b;
 ex3_par_gen_h_1b_d  <= ex2_par_gen_h_1b;
 ex3_par_gen_h_2b_d  <= ex2_par_gen_h_2b;
 
+-- Parity Generated
 ex3_par_gen_a       <= ex3_par_gen_a_1b_q xor ex3_par_gen_a_2b_q;
 ex3_par_gen_b       <= ex3_par_gen_b_1b_q xor ex3_par_gen_b_2b_q;
 ex3_par_gen_c       <= ex3_par_gen_c_1b_q xor ex3_par_gen_c_2b_q;
@@ -410,6 +447,7 @@ ex3_par_gen_f       <= ex3_par_gen_f_1b_q xor ex3_par_gen_f_2b_q;
 ex3_par_gen_g       <= ex3_par_gen_g_1b_q xor ex3_par_gen_g_2b_q;
 ex3_par_gen_h       <= ex3_par_gen_h_1b_q xor ex3_par_gen_h_2b_q;
 
+-- Parity Error Detected
 ex3_perr_det_a <= or_reduce(ex3_way_tag_par_a_q xor ex3_par_gen_a) and ex3_en_par_chk_q(0);
 ex3_perr_det_b <= or_reduce(ex3_way_tag_par_b_q xor ex3_par_gen_b) and ex3_en_par_chk_q(1);
 ex3_perr_det_c <= or_reduce(ex3_way_tag_par_c_q xor ex3_par_gen_c) and ex3_en_par_chk_q(2);
@@ -419,9 +457,15 @@ ex3_perr_det_f <= or_reduce(ex3_way_tag_par_f_q xor ex3_par_gen_f) and ex3_en_pa
 ex3_perr_det_g <= or_reduce(ex3_way_tag_par_g_q xor ex3_par_gen_g) and ex3_en_par_chk_q(6);
 ex3_perr_det_h <= or_reduce(ex3_way_tag_par_h_q xor ex3_par_gen_h) and ex3_en_par_chk_q(7);
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Spare Latches
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 my_spare0_latches_d <= not my_spare0_latches_q;
 my_spare1_latches_d <= not my_spare1_latches_q;
 
+-- ####################################################
+-- Outputs
+-- ####################################################
 ex2_wayA_tag <= arr_wayA_tag;
 ex2_wayB_tag <= arr_wayB_tag;
 ex2_wayC_tag <= arr_wayC_tag;
@@ -445,6 +489,9 @@ ex3_way_tag_par_h <= ex3_way_tag_par_h_q;
 ex3_tag_way_perr <= ex3_perr_det_a & ex3_perr_det_b & ex3_perr_det_c & ex3_perr_det_d &
                     ex3_perr_det_e & ex3_perr_det_f & ex3_perr_det_g & ex3_perr_det_h;
 
+-- ####################################################
+-- Back Invalidate Registers
+-- ####################################################
 
 inval_val_reg: tri_rlmlatch_p
 generic map (init => 0, expand_type => expand_type, needs_sreset => 1)
@@ -1043,4 +1090,3 @@ port map (vd      => vdd,
 siv(0 to scan_right) <= sov(1 to scan_right) & scan_in;
 scan_out <= sov(0);
 end xuq_lsu_dir_tag;
-

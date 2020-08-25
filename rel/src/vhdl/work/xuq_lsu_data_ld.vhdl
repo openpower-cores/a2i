@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU LSU Load Data Rotator Wrapper
+--
 
 library ibm, ieee, work, tri, support;
 use ibm.std_ulogic_support.all;
@@ -17,18 +19,29 @@ use ieee.numeric_std.all;
 use tri.tri_latches_pkg.all;
 use support.power_logic_pkg.all;
 
+-- ##########################################################################################
+-- VHDL Contents
+-- 1) 1 16Byte input (suppose to reflect reading 8 ways of L1 D$, Selection taken place in EX2)
+-- 2) 16 Byte Reload Bus
+-- 3) 16 Byte Unaligned Rotator
+-- 4) Little Endian Support for 2,4,8,16 Byte Operations
+-- 5) Contains Fixed Point Unit (FXU) 8 Byte Load Path
+-- 6) Contains Auxilary Unit (AXU) 16 Byte Load Path
+-- ##########################################################################################
 
 
 entity xuq_lsu_data_ld is
-generic(expand_type     : integer := 2;         
-        regmode         : integer := 6;                 
-        l_endian_m      : integer := 1);        
+generic(expand_type     : integer := 2;         -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
+        regmode         : integer := 6;                 -- Register Mode 5 = 32bit, 6 = 64bit
+        l_endian_m      : integer := 1);        -- 1 = little endian mode enabled, 0 = little endian mode disabled
 port(
 
+     -- Acts to latches
      ex3_stg_act                :in  std_ulogic;
      ex4_stg_act                :in  std_ulogic;
      ex5_stg_act                :in  std_ulogic;
 
+     -- Execution Pipe Load Data Rotator Controls
      ex3_opsize                 :in  std_ulogic_vector(0 to 5);
      ex3_algebraic              :in  std_ulogic;
      ex4_ld_rot_sel             :in  std_ulogic_vector(0 to 4);
@@ -36,19 +49,22 @@ port(
      ex4_le_mode                :in  std_ulogic;
      ex5_ld_data                :in  std_ulogic_vector(0 to 255);
      ex5_ld_data_par            :in  std_ulogic_vector(0 to 31);
-     ex6_par_chk_val            :in  std_ulogic;                        
+     ex6_par_chk_val            :in  std_ulogic;                        -- EX6 Parity Error Check is Valid
 
+     -- Debug Bus
      trace_bus_enable           :in  std_ulogic;
      dat_debug_mux_ctrls        :in  std_ulogic_vector(2 to 3);
      dat_dbg_ld_dat             :out std_ulogic_vector(0 to 63);
 
+     -- Rotated Data
      ld_swzl_data               :out std_ulogic_vector(0 to 255);
      ex6_ld_alg_bit             :out std_ulogic_vector(0 to 5);
      ex6_ld_dvc_byte_mask       :out std_ulogic_vector((64-(2**regmode))/8 to 7);
 
-     ex6_ld_par_err             :out std_ulogic;                        
-     ex7_ld_par_err             :out std_ulogic_vector(0 to 1);         
+     ex6_ld_par_err             :out std_ulogic;                        -- EX6 Parity Error Detected on the Load Data
+     ex7_ld_par_err             :out std_ulogic_vector(0 to 1);         -- EX7 Parity Error Detected on the Load Data
 
+     -- Pervasive
      vdd                        :inout power_logic;
      gnd                        :inout power_logic;
      nclk                       :in  clk_logic;
@@ -67,9 +83,16 @@ port(
 -- synopsys translate_off
 -- synopsys translate_on
 end xuq_lsu_data_ld;
+----
 architecture xuq_lsu_data_ld of xuq_lsu_data_ld is
 
+----------------------------
+-- components
+----------------------------
 
+----------------------------
+-- constants
+----------------------------
 constant ex5_opsize_offset              :natural := 0;
 constant ex5_algebraic_offset           :natural := ex5_opsize_offset + 6;
 constant rotate_select_offset           :natural := ex5_algebraic_offset + 1;
@@ -80,6 +103,9 @@ constant ex7_ld_par_err_offset          :natural := ex5_ld_alg_sel_offset + 5;
 constant my_spare_latches_offset        :natural := ex7_ld_par_err_offset + 2;
 constant scan_right                     :natural := my_spare_latches_offset + 14 - 1;
 
+----------------------------
+-- signals
+----------------------------
 
 signal le_mode_select_d         :std_ulogic;
 signal le_mode_select_q         :std_ulogic;
@@ -132,6 +158,9 @@ signal rot_scan_out             :std_ulogic_vector(0 to 7);
 
 begin
 
+-- #############################################################################################
+-- Inputs
+-- #############################################################################################
 
 tiup <= '1';
 
@@ -144,7 +173,11 @@ rotate_select_d   <= ex4_ld_rot_sel;
 ex5_ld_alg_sel_d  <= ex4_ld_alg_sel;
 le_mode_select_d  <= ex4_le_mode;
 ex6_ld_data_par_d <= ex5_ld_data_par;
+-- #############################################################################################
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Debug Bus
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 ldDbgData : for byte in 0 to 7 generate begin
       ex6_load_data0(byte*8 to (byte*8)+7) <= ex6_ld_data(byte+0)   & ex6_ld_data(byte+32)  & ex6_ld_data(byte+64)  & ex6_ld_data(byte+96) &
@@ -163,20 +196,29 @@ with dat_debug_mux_ctrls(2 to 3) select
                         ex6_load_data2 when "10",
                         ex6_load_data3 when others; 
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Parity Error Check
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- Parity Error Check Per Byte
 par_Bdet : for t in 0 to 31 generate begin
       par_err_byte(t) <= ex6_ld_data(t+0)   xor ex6_ld_data(t+32)  xor ex6_ld_data(t+64)  xor ex6_ld_data(t+96)  xor
                          ex6_ld_data(t+128) xor ex6_ld_data(t+160) xor ex6_ld_data(t+192) xor ex6_ld_data(t+224) xor
                          ex6_ld_data_par_q(t);
 end generate par_Bdet;
 
+-- Parity Error Detected
 par_err_det <= or_reduce(par_err_byte);
 
 ex6par_err1_nand2 : ex6_par_err_det1_b <= not (par_err_det and ex6_par_chk_val);
 ex6par_err1_inv   : ex6_par_err_det1   <= not (ex6_par_err_det1_b);
 
 ex7_ld_par_err_d <= (others=>ex6_par_err_det1);
+-- #############################################################################################
 
+-- #############################################################################################
+-- 32 Byte Rotator
+-- #############################################################################################
 
 l1dcrotr : for bit in 0 to 7 generate begin
    sgrp : if (bit = 0) generate
@@ -238,8 +280,11 @@ l1dcrotr : for bit in 0 to 7 generate begin
       end generate grp;   
 end generate l1dcrotr;
 
+-- #############################################################################################
 
-
+-- #############################################################################################
+-- Op Size Mask Generation
+-- #############################################################################################
 
 with ex6_opsize_q select
     ld_byte_mask <= x"01" when "0001",
@@ -254,9 +299,16 @@ ld256data : for t in 0 to 31 generate begin
                                       ex6_ld_data_rot(t+128) & ex6_ld_data_rot(t+160) & ex6_ld_data_rot(t+192) & ex6_ld_data_rot(t+224);
 end generate ld256data;
 
+-- #############################################################################################
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Spare Latches
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 my_spare_latches_d     <= not my_spare_latches_q;
 
+-- #############################################################################################
+-- Outputs
+-- #############################################################################################
 
 
 ex6par_err2_nand2 : ex6_par_err_det2_b <= not (par_err_det and ex6_par_chk_val);
@@ -266,7 +318,11 @@ ex6_ld_par_err <= ex6_par_err_det2;
 ex7_ld_par_err <= ex7_ld_par_err_q;
 
 dat_dbg_ld_dat  <= dat_dbg_ld_dat_q;
+-- #############################################################################################
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Registers
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ex4_opsize_reg: tri_regk
   generic map (width => 6, init => 0, expand_type => expand_type, needs_sreset => 1)
 port map (vd      => vdd,
@@ -485,4 +541,3 @@ rot_scan_in(0 to 7)  <= rot_scan_out(1 to 7) & sov(0);
 scan_out             <= rot_scan_out(0);
 
 end xuq_lsu_data_ld;
-

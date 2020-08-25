@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  LSU Debug Event Muxing
+--
 library ieee,ibm,support,work,tri,clib,work;
 use ieee.std_logic_1164.all;
 use support.power_logic_pkg.all;
@@ -20,12 +22,15 @@ entity xuq_debug_mux32 is
 generic(expand_type          :integer :=  2);
 port(
 
+     -- PC Debug Control
      trace_bus_enable           :in  std_ulogic;
      trace_unit_sel             :in  std_ulogic_vector(0 to 15);
 
+     -- Pass Thru Debug Trace Bus
      debug_data_in              :in  std_ulogic_vector(0 to 87);
      trigger_data_in            :in  std_ulogic_vector(0 to 11);
 
+     -- Debug Data In
      dbg_group0                 :in  std_ulogic_vector(0 to 87);
      dbg_group1                 :in  std_ulogic_vector(0 to 87);
      dbg_group2                 :in  std_ulogic_vector(0 to 87);
@@ -59,14 +64,17 @@ port(
      dbg_group30                :in  std_ulogic_vector(0 to 87);
      dbg_group31                :in  std_ulogic_vector(0 to 87);
 
+     -- Trigger Data In
      trg_group0                 :in  std_ulogic_vector(0 to 11);
      trg_group1                 :in  std_ulogic_vector(0 to 11);
      trg_group2                 :in  std_ulogic_vector(0 to 11);
      trg_group3                 :in  std_ulogic_vector(0 to 11);
 
+     -- Outputs
      trigger_data_out           :out std_ulogic_vector(0 to 11);
      debug_data_out             :out std_ulogic_vector(0 to 87);
 
+     -- Power
      vdd                        :inout power_logic;
      gnd                        :inout power_logic;
      nclk                       :in  clk_logic;
@@ -134,7 +142,11 @@ signal sov                              :std_ulogic_vector(0 to scan_right);
 
 begin
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- MUX Control Generation
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- Generate 1-hot Debug Data Group Select
 with trace_unit_sel(0) select
     trace_unit_sel10 <= x"80000000" when '0',
                         x"00008000" when others;
@@ -151,22 +163,27 @@ with trace_unit_sel(3 to 4) select
                          "00" & trace_unit_selC840(0 to 29) when "10",
                         "000" & trace_unit_selC840(0 to 28) when others;
 
+-- Generate 1-hot Debug Data Group Rotate
 with trace_unit_sel(5 to 6) select
     dbg_trace_unit_sel_d(32 to 35) <= "1000" when "00",
                                       "0100" when "01",
                                       "0010" when "10",
                                       "0001" when others;
 
+-- Debug Data Pass Through
 dbg_trace_unit_sel_d(36 to 39) <= trace_unit_sel(7 to 10);
 
+-- Generate 1-hot Trigger Group Select
 with trace_unit_sel(11 to 12) select
     dbg_trace_unit_sel_d(40 to 43) <= "1000" when "00",
                                       "0100" when "01",
                                       "0010" when "10",
                                       "0001" when others;
 
+-- Generate 1-hot Trigger Group Rotate
 dbg_trace_unit_sel_d(44) <= trace_unit_sel(13);
 
+-- Trigger Pass Through
 dbg_trace_unit_sel_d(45 to 46) <= trace_unit_sel(14 to 15);
 
 dbg_rot_grp_sel    <= dbg_trace_unit_sel_q(32 to 35);
@@ -175,7 +192,11 @@ dbg_trig_grp_sel   <= dbg_trace_unit_sel_q(40 to 43);
 dbg_rot_trig_sel   <= dbg_trace_unit_sel_q(44);
 dbg_trig_pthru_sel <= dbg_trace_unit_sel_q(45 to 46);
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Debug Muxing
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- Select Internal Debug Group
 dbg_group_int_data <=  (dbg_group0     and fanout(dbg_data_unit_sel_q(00),88)) or
                        (dbg_group1     and fanout(dbg_data_unit_sel_q(01),88)) or
                        (dbg_group2     and fanout(dbg_data_unit_sel_q(02),88)) or
@@ -209,6 +230,7 @@ dbg_group_int_data <=  (dbg_group0     and fanout(dbg_data_unit_sel_q(00),88)) o
                        (dbg_group30    and fanout(dbg_data_unit_sel_q(30),88)) or
                        (dbg_group31    and fanout(dbg_data_unit_sel_q(31),88));
 
+-- Rotate Internal Debug Group
 dbg_group_rotate0 <= dbg_group_int_data(0 to 87);
 dbg_group_rotate1 <= dbg_group_int_data(66 to 87) & dbg_group_int_data(0 to 65);
 dbg_group_rotate2 <= dbg_group_int_data(44 to 87) & dbg_group_int_data(0 to 43);
@@ -216,6 +238,7 @@ dbg_group_rotate3 <= dbg_group_int_data(22 to 87) & dbg_group_int_data(0 to 21);
 dbg_group_rotate  <= gate(dbg_group_rotate0, dbg_rot_grp_sel(0)) or gate(dbg_group_rotate1, dbg_rot_grp_sel(1)) or
                      gate(dbg_group_rotate2, dbg_rot_grp_sel(2)) or gate(dbg_group_rotate3, dbg_rot_grp_sel(3));
 
+-- Pass Thru Debug Select
 dbg_group_pthru_data0 <= gate(dbg_group_rotate(0 to 21),  dbg_data_pthru_sel(0)) or gate(debug_data_in(0 to 21),  not dbg_data_pthru_sel(0));
 dbg_group_pthru_data1 <= gate(dbg_group_rotate(22 to 43), dbg_data_pthru_sel(1)) or gate(debug_data_in(22 to 43), not dbg_data_pthru_sel(1));
 dbg_group_pthru_data2 <= gate(dbg_group_rotate(44 to 65), dbg_data_pthru_sel(2)) or gate(debug_data_in(44 to 65), not dbg_data_pthru_sel(2));
@@ -224,21 +247,30 @@ dbg_group_pthru_data  <= dbg_group_pthru_data0 & dbg_group_pthru_data1 & dbg_gro
 
 debug_data_out_d <= dbg_group_pthru_data;
 
+-- Select Internal Trigger Group
 dbg_group_int_trig <= gate(trg_group0, dbg_trig_grp_sel(0)) or gate(trg_group1, dbg_trig_grp_sel(1)) or gate(trg_group2, dbg_trig_grp_sel(2)) or gate(trg_group3, dbg_trig_grp_sel(3));
 
+-- Rotate Internal Trigger Group
 dbg_group_rot_trig0 <= dbg_group_int_trig(0 to 11);
 dbg_group_rot_trig1 <= dbg_group_int_trig(6 to 11) & dbg_group_int_trig(0 to 5);
 dbg_group_rot_trig  <= gate(dbg_group_rot_trig0, not dbg_rot_trig_sel) or gate(dbg_group_rot_trig1, dbg_rot_trig_sel);
 
+-- Pass Thru Trigger Select
 dbg_group_pthru_trig0 <= gate(dbg_group_rot_trig(0 to 5),  dbg_trig_pthru_sel(0)) or gate(trigger_data_in(0 to 5),  not dbg_trig_pthru_sel(0));
 dbg_group_pthru_trig1 <= gate(dbg_group_rot_trig(6 to 11), dbg_trig_pthru_sel(1)) or gate(trigger_data_in(6 to 11), not dbg_trig_pthru_sel(1));
 dbg_group_pthru_trig  <= dbg_group_pthru_trig0 & dbg_group_pthru_trig1;
 
 trigger_data_out_d <= dbg_group_pthru_trig;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Outputs
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 debug_data_out   <= debug_data_out_q;
 trigger_data_out <= trigger_data_out_q;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Latches
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 dbg_data_unit_sel_gen : for g in 0 to 31 generate
    dbg_data_unit_sel_latch : tri_rlmreg_p
    generic map (width => dbg_data_unit_sel_q(g)'length, init => 0, expand_type => expand_type, needs_sreset => 0)

@@ -18,6 +18,7 @@ package iuq_pkg is
 
   function ib(x : std_ulogic) return boolean;
 
+  -- all functions assume to logic vector strand direction
   function barrel_left(a : std_ulogic_vector; s : std_ulogic_vector) return std_ulogic_vector;
   function barrel_right(a : std_ulogic_vector; s : std_ulogic_vector) return std_ulogic_vector;
   function pri_enc(a : std_ulogic_vector) return std_ulogic_vector;
@@ -36,6 +37,7 @@ package iuq_pkg is
   function encode_8to3( a : std_ulogic_vector(0 to 7) ) return std_ulogic_vector;
   function encode_16to4(a : std_ulogic_vector(0 to 15)) return std_ulogic_vector;
 
+   -- Instruction type definition
    type PPC_INSTR is record
       vld                 : std_ulogic;
       instr               : std_ulogic_vector(0 to 31);
@@ -59,6 +61,7 @@ package iuq_pkg is
       isFxuIssue          : std_ulogic;
       isVsuIssue          : std_ulogic;
 
+      --EX2_exit			  : std_ulogic;
       EX4_exit		  : std_ulogic;
       EX7_exit            : std_ulogic;
 
@@ -105,6 +108,7 @@ package body iuq_pkg is
   end ib;
 
 
+   -- These functions all assume TO direction logic
    function barrel_left(a : std_ulogic_vector; s : std_ulogic_vector) return std_ulogic_vector
    is
       variable result : std_ulogic_vector(a'left to a'right);
@@ -266,6 +270,7 @@ package body iuq_pkg is
       return(result);
    end encode_16to4;
 
+   -- you better make sure that a and result are multiples of 1B with s being a strand representing the number of bytes to shift
    function shift_leftx1B(a : std_ulogic_vector; s: std_ulogic_vector) return std_ulogic_vector is
       variable result : std_ulogic_vector(a'left to a'right);
    begin
@@ -293,8 +298,12 @@ package body iuq_pkg is
    end shift_rightx1B;
 
 
+  	--------------------------------------------------------------------
+  	--- PPC_INSTR manipulation
+  	--------------------------------------------------------------------
 
 
+		-- x bit TID
 	  	function TO_STLV ( x : PPC_INSTR ) return std_ulogic_vector
 	  	is
 	    	variable result : std_ulogic_vector(0 to 97+2*EFF_IFAR'length);
@@ -341,6 +350,7 @@ package body iuq_pkg is
 	      	return result;
 	   	end TO_STLV;
 
+	   	-- x bit TID
 	function TO_PPCI ( x : std_ulogic_vector(0 to 97+2*EFF_IFAR'length) ) return PPC_INSTR is
    		variable result : PPC_INSTR;
 	begin

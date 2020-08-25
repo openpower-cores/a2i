@@ -8,6 +8,14 @@
 -- license is available.
 
 
+--********************************************************************
+--*
+--* TITLE: Instruction Cache
+--*
+--* NAME: iuq_ic.vhdl
+--*
+--*********************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library support;
@@ -1066,6 +1074,9 @@ port map(
       miss_dbg_data2            => miss_dbg_data2,
       miss_dbg_trigger          => miss_dbg_trigger
 );
+-------------------------------------------------
+-- Debug
+-------------------------------------------------
 iu3_dbg_data(0 to 21)           <= int_ic_bp_iu3_val(0) & int_ic_bp_iu3_0_instr(0 to 5) & int_ic_bp_iu3_0_instr(21 to 31) & int_ic_bp_iu3_0_instr(32 to 35);
 iu3_dbg_data(22 to 43)          <= int_ic_bp_iu3_val(1) & int_ic_bp_iu3_1_instr(0 to 5) & int_ic_bp_iu3_1_instr(21 to 31) & int_ic_bp_iu3_1_instr(32 to 35);
 iu3_dbg_data(44 to 65)          <= int_ic_bp_iu3_val(2) & int_ic_bp_iu3_2_instr(0 to 5) & int_ic_bp_iu3_2_instr(21 to 31) & int_ic_bp_iu3_2_instr(32 to 35);
@@ -1128,6 +1139,9 @@ dbg_mux0: entity clib.c_debug_mux16
 );
 trace_triggers_out      <= trigger_data_out_q;
 debug_data_out          <= trace_data_out_q;
+-----------------------------------------------------------------------
+-- Debug & Performance Latches
+-----------------------------------------------------------------------
 event_bus_enable_d <= pc_iu_event_bus_enable;
 trace_bus_enable_d <= pc_iu_trace_bus_enable;
 debug_mux_ctrls_d  <= pc_iu_debug_mux_ctrls;
@@ -1216,6 +1230,9 @@ dbg_trace_data_reg: tri_rlmreg_p
             scout   => sov(trace_data_out_offset to trace_data_out_offset + trace_data_out_q'length-1),
             din     => trace_data_out_d,
             dout    => trace_data_out_q);
+-------------------------------------------------
+-- pervasive
+-------------------------------------------------
 perv_3to2_reg: tri_plat
   generic map (width => 1, expand_type => expand_type)
   port map (vd          => vdd,
@@ -1304,6 +1321,9 @@ abst_lcbor: tri_lcbor
             act_dis     => act_dis,
             forcee => abst_force,
             thold_b     => pc_iu_abst_sl_thold_0_b);
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 ierat_func_scan_in(0)   <= func_scan_in(0);
 func_scan_out(0)        <= ierat_func_scan_out(0) and an_ac_scan_dis_dc_b;
 siv(0 to scan_right)    <= sov(1 to scan_right) & func_scan_in(1);
@@ -1333,4 +1353,3 @@ regf_scan_latch: entity tri.tri_regs
             scout       => regf_scan_out,
             dout        => open );
 end iuq_ic;
-

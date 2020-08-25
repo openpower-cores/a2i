@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  LSU Performance Event Muxing
+--
 library ieee,ibm,support,work,tri,clib;
 use ieee.std_logic_1164.all;
 use support.power_logic_pkg.all;
@@ -16,18 +18,23 @@ entity xuq_lsu_perf is
 generic( expand_type            :integer :=  2);
 port(
 
+     -- LSU Performance Events
      lsu_perf_events            :in  std_ulogic_vector(0 to 46);
 
+     -- PC Control Interface
      pc_xu_event_bus_enable     :in  std_ulogic;
      pc_xu_event_count_mode     :in  std_ulogic_vector(0 to 2);
      pc_xu_lsu_event_mux_ctrls  :in  std_ulogic_vector(0 to 47);
      pc_xu_cache_par_err_event  :in  std_ulogic;
 
+     -- SPR Bits
      spr_msr_gs                 :in  std_ulogic_vector(0 to 3);
      spr_msr_pr                 :in  std_ulogic_vector(0 to 3);
 
+     -- Perf Event Output
      xu_pc_lsu_event_data       :out std_ulogic_vector(0 to 7);
 
+     -- Power
      vdd                        :inout power_logic;
      gnd                        :inout power_logic;
      nclk                       :in  clk_logic;
@@ -48,6 +55,9 @@ port(
 end xuq_lsu_perf;
 architecture xuq_lsu_perf of xuq_lsu_perf is
 
+----------------------------
+-- signals
+----------------------------
 
 signal t0_events                                      : std_ulogic_vector(0 to 31);
 signal t1_events                                      : std_ulogic_vector(0 to 31);
@@ -69,6 +79,9 @@ signal pc_event_count_mode_q                          : std_ulogic_vector(0 to 2
 signal pc_cache_par_err_event_q                       : std_ulogic;
 signal pc_event_bus_enable_q                          : std_ulogic;
 
+----------------------------
+-- constants
+----------------------------
 constant event_en_offset                              : integer := 0;
 constant event_data_offset                            : integer := event_en_offset                + event_en_q'length;
 constant event_mux_ctrls_offset                       : integer := event_data_offset              + event_data_q'length;
@@ -86,20 +99,60 @@ begin
 
 tiup <= '1';
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- State the Processor is in
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-event_en_d     <= (    spr_msr_pr and                    (0 to 3=>pc_event_count_mode_q(0))) or 
-                  (not spr_msr_pr and     spr_msr_gs and (0 to 3=>pc_event_count_mode_q(1))) or 
-                  (not spr_msr_pr and not spr_msr_gs and (0 to 3=>pc_event_count_mode_q(2)));   
+event_en_d     <= (    spr_msr_pr and                    (0 to 3=>pc_event_count_mode_q(0))) or -- User
+                  (not spr_msr_pr and     spr_msr_gs and (0 to 3=>pc_event_count_mode_q(1))) or -- Guest Supervisor
+                  (not spr_msr_pr and not spr_msr_gs and (0 to 3=>pc_event_count_mode_q(2)));   -- Hypervisor
 
 event_mux_ctrls_d <= pc_xu_lsu_event_mux_ctrls;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Event Listing
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- (0)  => perf_com_stores                      => perf_event(4)
+-- (1)  => perf_com_store_miss                  => perf_event(5)
+-- (2)  => perf_com_loadmiss                    => perf_event(6)
+-- (3)  => perf_com_cinh_loads                  => perf_event(7)
+-- (4)  => perf_com_loads                       => perf_event(8)
+-- (5)  => perf_com_dcbt_sent                   => perf_event(9)
+-- (6)  => perf_com_dcbt_hit                    => perf_event(10)
+-- (7)  => perf_com_axu_load                    => perf_event(11)
+-- (8)  => perf_com_axu_store                   => perf_event(12)
+-- (9)  => perf_com_stcx_exec                   => perf_event(13)
+-- (10) => perf_com_watch_clr                   => perf_event(14)
+-- (11) => perf_com_wclr_lfld                   => perf_event(15)
+-- (12) => perf_com_watch_set                   => perf_event(16)
+-- (13) => perf_misalign_flush                  => perf_event(17)
+-- (14) => perf_reload_collision_flush          => perf_event(18)
+-- (15) => perf_com_watch_duplicate             => perf_event(37)
+-- (16) => perf_inter_thrd_dir_update_flush     => perf_event(19)
+-- (17) => perf_dependency_flush                => perf_event(20)
+-- (18) => perf_com_watch_chk                   => perf_event(35)
+-- (19) => perf_com_watch_chk_successful        => perf_event(36)
+-- (20) => perf_ld_queue_full_flush             => perf_event(38)
+-- (21) => perf_st_queue_full_flush             => perf_event(39)
+-- (22) => perf_ldst_hit_ld_flush               => perf_event(40)
+-- (23) => perf_ig_equal_one_flush              => perf_event(41)
+-- (24) => perf_com_larx_finished               => perf_event(42:45)
+-- (25) => perf_lost_watch_inter_thrd_store     => perf_event(21:24)
+-- (26) => perf_lost_watch_evicted              => perf_event(25:28)
+-- (27) => perf_lost_watch_back_invalidate      => perf_event(29:32)
+-- (28) => perf_back_invalidate                 => perf_event(33)
+-- (29) => perf_back_invalidate_hit             => perf_event(34)
+-- (30) => perf_cache_par_err
+-- (31) => perf_load_latency_memory_subsystem   => perf_event(46)
 
+-- (0 to 16) (17 to 23)
 t0_lsu_events_tmp  <= (lsu_perf_events_q(4 to 20) & lsu_perf_events_q(35 to 41)) and (0 to 23=>lsu_perf_events_q(0));
 t1_lsu_events_tmp  <= (lsu_perf_events_q(4 to 20) & lsu_perf_events_q(35 to 41)) and (0 to 23=>lsu_perf_events_q(1));
 t2_lsu_events_tmp  <= (lsu_perf_events_q(4 to 20) & lsu_perf_events_q(35 to 41)) and (0 to 23=>lsu_perf_events_q(2));
 t3_lsu_events_tmp  <= (lsu_perf_events_q(4 to 20) & lsu_perf_events_q(35 to 41)) and (0 to 23=>lsu_perf_events_q(3));
 
+-- (0 to 23) (24) (25) (26) (27) (28 to 29) (30) (31)
 t0_lsu_events <= t0_lsu_events_tmp           & lsu_perf_events_q(42)    & lsu_perf_events_q(21) & lsu_perf_events_q(25) & lsu_perf_events_q(29) &
                  lsu_perf_events_q(33 to 34) & pc_cache_par_err_event_q & lsu_perf_events_q(46);
 t1_lsu_events <= t1_lsu_events_tmp           & lsu_perf_events_q(43)    & lsu_perf_events_q(22) & lsu_perf_events_q(26) & lsu_perf_events_q(30) &
@@ -114,6 +167,9 @@ t1_events(0 to 31)  <= t1_lsu_events and (0 to 31=>event_en_q(1));
 t2_events(0 to 31)  <= t2_lsu_events and (0 to 31=>event_en_q(2));
 t3_events(0 to 31)  <= t3_lsu_events and (0 to 31=>event_en_q(3));
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Muxing
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 xuq_lsu_perf_mux1 : entity clib.c_event_mux(c_event_mux)
 generic map(events_in => 128)
@@ -128,8 +184,14 @@ port map(
    event_bits     => event_data_d
 );
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Outputs
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 xu_pc_lsu_event_data  <= event_data_q;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Registers
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 event_en_latch : tri_rlmreg_p
 generic map (width => event_en_q'length, init => 0, expand_type => expand_type, needs_sreset => 1)
 port map (nclk    => nclk,

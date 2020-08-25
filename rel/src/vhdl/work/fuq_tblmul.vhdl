@@ -22,22 +22,22 @@ library tri; use tri.tri_latches_pkg.all;
 library clib;
 
 entity fuq_tblmul is
-                  generic( expand_type  : integer := 2  ); 
+                  generic( expand_type  : integer := 2  ); -- 0 - ibm tech, 1 - other );
 port(
        vdd                                       :inout power_logic;
        gnd                                       :inout power_logic;
-       x          :in  std_ulogic_vector(1 to 15); 
-       y          :in  std_ulogic_vector(7 to 22); 
-       z          :in  std_ulogic_vector(0 to 20); 
+       x          :in  std_ulogic_vector(1 to 15); -- rng from lookup (recode)
+       y          :in  std_ulogic_vector(7 to 22); -- b operand bits  (shift)
+       z          :in  std_ulogic_vector(0 to 20); -- estimate from table
 
+       -- multiplier output msb comes out at [6]
 
        tbl_sum    :out std_ulogic_vector(0 to 36); 
        tbl_car    :out std_ulogic_vector(0 to 35)
 );
 
 
-
-end fuq_tblmul; 
+end fuq_tblmul; -- ENTITY
 
 architecture fuq_tblmul of fuq_tblmul is
 
@@ -118,75 +118,117 @@ begin
 
 
 
+--=#################################################
+--= Booth Decoders
+--=#################################################
+--   0     1     2     3     4      5      6        7
+-- (x,1) (2,3) (4,5) (6,7) (8,9) (10,11) (12,13) (14,15)
 
  bd0: entity work.fuq_tblmul_bthdcd(fuq_tblmul_bthdcd) port map( 
-        i0               => tidn                      ,
-        i1               => x(1)                      ,
-        i2               => x(2)                      ,
-        s_neg            =>   s_neg(0)                ,
-        s_x              =>     s_x(0)                ,
-        s_x2             =>    s_x2(0)               );
+        i0               => tidn                      ,--i--
+        i1               => x(1)                      ,--i--
+        i2               => x(2)                      ,--i--
+        s_neg            =>   s_neg(0)                ,--o--
+        s_x              =>     s_x(0)                ,--o--
+        s_x2             =>    s_x2(0)               );--o--
 
  bd1: entity work.fuq_tblmul_bthdcd(fuq_tblmul_bthdcd) port map( 
-        i0               => x(2)                      ,
-        i1               => x(3)                      ,
-        i2               => x(4)                      ,
-        s_neg            =>   s_neg(1)                ,
-        s_x              =>     s_x(1)                ,
-        s_x2             =>    s_x2(1)               );
+        i0               => x(2)                      ,--i--
+        i1               => x(3)                      ,--i--
+        i2               => x(4)                      ,--i--
+        s_neg            =>   s_neg(1)                ,--o--
+        s_x              =>     s_x(1)                ,--o--
+        s_x2             =>    s_x2(1)               );--o--
 
  bd2: entity work.fuq_tblmul_bthdcd(fuq_tblmul_bthdcd) port map( 
-        i0               => x(4)                      ,
-        i1               => x(5)                      ,
-        i2               => x(6)                      ,
-        s_neg            =>   s_neg(2)                ,
-        s_x              =>     s_x(2)                ,
-        s_x2             =>    s_x2(2)               );
+        i0               => x(4)                      ,--i--
+        i1               => x(5)                      ,--i--
+        i2               => x(6)                      ,--i--
+        s_neg            =>   s_neg(2)                ,--o--
+        s_x              =>     s_x(2)                ,--o--
+        s_x2             =>    s_x2(2)               );--o--
 
  bd3: entity work.fuq_tblmul_bthdcd(fuq_tblmul_bthdcd) port map( 
-        i0               => x(6)                      ,
-        i1               => x(7)                      ,
-        i2               => x(8)                      ,
-        s_neg            =>   s_neg(3)                ,
-        s_x              =>     s_x(3)                ,
-        s_x2             =>    s_x2(3)               );
+        i0               => x(6)                      ,--i--
+        i1               => x(7)                      ,--i--
+        i2               => x(8)                      ,--i--
+        s_neg            =>   s_neg(3)                ,--o--
+        s_x              =>     s_x(3)                ,--o--
+        s_x2             =>    s_x2(3)               );--o--
 
  bd4: entity work.fuq_tblmul_bthdcd(fuq_tblmul_bthdcd) port map( 
-        i0               => x(8)                      ,
-        i1               => x(9)                      ,
-        i2               => x(10)                     ,
-        s_neg            =>   s_neg(4)                ,
-        s_x              =>     s_x(4)                ,
-        s_x2             =>    s_x2(4)               );
+        i0               => x(8)                      ,--i--
+        i1               => x(9)                      ,--i--
+        i2               => x(10)                     ,--i--
+        s_neg            =>   s_neg(4)                ,--o--
+        s_x              =>     s_x(4)                ,--o--
+        s_x2             =>    s_x2(4)               );--o--
 
  bd5: entity work.fuq_tblmul_bthdcd(fuq_tblmul_bthdcd) port map( 
-        i0               => x(10)                     ,
-        i1               => x(11)                     ,
-        i2               => x(12)                     ,
-        s_neg            =>   s_neg(5)                ,
-        s_x              =>     s_x(5)                ,
-        s_x2             =>    s_x2(5)               );
+        i0               => x(10)                     ,--i--
+        i1               => x(11)                     ,--i--
+        i2               => x(12)                     ,--i--
+        s_neg            =>   s_neg(5)                ,--o--
+        s_x              =>     s_x(5)                ,--o--
+        s_x2             =>    s_x2(5)               );--o--
 
  bd6: entity work.fuq_tblmul_bthdcd(fuq_tblmul_bthdcd) port map( 
-        i0               => x(12)                     ,
-        i1               => x(13)                     ,
-        i2               => x(14)                     ,
-        s_neg            =>   s_neg(6)                ,
-        s_x              =>     s_x(6)                ,
-        s_x2             =>    s_x2(6)               );
+        i0               => x(12)                     ,--i--
+        i1               => x(13)                     ,--i--
+        i2               => x(14)                     ,--i--
+        s_neg            =>   s_neg(6)                ,--o--
+        s_x              =>     s_x(6)                ,--o--
+        s_x2             =>    s_x2(6)               );--o--
 
  bd7: entity work.fuq_tblmul_bthdcd(fuq_tblmul_bthdcd) port map( 
-        i0               => x(14)                     ,
-        i1               => x(15)                     ,
-        i2               => tidn                      ,
-        s_neg            =>   s_neg(7)                ,
-        s_x              =>     s_x(7)                ,
-        s_x2             =>    s_x2(7)               );
+        i0               => x(14)                     ,--i--
+        i1               => x(15)                     ,--i--
+        i2               => tidn                      ,--i--
+        s_neg            =>   s_neg(7)                ,--o--
+        s_x              =>     s_x(7)                ,--o--
+        s_x2             =>    s_x2(7)               );--o--
 
 
 
 
+--=###############################################################
+--= booth muxes
+--=###############################################################
 
+--= NUMBERING SYSTEM RELATIVE TO COMPRESSOR TREE
+--=
+--=    00000000000000000000000000000000000000
+--=    00000000001111111111222222222233333333
+--=    01234567890123456789012345678901234567
+--=  0 .......DddddddddddddddddD0s................
+--=  1 .......1aDddddddddddddddddD0s..............
+--=  2 .........1aDddddddddddddddddD0s............
+--=  3 ...........1aDddddddddddddddddD0s..........
+--=  4 .............1aDddddddddddddddddD0s........
+--=  5 ...............1aDddddddddddddddddD0s......
+--=  6 .................1aDddddddddddddddddD0s....
+--=  7 ..................assDddddddddddddddddD....
+--= EST dddddddddddddddddddd  (the ass from sgnXtd.7 is already added into the est.
+--=
+--=############################
+--= want (est - mult )
+--= will calc   -(r - e) = -(r + !e + 1)
+--=                      = -(r + !e) -1
+--=                      = !(r + !e) + 1 - 1
+--=                      = !(r + !e)
+--=                      = !(R + ASS + !e)  ... seperate out the overlapping SGNxtd piece
+--=                      = !(R + (ASS + !e))  .... invert the final adder output
+--=
+--= table estimate will be : ADD    !e + 100
+--=                          SUB    !e + 011
+--=
+--= more "0" in table if read out POS version of est, then invert
+--=
+--=   !e + adj   = -e -1 + adj
+--=              = -(e +1 -adj)
+--=              = -(e -adj) -1
+--=              = !(e -adj) +1 -1
+--=              = !(e -adj) ... invert the table input
 
  sa1_1_lsb: sub_adj_lsb_b(1) <= not( s_neg(1) and ( s_x(1) or s_x2(1) ) );
  sa2_1_lsb: sub_adj_lsb_b(2) <= not( s_neg(2) and ( s_x(2) or s_x2(2) ) );
@@ -218,77 +260,77 @@ begin
 
  
  bm0: entity work.fuq_tblmul_bthrow(fuq_tblmul_bthrow) port map( 
-        s_neg            => tidn                    ,
-        s_x              => s_x(0)                  ,
-        s_x2             => s_x2(0)                 ,
-        x                => y(7 to 22)              ,
-        q                => pp0_0(6 to 22)         );
+        s_neg            => tidn                    ,--i--  (tidn) msb term is never sub
+        s_x              => s_x(0)                  ,--i--
+        s_x2             => s_x2(0)                 ,--i--
+        x                => y(7 to 22)              ,--i--
+        q                => pp0_0(6 to 22)         );--o--
                             pp0_0(23) <= tidn;
                             pp0_0(24) <= sub_adj_lsb(1);
 
                             pp0_1(6)  <= tiup;
                             pp0_1(7)  <= sub_adj_msb_b(1);
  bm1: entity work.fuq_tblmul_bthrow(fuq_tblmul_bthrow) port map( 
-        s_neg            => s_neg(1)                ,
-        s_x              =>   s_x(1)                ,
-        s_x2             =>  s_x2(1)                ,
-        x                => y(7 to 22)              ,
-        q                => pp0_1(8 to 24)         );
+        s_neg            => s_neg(1)                ,--i--
+        s_x              =>   s_x(1)                ,--i--
+        s_x2             =>  s_x2(1)                ,--i--
+        x                => y(7 to 22)              ,--i--
+        q                => pp0_1(8 to 24)         );--o--
                             pp0_1(25) <= tidn;
                             pp0_1(26) <= sub_adj_lsb(2);
 
                             pp0_2(8) <= tiup;
                             pp0_2(9) <= sub_adj_msb_b(2);
  bm2: entity work.fuq_tblmul_bthrow(fuq_tblmul_bthrow) port map( 
-        s_neg            => s_neg(2)                ,
-        s_x              =>   s_x(2)                ,
-        s_x2             =>  s_x2(2)                ,
-        x                => y(7 to 22)              ,
-        q                => pp0_2(10 to 26)        );
+        s_neg            => s_neg(2)                ,--i--
+        s_x              =>   s_x(2)                ,--i--
+        s_x2             =>  s_x2(2)                ,--i--
+        x                => y(7 to 22)              ,--i--
+        q                => pp0_2(10 to 26)        );--o--
                             pp0_2(27) <= tidn;
                             pp0_2(28) <= sub_adj_lsb(3);
 
                             pp0_3(10) <= tiup;
                             pp0_3(11) <= sub_adj_msb_b(3);
  bm3: entity work.fuq_tblmul_bthrow(fuq_tblmul_bthrow) port map( 
-        s_neg            => s_neg(3)                ,
-        s_x              =>   s_x(3)                ,
-        s_x2             =>  s_x2(3)                ,
-        x                => y(7 to 22)              ,
-        q                => pp0_3(12 to 28)        );
+        s_neg            => s_neg(3)                ,--i--
+        s_x              =>   s_x(3)                ,--i--
+        s_x2             =>  s_x2(3)                ,--i--
+        x                => y(7 to 22)              ,--i--
+        q                => pp0_3(12 to 28)        );--o--
                             pp0_3(29) <= tidn;
                             pp0_3(30) <= sub_adj_lsb(4);
 
                             pp0_4(12) <= tiup;
                             pp0_4(13) <= sub_adj_msb_b(4);
  bm4: entity work.fuq_tblmul_bthrow(fuq_tblmul_bthrow) port map( 
-        s_neg            => s_neg(4)                ,
-        s_x              =>   s_x(4)                ,
-        s_x2             =>  s_x2(4)                ,
-        x                => y(7 to 22)              ,
-        q                => pp0_4(14 to 30)        );
+        s_neg            => s_neg(4)                ,--i--
+        s_x              =>   s_x(4)                ,--i--
+        s_x2             =>  s_x2(4)                ,--i--
+        x                => y(7 to 22)              ,--i--
+        q                => pp0_4(14 to 30)        );--o--
                             pp0_4(31) <= tidn;
                             pp0_4(32) <= sub_adj_lsb(5);
 
                             pp0_5(14) <= tiup;
                             pp0_5(15) <= sub_adj_msb_b(5);
  bm5: entity work.fuq_tblmul_bthrow(fuq_tblmul_bthrow) port map( 
-        s_neg            => s_neg(5)                ,
-        s_x              =>   s_x(5)                ,
-        s_x2             =>  s_x2(5)                ,
-        x                => y(7 to 22)              ,
-        q                => pp0_5(16 to 32)        );
+        s_neg            => s_neg(5)                ,--i--
+        s_x              =>   s_x(5)                ,--i--
+        s_x2             =>  s_x2(5)                ,--i--
+        x                => y(7 to 22)              ,--i--
+        q                => pp0_5(16 to 32)        );--o--
                             pp0_5(33) <= tidn;
                             pp0_5(34) <= sub_adj_lsb(6);
 
                             pp0_6(16) <= tiup;
                             pp0_6(17) <= sub_adj_msb_b(6);
  bm6: entity work.fuq_tblmul_bthrow(fuq_tblmul_bthrow) port map( 
-        s_neg            => s_neg(6)                ,
-        s_x              =>   s_x(6)                ,
-        s_x2             =>  s_x2(6)                ,
-        x                => y(7 to 22)              ,
-        q                => pp0_6(18 to 34)        );
+        s_neg            => s_neg(6)                ,--i--
+        s_x              =>   s_x(6)                ,--i--
+        s_x2             =>  s_x2(6)                ,--i--
+        x                => y(7 to 22)              ,--i--
+        q                => pp0_6(18 to 34)        );--o--
                             pp0_6(35) <= tidn;
                             pp0_6(36) <= sub_adj_lsb(7);
 
@@ -296,22 +338,67 @@ begin
                            pp0_7(18) <=  sub_adj_msb_7x;
                            pp0_7(19) <=  sub_adj_msb_7y;
  bm7: entity work.fuq_tblmul_bthrow(fuq_tblmul_bthrow) port map( 
-        s_neg            => s_neg(7)                ,
-        s_x              =>   s_x(7)                ,
-        s_x2             =>  s_x2(7)                ,
-        x                => y(7 to 22)              ,
-        q                => pp0_7(20 to 36)        );
+        s_neg            => s_neg(7)                ,--i--
+        s_x              =>   s_x(7)                ,--i--
+        s_x2             =>  s_x2(7)                ,--i--
+        x                => y(7 to 22)              ,--i--
+        q                => pp0_7(20 to 36)        );--o--
 
 
 
+--=####################################################################
+--=# compressor tree level 1
+--=####################################################################
+--= 0         1         2         3
+--= 0123456789012345678901234567890123456
+--==-------------------------------------
+--  ddddddddddddddddddddd________________
+--  111111ddddddddddddddddd_S____________     bm0
+--  ______1addddddddddddddddd_S__________     bm1
+--  ________1addddddddddddddddd_S________     bm2
+--  __________1addddddddddddddddd_S______     bm3
+--  ____________1addddddddddddddddd_S____     bm4
+--  ______________1addddddddddddddddd_S__     bm5
+--  ________________1addddddddddddddddd_S     bm6
+--  _________________assddddddddddddddddd     bm7
+
+--= 0         1         2         3
+--= 0123456789012345678901234567890123456
+--==-------------------------------------
+--  ddddddddddddddddddddd________________
+--  111111ddddddddddddddddd_S____________     bm0
+--  ______1addddddddddddddddd_S__________     bm1
+--  111111333333333333333221201
+--  sssssssssssssssssssssssss_s               pp1_0_sum
+--  ccccccccccccccccccccccc_c__               pp1_0_car
 
 
+--= 0         1         2         3
+--= 0123456789012345678901234567890123456
+--==-------------------------------------
+--  ________1addddddddddddddddd_S________     bm2
+--  __________1addddddddddddddddd_S______     bm3
+--  ____________1addddddddddddddddd_S____     bm4
+--          1122333333333333333231201
+--  ________sssssssssssssssssssssss_s         pp1_1_sum
+--          _ccccccccccccccccccc__c__         pp1_1_car
 
-
+--= 0         1         2         3
+--= 0123456789012345678901234567890123456
+--==-------------------------------------
+--  ______________1addddddddddddddddd_S__     bm5
+--  ________________1addddddddddddddddd_S     bm6
+--  _________________assddddddddddddddddd     bm7
+--                11233333333333333332312
+--                sssssssssssssssssssssss     pp1_2_sum
+--                _ccccccccccccccccccc__c     pp1_2_car
 
 
     z_b(0 to 20)  <= not z(0 to 20);
 
+--======================================================
+--== compressor level 1 , row 0
+--======================================================
 
     pp1_0_sum(26)                    <= pp0_1(26)                        ;
     pp1_0_sum(25)                    <= tidn                             ;
@@ -324,158 +411,161 @@ begin
     pp1_0_sum(21)                    <= pp0_0(21)                        ;
     pp1_0_car(21)                    <= pp0_1(21)                        ;
     pp1_0_car(20)                    <= tidn                             ;
- pp1_0_csa_20: entity clib.c_prism_csa32  port map(  
+ pp1_0_csa_20: entity clib.c_prism_csa32  port map(  -- MLT32_X1_A12TH
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(20)                           ,
-      b                => pp0_0(20)                         ,
-      c                => pp0_1(20)                         ,
-      sum              => pp1_0_sum(20)                     ,
-      car              => pp1_0_car(19)                    );
+      a                => z_b(20)                           ,--i--
+      b                => pp0_0(20)                         ,--i--
+      c                => pp0_1(20)                         ,--i--
+      sum              => pp1_0_sum(20)                     ,--o--
+      car              => pp1_0_car(19)                    );--o--
  pp1_0_csa_19: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(19)                           ,
-      b                => pp0_0(19)                         ,
-      c                => pp0_1(19)                         ,
-      sum              => pp1_0_sum(19)                     ,
-      car              => pp1_0_car(18)                    );
+      a                => z_b(19)                           ,--i--
+      b                => pp0_0(19)                         ,--i--
+      c                => pp0_1(19)                         ,--i--
+      sum              => pp1_0_sum(19)                     ,--o--
+      car              => pp1_0_car(18)                    );--o--
  pp1_0_csa_18: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(18)                           ,
-      b                => pp0_0(18)                         ,
-      c                => pp0_1(18)                         ,
-      sum              => pp1_0_sum(18)                     ,
-      car              => pp1_0_car(17)                    );
+      a                => z_b(18)                           ,--i--
+      b                => pp0_0(18)                         ,--i--
+      c                => pp0_1(18)                         ,--i--
+      sum              => pp1_0_sum(18)                     ,--o--
+      car              => pp1_0_car(17)                    );--o--
  pp1_0_csa_17: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(17)                           ,
-      b                => pp0_0(17)                         ,
-      c                => pp0_1(17)                         ,
-      sum              => pp1_0_sum(17)                     ,
-      car              => pp1_0_car(16)                    );
+      a                => z_b(17)                           ,--i--
+      b                => pp0_0(17)                         ,--i--
+      c                => pp0_1(17)                         ,--i--
+      sum              => pp1_0_sum(17)                     ,--o--
+      car              => pp1_0_car(16)                    );--o--
  pp1_0_csa_16: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(16)                           ,
-      b                => pp0_0(16)                         ,
-      c                => pp0_1(16)                         ,
-      sum              => pp1_0_sum(16)                     ,
-      car              => pp1_0_car(15)                    );
+      a                => z_b(16)                           ,--i--
+      b                => pp0_0(16)                         ,--i--
+      c                => pp0_1(16)                         ,--i--
+      sum              => pp1_0_sum(16)                     ,--o--
+      car              => pp1_0_car(15)                    );--o--
  pp1_0_csa_15: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(15)                           ,
-      b                => pp0_0(15)                         ,
-      c                => pp0_1(15)                         ,
-      sum              => pp1_0_sum(15)                     ,
-      car              => pp1_0_car(14)                    );
+      a                => z_b(15)                           ,--i--
+      b                => pp0_0(15)                         ,--i--
+      c                => pp0_1(15)                         ,--i--
+      sum              => pp1_0_sum(15)                     ,--o--
+      car              => pp1_0_car(14)                    );--o--
  pp1_0_csa_14: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(14)                           ,
-      b                => pp0_0(14)                         ,
-      c                => pp0_1(14)                         ,
-      sum              => pp1_0_sum(14)                     ,
-      car              => pp1_0_car(13)                    );
+      a                => z_b(14)                           ,--i--
+      b                => pp0_0(14)                         ,--i--
+      c                => pp0_1(14)                         ,--i--
+      sum              => pp1_0_sum(14)                     ,--o--
+      car              => pp1_0_car(13)                    );--o--
  pp1_0_csa_13: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(13)                           ,
-      b                => pp0_0(13)                         ,
-      c                => pp0_1(13)                         ,
-      sum              => pp1_0_sum(13)                     ,
-      car              => pp1_0_car(12)                    );
+      a                => z_b(13)                           ,--i--
+      b                => pp0_0(13)                         ,--i--
+      c                => pp0_1(13)                         ,--i--
+      sum              => pp1_0_sum(13)                     ,--o--
+      car              => pp1_0_car(12)                    );--o--
  pp1_0_csa_12: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(12)                           ,
-      b                => pp0_0(12)                         ,
-      c                => pp0_1(12)                         ,
-      sum              => pp1_0_sum(12)                     ,
-      car              => pp1_0_car(11)                    );
+      a                => z_b(12)                           ,--i--
+      b                => pp0_0(12)                         ,--i--
+      c                => pp0_1(12)                         ,--i--
+      sum              => pp1_0_sum(12)                     ,--o--
+      car              => pp1_0_car(11)                    );--o--
  pp1_0_csa_11: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(11)                           ,
-      b                => pp0_0(11)                         ,
-      c                => pp0_1(11)                         ,
-      sum              => pp1_0_sum(11)                     ,
-      car              => pp1_0_car(10)                    );
+      a                => z_b(11)                           ,--i--
+      b                => pp0_0(11)                         ,--i--
+      c                => pp0_1(11)                         ,--i--
+      sum              => pp1_0_sum(11)                     ,--o--
+      car              => pp1_0_car(10)                    );--o--
  pp1_0_csa_10: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(10)                           ,
-      b                => pp0_0(10)                         ,
-      c                => pp0_1(10)                         ,
-      sum              => pp1_0_sum(10)                     ,
-      car              => pp1_0_car(9)                     );
+      a                => z_b(10)                           ,--i--
+      b                => pp0_0(10)                         ,--i--
+      c                => pp0_1(10)                         ,--i--
+      sum              => pp1_0_sum(10)                     ,--o--
+      car              => pp1_0_car(9)                     );--o--
  pp1_0_csa_9: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(9)                            ,
-      b                => pp0_0(9)                          ,
-      c                => pp0_1(9)                          ,
-      sum              => pp1_0_sum(9)                      ,
-      car              => pp1_0_car(8)                     );
+      a                => z_b(9)                            ,--i--
+      b                => pp0_0(9)                          ,--i--
+      c                => pp0_1(9)                          ,--i--
+      sum              => pp1_0_sum(9)                      ,--o--
+      car              => pp1_0_car(8)                     );--o--
  pp1_0_csa_8: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(8)                            ,
-      b                => pp0_0(8)                          ,
-      c                => pp0_1(8)                          ,
-      sum              => pp1_0_sum(8)                      ,
-      car              => pp1_0_car(7)                     );
+      a                => z_b(8)                            ,--i--
+      b                => pp0_0(8)                          ,--i--
+      c                => pp0_1(8)                          ,--i--
+      sum              => pp1_0_sum(8)                      ,--o--
+      car              => pp1_0_car(7)                     );--o--
  pp1_0_csa_7: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(7)                            ,
-      b                => pp0_0(7)                          ,
-      c                => pp0_1(7)                          ,
-      sum              => pp1_0_sum(7)                      ,
-      car              => pp1_0_car(6)                     );
+      a                => z_b(7)                            ,--i--
+      b                => pp0_0(7)                          ,--i--
+      c                => pp0_1(7)                          ,--i--
+      sum              => pp1_0_sum(7)                      ,--o--
+      car              => pp1_0_car(6)                     );--o--
  pp1_0_csa_6: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => z_b(6)                            ,
-      b                => pp0_0(6)                          ,
-      c                => pp0_1(6)                          ,
-      sum              => pp1_0_sum(6)                      ,
-      car              => pp1_0_car(5)                     );
+      a                => z_b(6)                            ,--i--
+      b                => pp0_0(6)                          ,--i--
+      c                => pp0_1(6)                          ,--i--
+      sum              => pp1_0_sum(6)                      ,--o--
+      car              => pp1_0_car(5)                     );--o--
  pp1_0_csa_5: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => z_b(5)                            ,
-      b                => tiup                              ,
-      sum              => pp1_0_sum(5)                      ,
-      car              => pp1_0_car(4)                     );
+      a                => z_b(5)                            ,--i--
+      b                => tiup                              ,--i--
+      sum              => pp1_0_sum(5)                      ,--o--
+      car              => pp1_0_car(4)                     );--o--
  pp1_0_csa_4: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => z_b(4)                            ,
-      b                => tiup                              ,
-      sum              => pp1_0_sum(4)                      ,
-      car              => pp1_0_car(3)                     );
+      a                => z_b(4)                            ,--i--
+      b                => tiup                              ,--i--
+      sum              => pp1_0_sum(4)                      ,--o--
+      car              => pp1_0_car(3)                     );--o--
  pp1_0_csa_3: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => z_b(3)                            ,
-      b                => tiup                              ,
-      sum              => pp1_0_sum(3)                      ,
-      car              => pp1_0_car(2)                     );
+      a                => z_b(3)                            ,--i--
+      b                => tiup                              ,--i--
+      sum              => pp1_0_sum(3)                      ,--o--
+      car              => pp1_0_car(2)                     );--o--
  pp1_0_csa_2: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => z_b(2)                            ,
-      b                => tiup                              ,
-      sum              => pp1_0_sum(2)                      ,
-      car              => pp1_0_car(1)                     );
+      a                => z_b(2)                            ,--i--
+      b                => tiup                              ,--i--
+      sum              => pp1_0_sum(2)                      ,--o--
+      car              => pp1_0_car(1)                     );--o--
  pp1_0_csa_1: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => z_b(1)                            ,
-      b                => tiup                              ,
-      sum              => pp1_0_sum(1)                      ,
-      car              => pp1_0_car(0)                     );
+      a                => z_b(1)                            ,--i--
+      b                => tiup                              ,--i--
+      sum              => pp1_0_sum(1)                      ,--o--
+      car              => pp1_0_car(0)                     );--o--
  pp1_0_csa_0: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => z_b(0)                            ,
-      b                => tiup                              ,
-      sum              => pp1_0_sum(0)                      ,
-      car              => pp1_0_car_unused                 );
+      a                => z_b(0)                            ,--i--
+      b                => tiup                              ,--i--
+      sum              => pp1_0_sum(0)                      ,--o--
+      car              => pp1_0_car_unused                 );--o--
 
 
+--======================================================
+--== compressor level 1 , row 1
+--======================================================
 
     pp1_1_sum(32)                    <= pp0_4(32)                        ;
     pp1_1_sum(31)                    <= tidn                             ;
@@ -487,150 +577,153 @@ begin
  pp1_1_csa_28: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(28)                         ,
-      b                => pp0_3(28)                         ,
-      c                => pp0_4(28)                         ,
-      sum              => pp1_1_sum(28)                     ,
-      car              => pp1_1_car(27)                    );
+      a                => pp0_2(28)                         ,--i--
+      b                => pp0_3(28)                         ,--i--
+      c                => pp0_4(28)                         ,--i--
+      sum              => pp1_1_sum(28)                     ,--o--
+      car              => pp1_1_car(27)                    );--o--
  pp1_1_csa_27: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp0_3(27)                         ,
-      b                => pp0_4(27)                         ,
-      sum              => pp1_1_sum(27)                     ,
-      car              => pp1_1_car(26)                    );
+      a                => pp0_3(27)                         ,--i--
+      b                => pp0_4(27)                         ,--i--
+      sum              => pp1_1_sum(27)                     ,--o--
+      car              => pp1_1_car(26)                    );--o--
  pp1_1_csa_26: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(26)                         ,
-      b                => pp0_3(26)                         ,
-      c                => pp0_4(26)                         ,
-      sum              => pp1_1_sum(26)                     ,
-      car              => pp1_1_car(25)                    );
+      a                => pp0_2(26)                         ,--i--
+      b                => pp0_3(26)                         ,--i--
+      c                => pp0_4(26)                         ,--i--
+      sum              => pp1_1_sum(26)                     ,--o--
+      car              => pp1_1_car(25)                    );--o--
  pp1_1_csa_25: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(25)                         ,
-      b                => pp0_3(25)                         ,
-      c                => pp0_4(25)                         ,
-      sum              => pp1_1_sum(25)                     ,
-      car              => pp1_1_car(24)                    );
+      a                => pp0_2(25)                         ,--i--
+      b                => pp0_3(25)                         ,--i--
+      c                => pp0_4(25)                         ,--i--
+      sum              => pp1_1_sum(25)                     ,--o--
+      car              => pp1_1_car(24)                    );--o--
  pp1_1_csa_24: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(24)                         ,
-      b                => pp0_3(24)                         ,
-      c                => pp0_4(24)                         ,
-      sum              => pp1_1_sum(24)                     ,
-      car              => pp1_1_car(23)                    );
+      a                => pp0_2(24)                         ,--i--
+      b                => pp0_3(24)                         ,--i--
+      c                => pp0_4(24)                         ,--i--
+      sum              => pp1_1_sum(24)                     ,--o--
+      car              => pp1_1_car(23)                    );--o--
  pp1_1_csa_23: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(23)                         ,
-      b                => pp0_3(23)                         ,
-      c                => pp0_4(23)                         ,
-      sum              => pp1_1_sum(23)                     ,
-      car              => pp1_1_car(22)                    );
+      a                => pp0_2(23)                         ,--i--
+      b                => pp0_3(23)                         ,--i--
+      c                => pp0_4(23)                         ,--i--
+      sum              => pp1_1_sum(23)                     ,--o--
+      car              => pp1_1_car(22)                    );--o--
  pp1_1_csa_22: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(22)                         ,
-      b                => pp0_3(22)                         ,
-      c                => pp0_4(22)                         ,
-      sum              => pp1_1_sum(22)                     ,
-      car              => pp1_1_car(21)                    );
+      a                => pp0_2(22)                         ,--i--
+      b                => pp0_3(22)                         ,--i--
+      c                => pp0_4(22)                         ,--i--
+      sum              => pp1_1_sum(22)                     ,--o--
+      car              => pp1_1_car(21)                    );--o--
  pp1_1_csa_21: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(21)                         ,
-      b                => pp0_3(21)                         ,
-      c                => pp0_4(21)                         ,
-      sum              => pp1_1_sum(21)                     ,
-      car              => pp1_1_car(20)                    );
+      a                => pp0_2(21)                         ,--i--
+      b                => pp0_3(21)                         ,--i--
+      c                => pp0_4(21)                         ,--i--
+      sum              => pp1_1_sum(21)                     ,--o--
+      car              => pp1_1_car(20)                    );--o--
  pp1_1_csa_20: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(20)                         ,
-      b                => pp0_3(20)                         ,
-      c                => pp0_4(20)                         ,
-      sum              => pp1_1_sum(20)                     ,
-      car              => pp1_1_car(19)                    );
+      a                => pp0_2(20)                         ,--i--
+      b                => pp0_3(20)                         ,--i--
+      c                => pp0_4(20)                         ,--i--
+      sum              => pp1_1_sum(20)                     ,--o--
+      car              => pp1_1_car(19)                    );--o--
  pp1_1_csa_19: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(19)                         ,
-      b                => pp0_3(19)                         ,
-      c                => pp0_4(19)                         ,
-      sum              => pp1_1_sum(19)                     ,
-      car              => pp1_1_car(18)                    );
+      a                => pp0_2(19)                         ,--i--
+      b                => pp0_3(19)                         ,--i--
+      c                => pp0_4(19)                         ,--i--
+      sum              => pp1_1_sum(19)                     ,--o--
+      car              => pp1_1_car(18)                    );--o--
  pp1_1_csa_18: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(18)                         ,
-      b                => pp0_3(18)                         ,
-      c                => pp0_4(18)                         ,
-      sum              => pp1_1_sum(18)                     ,
-      car              => pp1_1_car(17)                    );
+      a                => pp0_2(18)                         ,--i--
+      b                => pp0_3(18)                         ,--i--
+      c                => pp0_4(18)                         ,--i--
+      sum              => pp1_1_sum(18)                     ,--o--
+      car              => pp1_1_car(17)                    );--o--
  pp1_1_csa_17: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(17)                         ,
-      b                => pp0_3(17)                         ,
-      c                => pp0_4(17)                         ,
-      sum              => pp1_1_sum(17)                     ,
-      car              => pp1_1_car(16)                    );
+      a                => pp0_2(17)                         ,--i--
+      b                => pp0_3(17)                         ,--i--
+      c                => pp0_4(17)                         ,--i--
+      sum              => pp1_1_sum(17)                     ,--o--
+      car              => pp1_1_car(16)                    );--o--
  pp1_1_csa_16: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(16)                         ,
-      b                => pp0_3(16)                         ,
-      c                => pp0_4(16)                         ,
-      sum              => pp1_1_sum(16)                     ,
-      car              => pp1_1_car(15)                    );
+      a                => pp0_2(16)                         ,--i--
+      b                => pp0_3(16)                         ,--i--
+      c                => pp0_4(16)                         ,--i--
+      sum              => pp1_1_sum(16)                     ,--o--
+      car              => pp1_1_car(15)                    );--o--
  pp1_1_csa_15: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(15)                         ,
-      b                => pp0_3(15)                         ,
-      c                => pp0_4(15)                         ,
-      sum              => pp1_1_sum(15)                     ,
-      car              => pp1_1_car(14)                    );
+      a                => pp0_2(15)                         ,--i--
+      b                => pp0_3(15)                         ,--i--
+      c                => pp0_4(15)                         ,--i--
+      sum              => pp1_1_sum(15)                     ,--o--
+      car              => pp1_1_car(14)                    );--o--
  pp1_1_csa_14: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(14)                         ,
-      b                => pp0_3(14)                         ,
-      c                => pp0_4(14)                         ,
-      sum              => pp1_1_sum(14)                     ,
-      car              => pp1_1_car(13)                    );
+      a                => pp0_2(14)                         ,--i--
+      b                => pp0_3(14)                         ,--i--
+      c                => pp0_4(14)                         ,--i--
+      sum              => pp1_1_sum(14)                     ,--o--
+      car              => pp1_1_car(13)                    );--o--
  pp1_1_csa_13: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(13)                         ,
-      b                => pp0_3(13)                         ,
-      c                => pp0_4(13)                         ,
-      sum              => pp1_1_sum(13)                     ,
-      car              => pp1_1_car(12)                    );
+      a                => pp0_2(13)                         ,--i--
+      b                => pp0_3(13)                         ,--i--
+      c                => pp0_4(13)                         ,--i--
+      sum              => pp1_1_sum(13)                     ,--o--
+      car              => pp1_1_car(12)                    );--o--
  pp1_1_csa_12: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_2(12)                         ,
-      b                => pp0_3(12)                         ,
-      c                => pp0_4(12)                         ,
-      sum              => pp1_1_sum(12)                     ,
-      car              => pp1_1_car(11)                    );
+      a                => pp0_2(12)                         ,--i--
+      b                => pp0_3(12)                         ,--i--
+      c                => pp0_4(12)                         ,--i--
+      sum              => pp1_1_sum(12)                     ,--o--
+      car              => pp1_1_car(11)                    );--o--
  pp1_1_csa_11: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp0_2(11)                         ,
-      b                => pp0_3(11)                         ,
-      sum              => pp1_1_sum(11)                     ,
-      car              => pp1_1_car(10)                    );
+      a                => pp0_2(11)                         ,--i--
+      b                => pp0_3(11)                         ,--i--
+      sum              => pp1_1_sum(11)                     ,--o--
+      car              => pp1_1_car(10)                    );--o--
  pp1_1_csa_10: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp0_2(10)                         ,
-      b                => pp0_3(10)                         ,
-      sum              => pp1_1_sum(10)                     ,
-      car              => pp1_1_car(9)                     );
+      a                => pp0_2(10)                         ,--i--
+      b                => pp0_3(10)                         ,--i--
+      sum              => pp1_1_sum(10)                     ,--o--
+      car              => pp1_1_car(9)                     );--o--
     pp1_1_sum(9)                     <= pp0_2(9)                         ;
     pp1_1_sum(8)                     <= pp0_2(8)                         ;
 
 
+--======================================================
+--== compressor level 1 , row 2
+--======================================================
 
     pp1_2_sum(36)                    <= pp0_6(36)                        ;
     pp1_2_car(36)                    <= pp0_7(36)                        ;
@@ -640,157 +733,181 @@ begin
  pp1_2_csa_34: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(34)                         ,
-      b                => pp0_6(34)                         ,
-      c                => pp0_7(34)                         ,
-      sum              => pp1_2_sum(34)                     ,
-      car              => pp1_2_car(33)                    );
+      a                => pp0_5(34)                         ,--i--
+      b                => pp0_6(34)                         ,--i--
+      c                => pp0_7(34)                         ,--i--
+      sum              => pp1_2_sum(34)                     ,--o--
+      car              => pp1_2_car(33)                    );--o--
  pp1_2_csa_33: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp0_6(33)                         ,
-      b                => pp0_7(33)                         ,
-      sum              => pp1_2_sum(33)                     ,
-      car              => pp1_2_car(32)                    );
+      a                => pp0_6(33)                         ,--i--
+      b                => pp0_7(33)                         ,--i--
+      sum              => pp1_2_sum(33)                     ,--o--
+      car              => pp1_2_car(32)                    );--o--
  pp1_2_csa_32: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(32)                         ,
-      b                => pp0_6(32)                         ,
-      c                => pp0_7(32)                         ,
-      sum              => pp1_2_sum(32)                     ,
-      car              => pp1_2_car(31)                    );
+      a                => pp0_5(32)                         ,--i--
+      b                => pp0_6(32)                         ,--i--
+      c                => pp0_7(32)                         ,--i--
+      sum              => pp1_2_sum(32)                     ,--o--
+      car              => pp1_2_car(31)                    );--o--
  pp1_2_csa_31: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(31)                         ,
-      b                => pp0_6(31)                         ,
-      c                => pp0_7(31)                         ,
-      sum              => pp1_2_sum(31)                     ,
-      car              => pp1_2_car(30)                    );
+      a                => pp0_5(31)                         ,--i--
+      b                => pp0_6(31)                         ,--i--
+      c                => pp0_7(31)                         ,--i--
+      sum              => pp1_2_sum(31)                     ,--o--
+      car              => pp1_2_car(30)                    );--o--
  pp1_2_csa_30: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(30)                         ,
-      b                => pp0_6(30)                         ,
-      c                => pp0_7(30)                         ,
-      sum              => pp1_2_sum(30)                     ,
-      car              => pp1_2_car(29)                    );
+      a                => pp0_5(30)                         ,--i--
+      b                => pp0_6(30)                         ,--i--
+      c                => pp0_7(30)                         ,--i--
+      sum              => pp1_2_sum(30)                     ,--o--
+      car              => pp1_2_car(29)                    );--o--
  pp1_2_csa_29: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(29)                         ,
-      b                => pp0_6(29)                         ,
-      c                => pp0_7(29)                         ,
-      sum              => pp1_2_sum(29)                     ,
-      car              => pp1_2_car(28)                    );
+      a                => pp0_5(29)                         ,--i--
+      b                => pp0_6(29)                         ,--i--
+      c                => pp0_7(29)                         ,--i--
+      sum              => pp1_2_sum(29)                     ,--o--
+      car              => pp1_2_car(28)                    );--o--
  pp1_2_csa_28: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(28)                         ,
-      b                => pp0_6(28)                         ,
-      c                => pp0_7(28)                         ,
-      sum              => pp1_2_sum(28)                     ,
-      car              => pp1_2_car(27)                    );
+      a                => pp0_5(28)                         ,--i--
+      b                => pp0_6(28)                         ,--i--
+      c                => pp0_7(28)                         ,--i--
+      sum              => pp1_2_sum(28)                     ,--o--
+      car              => pp1_2_car(27)                    );--o--
  pp1_2_csa_27: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(27)                         ,
-      b                => pp0_6(27)                         ,
-      c                => pp0_7(27)                         ,
-      sum              => pp1_2_sum(27)                     ,
-      car              => pp1_2_car(26)                    );
+      a                => pp0_5(27)                         ,--i--
+      b                => pp0_6(27)                         ,--i--
+      c                => pp0_7(27)                         ,--i--
+      sum              => pp1_2_sum(27)                     ,--o--
+      car              => pp1_2_car(26)                    );--o--
  pp1_2_csa_26: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(26)                         ,
-      b                => pp0_6(26)                         ,
-      c                => pp0_7(26)                         ,
-      sum              => pp1_2_sum(26)                     ,
-      car              => pp1_2_car(25)                    );
+      a                => pp0_5(26)                         ,--i--
+      b                => pp0_6(26)                         ,--i--
+      c                => pp0_7(26)                         ,--i--
+      sum              => pp1_2_sum(26)                     ,--o--
+      car              => pp1_2_car(25)                    );--o--
  pp1_2_csa_25: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(25)                         ,
-      b                => pp0_6(25)                         ,
-      c                => pp0_7(25)                         ,
-      sum              => pp1_2_sum(25)                     ,
-      car              => pp1_2_car(24)                    );
+      a                => pp0_5(25)                         ,--i--
+      b                => pp0_6(25)                         ,--i--
+      c                => pp0_7(25)                         ,--i--
+      sum              => pp1_2_sum(25)                     ,--o--
+      car              => pp1_2_car(24)                    );--o--
  pp1_2_csa_24: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(24)                         ,
-      b                => pp0_6(24)                         ,
-      c                => pp0_7(24)                         ,
-      sum              => pp1_2_sum(24)                     ,
-      car              => pp1_2_car(23)                    );
+      a                => pp0_5(24)                         ,--i--
+      b                => pp0_6(24)                         ,--i--
+      c                => pp0_7(24)                         ,--i--
+      sum              => pp1_2_sum(24)                     ,--o--
+      car              => pp1_2_car(23)                    );--o--
  pp1_2_csa_23: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(23)                         ,
-      b                => pp0_6(23)                         ,
-      c                => pp0_7(23)                         ,
-      sum              => pp1_2_sum(23)                     ,
-      car              => pp1_2_car(22)                    );
+      a                => pp0_5(23)                         ,--i--
+      b                => pp0_6(23)                         ,--i--
+      c                => pp0_7(23)                         ,--i--
+      sum              => pp1_2_sum(23)                     ,--o--
+      car              => pp1_2_car(22)                    );--o--
  pp1_2_csa_22: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(22)                         ,
-      b                => pp0_6(22)                         ,
-      c                => pp0_7(22)                         ,
-      sum              => pp1_2_sum(22)                     ,
-      car              => pp1_2_car(21)                    );
+      a                => pp0_5(22)                         ,--i--
+      b                => pp0_6(22)                         ,--i--
+      c                => pp0_7(22)                         ,--i--
+      sum              => pp1_2_sum(22)                     ,--o--
+      car              => pp1_2_car(21)                    );--o--
  pp1_2_csa_21: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(21)                         ,
-      b                => pp0_6(21)                         ,
-      c                => pp0_7(21)                         ,
-      sum              => pp1_2_sum(21)                     ,
-      car              => pp1_2_car(20)                    );
+      a                => pp0_5(21)                         ,--i--
+      b                => pp0_6(21)                         ,--i--
+      c                => pp0_7(21)                         ,--i--
+      sum              => pp1_2_sum(21)                     ,--o--
+      car              => pp1_2_car(20)                    );--o--
  pp1_2_csa_20: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(20)                         ,
-      b                => pp0_6(20)                         ,
-      c                => pp0_7(20)                         ,
-      sum              => pp1_2_sum(20)                     ,
-      car              => pp1_2_car(19)                    );
+      a                => pp0_5(20)                         ,--i--
+      b                => pp0_6(20)                         ,--i--
+      c                => pp0_7(20)                         ,--i--
+      sum              => pp1_2_sum(20)                     ,--o--
+      car              => pp1_2_car(19)                    );--o--
  pp1_2_csa_19: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(19)                         ,
-      b                => pp0_6(19)                         ,
-      c                => pp0_7(19)                         ,
-      sum              => pp1_2_sum(19)                     ,
-      car              => pp1_2_car(18)                    );
+      a                => pp0_5(19)                         ,--i--
+      b                => pp0_6(19)                         ,--i--
+      c                => pp0_7(19)                         ,--i--
+      sum              => pp1_2_sum(19)                     ,--o--
+      car              => pp1_2_car(18)                    );--o--
  pp1_2_csa_18: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(18)                         ,
-      b                => pp0_6(18)                         ,
-      c                => pp0_7(18)                         ,
-      sum              => pp1_2_sum(18)                     ,
-      car              => pp1_2_car(17)                    );
+      a                => pp0_5(18)                         ,--i--
+      b                => pp0_6(18)                         ,--i--
+      c                => pp0_7(18)                         ,--i--
+      sum              => pp1_2_sum(18)                     ,--o--
+      car              => pp1_2_car(17)                    );--o--
  pp1_2_csa_17: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp0_5(17)                         ,
-      b                => pp0_6(17)                         ,
-      c                => pp0_7(17)                         ,
-      sum              => pp1_2_sum(17)                     ,
-      car              => pp1_2_car(16)                    );
+      a                => pp0_5(17)                         ,--i--
+      b                => pp0_6(17)                         ,--i--
+      c                => pp0_7(17)                         ,--i--
+      sum              => pp1_2_sum(17)                     ,--o--
+      car              => pp1_2_car(16)                    );--o--
  pp1_2_csa_16: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp0_5(16)                         ,
-      b                => pp0_6(16)                         ,
-      sum              => pp1_2_sum(16)                     ,
-      car              => pp1_2_car(15)                    );
+      a                => pp0_5(16)                         ,--i--
+      b                => pp0_6(16)                         ,--i--
+      sum              => pp1_2_sum(16)                     ,--o--
+      car              => pp1_2_car(15)                    );--o--
     pp1_2_sum(15)                    <= pp0_5(15)                        ;
     pp1_2_sum(14)                    <= pp0_5(14)                        ;
 
 
+--=####################################################################
+--=# compressor tree level 2
+--=####################################################################
+
+--= 0         1         2         3
+--= 0123456789012345678901234567890123456
+--==-------------------------------------
+--  sssssssssssssssssssssssss_s______         pp1_0_sum
+--  ccccccccccccccccccccccc_c________         pp1_0_car
+--  ________sssssssssssssssssssssss_s         pp1_1_sum
+--  222222223333333333333332312111101
+--  sssssssssssssssssssssssssssssss_s         pp2_0_sum
+--  cccccccccccccccccccccccc__c               pp2_0_car
 
 
+--= 0         1         2         3
+--= 0123456789012345678901234567890123456
+--==-------------------------------------
+--  _________ccccccccccccccccccc__c______     pp1_1_car
+--  ______________sssssssssssssssssssssss     pp1_2_sum
+--  _______________ccccccccccccccccccc__c     pp1_2_car
+--           1111123333333333333223222112
+--           ssssssssssssssssssssssssssss     pp2_1_sum
+--               ccccccccccccccccc_ccc__c     pp2_1_car
 
-
+--======================================================
+--== compressor level 2 , row 0
+--======================================================
 
 
 
@@ -808,178 +925,184 @@ begin
  pp2_0_csa_24: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(24)                     ,
-      b                => pp1_0_car(24)                     ,
-      c                => pp1_1_sum(24)                     ,
-      sum              => pp2_0_sum(24)                     ,
-      car              => pp2_0_car(23)                    );
+      a                => pp1_0_sum(24)                     ,--i--
+      b                => pp1_0_car(24)                     ,--i--
+      c                => pp1_1_sum(24)                     ,--i--
+      sum              => pp2_0_sum(24)                     ,--o--
+      car              => pp2_0_car(23)                    );--o--
  pp2_0_csa_23: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp1_0_sum(23)                     ,
-      b                => pp1_1_sum(23)                     ,
-      sum              => pp2_0_sum(23)                     ,
-      car              => pp2_0_car(22)                    );
+      a                => pp1_0_sum(23)                     ,--i--
+      b                => pp1_1_sum(23)                     ,--i--
+      sum              => pp2_0_sum(23)                     ,--o--
+      car              => pp2_0_car(22)                    );--o--
  pp2_0_csa_22: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(22)                     ,
-      b                => pp1_0_car(22)                     ,
-      c                => pp1_1_sum(22)                     ,
-      sum              => pp2_0_sum(22)                     ,
-      car              => pp2_0_car(21)                    );
+      a                => pp1_0_sum(22)                     ,--i--
+      b                => pp1_0_car(22)                     ,--i--
+      c                => pp1_1_sum(22)                     ,--i--
+      sum              => pp2_0_sum(22)                     ,--o--
+      car              => pp2_0_car(21)                    );--o--
  pp2_0_csa_21: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(21)                     ,
-      b                => pp1_0_car(21)                     ,
-      c                => pp1_1_sum(21)                     ,
-      sum              => pp2_0_sum(21)                     ,
-      car              => pp2_0_car(20)                    );
+      a                => pp1_0_sum(21)                     ,--i--
+      b                => pp1_0_car(21)                     ,--i--
+      c                => pp1_1_sum(21)                     ,--i--
+      sum              => pp2_0_sum(21)                     ,--o--
+      car              => pp2_0_car(20)                    );--o--
  pp2_0_csa_20: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(20)                     ,
-      b                => pp1_0_car(20)                     ,
-      c                => pp1_1_sum(20)                     ,
-      sum              => pp2_0_sum(20)                     ,
-      car              => pp2_0_car(19)                    );
+      a                => pp1_0_sum(20)                     ,--i--
+      b                => pp1_0_car(20)                     ,--i--
+      c                => pp1_1_sum(20)                     ,--i--
+      sum              => pp2_0_sum(20)                     ,--o--
+      car              => pp2_0_car(19)                    );--o--
  pp2_0_csa_19: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(19)                     ,
-      b                => pp1_0_car(19)                     ,
-      c                => pp1_1_sum(19)                     ,
-      sum              => pp2_0_sum(19)                     ,
-      car              => pp2_0_car(18)                    );
+      a                => pp1_0_sum(19)                     ,--i--
+      b                => pp1_0_car(19)                     ,--i--
+      c                => pp1_1_sum(19)                     ,--i--
+      sum              => pp2_0_sum(19)                     ,--o--
+      car              => pp2_0_car(18)                    );--o--
  pp2_0_csa_18: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(18)                     ,
-      b                => pp1_0_car(18)                     ,
-      c                => pp1_1_sum(18)                     ,
-      sum              => pp2_0_sum(18)                     ,
-      car              => pp2_0_car(17)                    );
+      a                => pp1_0_sum(18)                     ,--i--
+      b                => pp1_0_car(18)                     ,--i--
+      c                => pp1_1_sum(18)                     ,--i--
+      sum              => pp2_0_sum(18)                     ,--o--
+      car              => pp2_0_car(17)                    );--o--
  pp2_0_csa_17: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(17)                     ,
-      b                => pp1_0_car(17)                     ,
-      c                => pp1_1_sum(17)                     ,
-      sum              => pp2_0_sum(17)                     ,
-      car              => pp2_0_car(16)                    );
+      a                => pp1_0_sum(17)                     ,--i--
+      b                => pp1_0_car(17)                     ,--i--
+      c                => pp1_1_sum(17)                     ,--i--
+      sum              => pp2_0_sum(17)                     ,--o--
+      car              => pp2_0_car(16)                    );--o--
  pp2_0_csa_16: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(16)                     ,
-      b                => pp1_0_car(16)                     ,
-      c                => pp1_1_sum(16)                     ,
-      sum              => pp2_0_sum(16)                     ,
-      car              => pp2_0_car(15)                    );
+      a                => pp1_0_sum(16)                     ,--i--
+      b                => pp1_0_car(16)                     ,--i--
+      c                => pp1_1_sum(16)                     ,--i--
+      sum              => pp2_0_sum(16)                     ,--o--
+      car              => pp2_0_car(15)                    );--o--
  pp2_0_csa_15: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(15)                     ,
-      b                => pp1_0_car(15)                     ,
-      c                => pp1_1_sum(15)                     ,
-      sum              => pp2_0_sum(15)                     ,
-      car              => pp2_0_car(14)                    );
+      a                => pp1_0_sum(15)                     ,--i--
+      b                => pp1_0_car(15)                     ,--i--
+      c                => pp1_1_sum(15)                     ,--i--
+      sum              => pp2_0_sum(15)                     ,--o--
+      car              => pp2_0_car(14)                    );--o--
  pp2_0_csa_14: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(14)                     ,
-      b                => pp1_0_car(14)                     ,
-      c                => pp1_1_sum(14)                     ,
-      sum              => pp2_0_sum(14)                     ,
-      car              => pp2_0_car(13)                    );
+      a                => pp1_0_sum(14)                     ,--i--
+      b                => pp1_0_car(14)                     ,--i--
+      c                => pp1_1_sum(14)                     ,--i--
+      sum              => pp2_0_sum(14)                     ,--o--
+      car              => pp2_0_car(13)                    );--o--
  pp2_0_csa_13: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(13)                     ,
-      b                => pp1_0_car(13)                     ,
-      c                => pp1_1_sum(13)                     ,
-      sum              => pp2_0_sum(13)                     ,
-      car              => pp2_0_car(12)                    );
+      a                => pp1_0_sum(13)                     ,--i--
+      b                => pp1_0_car(13)                     ,--i--
+      c                => pp1_1_sum(13)                     ,--i--
+      sum              => pp2_0_sum(13)                     ,--o--
+      car              => pp2_0_car(12)                    );--o--
  pp2_0_csa_12: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(12)                     ,
-      b                => pp1_0_car(12)                     ,
-      c                => pp1_1_sum(12)                     ,
-      sum              => pp2_0_sum(12)                     ,
-      car              => pp2_0_car(11)                    );
+      a                => pp1_0_sum(12)                     ,--i--
+      b                => pp1_0_car(12)                     ,--i--
+      c                => pp1_1_sum(12)                     ,--i--
+      sum              => pp2_0_sum(12)                     ,--o--
+      car              => pp2_0_car(11)                    );--o--
  pp2_0_csa_11: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(11)                     ,
-      b                => pp1_0_car(11)                     ,
-      c                => pp1_1_sum(11)                     ,
-      sum              => pp2_0_sum(11)                     ,
-      car              => pp2_0_car(10)                    );
+      a                => pp1_0_sum(11)                     ,--i--
+      b                => pp1_0_car(11)                     ,--i--
+      c                => pp1_1_sum(11)                     ,--i--
+      sum              => pp2_0_sum(11)                     ,--o--
+      car              => pp2_0_car(10)                    );--o--
  pp2_0_csa_10: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(10)                     ,
-      b                => pp1_0_car(10)                     ,
-      c                => pp1_1_sum(10)                     ,
-      sum              => pp2_0_sum(10)                     ,
-      car              => pp2_0_car(9)                     );
+      a                => pp1_0_sum(10)                     ,--i--
+      b                => pp1_0_car(10)                     ,--i--
+      c                => pp1_1_sum(10)                     ,--i--
+      sum              => pp2_0_sum(10)                     ,--o--
+      car              => pp2_0_car(9)                     );--o--
  pp2_0_csa_9: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(9)                      ,
-      b                => pp1_0_car(9)                      ,
-      c                => pp1_1_sum(9)                      ,
-      sum              => pp2_0_sum(9)                      ,
-      car              => pp2_0_car(8)                     );
+      a                => pp1_0_sum(9)                      ,--i--
+      b                => pp1_0_car(9)                      ,--i--
+      c                => pp1_1_sum(9)                      ,--i--
+      sum              => pp2_0_sum(9)                      ,--o--
+      car              => pp2_0_car(8)                     );--o--
  pp2_0_csa_8: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_0_sum(8)                      ,
-      b                => pp1_0_car(8)                      ,
-      c                => pp1_1_sum(8)                      ,
-      sum              => pp2_0_sum(8)                      ,
-      car              => pp2_0_car(7)                     );
+      a                => pp1_0_sum(8)                      ,--i--
+      b                => pp1_0_car(8)                      ,--i--
+      c                => pp1_1_sum(8)                      ,--i--
+      sum              => pp2_0_sum(8)                      ,--o--
+      car              => pp2_0_car(7)                     );--o--
  pp2_0_csa_7: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp1_0_sum(7)                      ,
-      b                => pp1_0_car(7)                      ,
-      sum              => pp2_0_sum(7)                      ,
-      car              => pp2_0_car(6)                     );
+      a                => pp1_0_sum(7)                      ,--i--
+      b                => pp1_0_car(7)                      ,--i--
+      sum              => pp2_0_sum(7)                      ,--o--
+      car              => pp2_0_car(6)                     );--o--
  pp2_0_csa_6: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp1_0_sum(6)                      ,
-      b                => pp1_0_car(6)                      ,
-      sum              => pp2_0_sum(6)                      ,
-      car              => pp2_0_car(5)                     );
+      a                => pp1_0_sum(6)                      ,--i--
+      b                => pp1_0_car(6)                      ,--i--
+      sum              => pp2_0_sum(6)                      ,--o--
+      car              => pp2_0_car(5)                     );--o--
  pp2_0_csa_5: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp1_0_sum(5)                      ,
-      b                => pp1_0_car(5)                      ,
-      sum              => pp2_0_sum(5)                      ,
-      car              => pp2_0_car(4)                     );
+      a                => pp1_0_sum(5)                      ,--i--
+      b                => pp1_0_car(5)                      ,--i--
+      sum              => pp2_0_sum(5)                      ,--o--
+      car              => pp2_0_car(4)                     );--o--
  pp2_0_csa_4: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp1_0_sum(4)                      ,
-      b                => pp1_0_car(4)                      ,
-      sum              => pp2_0_sum(4)                      ,
-      car              => pp2_0_car(3)                     );
+      a                => pp1_0_sum(4)                      ,--i--
+      b                => pp1_0_car(4)                      ,--i--
+      sum              => pp2_0_sum(4)                      ,--o--
+      car              => pp2_0_car(3)                     );--o--
  pp2_0_csa_3: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp1_0_sum(3)                      ,
-      b                => pp1_0_car(3)                      ,
-      sum              => pp2_0_sum(3)                      ,
-      car              => pp2_0_car(2)                     );
+      a                => pp1_0_sum(3)                      ,--i--
+      b                => pp1_0_car(3)                      ,--i--
+      sum              => pp2_0_sum(3)                      ,--o--
+      car              => pp2_0_car(2)                     );--o--
  pp2_0_csa_2: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp1_0_sum(2)                      ,
-      b                => pp1_0_car(2)                      ,
-      sum              => pp2_0_sum(2)                      ,
-      car              => pp2_0_car(1)                     );
+      a                => pp1_0_sum(2)                      ,--i--
+      b                => pp1_0_car(2)                      ,--i--
+      sum              => pp2_0_sum(2)                      ,--o--
+      car              => pp2_0_car(1)                     );--o--
  pp2_0_csa_1: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp1_0_sum(1)                      ,
-      b                => pp1_0_car(1)                      ,
-      sum              => pp2_0_sum(1)                      ,
-      car              => pp2_0_car(0)                     );
+      a                => pp1_0_sum(1)                      ,--i--
+      b                => pp1_0_car(1)                      ,--i--
+      sum              => pp2_0_sum(1)                      ,--o--
+      car              => pp2_0_car(0)                     );--o--
  pp2_0_csa_0: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp1_0_sum(0)                      ,
-      b                => pp1_0_car(0)                      ,
-      sum              => pp2_0_sum(0)                      ,
-      car              => pp2_0_car_unused                 );
+      a                => pp1_0_sum(0)                      ,--i--
+      b                => pp1_0_car(0)                      ,--i--
+      sum              => pp2_0_sum(0)                      ,--o--
+      car              => pp2_0_car_unused                 );--o--
 
+--======================================================
+--== compressor level 2 , row 1
+--======================================================
 
+--======================================================
+--== compressor level 2 , row 1
+--======================================================
 
     pp2_1_sum(36)                    <= pp1_2_sum(36)                    ;
     pp2_1_car(36)                    <= pp1_2_car(36)                    ;
@@ -997,130 +1120,130 @@ begin
  pp2_1_csa_30: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(30)                     ,
-      b                => pp1_2_sum(30)                     ,
-      c                => pp1_2_car(30)                     ,
-      sum              => pp2_1_sum(30)                     ,
-      car              => pp2_1_car(29)                    );
+      a                => pp1_1_car(30)                     ,--i--
+      b                => pp1_2_sum(30)                     ,--i--
+      c                => pp1_2_car(30)                     ,--i--
+      sum              => pp2_1_sum(30)                     ,--o--
+      car              => pp2_1_car(29)                    );--o--
  pp2_1_csa_29: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp1_2_sum(29)                     ,
-      b                => pp1_2_car(29)                     ,
-      sum              => pp2_1_sum(29)                     ,
-      car              => pp2_1_car(28)                    );
+      a                => pp1_2_sum(29)                     ,--i--
+      b                => pp1_2_car(29)                     ,--i--
+      sum              => pp2_1_sum(29)                     ,--o--
+      car              => pp2_1_car(28)                    );--o--
  pp2_1_csa_28: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp1_2_sum(28)                     ,
-      b                => pp1_2_car(28)                     ,
-      sum              => pp2_1_sum(28)                     ,
-      car              => pp2_1_car(27)                    );
+      a                => pp1_2_sum(28)                     ,--i--
+      b                => pp1_2_car(28)                     ,--i--
+      sum              => pp2_1_sum(28)                     ,--o--
+      car              => pp2_1_car(27)                    );--o--
  pp2_1_csa_27: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(27)                     ,
-      b                => pp1_2_sum(27)                     ,
-      c                => pp1_2_car(27)                     ,
-      sum              => pp2_1_sum(27)                     ,
-      car              => pp2_1_car(26)                    );
+      a                => pp1_1_car(27)                     ,--i--
+      b                => pp1_2_sum(27)                     ,--i--
+      c                => pp1_2_car(27)                     ,--i--
+      sum              => pp2_1_sum(27)                     ,--o--
+      car              => pp2_1_car(26)                    );--o--
  pp2_1_csa_26: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(26)                     ,
-      b                => pp1_2_sum(26)                     ,
-      c                => pp1_2_car(26)                     ,
-      sum              => pp2_1_sum(26)                     ,
-      car              => pp2_1_car(25)                    );
+      a                => pp1_1_car(26)                     ,--i--
+      b                => pp1_2_sum(26)                     ,--i--
+      c                => pp1_2_car(26)                     ,--i--
+      sum              => pp2_1_sum(26)                     ,--o--
+      car              => pp2_1_car(25)                    );--o--
  pp2_1_csa_25: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(25)                     ,
-      b                => pp1_2_sum(25)                     ,
-      c                => pp1_2_car(25)                     ,
-      sum              => pp2_1_sum(25)                     ,
-      car              => pp2_1_car(24)                    );
+      a                => pp1_1_car(25)                     ,--i--
+      b                => pp1_2_sum(25)                     ,--i--
+      c                => pp1_2_car(25)                     ,--i--
+      sum              => pp2_1_sum(25)                     ,--o--
+      car              => pp2_1_car(24)                    );--o--
  pp2_1_csa_24: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(24)                     ,
-      b                => pp1_2_sum(24)                     ,
-      c                => pp1_2_car(24)                     ,
-      sum              => pp2_1_sum(24)                     ,
-      car              => pp2_1_car(23)                    );
+      a                => pp1_1_car(24)                     ,--i--
+      b                => pp1_2_sum(24)                     ,--i--
+      c                => pp1_2_car(24)                     ,--i--
+      sum              => pp2_1_sum(24)                     ,--o--
+      car              => pp2_1_car(23)                    );--o--
  pp2_1_csa_23: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(23)                     ,
-      b                => pp1_2_sum(23)                     ,
-      c                => pp1_2_car(23)                     ,
-      sum              => pp2_1_sum(23)                     ,
-      car              => pp2_1_car(22)                    );
+      a                => pp1_1_car(23)                     ,--i--
+      b                => pp1_2_sum(23)                     ,--i--
+      c                => pp1_2_car(23)                     ,--i--
+      sum              => pp2_1_sum(23)                     ,--o--
+      car              => pp2_1_car(22)                    );--o--
  pp2_1_csa_22: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(22)                     ,
-      b                => pp1_2_sum(22)                     ,
-      c                => pp1_2_car(22)                     ,
-      sum              => pp2_1_sum(22)                     ,
-      car              => pp2_1_car(21)                    );
+      a                => pp1_1_car(22)                     ,--i--
+      b                => pp1_2_sum(22)                     ,--i--
+      c                => pp1_2_car(22)                     ,--i--
+      sum              => pp2_1_sum(22)                     ,--o--
+      car              => pp2_1_car(21)                    );--o--
  pp2_1_csa_21: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(21)                     ,
-      b                => pp1_2_sum(21)                     ,
-      c                => pp1_2_car(21)                     ,
-      sum              => pp2_1_sum(21)                     ,
-      car              => pp2_1_car(20)                    );
+      a                => pp1_1_car(21)                     ,--i--
+      b                => pp1_2_sum(21)                     ,--i--
+      c                => pp1_2_car(21)                     ,--i--
+      sum              => pp2_1_sum(21)                     ,--o--
+      car              => pp2_1_car(20)                    );--o--
  pp2_1_csa_20: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(20)                     ,
-      b                => pp1_2_sum(20)                     ,
-      c                => pp1_2_car(20)                     ,
-      sum              => pp2_1_sum(20)                     ,
-      car              => pp2_1_car(19)                    );
+      a                => pp1_1_car(20)                     ,--i--
+      b                => pp1_2_sum(20)                     ,--i--
+      c                => pp1_2_car(20)                     ,--i--
+      sum              => pp2_1_sum(20)                     ,--o--
+      car              => pp2_1_car(19)                    );--o--
  pp2_1_csa_19: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(19)                     ,
-      b                => pp1_2_sum(19)                     ,
-      c                => pp1_2_car(19)                     ,
-      sum              => pp2_1_sum(19)                     ,
-      car              => pp2_1_car(18)                    );
+      a                => pp1_1_car(19)                     ,--i--
+      b                => pp1_2_sum(19)                     ,--i--
+      c                => pp1_2_car(19)                     ,--i--
+      sum              => pp2_1_sum(19)                     ,--o--
+      car              => pp2_1_car(18)                    );--o--
  pp2_1_csa_18: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(18)                     ,
-      b                => pp1_2_sum(18)                     ,
-      c                => pp1_2_car(18)                     ,
-      sum              => pp2_1_sum(18)                     ,
-      car              => pp2_1_car(17)                    );
+      a                => pp1_1_car(18)                     ,--i--
+      b                => pp1_2_sum(18)                     ,--i--
+      c                => pp1_2_car(18)                     ,--i--
+      sum              => pp2_1_sum(18)                     ,--o--
+      car              => pp2_1_car(17)                    );--o--
  pp2_1_csa_17: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(17)                     ,
-      b                => pp1_2_sum(17)                     ,
-      c                => pp1_2_car(17)                     ,
-      sum              => pp2_1_sum(17)                     ,
-      car              => pp2_1_car(16)                    );
+      a                => pp1_1_car(17)                     ,--i--
+      b                => pp1_2_sum(17)                     ,--i--
+      c                => pp1_2_car(17)                     ,--i--
+      sum              => pp2_1_sum(17)                     ,--o--
+      car              => pp2_1_car(16)                    );--o--
  pp2_1_csa_16: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(16)                     ,
-      b                => pp1_2_sum(16)                     ,
-      c                => pp1_2_car(16)                     ,
-      sum              => pp2_1_sum(16)                     ,
-      car              => pp2_1_car(15)                    );
+      a                => pp1_1_car(16)                     ,--i--
+      b                => pp1_2_sum(16)                     ,--i--
+      c                => pp1_2_car(16)                     ,--i--
+      sum              => pp2_1_sum(16)                     ,--o--
+      car              => pp2_1_car(15)                    );--o--
  pp2_1_csa_15: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp1_1_car(15)                     ,
-      b                => pp1_2_sum(15)                     ,
-      c                => pp1_2_car(15)                     ,
-      sum              => pp2_1_sum(15)                     ,
-      car              => pp2_1_car(14)                    );
+      a                => pp1_1_car(15)                     ,--i--
+      b                => pp1_2_sum(15)                     ,--i--
+      c                => pp1_2_car(15)                     ,--i--
+      sum              => pp2_1_sum(15)                     ,--o--
+      car              => pp2_1_car(14)                    );--o--
  pp2_1_csa_14: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp1_1_car(14)                     ,
-      b                => pp1_2_sum(14)                     ,
-      sum              => pp2_1_sum(14)                     ,
-      car              => pp2_1_car(13)                    );
+      a                => pp1_1_car(14)                     ,--i--
+      b                => pp1_2_sum(14)                     ,--i--
+      sum              => pp2_1_sum(14)                     ,--o--
+      car              => pp2_1_car(13)                    );--o--
     pp2_1_sum(13)                    <= pp1_1_car(13)                    ;
     pp2_1_sum(12)                    <= pp1_1_car(12)                    ;
     pp2_1_sum(11)                    <= pp1_1_car(11)                    ;
@@ -1131,14 +1254,28 @@ begin
 
 
 
+--=####################################################################
+--=# compressor tree level 3
+--=####################################################################
 
+--= 0         1         2         3
+--= 0123456789012345678901234567890123456
+--==-------------------------------------
+--  sssssssssssssssssssssssssssssss_s         pp2_0_sum
+--  cccccccccccccccccccccccc__c               pp2_0_car
+--           ssssssssssssssssssssssssssss     pp2_1_sum
+--               ccccccccccccccccc_ccc__c     pp2_1_car
+--  2222222223333444444444443343332232112
 
+--======================================================
+--== compressor level 3 , row 0
+--======================================================
 
  pp3_0_csa_36: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp2_1_sum(36)                     ,
-      b                => pp2_1_car(36)                     ,
-      sum              => pp3_0_sum(36)                     ,
-      car              => pp3_0_car(35)                    );
+      a                => pp2_1_sum(36)                     ,--i--
+      b                => pp2_1_car(36)                     ,--i--
+      sum              => pp3_0_sum(36)                     ,--o--
+      car              => pp3_0_car(35)                    );--o--
     pp3_0_sum(35)                    <= pp2_1_sum(35)                    ;
     pp3_0_sum(34)                    <= pp2_1_sum(34)                    ;
     pp3_0_car(34)                    <= tidn                             ;
@@ -1148,293 +1285,294 @@ begin
  pp3_0_csa_32: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(32)                     ,
-      b                => pp2_1_sum(32)                     ,
-      c                => pp2_1_car(32)                     ,
-      sum              => pp3_0_sum(32)                     ,
-      car              => pp3_0_car(31)                    );
+      a                => pp2_0_sum(32)                     ,--i--
+      b                => pp2_1_sum(32)                     ,--i--
+      c                => pp2_1_car(32)                     ,--i--
+      sum              => pp3_0_sum(32)                     ,--o--
+      car              => pp3_0_car(31)                    );--o--
  pp3_0_csa_31: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp2_1_sum(31)                     ,
-      b                => pp2_1_car(31)                     ,
-      sum              => pp3_0_sum(31)                     ,
-      car              => pp3_0_car(30)                    );
+      a                => pp2_1_sum(31)                     ,--i--
+      b                => pp2_1_car(31)                     ,--i--
+      sum              => pp3_0_sum(31)                     ,--o--
+      car              => pp3_0_car(30)                    );--o--
  pp3_0_csa_30: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp2_0_sum(30)                     ,
-      b                => pp2_1_sum(30)                     ,
-      sum              => pp3_0_sum(30)                     ,
-      car              => pp3_0_car(29)                    );
+      a                => pp2_0_sum(30)                     ,--i--
+      b                => pp2_1_sum(30)                     ,--i--
+      sum              => pp3_0_sum(30)                     ,--o--
+      car              => pp3_0_car(29)                    );--o--
  pp3_0_csa_29: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(29)                     ,
-      b                => pp2_1_sum(29)                     ,
-      c                => pp2_1_car(29)                     ,
-      sum              => pp3_0_sum(29)                     ,
-      car              => pp3_0_car(28)                    );
+      a                => pp2_0_sum(29)                     ,--i--
+      b                => pp2_1_sum(29)                     ,--i--
+      c                => pp2_1_car(29)                     ,--i--
+      sum              => pp3_0_sum(29)                     ,--o--
+      car              => pp3_0_car(28)                    );--o--
  pp3_0_csa_28: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(28)                     ,
-      b                => pp2_1_sum(28)                     ,
-      c                => pp2_1_car(28)                     ,
-      sum              => pp3_0_sum(28)                     ,
-      car              => pp3_0_car(27)                    );
+      a                => pp2_0_sum(28)                     ,--i--
+      b                => pp2_1_sum(28)                     ,--i--
+      c                => pp2_1_car(28)                     ,--i--
+      sum              => pp3_0_sum(28)                     ,--o--
+      car              => pp3_0_car(27)                    );--o--
  pp3_0_csa_27: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(27)                     ,
-      b                => pp2_1_sum(27)                     ,
-      c                => pp2_1_car(27)                     ,
-      sum              => pp3_0_sum(27)                     ,
-      car              => pp3_0_car(26)                    );
- pp3_0_csa_26: entity clib.c_prism_csa42  port map(  
+      a                => pp2_0_sum(27)                     ,--i--
+      b                => pp2_1_sum(27)                     ,--i--
+      c                => pp2_1_car(27)                     ,--i--
+      sum              => pp3_0_sum(27)                     ,--o--
+      car              => pp3_0_car(26)                    );--o--
+ pp3_0_csa_26: entity clib.c_prism_csa42  port map(  -- MLT42_X1_A12TH
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(26)                     ,
-      b                => pp2_0_car(26)                     ,
-      c                => pp2_1_sum(26)                     ,
-      d                => pp2_1_car(26)                     ,
-      ki               => tidn                              ,
-      ko               => pp3_0_ko(25)                      ,
-      sum              => pp3_0_sum(26)                     ,
-      car              => pp3_0_car(25)                    );
+      a                => pp2_0_sum(26)                     ,--i--
+      b                => pp2_0_car(26)                     ,--i--
+      c                => pp2_1_sum(26)                     ,--i--
+      d                => pp2_1_car(26)                     ,--i--
+      ki               => tidn                              ,--i--
+      ko               => pp3_0_ko(25)                      ,--i--
+      sum              => pp3_0_sum(26)                     ,--o--
+      car              => pp3_0_car(25)                    );--o--
  pp3_0_csa_25: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(25)                     ,
-      b                => tidn                              ,
-      c                => pp2_1_sum(25)                     ,
-      d                => pp2_1_car(25)                     ,
-      ki               => pp3_0_ko(25)                      ,
-      ko               => pp3_0_ko(24)                      ,
-      sum              => pp3_0_sum(25)                     ,
-      car              => pp3_0_car(24)                    );
+      a                => pp2_0_sum(25)                     ,--i--
+      b                => tidn                              ,--i--
+      c                => pp2_1_sum(25)                     ,--i--
+      d                => pp2_1_car(25)                     ,--i--
+      ki               => pp3_0_ko(25)                      ,--i--
+      ko               => pp3_0_ko(24)                      ,--i--
+      sum              => pp3_0_sum(25)                     ,--o--
+      car              => pp3_0_car(24)                    );--o--
  pp3_0_csa_24: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(24)                     ,
-      b                => tidn                              ,
-      c                => pp2_1_sum(24)                     ,
-      d                => pp2_1_car(24)                     ,
-      ki               => pp3_0_ko(24)                      ,
-      ko               => pp3_0_ko(23)                      ,
-      sum              => pp3_0_sum(24)                     ,
-      car              => pp3_0_car(23)                    );
+      a                => pp2_0_sum(24)                     ,--i--
+      b                => tidn                              ,--i--
+      c                => pp2_1_sum(24)                     ,--i--
+      d                => pp2_1_car(24)                     ,--i--
+      ki               => pp3_0_ko(24)                      ,--i--
+      ko               => pp3_0_ko(23)                      ,--i--
+      sum              => pp3_0_sum(24)                     ,--o--
+      car              => pp3_0_car(23)                    );--o--
  pp3_0_csa_23: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(23)                     ,
-      b                => pp2_0_car(23)                     ,
-      c                => pp2_1_sum(23)                     ,
-      d                => pp2_1_car(23)                     ,
-      ki               => pp3_0_ko(23)                      ,
-      ko               => pp3_0_ko(22)                      ,
-      sum              => pp3_0_sum(23)                     ,
-      car              => pp3_0_car(22)                    );
+      a                => pp2_0_sum(23)                     ,--i--
+      b                => pp2_0_car(23)                     ,--i--
+      c                => pp2_1_sum(23)                     ,--i--
+      d                => pp2_1_car(23)                     ,--i--
+      ki               => pp3_0_ko(23)                      ,--i--
+      ko               => pp3_0_ko(22)                      ,--i--
+      sum              => pp3_0_sum(23)                     ,--o--
+      car              => pp3_0_car(22)                    );--o--
  pp3_0_csa_22: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(22)                     ,
-      b                => pp2_0_car(22)                     ,
-      c                => pp2_1_sum(22)                     ,
-      d                => pp2_1_car(22)                     ,
-      ki               => pp3_0_ko(22)                      ,
-      ko               => pp3_0_ko(21)                      ,
-      sum              => pp3_0_sum(22)                     ,
-      car              => pp3_0_car(21)                    );
+      a                => pp2_0_sum(22)                     ,--i--
+      b                => pp2_0_car(22)                     ,--i--
+      c                => pp2_1_sum(22)                     ,--i--
+      d                => pp2_1_car(22)                     ,--i--
+      ki               => pp3_0_ko(22)                      ,--i--
+      ko               => pp3_0_ko(21)                      ,--i--
+      sum              => pp3_0_sum(22)                     ,--o--
+      car              => pp3_0_car(21)                    );--o--
  pp3_0_csa_21: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(21)                     ,
-      b                => pp2_0_car(21)                     ,
-      c                => pp2_1_sum(21)                     ,
-      d                => pp2_1_car(21)                     ,
-      ki               => pp3_0_ko(21)                      ,
-      ko               => pp3_0_ko(20)                      ,
-      sum              => pp3_0_sum(21)                     ,
-      car              => pp3_0_car(20)                    );
+      a                => pp2_0_sum(21)                     ,--i--
+      b                => pp2_0_car(21)                     ,--i--
+      c                => pp2_1_sum(21)                     ,--i--
+      d                => pp2_1_car(21)                     ,--i--
+      ki               => pp3_0_ko(21)                      ,--i--
+      ko               => pp3_0_ko(20)                      ,--i--
+      sum              => pp3_0_sum(21)                     ,--o--
+      car              => pp3_0_car(20)                    );--o--
  pp3_0_csa_20: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(20)                     ,
-      b                => pp2_0_car(20)                     ,
-      c                => pp2_1_sum(20)                     ,
-      d                => pp2_1_car(20)                     ,
-      ki               => pp3_0_ko(20)                      ,
-      ko               => pp3_0_ko(19)                      ,
-      sum              => pp3_0_sum(20)                     ,
-      car              => pp3_0_car(19)                    );
+      a                => pp2_0_sum(20)                     ,--i--
+      b                => pp2_0_car(20)                     ,--i--
+      c                => pp2_1_sum(20)                     ,--i--
+      d                => pp2_1_car(20)                     ,--i--
+      ki               => pp3_0_ko(20)                      ,--i--
+      ko               => pp3_0_ko(19)                      ,--i--
+      sum              => pp3_0_sum(20)                     ,--o--
+      car              => pp3_0_car(19)                    );--o--
  pp3_0_csa_19: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(19)                     ,
-      b                => pp2_0_car(19)                     ,
-      c                => pp2_1_sum(19)                     ,
-      d                => pp2_1_car(19)                     ,
-      ki               => pp3_0_ko(19)                      ,
-      ko               => pp3_0_ko(18)                      ,
-      sum              => pp3_0_sum(19)                     ,
-      car              => pp3_0_car(18)                    );
+      a                => pp2_0_sum(19)                     ,--i--
+      b                => pp2_0_car(19)                     ,--i--
+      c                => pp2_1_sum(19)                     ,--i--
+      d                => pp2_1_car(19)                     ,--i--
+      ki               => pp3_0_ko(19)                      ,--i--
+      ko               => pp3_0_ko(18)                      ,--i--
+      sum              => pp3_0_sum(19)                     ,--o--
+      car              => pp3_0_car(18)                    );--o--
  pp3_0_csa_18: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(18)                     ,
-      b                => pp2_0_car(18)                     ,
-      c                => pp2_1_sum(18)                     ,
-      d                => pp2_1_car(18)                     ,
-      ki               => pp3_0_ko(18)                      ,
-      ko               => pp3_0_ko(17)                      ,
-      sum              => pp3_0_sum(18)                     ,
-      car              => pp3_0_car(17)                    );
+      a                => pp2_0_sum(18)                     ,--i--
+      b                => pp2_0_car(18)                     ,--i--
+      c                => pp2_1_sum(18)                     ,--i--
+      d                => pp2_1_car(18)                     ,--i--
+      ki               => pp3_0_ko(18)                      ,--i--
+      ko               => pp3_0_ko(17)                      ,--i--
+      sum              => pp3_0_sum(18)                     ,--o--
+      car              => pp3_0_car(17)                    );--o--
  pp3_0_csa_17: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(17)                     ,
-      b                => pp2_0_car(17)                     ,
-      c                => pp2_1_sum(17)                     ,
-      d                => pp2_1_car(17)                     ,
-      ki               => pp3_0_ko(17)                      ,
-      ko               => pp3_0_ko(16)                      ,
-      sum              => pp3_0_sum(17)                     ,
-      car              => pp3_0_car(16)                    );
+      a                => pp2_0_sum(17)                     ,--i--
+      b                => pp2_0_car(17)                     ,--i--
+      c                => pp2_1_sum(17)                     ,--i--
+      d                => pp2_1_car(17)                     ,--i--
+      ki               => pp3_0_ko(17)                      ,--i--
+      ko               => pp3_0_ko(16)                      ,--i--
+      sum              => pp3_0_sum(17)                     ,--o--
+      car              => pp3_0_car(16)                    );--o--
  pp3_0_csa_16: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(16)                     ,
-      b                => pp2_0_car(16)                     ,
-      c                => pp2_1_sum(16)                     ,
-      d                => pp2_1_car(16)                     ,
-      ki               => pp3_0_ko(16)                      ,
-      ko               => pp3_0_ko(15)                      ,
-      sum              => pp3_0_sum(16)                     ,
-      car              => pp3_0_car(15)                    );
+      a                => pp2_0_sum(16)                     ,--i--
+      b                => pp2_0_car(16)                     ,--i--
+      c                => pp2_1_sum(16)                     ,--i--
+      d                => pp2_1_car(16)                     ,--i--
+      ki               => pp3_0_ko(16)                      ,--i--
+      ko               => pp3_0_ko(15)                      ,--i--
+      sum              => pp3_0_sum(16)                     ,--o--
+      car              => pp3_0_car(15)                    );--o--
  pp3_0_csa_15: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(15)                     ,
-      b                => pp2_0_car(15)                     ,
-      c                => pp2_1_sum(15)                     ,
-      d                => pp2_1_car(15)                     ,
-      ki               => pp3_0_ko(15)                      ,
-      ko               => pp3_0_ko(14)                      ,
-      sum              => pp3_0_sum(15)                     ,
-      car              => pp3_0_car(14)                    );
+      a                => pp2_0_sum(15)                     ,--i--
+      b                => pp2_0_car(15)                     ,--i--
+      c                => pp2_1_sum(15)                     ,--i--
+      d                => pp2_1_car(15)                     ,--i--
+      ki               => pp3_0_ko(15)                      ,--i--
+      ko               => pp3_0_ko(14)                      ,--i--
+      sum              => pp3_0_sum(15)                     ,--o--
+      car              => pp3_0_car(14)                    );--o--
  pp3_0_csa_14: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(14)                     ,
-      b                => pp2_0_car(14)                     ,
-      c                => pp2_1_sum(14)                     ,
-      d                => pp2_1_car(14)                     ,
-      ki               => pp3_0_ko(14)                      ,
-      ko               => pp3_0_ko(13)                      ,
-      sum              => pp3_0_sum(14)                     ,
-      car              => pp3_0_car(13)                    );
+      a                => pp2_0_sum(14)                     ,--i--
+      b                => pp2_0_car(14)                     ,--i--
+      c                => pp2_1_sum(14)                     ,--i--
+      d                => pp2_1_car(14)                     ,--i--
+      ki               => pp3_0_ko(14)                      ,--i--
+      ko               => pp3_0_ko(13)                      ,--i--
+      sum              => pp3_0_sum(14)                     ,--o--
+      car              => pp3_0_car(13)                    );--o--
  pp3_0_csa_13: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(13)                     ,
-      b                => pp2_0_car(13)                     ,
-      c                => pp2_1_sum(13)                     ,
-      d                => pp2_1_car(13)                     ,
-      ki               => pp3_0_ko(13)                      ,
-      ko               => pp3_0_ko(12)                      ,
-      sum              => pp3_0_sum(13)                     ,
-      car              => pp3_0_car(12)                    );
+      a                => pp2_0_sum(13)                     ,--i--
+      b                => pp2_0_car(13)                     ,--i--
+      c                => pp2_1_sum(13)                     ,--i--
+      d                => pp2_1_car(13)                     ,--i--
+      ki               => pp3_0_ko(13)                      ,--i--
+      ko               => pp3_0_ko(12)                      ,--i--
+      sum              => pp3_0_sum(13)                     ,--o--
+      car              => pp3_0_car(12)                    );--o--
  pp3_0_csa_12: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(12)                     ,
-      b                => pp2_0_car(12)                     ,
-      c                => pp2_1_sum(12)                     ,
-      d                => tidn                              ,
-      ki               => pp3_0_ko(12)                      ,
-      ko               => pp3_0_ko(11)                      ,
-      sum              => pp3_0_sum(12)                     ,
-      car              => pp3_0_car(11)                    );
+      a                => pp2_0_sum(12)                     ,--i--
+      b                => pp2_0_car(12)                     ,--i--
+      c                => pp2_1_sum(12)                     ,--i--
+      d                => tidn                              ,--i--
+      ki               => pp3_0_ko(12)                      ,--i--
+      ko               => pp3_0_ko(11)                      ,--i--
+      sum              => pp3_0_sum(12)                     ,--o--
+      car              => pp3_0_car(11)                    );--o--
  pp3_0_csa_11: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(11)                     ,
-      b                => pp2_0_car(11)                     ,
-      c                => pp2_1_sum(11)                     ,
-      d                => tidn                              ,
-      ki               => pp3_0_ko(11)                      ,
-      ko               => pp3_0_ko(10)                      ,
-      sum              => pp3_0_sum(11)                     ,
-      car              => pp3_0_car(10)                    );
+      a                => pp2_0_sum(11)                     ,--i--
+      b                => pp2_0_car(11)                     ,--i--
+      c                => pp2_1_sum(11)                     ,--i--
+      d                => tidn                              ,--i--
+      ki               => pp3_0_ko(11)                      ,--i--
+      ko               => pp3_0_ko(10)                      ,--i--
+      sum              => pp3_0_sum(11)                     ,--o--
+      car              => pp3_0_car(10)                    );--o--
  pp3_0_csa_10: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(10)                     ,
-      b                => pp2_0_car(10)                     ,
-      c                => pp2_1_sum(10)                     ,
-      d                => tidn                              ,
-      ki               => pp3_0_ko(10)                      ,
-      ko               => pp3_0_ko(9)                       ,
-      sum              => pp3_0_sum(10)                     ,
-      car              => pp3_0_car(9)                     );
+      a                => pp2_0_sum(10)                     ,--i--
+      b                => pp2_0_car(10)                     ,--i--
+      c                => pp2_1_sum(10)                     ,--i--
+      d                => tidn                              ,--i--
+      ki               => pp3_0_ko(10)                      ,--i--
+      ko               => pp3_0_ko(9)                       ,--i--
+      sum              => pp3_0_sum(10)                     ,--o--
+      car              => pp3_0_car(9)                     );--o--
  pp3_0_csa_9: entity clib.c_prism_csa42  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(9)                      ,
-      b                => pp2_0_car(9)                      ,
-      c                => pp2_1_sum(9)                      ,
-      d                => tidn                              ,
-      ki               => pp3_0_ko(9)                       ,
-      ko               => pp3_0_ko(8)                       ,
-      sum              => pp3_0_sum(9)                      ,
-      car              => pp3_0_car(8)                     );
+      a                => pp2_0_sum(9)                      ,--i--
+      b                => pp2_0_car(9)                      ,--i--
+      c                => pp2_1_sum(9)                      ,--i--
+      d                => tidn                              ,--i--
+      ki               => pp3_0_ko(9)                       ,--i--
+      ko               => pp3_0_ko(8)                       ,--i--
+      sum              => pp3_0_sum(9)                      ,--o--
+      car              => pp3_0_car(8)                     );--o--
  pp3_0_csa_8: entity clib.c_prism_csa32  port map(  
       vd               => vdd,
       gd               => gnd,
-      a                => pp2_0_sum(8)                      ,
-      b                => pp2_0_car(8)                      ,
-      c                => pp3_0_ko(8)                       ,
-      sum              => pp3_0_sum(8)                      ,
-      car              => pp3_0_car(7)                     );
+      a                => pp2_0_sum(8)                      ,--i--
+      b                => pp2_0_car(8)                      ,--i--
+      c                => pp3_0_ko(8)                       ,--i--
+      sum              => pp3_0_sum(8)                      ,--o--
+      car              => pp3_0_car(7)                     );--o--
  pp3_0_csa_7: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp2_0_sum(7)                      ,
-      b                => pp2_0_car(7)                      ,
-      sum              => pp3_0_sum(7)                      ,
-      car              => pp3_0_car(6)                     );
+      a                => pp2_0_sum(7)                      ,--i--
+      b                => pp2_0_car(7)                      ,--i--
+      sum              => pp3_0_sum(7)                      ,--o--
+      car              => pp3_0_car(6)                     );--o--
  pp3_0_csa_6: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp2_0_sum(6)                      ,
-      b                => pp2_0_car(6)                      ,
-      sum              => pp3_0_sum(6)                      ,
-      car              => pp3_0_car(5)                     );
+      a                => pp2_0_sum(6)                      ,--i--
+      b                => pp2_0_car(6)                      ,--i--
+      sum              => pp3_0_sum(6)                      ,--o--
+      car              => pp3_0_car(5)                     );--o--
  pp3_0_csa_5: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp2_0_sum(5)                      ,
-      b                => pp2_0_car(5)                      ,
-      sum              => pp3_0_sum(5)                      ,
-      car              => pp3_0_car(4)                     );
+      a                => pp2_0_sum(5)                      ,--i--
+      b                => pp2_0_car(5)                      ,--i--
+      sum              => pp3_0_sum(5)                      ,--o--
+      car              => pp3_0_car(4)                     );--o--
  pp3_0_csa_4: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp2_0_sum(4)                      ,
-      b                => pp2_0_car(4)                      ,
-      sum              => pp3_0_sum(4)                      ,
-      car              => pp3_0_car(3)                     );
+      a                => pp2_0_sum(4)                      ,--i--
+      b                => pp2_0_car(4)                      ,--i--
+      sum              => pp3_0_sum(4)                      ,--o--
+      car              => pp3_0_car(3)                     );--o--
  pp3_0_csa_3: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp2_0_sum(3)                      ,
-      b                => pp2_0_car(3)                      ,
-      sum              => pp3_0_sum(3)                      ,
-      car              => pp3_0_car(2)                     );
+      a                => pp2_0_sum(3)                      ,--i--
+      b                => pp2_0_car(3)                      ,--i--
+      sum              => pp3_0_sum(3)                      ,--o--
+      car              => pp3_0_car(2)                     );--o--
  pp3_0_csa_2: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp2_0_sum(2)                      ,
-      b                => pp2_0_car(2)                      ,
-      sum              => pp3_0_sum(2)                      ,
-      car              => pp3_0_car(1)                     );
+      a                => pp2_0_sum(2)                      ,--i--
+      b                => pp2_0_car(2)                      ,--i--
+      sum              => pp3_0_sum(2)                      ,--o--
+      car              => pp3_0_car(1)                     );--o--
  pp3_0_csa_1: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp2_0_sum(1)                      ,
-      b                => pp2_0_car(1)                      ,
-      sum              => pp3_0_sum(1)                      ,
-      car              => pp3_0_car(0)                     );
+      a                => pp2_0_sum(1)                      ,--i--
+      b                => pp2_0_car(1)                      ,--i--
+      sum              => pp3_0_sum(1)                      ,--o--
+      car              => pp3_0_car(0)                     );--o--
  pp3_0_csa_0: entity work.fuq_csa22_h2(fuq_csa22_h2) port map(  
-      a                => pp2_0_sum(0)                      ,
-      b                => pp2_0_car(0)                      ,
-      sum              => pp3_0_sum(0)                      ,
-      car              => pp3_0_car_unused                 );
+      a                => pp2_0_sum(0)                      ,--i--
+      b                => pp2_0_car(0)                      ,--i--
+      sum              => pp3_0_sum(0)                      ,--o--
+      car              => pp3_0_car_unused                 );--o--
 
 
+--=====================================================================
 
 
    tbl_sum(0 to 36) <= pp3_0_sum(0 to 36); 
@@ -1442,17 +1580,4 @@ begin
 
 
 
-   
-
-
-end; 
-
-
-
-
-
-     
-
-
-
-
+end; -- fuq_tblmul ARCHITECTURE

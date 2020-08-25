@@ -7,6 +7,13 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--********************************************************************
+--*
+--* TITLE: Instruction Unit Repower
+--*
+--* NAME: iuq_rp.vhdl
+--*
+--*********************************************************************
 
 
 library ieee;
@@ -24,13 +31,14 @@ library tri;
 use tri.tri_latches_pkg.all;
 
 entity iuq_rp is
-generic(expand_type : integer := 2 ); 
+generic(expand_type : integer := 2 ); -- 0 = ibm umbra, 1 = xilinx, 2 = ibm mpg
 port(
      vdd                        : inout power_logic;
      gnd                        : inout power_logic;
      nclk                       : in  clk_logic;
      scan_diag_dc               : in  std_ulogic;
      scan_dis_dc_b              : in  std_ulogic; 
+     -- node thold+clock controls going to pcq
      an_ac_ccflush_dc           : in  std_ulogic;
      rtim_sl_thold_7            : in  std_ulogic;
      func_sl_thold_7            : in  std_ulogic;
@@ -44,6 +52,7 @@ port(
      ary_nsl_thold_6            : out std_ulogic;     
      sg_6                       : out std_ulogic;                
      fce_6                      : out std_ulogic;               
+     -- node inputs going to pcq
      an_ac_scom_dch             : in  std_ulogic;
      an_ac_scom_cch             : in  std_ulogic;
      an_ac_checkstop            : in  std_ulogic;
@@ -66,6 +75,7 @@ port(
      rp_pc_reset_wd_complete_q  : out std_ulogic;
      rp_pc_abist_start_test_q   : out std_ulogic;
      rp_pc_trace_to_perfcntr_q  : out std_ulogic_vector(0 to 7); 
+     -- pcq outputs going to node
      pc_rp_scom_dch             : in  std_ulogic;
      pc_rp_scom_cch             : in  std_ulogic;
      pc_rp_special_attn         : in  std_ulogic_vector(0 to 3);
@@ -101,6 +111,7 @@ port(
 
 
 
+     -- scan_in/out signals being repowered
      pc_func_scan_in            : in  std_ulogic_vector(0 to 1);
      pc_func_scan_in_q          : out std_ulogic_vector(0 to 1);
      pc_func_scan_out           : in  std_ulogic;
@@ -115,6 +126,7 @@ port(
      pc_ccfg_scan_out_q         : out std_ulogic;
      pc_dcfg_scan_out           : in  std_ulogic;
      pc_dcfg_scan_out_q         : out std_ulogic;
+     --
      fu_abst_scan_in            : in  std_ulogic;
      fu_abst_scan_in_q          : out std_ulogic;
      fu_abst_scan_out           : in  std_ulogic;
@@ -129,6 +141,7 @@ port(
      fu_func_scan_in_q          : out std_ulogic_vector(0 to 3);
      fu_func_scan_out           : in  std_ulogic_vector(0 to 3);
      fu_func_scan_out_q         : out std_ulogic_vector(0 to 3);
+     --
      bx_abst_scan_in            : in  std_ulogic;
      bx_abst_scan_in_q          : out std_ulogic;
      bx_abst_scan_out           : in  std_ulogic;
@@ -137,17 +150,20 @@ port(
      bx_func_scan_in_q          : out std_ulogic_vector(0 to 1);
      bx_func_scan_out           : in  std_ulogic_vector(0 to 1);
      bx_func_scan_out_q         : out std_ulogic_vector(0 to 1);
+     --
      iu_func_scan_in            : in  std_ulogic_vector(0 to 8);
      iu_func_scan_in_q          : out std_ulogic_vector(0 to 8);
      iu_func_scan_out           : in  std_ulogic_vector(0 to 9);
      iu_func_scan_out_q         : out std_ulogic_vector(0 to 9);
      iu_bcfg_scan_in            : in  std_ulogic; 
      iu_bcfg_scan_in_q          : out std_ulogic;
+     --
      spare_func_scan_in         : in  std_ulogic_vector(0 to 3);
      spare_func_scan_in_q       : out std_ulogic_vector(0 to 3);
      spare_func_scan_out        : in  std_ulogic_vector(0 to 3);
      spare_func_scan_out_q      : out std_ulogic_vector(0 to 3);
 
+     -- BG repower
      bg_an_ac_func_scan_sn      : in  std_ulogic_vector(60 to 69);
      bg_an_ac_abst_scan_sn      : in  std_ulogic_vector(10 to 11);
      bg_an_ac_func_scan_sn_q    : out std_ulogic_vector(60 to 69);
@@ -202,10 +218,12 @@ port(
      bg_pc_l1p_fce_2            : out std_ulogic;
      bg_pc_l1p_bo_enable_2      : out std_ulogic;
 
+     -- Misc bolton signals
      pc_mm_bo_enable_4          : in  std_ulogic;
      pc_iu_bo_enable_4          : in  std_ulogic;
      pc_mm_bo_enable_3          : out std_ulogic;
      pc_iu_bo_enable_3          : out std_ulogic;
+     -- IU+MMU thold/sg/fce 4to3 PLAT staging
      pc_iu_gptr_sl_thold_4      : in  std_ulogic;
      pc_iu_time_sl_thold_4      : in  std_ulogic;
      pc_iu_repr_sl_thold_4      : in  std_ulogic;
@@ -256,6 +274,7 @@ port(
      pc_mm_sg_3                 : out std_ulogic_vector(0 to 1);
      pc_mm_fce_3                : out std_ulogic;
 
+     -- tholds and scan chains
      sg_2                       : in  std_ulogic;       
      func_sl_thold_2            : in  std_ulogic;     
      func_slp_sl_thold_2        : in  std_ulogic;     
@@ -274,21 +293,28 @@ port(
 -- synopsys translate_on
 
 end iuq_rp;
+----
 architecture iuq_rp of iuq_rp is
 
+-- ABIST Scan Ring
 constant abst_size                      : positive := 1;
 constant abst_bg_size                   : positive := 34;
+-- start of abist scan chain ordering
 constant abst_offset                    : natural := 0;
 constant abst_bg_offset                 : natural := abst_offset + abst_size;
 constant abst_right                     : natural := abst_bg_offset + abst_bg_size - 1;
+-- end of abist scan chain ordering
 
+-- FUNC Scan Ring
 constant perf_size                      : positive := 40;
 constant func1_size                     : positive := 12;
 constant func2_size                     : positive := 31;
+-- start of func scan chain ordering
 constant perf_offset                    : natural := 0;
 constant func1_offset                   : natural := perf_offset + perf_size;
 constant func2_offset                   : natural := func1_offset + func1_size;
 constant func_right                     : natural := func2_offset + func2_size - 1;
+-- end of func scan chain ordering
 
 signal abst_siv, abst_sov               : std_ulogic_vector(0 to abst_right);
 signal func_siv, func_sov               : std_ulogic_vector(0 to func_right);
@@ -342,12 +368,14 @@ signal unused                           : std_ulogic;
 
 begin
 
+-- Outputs
 rp_mm_event_bus_enable_q   <=  event_bus_enable_int;
 pc_iu_gptr_sl_thold_3      <=  gptr_sl_thold_3_int;
 pc_iu_cfg_sl_thold_3       <=  cfg_sl_thold_3_int;
 
 
 
+-- ----------------------------------
 perv_3to2_reg: tri_plat
   generic map (width => 2, expand_type => expand_type)
   port map (vd           => vdd,
@@ -448,6 +476,7 @@ func_slp_lcbor: tri_lcbor
             thold_b     => func_slp_sl_thold_0_b);
 
 
+-- LCBs for scan only staging latches
 slat_force   <= sg_0;
 func_slat_thold_b <= NOT func_sl_thold_0;
 abst_slat_thold_b <= NOT abst_sl_thold_0;
@@ -489,6 +518,7 @@ lcbs_cfg: tri_lcbs
       dclk        => cfg_slat_d2clk,
       lclk        => cfg_slat_lclk );
 
+-- Stages pcq clock control inputs
 pcq_lvl7to6: tri_plat
    generic map( width => 6, expand_type => expand_type)
    port map( vd      => vdd,
@@ -510,6 +540,7 @@ pcq_lvl7to6: tri_plat
            ); 
 
 
+-- Stages bg clock control inputs
 bg_lvl3to2: tri_plat
    generic map( width => 13, expand_type => expand_type)
    port map( vd      => vdd,
@@ -543,6 +574,7 @@ bg_lvl3to2: tri_plat
              q(11)   => bg_pc_l1p_fce_2,
              q(12)   => bg_pc_l1p_bo_enable_2
            ); 
+-- Staging latches for scan_in/out signals on abist rings
 fu_abst_stg: tri_slat_scan  
    generic map (width => 2, init => "00", expand_type => expand_type)
    port map ( vd    => vdd,
@@ -576,6 +608,7 @@ bg_abst_stg: tri_slat_scan
               scan_out(0 to 1)  => bg_an_ac_abst_scan_sn_q(10 to 11),
               scan_out(2 to 3)  => bg_ac_an_abst_scan_ns_q(10 to 11) );
 
+-- Staging latches for scan_in/out signals on func rings
 pc_func_stg: tri_slat_scan  
    generic map (width => 3, init => "000", expand_type => expand_type)
    port map ( vd    => vdd,
@@ -642,6 +675,7 @@ bg_func_stg: tri_slat_scan
               scan_out(0 to 9)  => bg_an_ac_func_scan_sn_q(60 to 69),
               scan_out(10 to 19)=> bg_ac_an_func_scan_ns_q(60 to 69) );
 
+-- Staging latches for scan_in/out signals on config rings
 pc_cfg_stg: tri_slat_scan  
    generic map (width => 5, init => "00000", expand_type => expand_type)
    port map ( vd    => vdd,
@@ -681,6 +715,7 @@ iu_cfg_stg: tri_slat_scan
               scan_in(0)   => iu_bcfg_scan_in,
               scan_out(0)  => iu_bcfg_scan_in_q );
 
+-- Misc staging latches on abist ring
 abist_staging: tri_rlmreg_p  
    generic map (width => abst_size, init => 0, expand_type => expand_type)
    port map ( vd       => vdd,
@@ -733,6 +768,7 @@ abist_bg_staging: tri_rlmreg_p
               dout(32)       => bg_pc_l1p_abist_wl128_comp_ena_q,
               dout(33)       => bg_pc_l1p_abist_wl32_comp_ena_q );
 
+-- Misc staging latches on func ring
 perf_staging: tri_rlmreg_p  
    generic map (width => perf_size, init => 0, expand_type => expand_type)
    port map ( vd       => vdd,
@@ -835,6 +871,7 @@ func_slp_staging: tri_rlmreg_p
               dout(30)  => ac_an_trace_error_q );
 
 
+-- Misc bolton signals
 iu_bo_enab_4_3: tri_plat
   generic map (width => 1, expand_type => expand_type)
   port map (vd        => vdd,
@@ -853,6 +890,7 @@ mm_bo_enab_4_3: tri_plat
             din(0)    => pc_mm_bo_enable_4,
             q(0)      => pc_mm_bo_enable_3 );
 
+-- IU+MMU thold/sg/fce 4to3 PLAT staging
 iu_thold_stg4to3: tri_plat   
    generic map( width => 22, expand_type => expand_type)
    port map( vd      => vdd,
@@ -952,9 +990,12 @@ mm_thold_stg4to3: tri_plat
              q(18)   => pc_mm_fce_3
           ); 
 
+-- Scan Ring Connections
+-- abist ring
 abst_siv(0 TO abst_right) <=  abst_scan_in & abst_sov(0 to abst_right-1);
 abst_scan_out  <=  abst_sov(abst_right) and scan_dis_dc_b;
 
+--func ring
 func_siv(0 TO func_right) <=  func_scan_in & func_sov(0 to func_right-1);
 func_scan_out <=  func_sov(func_right) and scan_dis_dc_b;
 

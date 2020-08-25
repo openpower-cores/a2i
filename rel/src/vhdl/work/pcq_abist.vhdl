@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--
+--  Description: A2 Core ABIST Engine
+--
+--*****************************************************************************
+
 library ieee, ibm;
 use ieee.std_logic_1164.all;
 use ibm.std_ulogic_support.all;
@@ -16,7 +21,7 @@ library tri;
 use tri.tri_latches_pkg.all;
 
 entity pcq_abist is
-generic(expand_type     : integer := 2 );    
+generic(expand_type     : integer := 2 );    -- 0=ibm (Umbra), 1=non-ibm, 2=ibm (CDP)
 Port   (vdd                             : INOUT power_logic;
         gnd                             : INOUT power_logic;
         nclk                            : In    clk_logic;
@@ -35,14 +40,17 @@ Port   (vdd                             : INOUT power_logic;
         abist_sg                        : In    std_ulogic;
         abist_scan_in                   : In    std_ulogic;
         abist_scan_out                  : Out   std_ulogic;
+        -- Bolton ABIST Engine access
         bo_enable                       : in    std_ulogic;
         bo_abist_eng_si                 : in    std_ulogic;
+        -- LBIST + ABIST Engine Controls
         abist_done_in_dc                : In    std_ulogic;
         abist_done_out_dc               : Out   std_ulogic;
         abist_mode_dc                   : In    std_ulogic;
         abist_start_test                : In    std_ulogic;
         lbist_mode_dc                   : In    std_ulogic;
         lbist_ac_mode_dc                : In    std_ulogic;
+        -- BX ABIST Outputs
         pc_bx_abist_di_0                : Out   std_ulogic_vector(0 to 3);
         pc_bx_abist_ena_dc              : Out   std_ulogic;
         pc_bx_abist_g8t1p_renb_0        : Out   std_ulogic;
@@ -54,6 +62,7 @@ Port   (vdd                             : INOUT power_logic;
         pc_bx_abist_raw_dc_b            : Out   std_ulogic;
         pc_bx_abist_waddr_0             : Out   std_ulogic_vector(0 to 9);
         pc_bx_abist_wl64_g8t_comp_ena   : Out   std_ulogic;
+        -- FU ABIST Outputs
         pc_fu_abist_di_0                : Out   std_ulogic_vector(0 to 3);
         pc_fu_abist_di_1                : Out   std_ulogic_vector(0 to 3);
         pc_fu_abist_ena_dc              : Out   std_ulogic;
@@ -67,6 +76,7 @@ Port   (vdd                             : INOUT power_logic;
         pc_fu_abist_waddr_0             : Out   std_ulogic_vector(0 to 9);
         pc_fu_abist_waddr_1             : Out   std_ulogic_vector(0 to 9);
         pc_fu_abist_wl144_comp_ena      : Out   std_ulogic;
+        -- IU ABIST Outputs
         pc_iu_abist_dcomp_g6t_2r        : Out   std_ulogic_vector(0 to 3);
         pc_iu_abist_di_0                : Out   std_ulogic_vector(0 to 3);
         pc_iu_abist_di_g6t_2r           : Out   std_ulogic_vector(0 to 3);
@@ -84,6 +94,7 @@ Port   (vdd                             : INOUT power_logic;
         pc_iu_abist_wl128_g8t_comp_ena  : Out   std_ulogic;
         pc_iu_abist_wl256_comp_ena      : Out   std_ulogic;
         pc_iu_abist_wl64_g8t_comp_ena   : Out   std_ulogic;
+        -- MMU ABIST Outputs
         pc_mm_abist_dcomp_g6t_2r        : Out   std_ulogic_vector(0 to 3);
         pc_mm_abist_di_0                : Out   std_ulogic_vector(0 to 3);
         pc_mm_abist_di_g6t_2r           : Out   std_ulogic_vector(0 to 3);
@@ -98,6 +109,7 @@ Port   (vdd                             : INOUT power_logic;
         pc_mm_abist_raw_dc_b            : Out   std_ulogic;
         pc_mm_abist_waddr_0             : Out   std_ulogic_vector(0 to 9);
         pc_mm_abist_wl128_g8t_comp_ena  : Out   std_ulogic;
+        -- XU ABIST Outputs
         pc_xu_abist_dcomp_g6t_2r        : Out   std_ulogic_vector(0 to 3);
         pc_xu_abist_di_0                : Out   std_ulogic_vector(0 to 3);
         pc_xu_abist_di_1                : Out   std_ulogic_vector(0 to 3);
@@ -134,23 +146,32 @@ end pcq_abist;
 
 architecture pcq_abist of pcq_abist is
 
+--=====================================================================
+-- Signal Declarations
+--=====================================================================
 
+-- Scan Ring Ordering:
+-----------------------------------------------------------------------
 constant staging1_size             : positive := 1;
 constant staging2_size             : positive := 73;
 constant staging3_size             : positive := 42;
 constant staging4_size             : positive := 44;
+-- start of abst scan chain ordering
 constant staging1_offset           : natural := 0;
 constant staging2_offset           : natural := staging1_offset + staging1_size;
 constant staging3_offset           : natural := staging2_offset + staging2_size;
 constant staging4_offset           : natural := staging3_offset + staging3_size;
 constant abst_right                : natural := staging4_offset + staging4_size - 1;
+-- end of abst scan chain ordering
 
+-- Miscellaneous
 signal abist_start_test_q          : std_ulogic;
 signal force_abist                 : std_ulogic;
 signal abist_thold_b               : std_ulogic;
 signal abist_engine_so             : std_ulogic;
 signal abst_siv, abst_sov          : std_ulogic_vector(0 to abst_right);
 
+-- ABIST Engine Array Connections
 signal abist_raddr_0               : std_ulogic_vector(0 to 9);
 signal abist_raddr_1               : std_ulogic_vector(0 to 9);
 signal abist_grf_renb_0            : std_ulogic;
@@ -176,6 +197,7 @@ signal abist_wl512_comp_ena        : std_ulogic;
 signal abist_bw_0                  : std_ulogic;
 signal abist_bw_1                  : std_ulogic;
 
+-- ABIST Engine Staging Latches
 signal abist_raddr_0_q                  : std_ulogic_vector(0 to 9);
 signal abist_raddr_1_q                  : std_ulogic_vector(0 to 9);
 signal abist_grf_renb_0_q               : std_ulogic;
@@ -233,6 +255,9 @@ signal iu_abist_dcomp_g6t_2r_q          : std_ulogic_vector(0 to 3);
 begin
 
 
+--=====================================================================
+-- ABIST Engine Instantiation
+--=====================================================================
 abist_engine: entity tri.tri_caa_prism_abist
   port map (   abist_done_in_dc           =>  abist_done_in_dc         
              , abist_done_out_dc          =>  abist_done_out_dc        
@@ -289,6 +314,9 @@ abist_engine: entity tri.tri_caa_prism_abist
            );
 
 
+--=====================================================================
+-- Staging latches for timing
+--=====================================================================
          lcbor_abist: tri_lcbor
              generic map (expand_type => expand_type )
              port map ( clkoff_b => lcb_clkoff_dc_b,
@@ -456,12 +484,17 @@ abist_engine: entity tri.tri_caa_prism_abist
                        dout(36 to 39) => iu_abist_dcomp_q,       
                        dout(40 to 43) => iu_abist_dcomp_g6t_2r_q );
   
+    -- abst ring
       abst_siv(0 TO abst_right-1) <= (abist_scan_in and not bo_enable) & abst_sov(0 to abst_right-2);
       abst_siv(abst_right) <= bo_abist_eng_si when bo_enable='1' else abst_sov(abst_right-1);
       abist_scan_out <= abist_engine_so and scan_dis_dc_b;
 
 
 
+--=====================================================================
+-- Output Assignments
+--=====================================================================
+-- Write Ports
   pc_bx_abist_waddr_0           <= abist_waddr_0_q(0 to 9);
   pc_iu_abist_waddr_0           <= iu_abist_waddr_0_q(0 to 9);
   pc_fu_abist_waddr_0           <= abist_waddr_0_q(0 to 9);
@@ -482,6 +515,7 @@ abist_engine: entity tri.tri_caa_prism_abist
   pc_mm_abist_g8t_wenb          <= mm_abist_g8t_wenb_q;
   pc_xu_abist_g8t_wenb          <= abist_g8t_wenb_q;
 
+-- Read Ports
   pc_bx_abist_raddr_0           <= abist_raddr_0_q(0 to 9);
   pc_iu_abist_raddr_0           <= iu_abist_raddr_0_q(0 to 9);
   pc_fu_abist_raddr_0           <= abist_raddr_0_q(0 to 9);
@@ -506,6 +540,7 @@ abist_engine: entity tri.tri_caa_prism_abist
   pc_mm_abist_g6t_r_wb          <= mm_abist_g6t_r_wb_q;
   pc_xu_abist_g6t_r_wb          <= abist_g6t_r_wb_q;
 
+-- Data
   pc_bx_abist_di_0              <= abist_di_0_q(0 to 3);
   pc_iu_abist_di_0              <= iu_abist_di_0_q(0 to 3);
   pc_fu_abist_di_0              <= abist_di_0_q(0 to 3);
@@ -519,6 +554,7 @@ abist_engine: entity tri.tri_caa_prism_abist
   pc_mm_abist_di_g6t_2r         <= mm_abist_di_g6t_2r_q(0 to 3);
   pc_xu_abist_di_g6t_2r         <= abist_di_g6t_2r_q(0 to 3);
 
+-- BW
   pc_bx_abist_g8t_bw_0          <= abist_bw_0_q;
   pc_iu_abist_g8t_bw_0          <= iu_abist_bw_0_q;
   pc_mm_abist_g8t_bw_0          <= mm_abist_bw_0_q;
@@ -532,6 +568,7 @@ abist_engine: entity tri.tri_caa_prism_abist
   pc_iu_abist_g6t_bw            <= iu_abist_bw_0_q & iu_abist_bw_1_q;
   pc_xu_abist_g6t_bw            <= abist_bw_0_q & abist_bw_1_q;
 
+-- Comp
   pc_xu_abist_wl32_g8t_comp_ena  <= abist_wl32_g8t_comp_ena_q;
   pc_bx_abist_wl64_g8t_comp_ena  <= abist_wl64_g8t_comp_ena_q;
   pc_iu_abist_wl64_g8t_comp_ena  <= iu_abist_wl64_g8t_comp_ena_q;
@@ -551,6 +588,7 @@ abist_engine: entity tri.tri_caa_prism_abist
   pc_mm_abist_dcomp_g6t_2r      <= mm_abist_dcomp_g6t_2r_q(0 to 3);
   pc_xu_abist_dcomp_g6t_2r      <= abist_dcomp_g6t_2r_q(0 to 3);
 
+-- Misc Ctrl
   pc_bx_abist_ena_dc            <= abist_ena_dc;
   pc_iu_abist_ena_dc            <= abist_ena_dc;
   pc_fu_abist_ena_dc            <= abist_ena_dc;
@@ -564,4 +602,5 @@ abist_engine: entity tri.tri_caa_prism_abist
   pc_xu_abist_raw_dc_b          <= abist_raw_dc_b;
 
 
+-----------------------------------------------------------------------
 end pcq_abist;

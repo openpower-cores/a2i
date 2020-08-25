@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU CPL - Configurable Flush Delay Counter
+--
 library ieee,ibm,support,tri;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -52,11 +54,14 @@ architecture xuq_cpl_fctr of xuq_cpl_fctr is
 
 type DELAY_ARR                                     is array (0 to threads-1) of std_ulogic_vector(0 to delay_width-1);
 subtype s2                                         is std_ulogic_vector(0 to 1);
+-- Latches
 signal delay_q,            delay_d                 : DELAY_ARR;
+-- Scanchains
 constant delay_offset                              : integer := 0;
 constant scan_right                                : integer := delay_offset                   + delay_q(0)'length*threads;    
 signal siv                                         : std_ulogic_vector(0 to scan_right-1);
 signal sov                                         : std_ulogic_vector(0 to scan_right-1);
+-- Signals
 signal set,zero_b,act                              : std_ulogic_vector(0 to threads-1);
 
 begin

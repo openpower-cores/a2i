@@ -22,24 +22,24 @@ library ieee,ibm,support,tri,work;
  
 ENTITY fuq_tblexp IS
 generic(
-       expand_type               : integer := 2  ); 
+       expand_type               : integer := 2  ); -- 0 - ibm tech, 1 - other );
 PORT( 
        vdd                                       :inout power_logic;
        gnd                                       :inout power_logic;
-       clkoff_b                                  :in   std_ulogic; 
-       act_dis                                   :in   std_ulogic; 
-       flush                                     :in   std_ulogic; 
-       delay_lclkr                               :in   std_ulogic_vector(2 to 3); 
-       mpw1_b                                    :in   std_ulogic_vector(2 to 3); 
-       mpw2_b                                    :in   std_ulogic_vector(0 to 0); 
+       clkoff_b                                  :in   std_ulogic; -- tiup
+       act_dis                                   :in   std_ulogic; -- ??tidn??
+       flush                                     :in   std_ulogic; -- ??tidn??
+       delay_lclkr                               :in   std_ulogic_vector(2 to 3); -- tidn,
+       mpw1_b                                    :in   std_ulogic_vector(2 to 3); -- tidn,
+       mpw2_b                                    :in   std_ulogic_vector(0 to 0); -- tidn,
        sg_1                                      :in   std_ulogic;
        thold_1                                   :in   std_ulogic;
-       fpu_enable                                :in   std_ulogic; 
+       fpu_enable                                :in   std_ulogic; --dc_act
        nclk                                      :in   clk_logic;
 
-       si                                        :in   std_ulogic                    ;
-       so                                        :out  std_ulogic                    ;
-       ex1_act_b                                 :in   std_ulogic                    ;
+       si                                        :in   std_ulogic                    ;-- perv
+       so                                        :out  std_ulogic                    ;-- perv
+       ex1_act_b                                 :in   std_ulogic                    ;-- act
 
        f_pic_ex2_ue1                             :in   std_ulogic; 
        f_pic_ex2_sp_b                            :in   std_ulogic; 
@@ -57,13 +57,12 @@ PORT(
        f_tbe_ex3_recip_2045                      :out  std_ulogic ;      
        f_tbe_ex3_recip_2044                      :out  std_ulogic ;
        f_tbe_ex3_may_ov                          :out  std_ulogic ;
-       f_tbe_ex3_res_expo                        :out  std_ulogic_vector(1 to 13)    
+       f_tbe_ex3_res_expo                        :out  std_ulogic_vector(1 to 13)    -- to rounder
 
-); 
- 
+); -- end ports
  
 
-end fuq_tblexp; 
+end fuq_tblexp; -- ENTITY
  
  
 architecture fuq_tblexp of fuq_tblexp is 
@@ -130,6 +129,9 @@ architecture fuq_tblexp of fuq_tblexp is
 
 begin 
  
+--//############################################
+--//# pervasive
+--//############################################
 
     thold_reg_0:  tri_plat  generic map (expand_type => expand_type) port map (
          vd        => vdd,
@@ -160,14 +162,17 @@ begin
 
 
  
+--//############################################
+--//# ACT LATCHES
+--//############################################
 
     ex1_act <= not ex1_act_b ;
 
     act_lat: tri_rlmreg_p  generic map (width=> 5, expand_type => expand_type) port map ( 
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(2)  ,
-        mpw1_b           => mpw1_b(2)       ,
-        mpw2_b           => mpw2_b(0)       ,
+        forcee => forcee,--tidn,
+        delay_lclkr      => delay_lclkr(2)  ,--tidn,
+        mpw1_b           => mpw1_b(2)       ,--tidn,
+        mpw2_b           => mpw2_b(0)       ,--tidn,
         vd               => vdd,
         gd               => gnd,
         nclk             => nclk, 
@@ -176,11 +181,13 @@ begin
         act              => fpu_enable, 
         scout            => act_so   ,                     
         scin             => act_si   ,                   
+        -------------------
         din(0)           => act_spare_unused(0),
         din(1)           => act_spare_unused(1),
         din(2)           => ex1_act,
         din(3)           => act_spare_unused(2),
         din(4)           => act_spare_unused(3),
+        -------------------
         dout(0)          => act_spare_unused(0),
         dout(1)          => act_spare_unused(1),
         dout(2)          => ex2_act,
@@ -190,11 +197,48 @@ begin
 
 
 
+--//##############################################
+--//# EX2 logic
+--//##############################################
+  --     1*   2    3    4    5*   6    7    8    9*  10   11   12   13*
+  --      *                   *                   *                   *
+  --     0  B01  B02  B03  B04  B05  B06  B07  B08  B09  B10  B11  B12  sqrt_q0
+  --     0    0    1    1    1    1    1    1    1    1    1    1    0
+  --      *                   *                   *                   *
+  --  !B01 !B02 !B03 !B04 !B05 !B06 !B07 !B08 !B09 !B10 !B11 !B12 !B13  fres
+  --     0    0    1    1    1    1    1    1    1    1    1    1    0
+  --      *                   *                   *                   *
+  --     1 !B01 !B02 !B03 !B04 !B05 !B06 !B07 !B08 !B09 !B10 !B11 !B12  rsqrte
+  --     0    0    1    0    1    1    1    1    1    1    1    1 !B13
+  --      *                   *                   *                   *
+  -------------------------------------------------------------------------------
+  --    1 !B01 !B02 !B03 !B04 !B05 !B06 !B07 !B08 !B09 !B10 !B11 !B12  rsqrte
+  --    0   0    1    0    1    1    1    1    1    1    1    1 (!c5 +!B13 +<1>)
+  --    1   1    1    1    1    1    1    1  !c0  !c1  !c2  !c3  !c4
+  --
+
+  -- !c5 + !b13 + <1> |  or xnor  |  or+xnor => put into LSB position
+  --------------------+-----------+--------
+  --  0    0          |  0   1    |    1+0
+  --  0    1          |  1   0    |    1+0
+  --  1    0          |  1   0    |    1+0
+  --  1    1          |  1   1    |    1+1
+
+  --//#--------------------------------------------
+  --//# first generate B - clz (upper half should be carry select)
+  --//#----------------------------------------------
+    --//# upper half should be carry select decrementer
 
   ex2_b_expo_adj(1 to 13) <= f_eie_ex2_tbl_expo(1 to 13);
   ex2_b_expo_adj_b(1 to 13) <= not ex2_b_expo_adj(1 to 13);
 
   
+  --//#--------------------------------------------
+  --//# adder for !(B-clz) + K_res
+  --//#--------------------------------------------
+  --     1   2    3    4    5    6    7    8    9   10    11   12  13
+  -- !B01 !B02 !B03 !B04 !B05 !B06 !B07 !B08 !B09 !B10 !B11 !B12 !B13  fres
+  --   0    0    1    1    1    1    1    1    1    1    1    1   0
 
   ex2_recip_k(1 to 13) <= (1 to 2=> tidn) & (3 to 12=> tiup) & tidn ;
 
@@ -284,9 +328,15 @@ begin
   ex2_recip_expo(13)      <= ex2_recip_p(13);
  
 
+  --//#--------------------------------------------
+  --//# adder for !(B-clz) + K_rsqrt
+  --//#--------------------------------------------
+  --     1   2    3    4    5    6    7    8    9   10    11   12  13
+  --     1 !B01 !B02 !B03 !B04 !B05 !B06 !B07 !B08 !B09 !B10 !B11 !B12  rsqrte
+  --     0    0    1    0    1    1    1    1    1    1    1    1 !B13
 
   ex2_rsqrt_k(1 to 13) <= tidn & tidn & tiup & tidn & (5 to 12=> tiup) & ex2_b_expo_adj_b(13);
-  ex2_rsqrt_bsh_b(1 to 13) <= ex2_b_expo_adj_b(1) & ex2_b_expo_adj_b(1 to 12); 
+  ex2_rsqrt_bsh_b(1 to 13) <= ex2_b_expo_adj_b(1) & ex2_b_expo_adj_b(1 to 12); --negative expo in -> positive
 
   ex2_rsqrt_p(1 to 13) <= ex2_rsqrt_k(1 to 13) xor ex2_rsqrt_bsh_b(1 to 13) ;
   ex2_rsqrt_g(2 to 13) <= ex2_rsqrt_k(2 to 13) and ex2_rsqrt_bsh_b(2 to 13) ;
@@ -376,59 +426,95 @@ begin
   ex2_rsqrt_expo(1 to 12) <= ex2_rsqrt_p(1 to 12) xor ex2_rsqrt_c(2 to 13);
   ex2_rsqrt_expo(13)      <= ex2_rsqrt_p(13);
 
+  --//#--------------------------------------------
+  --//# select the result
+  --//#--------------------------------------------
 
   ex2_res_expo(1 to 13) <=
       ( (1 to 13=> f_pic_ex2_est_rsqrt) and ex2_rsqrt_expo(1 to 13) ) or 
       ( (1 to 13=> f_pic_ex2_est_recip) and ex2_recip_expo(1 to 13) ) ;
 
 
+  --//#--------------------------------------------
 
+     --//## --------------------------------------------------
+     --//## DETECT: exponents that require denormalization
+     --
+     -- rsqrte:  -( (e - bias)/2 ) + bias = -e/2 + 3/2 bias
+     --  expo = 7ff inf/nan  (2047)    <=== special case logic gives result
+     --  expo = 7fe          (2046)      -(2046 - 1023)/2 + 1023 = -1023/2 + 1023 = -512 + 1023 = 611 : norm
+     --
+     --
+     -- recip : 2bias -expo = -(e - bias) + bias
+     --  expo = 7ff inf/nan  (2047)    <=== special case logic gives result
+     --  expo = 7fe          (2046)    2bias -expo = 2046 - 2046 = x000 denorm
+     --  expo = 7fd          (2045)                  2046 - 2045 = x001 denorm ?
+     --  expo = 7fc          (2044)                  2046 - 2044 = x002 norm (denorm if adjust)
+     --//## --------------------------------------------------
+     -- for sp underflow, no need to denormalize, but must set the UX flag
+     --                                              2046 -1151  = 895 - 1 = 894 <=== INF/NAN in sp range
+     --                                              2046 -1150  = 896 - 1 = 895              x380
+     --                                              2046 -1149  = 897 - 1 = 896              x380
+     --                                              2046 -1148  = 898 - 1 = 897 (denorm if adjust)
+     --
+     --     2046  111_1111_11110
+     --     2045  111_1111_11101
+     --     2044  111_1111_11100
+     --
+     --     1150  100_0111_11110
+     --     1149  100_0111_11101
+     --     1148  100_0111_11100
+     --
         
 
-  ex2_mid_match_ifsp <= not f_eie_ex2_tbl_expo( 4) and 
-                        not f_eie_ex2_tbl_expo( 5) and 
-                        not f_eie_ex2_tbl_expo( 6) ;   
+  ex2_mid_match_ifsp <= not f_eie_ex2_tbl_expo( 4) and -- 0512
+                        not f_eie_ex2_tbl_expo( 5) and -- 0256
+                        not f_eie_ex2_tbl_expo( 6) ;   -- 0128
 
-  ex2_mid_match_ifdp <=     f_eie_ex2_tbl_expo( 4) and 
-                            f_eie_ex2_tbl_expo( 5) and 
-                            f_eie_ex2_tbl_expo( 6) ;   
+  ex2_mid_match_ifdp <=     f_eie_ex2_tbl_expo( 4) and -- 0512  total = 896
+                            f_eie_ex2_tbl_expo( 5) and -- 0256
+                            f_eie_ex2_tbl_expo( 6) ;   -- 0128
 
-  ex2_com_match      <= not f_eie_ex2_tbl_expo( 1) and 
-                        not f_eie_ex2_tbl_expo( 2) and 
-                            f_eie_ex2_tbl_expo( 3) and 
-                            f_eie_ex2_tbl_expo( 7) and 
-                            f_eie_ex2_tbl_expo( 8) and 
-                            f_eie_ex2_tbl_expo( 9) and 
-                            f_eie_ex2_tbl_expo(10) and 
-                            f_eie_ex2_tbl_expo(11) ;   
+  ex2_com_match      <= not f_eie_ex2_tbl_expo( 1) and -- sign
+                        not f_eie_ex2_tbl_expo( 2) and -- 2048
+                            f_eie_ex2_tbl_expo( 3) and -- 1024
+                            f_eie_ex2_tbl_expo( 7) and -- 0064
+                            f_eie_ex2_tbl_expo( 8) and -- 0032
+                            f_eie_ex2_tbl_expo( 9) and -- 0016
+                            f_eie_ex2_tbl_expo(10) and -- 0008
+                            f_eie_ex2_tbl_expo(11) ;   -- 0004
 
    ex2_match_en_dp  <= ex2_com_match and     f_pic_ex2_sp_b and ex2_mid_match_ifdp ;
    ex2_match_en_sp  <= ex2_com_match and not f_pic_ex2_sp_b and ex2_mid_match_ifsp ;
 
-   ex2_recip_2046 <=     f_pic_ex2_est_recip    and             
-                         f_eie_ex2_tbl_expo(12) and 
-                     not f_eie_ex2_tbl_expo(13)   ; 
+   ex2_recip_2046 <=     f_pic_ex2_est_recip    and             -- not f_pic_ex2_ue1 and
+                         f_eie_ex2_tbl_expo(12) and -- 0002
+                     not f_eie_ex2_tbl_expo(13)   ; -- 0001
 
-   ex2_recip_2045 <=     f_pic_ex2_est_recip    and             
-                     not f_eie_ex2_tbl_expo(12) and 
-                         f_eie_ex2_tbl_expo(13)   ; 
+   ex2_recip_2045 <=     f_pic_ex2_est_recip    and             -- not f_pic_ex2_ue1 and
+                     not f_eie_ex2_tbl_expo(12) and -- 0002
+                         f_eie_ex2_tbl_expo(13)   ; -- 0001
 
-   ex2_recip_2044 <=     f_pic_ex2_est_recip    and             
-                     not f_eie_ex2_tbl_expo(12) and 
-                     not f_eie_ex2_tbl_expo(13)   ; 
+   ex2_recip_2044 <=     f_pic_ex2_est_recip    and             -- not f_pic_ex2_ue1 and
+                     not f_eie_ex2_tbl_expo(12) and -- 0002
+                     not f_eie_ex2_tbl_expo(13)   ; -- 0001
 
     ex2_recip_ue1 <= f_pic_ex2_est_recip    and   f_pic_ex2_ue1 ;
 
   
+--//##############################################
+--//# EX3 latches
+--//##############################################
 
+    -- name says odd(unbiased) but it is really for even biased.
     ex2_lu_sh <= (f_fmt_ex2_lu_den_recip  and f_pic_ex2_est_recip                            ) or 
                  (f_fmt_ex2_lu_den_rsqrto and f_pic_ex2_est_rsqrt and not f_eie_ex2_tbl_expo(13) );
 
    ex3_expo_lat: tri_rlmreg_p  generic map (width=> 20, expand_type => expand_type) port map ( 
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(3)  ,
-        mpw1_b           => mpw1_b(3)       ,
-        mpw2_b           => mpw2_b(0)       ,
+        forcee => forcee,--tidn,
+        delay_lclkr      => delay_lclkr(3)  ,--tidn,
+        mpw1_b           => mpw1_b(3)       ,--tidn,
+        mpw2_b           => mpw2_b(0)       ,--tidn,
         vd               => vdd,
         gd               => gnd,
         nclk             => nclk, 
@@ -446,39 +532,47 @@ begin
         din(17)          => ex2_recip_2044 ,
         din(18)          => ex2_lu_sh      ,
         din(19)          => ex2_recip_ue1  ,
-        dout(0 to 12)    => ex3_res_expo(1 to 13)  ,
-        dout(13)         => ex3_match_en_dp        ,
-        dout(14)         => ex3_match_en_sp        ,
-        dout(15)         => ex3_recip_2046         ,
-        dout(16)         => ex3_recip_2045         ,
-        dout(17)         => ex3_recip_2044         ,
-        dout(18)         => ex3_lu_sh              ,
-        dout(19)         => ex3_recip_ue1         );
+        -------------------
+        dout(0 to 12)    => ex3_res_expo(1 to 13)  ,--LAT--
+        dout(13)         => ex3_match_en_dp        ,--LAT--
+        dout(14)         => ex3_match_en_sp        ,--LAT--
+        dout(15)         => ex3_recip_2046         ,--LAT--
+        dout(16)         => ex3_recip_2045         ,--LAT--
+        dout(17)         => ex3_recip_2044         ,--LAT--
+        dout(18)         => ex3_lu_sh              ,--LAT--
+        dout(19)         => ex3_recip_ue1         );--LAT--
 
 
 
+--//##############################################
+--//# EX3 logic
+--//##############################################
 
 
-   f_tbe_ex3_match_en_sp <= ex3_match_en_sp       ; 
-   f_tbe_ex3_match_en_dp <= ex3_match_en_dp       ; 
-   f_tbe_ex3_recip_2046  <= ex3_recip_2046        ; 
-   f_tbe_ex3_recip_2045  <= ex3_recip_2045        ; 
-   f_tbe_ex3_recip_2044  <= ex3_recip_2044        ; 
-   f_tbe_ex3_lu_sh       <= ex3_lu_sh             ; 
-   f_tbe_ex3_recip_ue1   <= ex3_recip_ue1         ; 
+   f_tbe_ex3_match_en_sp <= ex3_match_en_sp       ; --output
+   f_tbe_ex3_match_en_dp <= ex3_match_en_dp       ; --output
+   f_tbe_ex3_recip_2046  <= ex3_recip_2046        ; --output
+   f_tbe_ex3_recip_2045  <= ex3_recip_2045        ; --output
+   f_tbe_ex3_recip_2044  <= ex3_recip_2044        ; --output
+   f_tbe_ex3_lu_sh       <= ex3_lu_sh             ; --output--
+   f_tbe_ex3_recip_ue1   <= ex3_recip_ue1         ; --output--
 
-   ex3_recip_2046_dp <= ex3_recip_2046 and ex3_match_en_dp and not ex3_recip_ue1 ; 
-   ex3_recip_2045_dp <= ex3_recip_2045 and ex3_match_en_dp and not ex3_recip_ue1 ; 
-   ex3_recip_2044_dp <= ex3_recip_2044 and ex3_match_en_dp and not ex3_recip_ue1 ; 
-   ex3_force_expo_den <=  ex3_recip_2046_dp or ex3_recip_2045_dp; 
+   ex3_recip_2046_dp <= ex3_recip_2046 and ex3_match_en_dp and not ex3_recip_ue1 ; -- for shifting
+   ex3_recip_2045_dp <= ex3_recip_2045 and ex3_match_en_dp and not ex3_recip_ue1 ; -- for shifting
+   ex3_recip_2044_dp <= ex3_recip_2044 and ex3_match_en_dp and not ex3_recip_ue1 ; -- for shifting
+   ex3_force_expo_den <=  ex3_recip_2046_dp or ex3_recip_2045_dp; -- do not force DEN for ue1 mode
+        -- 2044 conditionally backs into denorm depending on lu_sh ... decrement
 
-   ex3_decr_expo <= 
+   ex3_decr_expo <= -- for denormalization / normalization
        ( ex3_lu_sh and     ex3_recip_ue1                            ) or
        ( ex3_lu_sh and not ex3_recip_ue1 and not ex3_recip_2046_dp
                                          and not ex3_recip_2045_dp
                                          and not ex3_recip_2044_dp  );
 
 
+  -- decrement is like add 11111....11111 (lsb does not change
+  -- t = 1
+  -- g = d
 
    ex3_res_expo_b(1 to 13) <= not ex3_res_expo(1 to 13);
 
@@ -539,38 +633,38 @@ begin
    ex3_res_decr(13)      <= ex3_res_expo_b(13) ;
 
 
-   f_tbe_ex3_res_expo( 1) <= ( ex3_res_expo( 1) and not ex3_decr_expo and not ex3_force_expo_den ) or  
+   f_tbe_ex3_res_expo( 1) <= ( ex3_res_expo( 1) and not ex3_decr_expo and not ex3_force_expo_den ) or  --output
                              ( ex3_res_decr( 1) and     ex3_decr_expo                            );
-   f_tbe_ex3_res_expo( 2) <= ( ex3_res_expo( 2) and not ex3_decr_expo and not ex3_force_expo_den ) or  
+   f_tbe_ex3_res_expo( 2) <= ( ex3_res_expo( 2) and not ex3_decr_expo and not ex3_force_expo_den ) or  --output
                              ( ex3_res_decr( 2) and     ex3_decr_expo                            );
-   f_tbe_ex3_res_expo( 3) <= ( ex3_res_expo( 3) and not ex3_decr_expo and not ex3_force_expo_den ) or  
+   f_tbe_ex3_res_expo( 3) <= ( ex3_res_expo( 3) and not ex3_decr_expo and not ex3_force_expo_den ) or  --output
                              ( ex3_res_decr( 3) and     ex3_decr_expo                            );
-   f_tbe_ex3_res_expo( 4) <= ( ex3_res_expo( 4) and not ex3_decr_expo and not ex3_force_expo_den ) or  
+   f_tbe_ex3_res_expo( 4) <= ( ex3_res_expo( 4) and not ex3_decr_expo and not ex3_force_expo_den ) or  --output
                              ( ex3_res_decr( 4) and     ex3_decr_expo                            );
-   f_tbe_ex3_res_expo( 5) <= ( ex3_res_expo( 5) and not ex3_decr_expo and not ex3_force_expo_den ) or  
+   f_tbe_ex3_res_expo( 5) <= ( ex3_res_expo( 5) and not ex3_decr_expo and not ex3_force_expo_den ) or  --output
                              ( ex3_res_decr( 5) and     ex3_decr_expo                            );
-   f_tbe_ex3_res_expo( 6) <= ( ex3_res_expo( 6) and not ex3_decr_expo and not ex3_force_expo_den ) or  
+   f_tbe_ex3_res_expo( 6) <= ( ex3_res_expo( 6) and not ex3_decr_expo and not ex3_force_expo_den ) or  --output
                              ( ex3_res_decr( 6) and     ex3_decr_expo                            );
-   f_tbe_ex3_res_expo( 7) <= ( ex3_res_expo( 7) and not ex3_decr_expo and not ex3_force_expo_den ) or  
+   f_tbe_ex3_res_expo( 7) <= ( ex3_res_expo( 7) and not ex3_decr_expo and not ex3_force_expo_den ) or  --output
                              ( ex3_res_decr( 7) and     ex3_decr_expo                            );
-   f_tbe_ex3_res_expo( 8) <= ( ex3_res_expo( 8) and not ex3_decr_expo and not ex3_force_expo_den ) or  
+   f_tbe_ex3_res_expo( 8) <= ( ex3_res_expo( 8) and not ex3_decr_expo and not ex3_force_expo_den ) or  --output
                              ( ex3_res_decr( 8) and     ex3_decr_expo                            );
-   f_tbe_ex3_res_expo( 9) <= ( ex3_res_expo( 9) and not ex3_decr_expo and not ex3_force_expo_den ) or  
+   f_tbe_ex3_res_expo( 9) <= ( ex3_res_expo( 9) and not ex3_decr_expo and not ex3_force_expo_den ) or  --output
                              ( ex3_res_decr( 9) and     ex3_decr_expo                            );
-   f_tbe_ex3_res_expo(10) <= ( ex3_res_expo(10) and not ex3_decr_expo and not ex3_force_expo_den ) or  
+   f_tbe_ex3_res_expo(10) <= ( ex3_res_expo(10) and not ex3_decr_expo and not ex3_force_expo_den ) or  --output
                              ( ex3_res_decr(10) and     ex3_decr_expo                            );
-   f_tbe_ex3_res_expo(11) <= ( ex3_res_expo(11) and not ex3_decr_expo and not ex3_force_expo_den ) or  
+   f_tbe_ex3_res_expo(11) <= ( ex3_res_expo(11) and not ex3_decr_expo and not ex3_force_expo_den ) or  --output
                              ( ex3_res_decr(11) and     ex3_decr_expo                            );
-   f_tbe_ex3_res_expo(12) <= ( ex3_res_expo(12) and not ex3_decr_expo and not ex3_force_expo_den ) or  
+   f_tbe_ex3_res_expo(12) <= ( ex3_res_expo(12) and not ex3_decr_expo and not ex3_force_expo_den ) or  --output
                              ( ex3_res_decr(12) and     ex3_decr_expo                            );
-   f_tbe_ex3_res_expo(13) <= ( ex3_res_expo(13) and not ex3_decr_expo                            ) or  
+   f_tbe_ex3_res_expo(13) <= ( ex3_res_expo(13) and not ex3_decr_expo                            ) or  --output
                              ( ex3_res_decr(13) and     ex3_decr_expo                            ) or
                              (                                                ex3_force_expo_den );
 
 
 
 
-  f_tbe_ex3_may_ov <= 
+  f_tbe_ex3_may_ov <= -- before the den adjustments on purpose
             (not ex3_res_expo(1) and  ex3_res_expo(2)                                         ) or 
             (not ex3_res_expo(1) and  ex3_res_expo(3) and ex3_res_expo(4)                     ) or
             (not ex3_res_expo(1) and  ex3_res_expo(3) and ex3_res_expo(5)                     ) or
@@ -580,6 +674,9 @@ begin
 
 
 
+--//############################################
+--//# scan
+--//############################################
 
 
     ex3_expo_si  (0 to 19)  <= ex3_expo_so  (1 to 19) & si;
@@ -587,10 +684,4 @@ begin
     so                      <= act_so  (0);
 
 
-end; 
-  
-
-
-
-
-
+end; -- fuq_tblexp ARCHITECTURE

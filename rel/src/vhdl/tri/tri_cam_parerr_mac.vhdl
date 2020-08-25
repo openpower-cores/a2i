@@ -7,6 +7,9 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--********************************************************************
+--* TITLE: ERAT CAM Parity Error Macro Tri-Library Model
+--* NAME: tri_cam_parerr_mac
 library ieee;
 use ieee.std_logic_1164.all;
 library ibm;
@@ -29,6 +32,7 @@ entity tri_cam_parerr_mac  is
    np2_cmp_data_parerr_epn      :out std_ulogic; 
    np2_cmp_data_parerr_rpn      :out std_ulogic;
 
+   -- Pervasive
    gnd                          :inout power_logic;
    vdd                          :inout power_logic;
    nclk                         :in  clk_logic;
@@ -75,6 +79,7 @@ begin
                   din         => np1_array_cmp_data,
                   dout        => np2_array_cmp_data_q);
 
+      -- Parity Calculation
       np2_cmp_data_calc_par(50) <= xor_reduce(np2_cam_cmp_data_q(75 to 82));
       np2_cmp_data_calc_par(51) <= xor_reduce(np2_cam_cmp_data_q(0 to 7));
       np2_cmp_data_calc_par(52) <= xor_reduce(np2_cam_cmp_data_q(8 to 15));
@@ -94,6 +99,7 @@ begin
       np2_cmp_data_calc_par(66) <= xor_reduce(np2_array_cmp_data_q(38 to 44));
       np2_cmp_data_calc_par(67) <= xor_reduce(np2_array_cmp_data_q(45 to 50));
 
+      -- Outputs
       np2_cmp_data_parerr_epn   <= or_reduce(np2_cmp_data_calc_par(50 to 60) xor (np2_cam_cmp_data_q(83) & np2_array_cmp_data_q(51 to 60)));
       np2_cmp_data_parerr_rpn   <= or_reduce(np2_cmp_data_calc_par(61 to 67) xor np2_array_cmp_data_q(61 to 67));
       np2_cam_cmp_data          <= np2_cam_cmp_data_q;
@@ -128,6 +134,7 @@ begin
        end if;
      end process;
 
+     -- Parity Calculation
      np2_cmp_data_calc_par(50) <= xor_reduce(np2_cam_cmp_data_q(75 to 82));
      np2_cmp_data_calc_par(51) <= xor_reduce(np2_cam_cmp_data_q(0 to 7));
      np2_cmp_data_calc_par(52) <= xor_reduce(np2_cam_cmp_data_q(8 to 15));
@@ -147,13 +154,14 @@ begin
      np2_cmp_data_calc_par(66) <= xor_reduce(np2_array_cmp_data_q(38 to 44));
      np2_cmp_data_calc_par(67) <= xor_reduce(np2_array_cmp_data_q(45 to 50));
 
+     -- Outputs
      np2_cmp_data_parerr_epn   <= or_reduce(np2_cmp_data_calc_par(50 to 60) xor (np2_cam_cmp_data_q(83) & np2_array_cmp_data_q(51 to 60)));
      np2_cmp_data_parerr_rpn   <= or_reduce(np2_cmp_data_calc_par(61 to 67) xor np2_array_cmp_data_q(61 to 67));
      np2_cam_cmp_data          <= np2_cam_cmp_data_q;
      np2_array_cmp_data        <= np2_array_cmp_data_q;
 
+     -- Scan Chains
      func_scan_out <= func_scan_in;
   end generate a;
 
 end tri_cam_parerr_mac;
-

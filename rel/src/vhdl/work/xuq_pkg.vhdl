@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Package
+--
 library ieee,ibm;
 use ieee.std_logic_1164.all;
 
@@ -122,4 +124,3 @@ package body xuq_pkg is
    end;
    
 end xuq_pkg;
-

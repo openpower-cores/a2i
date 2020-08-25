@@ -9,6 +9,11 @@
 
 			
 
+--********************************************************************
+--* TITLE: MMU Logical to Real Translate Logic
+--* NAME: mmq_tlb_lrat.vhdl
+--*********************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library ibm;
@@ -234,6 +239,7 @@ constant LRAT_PgSize_1GB_log2   : integer := 30;
 constant LRAT_PgSize_256MB_log2 : integer := 28;
 constant LRAT_PgSize_16MB_log2  : integer := 24;
 constant LRAT_PgSize_1MB_log2   : integer := 20;
+-- derat,ierat,tlbsx,tlbsrx,snoop,tlbre,tlbwe,ptereload
 constant tagpos_type           : natural  := 0;
 constant tagpos_type_derat     : natural  := tagpos_type;
 constant tagpos_type_ierat     : natural  := tagpos_type+1;
@@ -243,6 +249,7 @@ constant tagpos_type_snoop     : natural  := tagpos_type+4;
 constant tagpos_type_tlbre     : natural  := tagpos_type+5;
 constant tagpos_type_tlbwe     : natural  := tagpos_type+6;
 constant tagpos_type_ptereload : natural  := tagpos_type+7;
+-- scan path constants
 constant ex4_valid_offset : natural  := 0;
 constant ex4_ttype_offset : natural  := ex4_valid_offset + thdid_width;
 constant ex5_valid_offset : natural  := ex4_ttype_offset + ttype_width;
@@ -360,6 +367,7 @@ constant lrat_datain_act_offset      : natural := lrat_mas_act_offset +3;
 constant spare_offset                 : natural := lrat_datain_act_offset +2;
 constant scan_right                 : natural := spare_offset + 64 -1;
 constant const_lrat_maxsize_log2 : natural := real_addr_width-2;
+-- Latch signals
 signal ex4_valid_d, ex4_valid_q : std_ulogic_vector(0 to thdid_width-1);
 signal ex4_ttype_d, ex4_ttype_q : std_ulogic_vector(0 to ttype_width-1);
 signal ex5_valid_d, ex5_valid_q : std_ulogic_vector(0 to thdid_width-1);
@@ -475,6 +483,7 @@ signal lrat_entry_act_d, lrat_entry_act_q  : std_ulogic_vector(0 to 7);
 signal lrat_mas_act_d, lrat_mas_act_q  : std_ulogic_vector(0 to 2);
 signal lrat_datain_act_d, lrat_datain_act_q  : std_ulogic_vector(0 to 1);
 signal spare_q  : std_ulogic_vector(0 to 63);
+-- Logic signals
 signal multihit         : std_ulogic;
 signal addr_enable      : std_ulogic;
 signal lpid_enable      : std_ulogic;
@@ -500,6 +509,7 @@ signal lrat_entry7_lpid_match         :  std_ulogic;
 signal unused_dc  :  std_ulogic_vector(0 to 13);
 -- synopsys translate_off
 -- synopsys translate_on
+-- Pervasive
 signal pc_sg_1         : std_ulogic;
 signal pc_sg_0         : std_ulogic;
 signal pc_func_sl_thold_1        : std_ulogic;
@@ -513,9 +523,10 @@ signal pc_func_slp_sl_force : std_ulogic;
 signal siv                      : std_ulogic_vector(0 to scan_right);
 signal sov                      : std_ulogic_vector(0 to scan_right);
 signal tiup                     : std_ulogic;
-  BEGIN 
+  BEGIN --@@ START OF EXECUTABLE CODE FOR MMQ_TLB_LRAT
 
 tiup  <=  '1';
+-- tag0 phase signals, tlbwe/re ex2, tlbsx/srx ex3
 tlb_addr_cap_d(1) <=  tlb_tag0_addr_cap and ((tlb_tag0_type(tagpos_type_tlbsx) and tlb_tag0_atsel) or 
                                     tlb_tag0_type(tagpos_type_ptereload) or tlb_tag0_type(tagpos_type_tlbwe));
 lrat_tag1_size_d  <=  tlb_tag0_size when tlb_tag0_addr_cap='1' 
@@ -545,6 +556,7 @@ lrat_tag1_lpid_d  <=  tlb_tag0_lpid when (tlb_tag0_addr_cap='1' and tlb_tag0_typ
               else mas8_1_tlpid when (tlb_tag0_addr_cap='1' and tlb_tag0_thdid(1)='1' and tlb_tag0_type(tagpos_type_tlbwe)='1')
               else mas8_0_tlpid when (tlb_tag0_addr_cap='1' and tlb_tag0_thdid(0)='1' and tlb_tag0_type(tagpos_type_tlbwe)='1')
               else lrat_tag1_lpid_q;
+-- tag1 phase signals, tlbwe/re ex3, tlbsx/srx ex4
 ex4_valid_d  <=  tlb_ctl_ex3_valid and not(xu_ex3_flush);
 ex4_ttype_d  <=  tlb_ctl_ex3_ttype;
 addr_enable  <=  tlb_addr_cap_q(1);
@@ -562,6 +574,7 @@ lrat_tag2_entry_size_d  <=
                  (lrat_entry5_size_q   and (0 to 3 => lrat_tag1_matchline(5)))   or
                  (lrat_entry6_size_q   and (0 to 3 => lrat_tag1_matchline(6)))   or
                  (lrat_entry7_size_q and (0 to 3 => lrat_tag1_matchline(7)));
+-- tag2 phase signals, tlbwe/re ex4, tlbsx/srx ex5
 ex5_valid_d  <=  ex4_valid_q and not(xu_ex4_flush);
 ex5_ttype_d  <=  ex4_ttype_q;
 ex5_esel_d  <=  mas0_1_esel when ex4_valid_q(1)='1' 
@@ -581,6 +594,7 @@ ex5_wq_d  <=  mas0_1_wq when ex4_valid_q(1)='1'
             else mas0_3_wq when ex4_valid_q(3)='1'
              else mas0_0_wq;
 lrat_tag3_lpn_d  <=  lrat_tag2_lpn_q;
+-- hit_status: val,hit,multihit,inval_pgsize
 lrat_tag3_hit_status_d(0) <=  tlb_addr_cap_q(2);
 lrat_tag3_hit_status_d(1) <=  tlb_addr_cap_q(2) and or_reduce(lrat_tag2_matchline_q(0 to lrat_num_entry-1));
 lrat_tag3_hit_status_d(2) <=  tlb_addr_cap_q(2) and multihit;
@@ -603,6 +617,20 @@ lrat_tag3_hit_entry_d  <=     "001" when lrat_tag2_matchline_q(0 to lrat_num_ent
                        else "110" when lrat_tag2_matchline_q(0 to lrat_num_entry-1)="00000010"                     
                        else "111" when lrat_tag2_matchline_q(0 to lrat_num_entry-1)="00000001"
                        else "000";
+--     constant TLB_PgSize_1GB   : std_ulogic_vector(0 to 3) :=  1010 ;
+--     constant TLB_PgSize_256MB : std_ulogic_vector(0 to 3) :=  1001 ;
+--     constant TLB_PgSize_16MB  : std_ulogic_vector(0 to 3) :=  0111 ;
+--     constant TLB_PgSize_1MB   : std_ulogic_vector(0 to 3) :=  0101 ;
+--     constant TLB_PgSize_64KB  : std_ulogic_vector(0 to 3) :=  0011 ;
+--     constant TLB_PgSize_4KB   : std_ulogic_vector(0 to 3) :=  0001 ;
+-- ISA 2.06 pgsize match criteria for tlbwe:
+--   MAS1.IND=0 and MAS1.TSIZE </= LRAT_entry.LSIZE, or
+--   MAS1.IND=1 and (3 + (MAS1.TSIZE - MAS3.SPSIZE)) </= (10 + LRAT_entry.LSIZE)
+--    the second term above can never happen for A2, 3+9-3 or 3+5-1 is never > 10+5
+--      ..in other words, the biggest page table for A2 is 256M/64K=4K entries x 8 bytes = 32K,
+--      .. 32K is always less than the minimum supported LRAT size of 1MB.
+-- pgsize match criteria for ptereload:
+--   PTE.PS </= LRAT_entry.LSIZE
 lrat_tag2_size_gt_entry_size  <=  (Eq(lrat_tag2_size_q,TLB_PgSize_16MB) and Eq(lrat_tag2_entry_size_q,LRAT_PgSize_1MB)) or
                            (Eq(lrat_tag2_size_q,TLB_PgSize_1GB)   and Eq(lrat_tag2_entry_size_q,LRAT_PgSize_1MB)) or
                            (Eq(lrat_tag2_size_q,TLB_PgSize_1GB)   and Eq(lrat_tag2_entry_size_q,LRAT_PgSize_16MB)) or
@@ -612,7 +640,18 @@ lrat_supp_pgsize  <=  '1' when (lrat_tag2_entry_size_q=LRAT_PgSize_1MB or lrat_t
                                  lrat_tag2_entry_size_q=LRAT_PgSize_4GB or lrat_tag2_entry_size_q=LRAT_PgSize_16GB or
                                  lrat_tag2_entry_size_q=LRAT_PgSize_256GB or lrat_tag2_entry_size_q=LRAT_PgSize_1TB)
                  else '0';
+--constant LRAT_PgSize_1TB_log2   : integer := 40;
+--constant LRAT_PgSize_256GB_log2 : integer := 38;
+--constant LRAT_PgSize_16GB_log2  : integer := 34;
+--constant LRAT_PgSize_4GB_log2   : integer := 32;
+--constant LRAT_PgSize_1GB_log2   : integer := 30;
+--constant LRAT_PgSize_256MB_log2 : integer := 28;
+--constant LRAT_PgSize_16MB_log2  : integer := 24;
+--constant LRAT_PgSize_1MB_log2   : integer := 20;
+-- offset forwarding muxes based on page size
+-- rpn(44:51)
 lrat_tag3_rpn_d(64-LRAT_PgSize_1MB_log2 TO 51) <=  lrat_tag2_lpn_q(64-LRAT_PgSize_1MB_log2 to 51);
+-- rpn(40:43)
 lrat_tag3_rpn_d(64-LRAT_PgSize_16MB_log2 TO 64-LRAT_PgSize_1MB_log2-1) <=  
                    lrat_entry0_rpn_q(64-LRAT_PgSize_16MB_log2 to 64-LRAT_PgSize_1MB_log2-1) 
                              when (lrat_tag2_entry_size_q=LRAT_PgSize_1MB and lrat_tag2_matchline_q(0)='1')
@@ -631,6 +670,7 @@ lrat_tag3_rpn_d(64-LRAT_PgSize_16MB_log2 TO 64-LRAT_PgSize_1MB_log2-1) <=
              else lrat_entry7_rpn_q(64-LRAT_PgSize_16MB_log2   to 64-LRAT_PgSize_1MB_log2-1) 
                              when (lrat_tag2_entry_size_q=LRAT_PgSize_1MB and lrat_tag2_matchline_q(7)='1')
              else lrat_tag2_lpn_q(64-LRAT_PgSize_16MB_log2 to 64-LRAT_PgSize_1MB_log2-1);
+-- rpn(36:39)
 lrat_tag3_rpn_d(64-LRAT_PgSize_256MB_log2 TO 64-LRAT_PgSize_16MB_log2-1) <=  
                    lrat_entry0_rpn_q(64-LRAT_PgSize_256MB_log2 to 64-LRAT_PgSize_16MB_log2-1) 
                              when ((lrat_tag2_entry_size_q=LRAT_PgSize_1MB or lrat_tag2_entry_size_q=LRAT_PgSize_16MB) and lrat_tag2_matchline_q(0)='1')
@@ -649,6 +689,7 @@ lrat_tag3_rpn_d(64-LRAT_PgSize_256MB_log2 TO 64-LRAT_PgSize_16MB_log2-1) <=
              else lrat_entry7_rpn_q(64-LRAT_PgSize_256MB_log2   to 64-LRAT_PgSize_16MB_log2-1) 
                              when ((lrat_tag2_entry_size_q=LRAT_PgSize_1MB or lrat_tag2_entry_size_q=LRAT_PgSize_16MB) and lrat_tag2_matchline_q(7)='1')
              else lrat_tag2_lpn_q(64-LRAT_PgSize_256MB_log2 to 64-LRAT_PgSize_16MB_log2-1);
+-- rpn(34:35)
 lrat_tag3_rpn_d(64-LRAT_PgSize_1GB_log2 TO 64-LRAT_PgSize_256MB_log2-1) <=  
                    lrat_entry0_rpn_q(64-LRAT_PgSize_1GB_log2 to 64-LRAT_PgSize_256MB_log2-1) 
                              when ((lrat_tag2_entry_size_q=LRAT_PgSize_1MB or lrat_tag2_entry_size_q=LRAT_PgSize_16MB or 
@@ -675,6 +716,7 @@ lrat_tag3_rpn_d(64-LRAT_PgSize_1GB_log2 TO 64-LRAT_PgSize_256MB_log2-1) <=
                              when ((lrat_tag2_entry_size_q=LRAT_PgSize_1MB or lrat_tag2_entry_size_q=LRAT_PgSize_16MB or 
                                       lrat_tag2_entry_size_q=LRAT_PgSize_256MB) and lrat_tag2_matchline_q(7)='1')
              else lrat_tag2_lpn_q(64-LRAT_PgSize_1GB_log2 to 64-LRAT_PgSize_256MB_log2-1);
+-- rpn(32:33)
 lrat_tag3_rpn_d(64-LRAT_PgSize_4GB_log2 TO 64-LRAT_PgSize_1GB_log2-1) <=  
                    lrat_entry0_rpn_q(64-LRAT_PgSize_4GB_log2 to 64-LRAT_PgSize_1GB_log2-1) 
                              when ((lrat_tag2_entry_size_q=LRAT_PgSize_1MB or lrat_tag2_entry_size_q=LRAT_PgSize_16MB or 
@@ -702,6 +744,7 @@ lrat_tag3_rpn_d(64-LRAT_PgSize_4GB_log2 TO 64-LRAT_PgSize_1GB_log2-1) <=
                                       lrat_tag2_entry_size_q=LRAT_PgSize_256MB or lrat_tag2_entry_size_q=LRAT_PgSize_1GB) and lrat_tag2_matchline_q(7)='1')
              else lrat_tag2_lpn_q(64-LRAT_PgSize_4GB_log2 to 64-LRAT_PgSize_1GB_log2-1);
 gen64_lrat_tag3_rpn_34: if real_addr_width > 33 generate
+-- rpn(30:31)
 lrat_tag3_rpn_d(64-LRAT_PgSize_16GB_log2 TO 64-LRAT_PgSize_4GB_log2-1) <=  
                    lrat_entry0_rpn_q(64-LRAT_PgSize_16GB_log2 to 64-LRAT_PgSize_4GB_log2-1) 
                              when ((lrat_tag2_entry_size_q=LRAT_PgSize_1MB or lrat_tag2_entry_size_q=LRAT_PgSize_16MB or 
@@ -738,6 +781,7 @@ lrat_tag3_rpn_d(64-LRAT_PgSize_16GB_log2 TO 64-LRAT_PgSize_4GB_log2-1) <=
              else lrat_tag2_lpn_q(64-LRAT_PgSize_16GB_log2 to 64-LRAT_PgSize_4GB_log2-1);
 end generate gen64_lrat_tag3_rpn_34;
 gen64_lrat_tag3_rpn_38: if real_addr_width > 37 generate
+-- rpn(26:29)
 lrat_tag3_rpn_d(64-LRAT_PgSize_256GB_log2 TO 64-LRAT_PgSize_16GB_log2-1) <=  
                    lrat_entry0_rpn_q(64-LRAT_PgSize_256GB_log2 to 64-LRAT_PgSize_16GB_log2-1) 
                              when ((lrat_tag2_entry_size_q=LRAT_PgSize_1MB or lrat_tag2_entry_size_q=LRAT_PgSize_16MB or 
@@ -774,6 +818,7 @@ lrat_tag3_rpn_d(64-LRAT_PgSize_256GB_log2 TO 64-LRAT_PgSize_16GB_log2-1) <=
              else lrat_tag2_lpn_q(64-LRAT_PgSize_256GB_log2 to 64-LRAT_PgSize_16GB_log2-1);
 end generate gen64_lrat_tag3_rpn_38;
 gen64_lrat_tag3_rpn_40: if real_addr_width > 39 generate
+-- rpn(24:25)
 lrat_tag3_rpn_d(64-LRAT_PgSize_1TB_log2 TO 64-LRAT_PgSize_256GB_log2-1) <=  
                    lrat_entry0_rpn_q(64-LRAT_PgSize_1TB_log2 to 64-LRAT_PgSize_256GB_log2-1) 
                              when ((lrat_tag2_entry_size_q=LRAT_PgSize_1MB or lrat_tag2_entry_size_q=LRAT_PgSize_16MB or 
@@ -818,6 +863,7 @@ lrat_tag3_rpn_d(64-LRAT_PgSize_1TB_log2 TO 64-LRAT_PgSize_256GB_log2-1) <=
              else lrat_tag2_lpn_q(64-LRAT_PgSize_1TB_log2 to 64-LRAT_PgSize_256GB_log2-1);
 end generate gen64_lrat_tag3_rpn_40;
 gen64_lrat_tag3_rpn_42: if real_addr_width > 41 generate
+-- rpn(22:23)
 lrat_tag3_rpn_d(64-real_addr_width TO 64-lrat_maxsize_log2-1) <=  
                    lrat_entry0_rpn_q(64-real_addr_width to 64-lrat_maxsize_log2-1) when lrat_tag2_matchline_q(0)='1'
              else lrat_entry1_rpn_q(64-real_addr_width   to 64-lrat_maxsize_log2-1) when lrat_tag2_matchline_q(1)='1'
@@ -829,6 +875,15 @@ lrat_tag3_rpn_d(64-real_addr_width TO 64-lrat_maxsize_log2-1) <=
              else lrat_entry7_rpn_q(64-real_addr_width   to 64-lrat_maxsize_log2-1) when lrat_tag2_matchline_q(7)='1'
              else lrat_tag2_lpn_q(64-real_addr_width to 64-lrat_maxsize_log2-1);
 end generate gen64_lrat_tag3_rpn_42;
+--constant LRAT_PgSize_1TB_log2   : integer := 40;
+--constant LRAT_PgSize_256GB_log2 : integer := 38;
+--constant LRAT_PgSize_16GB_log2  : integer := 34;
+--constant LRAT_PgSize_4GB_log2   : integer := 32;
+--constant LRAT_PgSize_1GB_log2   : integer := 30;
+--constant LRAT_PgSize_256MB_log2 : integer := 28;
+--constant LRAT_PgSize_16MB_log2  : integer := 24;
+--constant LRAT_PgSize_1MB_log2   : integer := 20;
+-- tag3 phase signals, tlbwe/re ex4, tlbsx/srx ex5
 ex6_valid_d  <=  ex5_valid_q and not(xu_ex5_flush);
 ex6_ttype_d  <=  ex5_ttype_q;
 ex6_esel_d   <=  ex5_esel_q;
@@ -962,6 +1017,7 @@ lrat_mas8_tlpid_d  <=  lrat_entry0_lpid_q when (ex5_valid_q/="0000" and ex5_esel
                 else lrat_entry6_lpid_q   when (ex5_valid_q/="0000" and ex5_esel_q="110")
                 else lrat_entry7_lpid_q   when (ex5_valid_q/="0000" and ex5_esel_q="111")
                 else lrat_mas8_tlpid_q;
+-- ttype -> tlbre,tlbwe,tlbsx,tlbsxr,tlbsrx
 lrat_mas_tlbre_d  <=  '1' when ((ex5_valid_q and not(xu_ex5_flush))/="0000" 
                                      and ex5_ttype_q(0)='1' and ex5_atsel_q='1') 
                else '0';
@@ -973,6 +1029,7 @@ lrat_mas_tlbsx_miss_d  <=  '1' when (ex6_valid_q/="0000" and ex6_ttype_q(2 to 4)
                   else '0';
 lrat_mas_thdid_d(0 TO thdid_width-1) <=  (ex5_valid_q  and (0 to thdid_width-1 => ex5_ttype_q(0))) 
                                        or (ex6_valid_q  and (0 to thdid_width-1 => or_reduce(ex6_ttype_q(2 to 4))));
+-- power clock gating
 lrat_mas_act_d(0) <=  ((or_reduce(ex4_valid_q) and or_reduce(ex4_ttype_q)) or mmucr2_act_override) and xu_mm_ccr2_notlb_b;
 lrat_mas_act_d(1) <=  ((or_reduce(ex4_valid_q) and or_reduce(ex4_ttype_q)) or mmucr2_act_override) and xu_mm_ccr2_notlb_b;
 lrat_mas_act_d(2) <=  (((or_reduce(ex4_valid_q) and or_reduce(ex4_ttype_q)) or mmucr2_act_override) and xu_mm_ccr2_notlb_b) or 
@@ -980,6 +1037,7 @@ lrat_mas_act_d(2) <=  (((or_reduce(ex4_valid_q) and or_reduce(ex4_ttype_q)) or m
                       (((or_reduce(ex6_valid_q) and or_reduce(ex6_ttype_q)) or mmucr2_act_override) and xu_mm_ccr2_notlb_b);
 lrat_datain_act_d(0) <=  ((or_reduce(ex4_valid_q) and or_reduce(ex4_ttype_q)) or mmucr2_act_override) and xu_mm_ccr2_notlb_b;
 lrat_datain_act_d(1) <=  ((or_reduce(ex4_valid_q) and or_reduce(ex4_ttype_q)) or mmucr2_act_override) and xu_mm_ccr2_notlb_b;
+-- tag4 phase signals, tlbwe/re ex6
 lrat_entry0_lpn_d    <=  lrat_datain_lpn_q when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                           and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="000"   and ex6_illeg_instr(1)='0') 
               else lrat_entry0_lpn_q;
@@ -998,6 +1056,15 @@ lrat_entry0_xbit_d    <=  lrat_datain_xbit_q when (ex6_valid_q/="0000" and ex6_t
 lrat_entry0_valid_d    <=  lrat_datain_valid_q when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                           and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="000"   and ex6_illeg_instr(1)='0') 
               else lrat_entry0_valid_q;
+--  size           entry_cmpmask: 0123456
+--    1TB                         1111111
+--  256GB                         0111111
+--   16GB                         0011111
+--    4GB                         0001111
+--    1GB                         0000111
+--  256MB                         0000011
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry0_cmpmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                   and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="000"   and ex6_illeg_instr(1)='0') 
@@ -1047,6 +1114,15 @@ lrat_entry0_cmpmask_d(6) <=  (Eq(lrat_datain_size_q, LRAT_PgSize_1TB) or
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                     and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="000"   and ex6_illeg_instr(1)='0') 
               else lrat_entry0_cmpmask_q(6);
+--  size          entry_xbitmask: 0123456
+--    1TB                         1000000
+--  256GB                         0100000
+--   16GB                         0010000
+--    4GB                         0001000
+--    1GB                         0000100
+--  256MB                         0000010
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry0_xbitmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                          and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="000"   and ex6_illeg_instr(1)='0') 
@@ -1093,6 +1169,15 @@ lrat_entry1_xbit_d    <=  lrat_datain_xbit_q when (ex6_valid_q/="0000" and ex6_t
 lrat_entry1_valid_d    <=  lrat_datain_valid_q when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                           and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="001"   and ex6_illeg_instr(1)='0') 
               else lrat_entry1_valid_q;
+--  size           entry_cmpmask: 0123456
+--    1TB                         1111111
+--  256GB                         0111111
+--   16GB                         0011111
+--    4GB                         0001111
+--    1GB                         0000111
+--  256MB                         0000011
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry1_cmpmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                   and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="001"   and ex6_illeg_instr(1)='0') 
@@ -1142,6 +1227,15 @@ lrat_entry1_cmpmask_d(6) <=  (Eq(lrat_datain_size_q, LRAT_PgSize_1TB) or
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                     and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="001"   and ex6_illeg_instr(1)='0') 
               else lrat_entry1_cmpmask_q(6);
+--  size          entry_xbitmask: 0123456
+--    1TB                         1000000
+--  256GB                         0100000
+--   16GB                         0010000
+--    4GB                         0001000
+--    1GB                         0000100
+--  256MB                         0000010
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry1_xbitmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                          and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="001"   and ex6_illeg_instr(1)='0') 
@@ -1188,6 +1282,15 @@ lrat_entry2_xbit_d    <=  lrat_datain_xbit_q when (ex6_valid_q/="0000" and ex6_t
 lrat_entry2_valid_d    <=  lrat_datain_valid_q when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                           and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="010"   and ex6_illeg_instr(1)='0') 
               else lrat_entry2_valid_q;
+--  size           entry_cmpmask: 0123456
+--    1TB                         1111111
+--  256GB                         0111111
+--   16GB                         0011111
+--    4GB                         0001111
+--    1GB                         0000111
+--  256MB                         0000011
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry2_cmpmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                   and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="010"   and ex6_illeg_instr(1)='0') 
@@ -1237,6 +1340,15 @@ lrat_entry2_cmpmask_d(6) <=  (Eq(lrat_datain_size_q, LRAT_PgSize_1TB) or
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                     and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="010"   and ex6_illeg_instr(1)='0') 
               else lrat_entry2_cmpmask_q(6);
+--  size          entry_xbitmask: 0123456
+--    1TB                         1000000
+--  256GB                         0100000
+--   16GB                         0010000
+--    4GB                         0001000
+--    1GB                         0000100
+--  256MB                         0000010
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry2_xbitmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                          and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="010"   and ex6_illeg_instr(1)='0') 
@@ -1283,6 +1395,15 @@ lrat_entry3_xbit_d    <=  lrat_datain_xbit_q when (ex6_valid_q/="0000" and ex6_t
 lrat_entry3_valid_d    <=  lrat_datain_valid_q when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                           and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="011"   and ex6_illeg_instr(1)='0') 
               else lrat_entry3_valid_q;
+--  size           entry_cmpmask: 0123456
+--    1TB                         1111111
+--  256GB                         0111111
+--   16GB                         0011111
+--    4GB                         0001111
+--    1GB                         0000111
+--  256MB                         0000011
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry3_cmpmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                   and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="011"   and ex6_illeg_instr(1)='0') 
@@ -1332,6 +1453,15 @@ lrat_entry3_cmpmask_d(6) <=  (Eq(lrat_datain_size_q, LRAT_PgSize_1TB) or
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                     and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="011"   and ex6_illeg_instr(1)='0') 
               else lrat_entry3_cmpmask_q(6);
+--  size          entry_xbitmask: 0123456
+--    1TB                         1000000
+--  256GB                         0100000
+--   16GB                         0010000
+--    4GB                         0001000
+--    1GB                         0000100
+--  256MB                         0000010
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry3_xbitmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                          and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="011"   and ex6_illeg_instr(1)='0') 
@@ -1378,6 +1508,15 @@ lrat_entry4_xbit_d    <=  lrat_datain_xbit_q when (ex6_valid_q/="0000" and ex6_t
 lrat_entry4_valid_d    <=  lrat_datain_valid_q when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                           and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="100"   and ex6_illeg_instr(1)='0') 
               else lrat_entry4_valid_q;
+--  size           entry_cmpmask: 0123456
+--    1TB                         1111111
+--  256GB                         0111111
+--   16GB                         0011111
+--    4GB                         0001111
+--    1GB                         0000111
+--  256MB                         0000011
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry4_cmpmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                   and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="100"   and ex6_illeg_instr(1)='0') 
@@ -1427,6 +1566,15 @@ lrat_entry4_cmpmask_d(6) <=  (Eq(lrat_datain_size_q, LRAT_PgSize_1TB) or
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                     and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="100"   and ex6_illeg_instr(1)='0') 
               else lrat_entry4_cmpmask_q(6);
+--  size          entry_xbitmask: 0123456
+--    1TB                         1000000
+--  256GB                         0100000
+--   16GB                         0010000
+--    4GB                         0001000
+--    1GB                         0000100
+--  256MB                         0000010
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry4_xbitmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                          and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="100"   and ex6_illeg_instr(1)='0') 
@@ -1473,6 +1621,15 @@ lrat_entry5_xbit_d    <=  lrat_datain_xbit_q when (ex6_valid_q/="0000" and ex6_t
 lrat_entry5_valid_d    <=  lrat_datain_valid_q when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                           and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="101"   and ex6_illeg_instr(1)='0') 
               else lrat_entry5_valid_q;
+--  size           entry_cmpmask: 0123456
+--    1TB                         1111111
+--  256GB                         0111111
+--   16GB                         0011111
+--    4GB                         0001111
+--    1GB                         0000111
+--  256MB                         0000011
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry5_cmpmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                   and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="101"   and ex6_illeg_instr(1)='0') 
@@ -1522,6 +1679,15 @@ lrat_entry5_cmpmask_d(6) <=  (Eq(lrat_datain_size_q, LRAT_PgSize_1TB) or
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                     and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="101"   and ex6_illeg_instr(1)='0') 
               else lrat_entry5_cmpmask_q(6);
+--  size          entry_xbitmask: 0123456
+--    1TB                         1000000
+--  256GB                         0100000
+--   16GB                         0010000
+--    4GB                         0001000
+--    1GB                         0000100
+--  256MB                         0000010
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry5_xbitmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                          and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="101"   and ex6_illeg_instr(1)='0') 
@@ -1568,6 +1734,15 @@ lrat_entry6_xbit_d    <=  lrat_datain_xbit_q when (ex6_valid_q/="0000" and ex6_t
 lrat_entry6_valid_d    <=  lrat_datain_valid_q when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                           and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="110"   and ex6_illeg_instr(1)='0') 
               else lrat_entry6_valid_q;
+--  size           entry_cmpmask: 0123456
+--    1TB                         1111111
+--  256GB                         0111111
+--   16GB                         0011111
+--    4GB                         0001111
+--    1GB                         0000111
+--  256MB                         0000011
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry6_cmpmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                   and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="110"   and ex6_illeg_instr(1)='0') 
@@ -1617,6 +1792,15 @@ lrat_entry6_cmpmask_d(6) <=  (Eq(lrat_datain_size_q, LRAT_PgSize_1TB) or
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                     and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="110"   and ex6_illeg_instr(1)='0') 
               else lrat_entry6_cmpmask_q(6);
+--  size          entry_xbitmask: 0123456
+--    1TB                         1000000
+--  256GB                         0100000
+--   16GB                         0010000
+--    4GB                         0001000
+--    1GB                         0000100
+--  256MB                         0000010
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry6_xbitmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                          and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="110"   and ex6_illeg_instr(1)='0') 
@@ -1663,6 +1847,15 @@ lrat_entry7_xbit_d    <=  lrat_datain_xbit_q when (ex6_valid_q/="0000" and ex6_t
 lrat_entry7_valid_d    <=  lrat_datain_valid_q when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                           and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="111"   and ex6_illeg_instr(1)='0') 
               else lrat_entry7_valid_q;
+--  size           entry_cmpmask: 0123456
+--    1TB                         1111111
+--  256GB                         0111111
+--   16GB                         0011111
+--    4GB                         0001111
+--    1GB                         0000111
+--  256MB                         0000011
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry7_cmpmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                   and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="111"   and ex6_illeg_instr(1)='0') 
@@ -1712,6 +1905,15 @@ lrat_entry7_cmpmask_d(6) <=  (Eq(lrat_datain_size_q, LRAT_PgSize_1TB) or
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                                     and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="111"   and ex6_illeg_instr(1)='0') 
               else lrat_entry7_cmpmask_q(6);
+--  size          entry_xbitmask: 0123456
+--    1TB                         1000000
+--  256GB                         0100000
+--   16GB                         0010000
+--    4GB                         0001000
+--    1GB                         0000100
+--  256MB                         0000010
+--   16MB                         0000001
+--    1MB                         0000000
 lrat_entry7_xbitmask_d(0) <=  Eq(lrat_datain_size_q, LRAT_PgSize_1TB) 
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                          and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="111"   and ex6_illeg_instr(1)='0') 
@@ -1740,7 +1942,9 @@ lrat_entry7_xbitmask_d(6) <=  Eq(lrat_datain_size_q, LRAT_PgSize_16MB)
                          when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                          and ex6_atsel_q='1' and ex6_hes_q='0' and (ex6_wq_q="00" or ex6_wq_q="11") and ex6_esel_q="111"   and ex6_illeg_instr(1)='0') 
               else lrat_entry7_xbitmask_q(6);
+-- power clock gating for entries
 lrat_entry_act_d(0 TO 7) <=  (0 to 7 => ((or_reduce(ex5_valid_q) and ex5_atsel_q) or mmucr2_act_override) and xu_mm_ccr2_notlb_b);
+-- these are tag1 phase matchline components
 matchline_comb0   : mmq_tlb_lrat_matchline
  generic map (real_addr_width   => real_addr_width,
                  lpid_width         => 8,
@@ -1981,6 +2185,9 @@ matchline_comb7   : mmq_tlb_lrat_matchline
     dbg_lpid_match                   => lrat_entry7_lpid_match
 
   );
+-----------------------------------------------------------------------
+-- output assignments
+-----------------------------------------------------------------------
 lrat_tag3_lpn               <=  lrat_tag3_lpn_q(64-real_addr_width to 51);
 lrat_tag3_rpn               <=  lrat_tag3_rpn_q(64-real_addr_width to 51);
 lrat_tag3_hit_status        <=  lrat_tag3_hit_status_q;
@@ -2051,6 +2258,7 @@ lrat_dbg_entry7_lpid_match    <=  lrat_entry7_lpid_match;
 lrat_dbg_entry7_entry_v       <=  lrat_entry7_valid_q;
 lrat_dbg_entry7_entry_x       <=  lrat_entry7_xbit_q;
 lrat_dbg_entry7_size          <=  lrat_entry7_size_q;
+-- unused spare signal assignments
 unused_dc(0) <=  or_reduce(LCB_DELAY_LCLKR_DC(1 TO 4));
 unused_dc(1) <=  or_reduce(LCB_MPW1_DC_B(1 TO 4));
 unused_dc(2) <=  PC_FUNC_SL_FORCE;
@@ -2065,6 +2273,10 @@ unused_dc(10) <=  or_reduce(MAS2_1_EPN(44 TO 51));
 unused_dc(11) <=  or_reduce(MAS2_2_EPN(44 TO 51));
 unused_dc(12) <=  or_reduce(MAS2_3_EPN(44 TO 51));
 unused_dc(13) <=  ex6_illeg_instr(0);
+-----------------------------------------------------------------------
+-- Latches
+-----------------------------------------------------------------------
+-- ex4   phase:  valid latches
 ex4_valid_latch:   tri_rlmreg_p
   generic map (width => ex4_valid_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2082,6 +2294,7 @@ ex4_valid_latch:   tri_rlmreg_p
             scout   => sov(ex4_valid_offset   to ex4_valid_offset+ex4_valid_q'length-1),
             din     => ex4_valid_d,
             dout    => ex4_valid_q    );
+-- ex4   phase:  ttype latches
 ex4_ttype_latch:   tri_rlmreg_p
   generic map (width => ex4_ttype_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2099,6 +2312,7 @@ ex4_ttype_latch:   tri_rlmreg_p
             scout   => sov(ex4_ttype_offset   to ex4_ttype_offset+ex4_ttype_q'length-1),
             din     => ex4_ttype_d,
             dout    => ex4_ttype_q    );
+-- ex5   phase:  valid latches
 ex5_valid_latch:   tri_rlmreg_p
   generic map (width => ex5_valid_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2116,6 +2330,7 @@ ex5_valid_latch:   tri_rlmreg_p
             scout   => sov(ex5_valid_offset   to ex5_valid_offset+ex5_valid_q'length-1),
             din     => ex5_valid_d,
             dout    => ex5_valid_q    );
+-- ex5   phase:  ttype latches
 ex5_ttype_latch:   tri_rlmreg_p
   generic map (width => ex5_ttype_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2133,6 +2348,7 @@ ex5_ttype_latch:   tri_rlmreg_p
             scout   => sov(ex5_ttype_offset   to ex5_ttype_offset+ex5_ttype_q'length-1),
             din     => ex5_ttype_d,
             dout    => ex5_ttype_q    );
+-- ex6   phase:  valid latches
 ex6_valid_latch:   tri_rlmreg_p
   generic map (width => ex6_valid_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2150,6 +2366,7 @@ ex6_valid_latch:   tri_rlmreg_p
             scout   => sov(ex6_valid_offset   to ex6_valid_offset+ex6_valid_q'length-1),
             din     => ex6_valid_d,
             dout    => ex6_valid_q    );
+-- ex6   phase:  ttype latches
 ex6_ttype_latch:   tri_rlmreg_p
   generic map (width => ex6_ttype_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2167,6 +2384,7 @@ ex6_ttype_latch:   tri_rlmreg_p
             scout   => sov(ex6_ttype_offset   to ex6_ttype_offset+ex6_ttype_q'length-1),
             din     => ex6_ttype_d,
             dout    => ex6_ttype_q    );
+-- ex5   phase:  esel latches
 ex5_esel_latch:   tri_rlmreg_p
   generic map (width => ex5_esel_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2184,6 +2402,7 @@ ex5_esel_latch:   tri_rlmreg_p
             scout   => sov(ex5_esel_offset   to ex5_esel_offset+ex5_esel_q'length-1),
             din     => ex5_esel_d,
             dout    => ex5_esel_q    );
+-- ex5   phase:  atsel latches
 ex5_atsel_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2201,6 +2420,7 @@ ex5_atsel_latch:   tri_rlmlatch_p
             scout   => sov(ex5_atsel_offset),
             din     => ex5_atsel_d,
             dout    => ex5_atsel_q);
+-- ex5   phase:  hes latches
 ex5_hes_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2218,6 +2438,7 @@ ex5_hes_latch:   tri_rlmlatch_p
             scout   => sov(ex5_hes_offset),
             din     => ex5_hes_d,
             dout    => ex5_hes_q);
+-- ex5   phase:  wq latches
 ex5_wq_latch:   tri_rlmreg_p
   generic map (width => ex5_wq_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2235,6 +2456,7 @@ ex5_wq_latch:   tri_rlmreg_p
             scout   => sov(ex5_wq_offset   to ex5_wq_offset+ex5_wq_q'length-1),
             din     => ex5_wq_d,
             dout    => ex5_wq_q    );
+-- ex6   phase:  esel latches
 ex6_esel_latch:   tri_rlmreg_p
   generic map (width => ex6_esel_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2252,6 +2474,7 @@ ex6_esel_latch:   tri_rlmreg_p
             scout   => sov(ex6_esel_offset   to ex6_esel_offset+ex6_esel_q'length-1),
             din     => ex6_esel_d,
             dout    => ex6_esel_q    );
+-- ex6   phase:  atsel latches
 ex6_atsel_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2269,6 +2492,7 @@ ex6_atsel_latch:   tri_rlmlatch_p
             scout   => sov(ex6_atsel_offset),
             din     => ex6_atsel_d,
             dout    => ex6_atsel_q);
+-- ex6   phase:  hes latches
 ex6_hes_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2286,6 +2510,7 @@ ex6_hes_latch:   tri_rlmlatch_p
             scout   => sov(ex6_hes_offset),
             din     => ex6_hes_d,
             dout    => ex6_hes_q);
+-- ex6   phase:  wq latches
 ex6_wq_latch:   tri_rlmreg_p
   generic map (width => ex6_wq_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2303,6 +2528,7 @@ ex6_wq_latch:   tri_rlmreg_p
             scout   => sov(ex6_wq_offset   to ex6_wq_offset+ex6_wq_q'length-1),
             din     => ex6_wq_d,
             dout    => ex6_wq_q    );
+-- tag1   phase:  logical page number latches
 lrat_tag1_lpn_latch:   tri_rlmreg_p
   generic map (width => lrat_tag1_lpn_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2320,6 +2546,7 @@ lrat_tag1_lpn_latch:   tri_rlmreg_p
             scout   => sov(lrat_tag1_lpn_offset   to lrat_tag1_lpn_offset+lrat_tag1_lpn_q'length-1),
             din     => lrat_tag1_lpn_d(64-real_addr_width   to 51),
             dout    => lrat_tag1_lpn_q(64-real_addr_width   to 51)  );
+-- tag2   phase:  logical page number latches
 lrat_tag2_lpn_latch:   tri_rlmreg_p
   generic map (width => lrat_tag2_lpn_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2337,6 +2564,7 @@ lrat_tag2_lpn_latch:   tri_rlmreg_p
             scout   => sov(lrat_tag2_lpn_offset   to lrat_tag2_lpn_offset+lrat_tag2_lpn_q'length-1),
             din     => lrat_tag2_lpn_d(64-real_addr_width   to 51),
             dout    => lrat_tag2_lpn_q(64-real_addr_width   to 51)  );
+-- tag3   phase:  logical page number latches
 lrat_tag3_lpn_latch:   tri_rlmreg_p
   generic map (width => lrat_tag3_lpn_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2354,6 +2582,7 @@ lrat_tag3_lpn_latch:   tri_rlmreg_p
             scout   => sov(lrat_tag3_lpn_offset   to lrat_tag3_lpn_offset+lrat_tag3_lpn_q'length-1),
             din     => lrat_tag3_lpn_d(64-real_addr_width   to 51),
             dout    => lrat_tag3_lpn_q(64-real_addr_width   to 51)  );
+-- tag4   phase:  logical page number latches
 lrat_tag4_lpn_latch:   tri_rlmreg_p
   generic map (width => lrat_tag4_lpn_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2371,6 +2600,7 @@ lrat_tag4_lpn_latch:   tri_rlmreg_p
             scout   => sov(lrat_tag4_lpn_offset   to lrat_tag4_lpn_offset+lrat_tag4_lpn_q'length-1),
             din     => lrat_tag4_lpn_d(64-real_addr_width   to 51),
             dout    => lrat_tag4_lpn_q(64-real_addr_width   to 51)  );
+-- tag3   phase:  real page number latches
 lrat_tag3_rpn_latch:   tri_rlmreg_p
   generic map (width => lrat_tag3_rpn_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2388,6 +2618,7 @@ lrat_tag3_rpn_latch:   tri_rlmreg_p
             scout   => sov(lrat_tag3_rpn_offset   to lrat_tag3_rpn_offset+lrat_tag3_rpn_q'length-1),
             din     => lrat_tag3_rpn_d(64-real_addr_width   to 51),
             dout    => lrat_tag3_rpn_q(64-real_addr_width   to 51)  );
+-- tag4   phase:  real page number latches
 lrat_tag4_rpn_latch:   tri_rlmreg_p
   generic map (width => lrat_tag4_rpn_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2405,6 +2636,7 @@ lrat_tag4_rpn_latch:   tri_rlmreg_p
             scout   => sov(lrat_tag4_rpn_offset   to lrat_tag4_rpn_offset+lrat_tag4_rpn_q'length-1),
             din     => lrat_tag4_rpn_d(64-real_addr_width   to 51),
             dout    => lrat_tag4_rpn_q(64-real_addr_width   to 51)  );
+-- tag3   phase:  hit status latches
 lrat_tag3_hit_status_latch:   tri_rlmreg_p
   generic map (width => lrat_tag3_hit_status_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2422,6 +2654,7 @@ lrat_tag3_hit_status_latch:   tri_rlmreg_p
             scout   => sov(lrat_tag3_hit_status_offset   to lrat_tag3_hit_status_offset+lrat_tag3_hit_status_q'length-1),
             din     => lrat_tag3_hit_status_d,
             dout    => lrat_tag3_hit_status_q    );
+-- tag3   phase:  hit entry latches
 lrat_tag3_hit_entry_latch:   tri_rlmreg_p
   generic map (width => lrat_tag3_hit_entry_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2439,6 +2672,7 @@ lrat_tag3_hit_entry_latch:   tri_rlmreg_p
             scout   => sov(lrat_tag3_hit_entry_offset   to lrat_tag3_hit_entry_offset+lrat_tag3_hit_entry_q'length-1),
             din     => lrat_tag3_hit_entry_d,
             dout    => lrat_tag3_hit_entry_q    );
+-- tag4   phase:  hit status latches
 lrat_tag4_hit_status_latch:   tri_rlmreg_p
   generic map (width => lrat_tag4_hit_status_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2456,6 +2690,7 @@ lrat_tag4_hit_status_latch:   tri_rlmreg_p
             scout   => sov(lrat_tag4_hit_status_offset   to lrat_tag4_hit_status_offset+lrat_tag4_hit_status_q'length-1),
             din     => lrat_tag4_hit_status_d,
             dout    => lrat_tag4_hit_status_q    );
+-- tag4   phase:  hit entry latches
 lrat_tag4_hit_entry_latch:   tri_rlmreg_p
   generic map (width => lrat_tag4_hit_entry_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2643,6 +2878,7 @@ lrat_datain_act_latch: tri_rlmreg_p
             scout   => sov(lrat_datain_act_offset to lrat_datain_act_offset+lrat_datain_act_q'length-1),
             din     => lrat_datain_act_d,
             dout    => lrat_datain_act_q  );
+-- LRAT entry latches
 lrat_entry0_valid_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4020,6 +4256,9 @@ lrat_mas_tlbsx_miss_latch: tri_rlmlatch_p
             scout   => sov(lrat_mas_tlbsx_miss_offset),
             din     => lrat_mas_tlbsx_miss_d,
             dout    => lrat_mas_tlbsx_miss_q  );
+--------------------------------------------------
+-- thold/sg latches
+--------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 3, expand_type => expand_type)
   port map (vd          => vdd,
@@ -4060,7 +4299,9 @@ perv_lcbor_func_slp_sl: tri_lcbor
             act_dis     => lcb_act_dis_dc,
             forcee => pc_func_slp_sl_force,
             thold_b     => pc_func_slp_sl_thold_0_b);
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv(0 TO scan_right) <=  sov(1 to scan_right) & ac_func_scan_in;
 ac_func_scan_out  <=  sov(0);
 END MMQ_TLB_LRAT;
-

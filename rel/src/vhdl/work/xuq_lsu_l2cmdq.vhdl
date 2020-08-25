@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU LSU L2 Command Queue
+--
 
 LIBRARY ieee;
 LIBRARY ibm;
@@ -24,51 +26,58 @@ use tri.tri_latches_pkg.all;
 
 
 ENTITY xuq_lsu_l2cmdq IS
-   generic(expand_type      : integer := 2;             
-           lmq_entries      : integer := 8;             
-           dc_size          : natural := 14;            
-           cl_size          : natural := 6;             
-	   real_data_add    : integer := 42;  		
+   generic(expand_type      : integer := 2;             -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
+           lmq_entries      : integer := 8;             -- 8 Loadmiss Queue Entries.
+           dc_size          : natural := 14;            -- 2^14 = 16384 Bytes L1 D$
+           cl_size          : natural := 6;             -- 2^6 = 64 Bytes CacheLines
+	   real_data_add    : integer := 42;  		-- 42 bit real address
            a2mode           : integer := 1;
            load_credits     : integer := 4;
            store_credits    : integer := 20;
-           st_data_32B_mode : integer := 1 );           
+           st_data_32B_mode : integer := 1 );           -- 0 = 16B store data to L2, 1 = 32B data
    PORT (
-        ex3_thrd_id             :in     std_ulogic_vector(0 to 3);       
-        ex3_l_s_q_val           :in     std_ulogic;                      
-        ex3_drop_ld_req         :in     std_ulogic;                      
-        ex3_drop_touch          :in     std_ulogic;                      
-        ex3_cache_inh           :in     std_ulogic;                      
-        ex3_load_instr          :in     std_ulogic;                      
-        ex3_store_instr         :in     std_ulogic;                      
-        ex3_cache_acc           :in     std_ulogic;                      
-        ex3_p_addr_lwr          :in     std_ulogic_vector(58 to 63);                  
-        ex3_opsize              :in     std_ulogic_vector(0 to 5);       
-        ex3_rot_sel             :in     std_ulogic_vector(0 to 4);       
-        ex3_byte_en             :in     std_ulogic_vector(0 to 31);      
-        ex4_256st_data          :in     std_ulogic_vector(0 to 255);     
-        ex3_target_gpr          :in     std_ulogic_vector(0 to 8);       
-        ex3_axu_op_val          :in     std_ulogic;                      
-        ex3_le_mode             :in     std_ulogic;                      
-        ex3_larx_instr          :in     std_ulogic;                      
-        ex3_stx_instr           :in     std_ulogic;                      
-        ex3_dcbt_instr          :in     std_ulogic;                      
-        ex3_dcbf_instr          :in     std_ulogic;                      
-        ex3_dcbtst_instr        :in     std_ulogic;                      
-        ex3_dcbst_instr         :in     std_ulogic;                      
-        ex3_dcbz_instr          :in     std_ulogic;                      
-        ex3_dcbi_instr          :in     std_ulogic;                      
-        ex3_icbi_instr          :in     std_ulogic;                      
-        ex3_sync_instr          :in     std_ulogic;                      
-        ex3_l_fld               :in     std_ulogic_vector(0 to 1);       
-        ex3_mbar_instr          :in     std_ulogic;                      
-        ex3_wimge_bits          :in     std_ulogic_vector(0 to 4);       
-        ex3_usr_bits            :in     std_ulogic_vector(0 to 3);       
-        ex3_stg_flush           :in     std_ulogic;                      
-        ex4_stg_flush           :in     std_ulogic;                      
+        -- Load Miss/Store Operation Signals
+        ex3_thrd_id             :in     std_ulogic_vector(0 to 3);       -- Thread ID
+        ex3_l_s_q_val           :in     std_ulogic;                      -- load/store miss valid or store valid
+        ex3_drop_ld_req         :in     std_ulogic;                      -- load miss
+        ex3_drop_touch          :in     std_ulogic;                      -- drop blockable touch
+        ex3_cache_inh           :in     std_ulogic;                      -- Cache Inhibit Mode is on
+        ex3_load_instr          :in     std_ulogic;                      -- load operation
+        ex3_store_instr         :in     std_ulogic;                      -- store operation
+        ex3_cache_acc           :in     std_ulogic;                      -- op in ex2 is a cache access
+        ex3_p_addr_lwr          :in     std_ulogic_vector(58 to 63);                  -- physical address of load/store miss
+        ex3_opsize              :in     std_ulogic_vector(0 to 5);       -- Load/Store Size
+                                                                         -- 100000 = 32 bytes
+                                                                         -- 010000 = 16 bytes
+                                                                         -- 001000 = 8 bytes
+                                                                         -- 000100 = 4 bytes
+                                                                         -- 000010 = 2 bytes
+                                                                         -- 000001 = 1 byte
+        ex3_rot_sel             :in     std_ulogic_vector(0 to 4);       -- rotator select bits for data cache
+        ex3_byte_en             :in     std_ulogic_vector(0 to 31);      -- Store Data Byte Enables
+        ex4_256st_data          :in     std_ulogic_vector(0 to 255);     -- Store Data
+        ex3_target_gpr          :in     std_ulogic_vector(0 to 8);       -- Target GPR, needed for reloads
+        ex3_axu_op_val          :in     std_ulogic;                      -- Operation was to an AXU register or from a AXU operation
+        ex3_le_mode             :in     std_ulogic;                      -- little endian mode
+        ex3_larx_instr          :in     std_ulogic;                      -- Load is a lwarx
+        ex3_stx_instr           :in     std_ulogic;                      -- Store is a stwcx
+        ex3_dcbt_instr          :in     std_ulogic;                      -- DCBT instruction is valid
+        ex3_dcbf_instr          :in     std_ulogic;                      -- DCBF instruction is valid
+        ex3_dcbtst_instr        :in     std_ulogic;                      -- DCBTST instruction is valid
+        ex3_dcbst_instr         :in     std_ulogic;                      -- DCBST instruction is valid
+        ex3_dcbz_instr          :in     std_ulogic;                      -- DCBZ instruction is valid
+        ex3_dcbi_instr          :in     std_ulogic;                      -- DCBI instruction is valid
+        ex3_icbi_instr          :in     std_ulogic;                      -- ICBI instruction is valid
+        ex3_sync_instr          :in     std_ulogic;                      -- SYNC instruction is valid
+        ex3_l_fld               :in     std_ulogic_vector(0 to 1);       -- L field of sync: 00=hwsync, 01=lwsync, 10=ptesync
+        ex3_mbar_instr          :in     std_ulogic;                      -- mbar instruction is valid
+        ex3_wimge_bits          :in     std_ulogic_vector(0 to 4);       -- WIMG bits
+        ex3_usr_bits            :in     std_ulogic_vector(0 to 3);       -- WIMG bits
+        ex3_stg_flush           :in     std_ulogic;                      -- EX3 Flush instruction
+        ex4_stg_flush           :in     std_ulogic;                      -- EX4 Flush instruction
         xu_lsu_ex5_flush        :in  std_ulogic_vector(0 to 3);
-        ex3_byp_l1              :in     std_ulogic;                      
-        ex3_algebraic           :in     std_ulogic;                      
+        ex3_byp_l1              :in     std_ulogic;                      -- Bypass L1 D$ indication if a loadmiss
+        ex3_algebraic           :in     std_ulogic;                      -- command is algebraic type
         xu_lsu_ex4_dvc1_en      :in     std_ulogic;             
         xu_lsu_ex4_dvc2_en      :in     std_ulogic;             
 
@@ -88,8 +97,8 @@ ENTITY xuq_lsu_l2cmdq IS
         ex3_classid                :in  std_ulogic_vector(0 to 1);
         ex3_lock_en  	           :in  std_ulogic;
         ex3_th_fld_l2              :in  std_ulogic;
-        ex4_drop_rel               :in  std_ulogic;                       
-        ex3_load_l1hit             :in  std_ulogic;                       
+        ex4_drop_rel               :in  std_ulogic;                       -- active for dcbtls and dcbtstls when L1 hit (treat as L2 only)
+        ex3_load_l1hit             :in  std_ulogic;                       -- used for debug to see L1 hits on bus
         ex3_mutex_hint             :in  std_ulogic;
         ex3_msgsnd_instr           :in  std_ulogic;
         ex3_watch_en               :in  std_ulogic;
@@ -99,14 +108,15 @@ ENTITY xuq_lsu_l2cmdq IS
 
         ex4_ld_entry              :in  std_ulogic_vector(0 to (26+(real_data_add-1)));
 
-        ex1_src0_vld               :in  std_ulogic;                        
-        ex1_src0_reg               :in  std_ulogic_vector(0 to 7);         
-        ex1_src1_vld               :in  std_ulogic;                        
-        ex1_src1_reg               :in  std_ulogic_vector(0 to 7);         
-        ex1_targ_vld               :in  std_ulogic;                        
-        ex1_targ_reg               :in  std_ulogic_vector(0 to 7);         
+        -- Dependency Checking on loadmisses
+        ex1_src0_vld               :in  std_ulogic;                        -- Source0 is Valid
+        ex1_src0_reg               :in  std_ulogic_vector(0 to 7);         -- Source0 Register
+        ex1_src1_vld               :in  std_ulogic;                        -- Source1 is Valid
+        ex1_src1_reg               :in  std_ulogic_vector(0 to 7);         -- Source1 Register
+        ex1_targ_vld               :in  std_ulogic;                        -- Target is Valid
+        ex1_targ_reg               :in  std_ulogic_vector(0 to 7);         -- Target Register
         ex1_check_watch            :in  std_ulogic_vector(0 to 3);
-        ex2_lm_dep_hit             :out std_ulogic;                        
+        ex2_lm_dep_hit             :out std_ulogic;                        -- dependency hit in lm q
 
         ex6_ld_par_err             :in  std_ulogic;
         pe_recov_begin             :in  std_ulogic;
@@ -114,29 +124,30 @@ ENTITY xuq_lsu_l2cmdq IS
         ex8_targ_match             :in  std_ulogic;
 
 
-        an_ac_req_ld_pop           :in     std_ulogic;                      
-        an_ac_req_st_pop           :in     std_ulogic;                      
-        an_ac_req_st_pop_thrd      :in     std_ulogic_vector(0 to 2);   
-        an_ac_req_st_gather        :in     std_ulogic;                      
+        -- inputs from L2
+        an_ac_req_ld_pop           :in     std_ulogic;                      -- credit for a load (L2 can take a load command)
+        an_ac_req_st_pop           :in     std_ulogic;                      -- credit for a store (L2 can take a store command)
+        an_ac_req_st_pop_thrd      :in     std_ulogic_vector(0 to 2);   -- decrement outbox credit count
+        an_ac_req_st_gather        :in     std_ulogic;                      -- credit for a store due to L2 gathering of store commands
 
-        an_ac_reld_data_coming       :in     std_ulogic;                      
-        an_ac_reld_data_val           :in     std_ulogic;                      
-        an_ac_reld_core_tag           :in     std_ulogic_vector(0 to 4);       
-        an_ac_reld_qw                 :in     std_ulogic_vector(57 to 59);     
-        an_ac_reld_data               :in     std_ulogic_vector(0 to 127);     
-        an_ac_reld_ditc               :in     std_ulogic;                      
-        an_ac_reld_crit_qw            :in     std_ulogic;                      
-        an_ac_reld_l1_dump            :in     std_ulogic;                      
+        an_ac_reld_data_coming       :in     std_ulogic;                      -- reload data is coming in 3 cycles
+        an_ac_reld_data_val           :in     std_ulogic;                      -- reload data is coming in 2 cycles
+        an_ac_reld_core_tag           :in     std_ulogic_vector(0 to 4);       -- reload data destinatoin tag (which load queue)
+        an_ac_reld_qw                 :in     std_ulogic_vector(57 to 59);     -- quadword address of reload data beat
+        an_ac_reld_data               :in     std_ulogic_vector(0 to 127);     -- reload data
+        an_ac_reld_ditc               :in     std_ulogic;                      -- reload data is for ditc (inbox)
+        an_ac_reld_crit_qw            :in     std_ulogic;                      -- the transfer assoicated with data_val is the critical QW
+        an_ac_reld_l1_dump            :in     std_ulogic;                      -- the transfer assoicated with data_val is the critical QW
 
-        an_ac_reld_ecc_err            :in     std_ulogic;                      
-        an_ac_reld_ecc_err_ue         :in     std_ulogic;                      
+        an_ac_reld_ecc_err            :in     std_ulogic;                      -- correctable ecc error on the data transfer
+        an_ac_reld_ecc_err_ue         :in     std_ulogic;                      -- un-correctable ecc error on the data transfer
 
-        an_ac_back_inv                :in     std_ulogic;                                 
-        an_ac_back_inv_addr           :in     std_ulogic_vector(64-real_data_add to 63);  
-        an_ac_back_inv_target_bit1    :in     std_ulogic;                                 
-        an_ac_back_inv_target_bit4    :in     std_ulogic;                                 
+        an_ac_back_inv                :in     std_ulogic;                                 -- back invalidate (cycle before inv_addr)
+        an_ac_back_inv_addr           :in     std_ulogic_vector(64-real_data_add to 63);  -- address for back invalidate
+        an_ac_back_inv_target_bit1    :in     std_ulogic;                                 -- target of back invalidate (cycle before inv_addr)
+        an_ac_back_inv_target_bit4    :in     std_ulogic;                                 -- XU just gets bits 1 (D side) and 4 (IPI)
 
-        an_ac_req_spare_ctrl_a1    :in     std_ulogic_vector(0 to 3);          
+        an_ac_req_spare_ctrl_a1    :in     std_ulogic_vector(0 to 3);          -- spare control bits from L2
         an_ac_stcx_complete        :in  std_ulogic_vector(0 to 3);
         xu_iu_stcx_complete        :out   std_ulogic_vector(0 to 3);
         xu_iu_reld_core_tag_clone     :out     std_ulogic_vector(1 to 4);
@@ -144,40 +155,45 @@ ENTITY xuq_lsu_l2cmdq IS
         xu_iu_reld_data_vld_clone     :out     std_ulogic;
         xu_iu_reld_ditc_clone         :out     std_ulogic;
 
-        lsu_reld_data_vld        :out    std_ulogic;                      
-        lsu_reld_core_tag        :out    std_ulogic_vector(3 to 4);       
-        lsu_reld_qw              :out    std_ulogic_vector(58 to 59);     
-        lsu_reld_ditc            :out    std_ulogic;                      
-        lsu_reld_ecc_err         :out    std_ulogic;                      
-        lsu_reld_data            :out    std_ulogic_vector(0 to 127);     
+-- redrive to boxes logic
+        lsu_reld_data_vld        :out    std_ulogic;                      -- reload data is coming in 2 cycles
+        lsu_reld_core_tag        :out    std_ulogic_vector(3 to 4);       -- reload data destinatoin tag (thread)
+        lsu_reld_qw              :out    std_ulogic_vector(58 to 59);     -- reload data quadword pointer
+        lsu_reld_ditc            :out    std_ulogic;                      -- reload data is for ditc (inbox)
+        lsu_reld_ecc_err         :out    std_ulogic;                      -- reload data has ecc error
+        lsu_reld_data            :out    std_ulogic_vector(0 to 127);     -- reload data
 
-        lsu_req_st_pop           :out    std_ulogic;                  
-        lsu_req_st_pop_thrd      :out    std_ulogic_vector(0 to 2);   
+        lsu_req_st_pop           :out    std_ulogic;                  -- decrement outbox credit count
+        lsu_req_st_pop_thrd      :out    std_ulogic_vector(0 to 2);   -- decrement outbox credit count
 
+        -- Instruction Fetches
+        -- Instruction Fetch real address
         i_x_ra                  :in     std_ulogic_vector(64-real_data_add to 59);
-        i_x_request             :in     std_ulogic;                      
-        i_x_wimge               :in     std_ulogic_vector(0 to 4);       
-        i_x_thread              :in     std_ulogic_vector(0 to 3);       
-        i_x_userdef             :in     std_ulogic_vector(0 to 3);       
+        i_x_request             :in     std_ulogic;                      -- Instruction Fetch is Valid
+        i_x_wimge               :in     std_ulogic_vector(0 to 4);       -- Instruction Fetch WIMG bits
+        i_x_thread              :in     std_ulogic_vector(0 to 3);       -- Instruction Fetch Thread ID
+        i_x_userdef             :in     std_ulogic_vector(0 to 3);       --
 
-	mm_xu_lsu_req           :in     std_ulogic_vector(0 to 3);    
-	mm_xu_lsu_ttype         :in     std_ulogic_vector(0 to 1);    
+        -- MMU instruction interface
+	mm_xu_lsu_req           :in     std_ulogic_vector(0 to 3);    -- will only pulse when mm has at least 1 token (1 bit per thread)
+	mm_xu_lsu_ttype         :in     std_ulogic_vector(0 to 1);    -- 0=TLBIVAX, 1=TLBI_COMPLETE, 2=LOAD (tag=01100), 3=LOAD (tag=01101)
 	mm_xu_lsu_wimge         :in     std_ulogic_vector(0 to 4);
-	mm_xu_lsu_u             :in     std_ulogic_vector(0 to 3);    
-	mm_xu_lsu_addr          :in     std_ulogic_vector(64-real_data_add to 63);  
-        mm_xu_lsu_lpid          :in     std_ulogic_vector(0 to 7);   
+	mm_xu_lsu_u             :in     std_ulogic_vector(0 to 3);    -- user defined bits
+	mm_xu_lsu_addr          :in     std_ulogic_vector(64-real_data_add to 63);  -- address for TLBI (or loads, maybe),
+                                                                                    -- TLBI_COMPLETE is address-less
+        mm_xu_lsu_lpid          :in     std_ulogic_vector(0 to 7);   -- muxed LPID for the thread of the mmu command
         mm_xu_lsu_gs            :in     std_ulogic;
         mm_xu_lsu_ind           :in     std_ulogic;
-        mm_xu_lsu_lbit          :in     std_ulogic;                   
+        mm_xu_lsu_lbit          :in     std_ulogic;                   -- "L" bit, for large vs. small
 
-        mm_xu_lsu_lpidr         :in     std_ulogic_vector(0 to 7);   
-        xu_lsu_msr_gs           :in     std_ulogic_vector(0 to 3);   
-        xu_lsu_msr_pr           :in     std_ulogic_vector(0 to 3);   
-        xu_lsu_msr_ds           :in     std_ulogic_vector(0 to 3);   
-        mm_xu_derat_pid0        :in     std_ulogic_vector(0 to 13);  
-        mm_xu_derat_pid1        :in     std_ulogic_vector(0 to 13);  
-        mm_xu_derat_pid2        :in     std_ulogic_vector(0 to 13);  
-        mm_xu_derat_pid3        :in     std_ulogic_vector(0 to 13);  
+        mm_xu_lsu_lpidr         :in     std_ulogic_vector(0 to 7);   -- the LPIDR register
+        xu_lsu_msr_gs           :in     std_ulogic_vector(0 to 3);   -- (MSR.HV)
+        xu_lsu_msr_pr           :in     std_ulogic_vector(0 to 3);   -- Problem State (MSR.PR)
+        xu_lsu_msr_ds           :in     std_ulogic_vector(0 to 3);   -- Addr Space (MSR.DS)
+        mm_xu_derat_pid0        :in     std_ulogic_vector(0 to 13);  -- Thread0 PID Number
+        mm_xu_derat_pid1        :in     std_ulogic_vector(0 to 13);  -- Thread1 PID Number
+        mm_xu_derat_pid2        :in     std_ulogic_vector(0 to 13);  -- Thread2 PID Number
+        mm_xu_derat_pid3        :in     std_ulogic_vector(0 to 13);  -- Thread3 PID Number
         xu_derat_epsc0_epr      :in     std_ulogic;
         xu_derat_epsc0_eas      :in     std_ulogic;
         xu_derat_epsc0_egs      :in     std_ulogic;
@@ -200,56 +216,60 @@ ENTITY xuq_lsu_l2cmdq IS
         xu_derat_epsc3_epid     :in     std_ulogic_vector(50 to 63);
 
 
-        bx_lsu_ob_pwr_tok        :in     std_ulogic;                  
-        bx_lsu_ob_req_val       :in     std_ulogic;                  
-        bx_lsu_ob_ditc_val      :in     std_ulogic;                  
-        bx_lsu_ob_thrd          :in     std_ulogic_vector(0 to 1);   
-        bx_lsu_ob_qw            :in     std_ulogic_vector(58 to 59); 
-        bx_lsu_ob_dest          :in     std_ulogic_vector(0 to 14);  
-        bx_lsu_ob_data          :in     std_ulogic_vector(0 to 127); 
-        bx_lsu_ob_addr          :in     std_ulogic_vector(64-real_data_add to 57); 
+        -- Boxes interface
+        bx_lsu_ob_pwr_tok        :in     std_ulogic;                  -- message buffer data is ready to send
+        bx_lsu_ob_req_val       :in     std_ulogic;                  -- message buffer data is ready to send
+        bx_lsu_ob_ditc_val      :in     std_ulogic;                  -- send dtic command
+        bx_lsu_ob_thrd          :in     std_ulogic_vector(0 to 1);   -- source thread
+        bx_lsu_ob_qw            :in     std_ulogic_vector(58 to 59); -- QW address
+        bx_lsu_ob_dest          :in     std_ulogic_vector(0 to 14);  -- destination node/core/thread for the packet
+        bx_lsu_ob_data          :in     std_ulogic_vector(0 to 127); -- 16B of data from the outbox
+        bx_lsu_ob_addr          :in     std_ulogic_vector(64-real_data_add to 57); -- address for boxes message
         lsu_bx_cmd_avail        :out    std_ulogic;
         lsu_bx_cmd_sent         :out    std_ulogic;
         lsu_bx_cmd_stall        :out    std_ulogic;
 
-        spr_xucr0_clkg_ctl_b3  :in      std_ulogic;  
-        xu_lsu_spr_xucr0_rel   :in      std_ulogic;  
-        xu_lsu_spr_xucr0_l2siw :in      std_ulogic;  
-        xu_lsu_spr_xucr0_cred  :in      std_ulogic;  
-        xu_lsu_spr_xucr0_mbar_ack  :in  std_ulogic;  
-        xu_lsu_spr_xucr0_tlbsync :in std_ulogic; 
-        xu_lsu_spr_xucr0_cls   :in      std_ulogic;  
+        spr_xucr0_clkg_ctl_b3  :in      std_ulogic;  -- Clock Gating Override
+        xu_lsu_spr_xucr0_rel   :in      std_ulogic;  -- L2 Reload Mode Control (0=gaps, 1=back to back)
+        xu_lsu_spr_xucr0_l2siw :in      std_ulogic;  -- L2 Store Interface Width (0=16B, 1=32B)
+        xu_lsu_spr_xucr0_cred  :in      std_ulogic;  -- L2 credit debug mode (0=normal, 1=need both load and store credit to send anything)
+        xu_lsu_spr_xucr0_mbar_ack  :in  std_ulogic;  -- use sync_ack from L2 for lwsync and mbar when 1
+        xu_lsu_spr_xucr0_tlbsync :in std_ulogic; -- use sync_ack from L2 for tlbsync when 1
+        xu_lsu_spr_xucr0_cls   :in      std_ulogic;  -- cache line size (1=128 byte, 0=64 byte)
 
-	xu_mm_lsu_token         :out    std_ulogic;   
+	xu_mm_lsu_token         :out    std_ulogic;   -- pulse for 1 clk when mm queue entry has been sent (i.e. mmu can request again)
 
  
-        lsu_xu_ldq_barr_done         :out    std_ulogic_vector(0 to 3);       
-        lsu_xu_sync_barr_done        :out    std_ulogic_vector(0 to 3);       
+        -- Memory Barrier Complete for lwsync/mbar signals going to IU
+        lsu_xu_ldq_barr_done         :out    std_ulogic_vector(0 to 3);       -- Memory Barrier for ldq hit complete thread id, should be on when true
+        lsu_xu_sync_barr_done        :out    std_ulogic_vector(0 to 3);       -- Memory Barrier (lwsync/mbar) complete thread id, should be on when true
 
-
-        ldq_rel_op_size         :out    std_ulogic_vector(0 to 5);       
-        ldq_rel_thrd_id         :out    std_ulogic_vector(0 to 3);       
-        ldq_rel_addr_early      :out    std_ulogic_vector(64-real_data_add to 57);        
-        ldq_rel_addr            :out    std_ulogic_vector(64-real_data_add to 58);    
-        ldq_rel_data_val_early  :out    std_ulogic;                      
-        ldq_rel_data_val        :out    std_ulogic;                      
-        ldq_rel_tag_early       :out    std_ulogic_vector(2 to 4);       
-        ldq_rel_tag             :out    std_ulogic_vector(2 to 4);       
-        ldq_rel1_val            :out    std_ulogic;                      
+        -- *** Reload operation Outputs ***
+        -- Reload Address
+        ldq_rel_op_size         :out    std_ulogic_vector(0 to 5);       -- Reload Size, used to determine the data write in gpr reg file
+        ldq_rel_thrd_id         :out    std_ulogic_vector(0 to 3);       -- Thread ID of the reload
+                                                                                        -- goes with ldq_rel_val
+        ldq_rel_addr_early      :out    std_ulogic_vector(64-real_data_add to 57);        -- 1 cycle before ldq_rel_addr
+        ldq_rel_addr            :out    std_ulogic_vector(64-real_data_add to 58);    -- d-cache reload physical address in cycle before data
+        ldq_rel_data_val_early  :out    std_ulogic;                      -- 1 cycle before reload data - use for act
+        ldq_rel_data_val        :out    std_ulogic;                      -- Reload data is valid, active for 2 32B beats of data
+        ldq_rel_tag_early       :out    std_ulogic_vector(2 to 4);       -- tag of the reload, 1 cycle early
+        ldq_rel_tag             :out    std_ulogic_vector(2 to 4);       -- tag of the reload
+        ldq_rel1_val            :out    std_ulogic;                      -- Reload data is valid for 1st 32B beat
         ldq_rel1_early_v        :out    std_ulogic;
-        ldq_rel_mid_val         :out    std_ulogic;                      
-        ldq_rel_retry_val       :out    std_ulogic;                      
-        ldq_rel3_val            :out    std_ulogic;                      
+        ldq_rel_mid_val         :out    std_ulogic;                      -- Reload data is valid for middle 32B beat
+        ldq_rel_retry_val       :out    std_ulogic;                      -- Reload is recirculated, dont update D$ array
+        ldq_rel3_val            :out    std_ulogic;                      -- Reload data is valid for last 32B beat
         ldq_rel3_early_v        :out    std_ulogic;
-        ldq_rel_ta_gpr          :out    std_ulogic_vector(0 to 8);       
-        ldq_rel_rot_sel         :out    std_ulogic_vector(0 to 4);       
-        ldq_rel_axu_val         :out    std_ulogic;                      
-        ldq_rel_upd_gpr         :out    std_ulogic;                      
-        ldq_rel_le_mode         :out    std_ulogic;                      
+        ldq_rel_ta_gpr          :out    std_ulogic_vector(0 to 8);       -- Reload Target Register
+        ldq_rel_rot_sel         :out    std_ulogic_vector(0 to 4);       -- Reload rotator select
+        ldq_rel_axu_val         :out    std_ulogic;                      -- Reload is for a Vector Register
+        ldq_rel_upd_gpr         :out    std_ulogic;                      -- Reload data should be written to GPR (DCB ops don't write to GPRs)
+        ldq_rel_le_mode         :out    std_ulogic;                      -- Reload data is in little endian mode
         ldq_rel_algebraic       :out    std_ulogic;
-        ldq_rel_set_val         :out    std_ulogic;                      
-        ldq_rel_256_data        :out    std_ulogic_vector(0 to 255);     
-        ldq_rel_ecc_err         :out    std_ulogic;                      
+        ldq_rel_set_val         :out    std_ulogic;                      -- all 4 data beats have transferred without error, set valid in dir
+        ldq_rel_256_data        :out    std_ulogic_vector(0 to 255);     -- 32 bytes of reload data
+        ldq_rel_ecc_err         :out    std_ulogic;                      -- all 4 data beats have transferred without error, set valid in dir
 
 
         ldq_rel_classid         :out    std_ulogic_vector(0 to 1);
@@ -262,30 +282,33 @@ ENTITY xuq_lsu_l2cmdq IS
 
         ldq_recirc_rel_val      :in     std_ulogic;
 
-        ldq_rel_beat_crit_qw        :out    std_ulogic;                      
-        ldq_rel_beat_crit_qw_block  :out    std_ulogic;                      
+        ldq_rel_beat_crit_qw        :out    std_ulogic;                      -- critical QW being sent on the reload data
+        ldq_rel_beat_crit_qw_block  :out    std_ulogic;                      -- critical QW blocked due to ecc error
 
         l1dump_cslc                 :out    std_ulogic;
-        ldq_rel3_l1dump_val         :out    std_ulogic;                      
+        ldq_rel3_l1dump_val         :out    std_ulogic;                      -- reload had l1dump set
 
+        -- Back invalidate signals going to D-Cache
         is2_l2_inv_val              :out    std_ulogic;                                 
         is2_l2_inv_p_addr           :out    std_ulogic_vector(64-real_data_add to 63-cl_size);  
 
 
-        ex3_stq_flush           :out    std_ulogic;                      
-        ex3_ig_flush            :out    std_ulogic;                      
+        -- Flush Signals and signals going to dependency
+        ex3_stq_flush           :out    std_ulogic;                      -- Store Queue Full flush
+        ex3_ig_flush            :out    std_ulogic;                      -- 2nd load to I=1, G=1 flush
         ex3_ld_queue_full        :out    std_ulogic;                      
 
-        gpr_ecc_err_flush_tid   :out    std_ulogic_vector(0 to 3);      
-        xu_iu_ex4_loadmiss_qentry     :out    std_ulogic_vector(0 to lmq_entries-1);       
-        xu_iu_ex4_loadmiss_target     :out    std_ulogic_vector(0 to 8);       
+        gpr_ecc_err_flush_tid   :out    std_ulogic_vector(0 to 3);      -- all cmds to this thread need to be flushed
+                                                                        -- because GPR got bad ecc on a reload
+        xu_iu_ex4_loadmiss_qentry     :out    std_ulogic_vector(0 to lmq_entries-1);       -- Load Miss Queue entry
+        xu_iu_ex4_loadmiss_target     :out    std_ulogic_vector(0 to 8);       -- target gpr
         xu_iu_ex4_loadmiss_target_type     :out    std_ulogic_vector(0 to 1);
         xu_iu_ex4_loadmiss_tid        :out    std_ulogic_vector(0 to 3);
-        xu_iu_ex5_loadmiss_qentry     :out    std_ulogic_vector(0 to lmq_entries-1);       
-        xu_iu_ex5_loadmiss_target     :out    std_ulogic_vector(0 to 8);       
+        xu_iu_ex5_loadmiss_qentry     :out    std_ulogic_vector(0 to lmq_entries-1);       -- Load Miss Queue entry
+        xu_iu_ex5_loadmiss_target     :out    std_ulogic_vector(0 to 8);       -- target gpr
         xu_iu_ex5_loadmiss_target_type     :out    std_ulogic_vector(0 to 1);
         xu_iu_ex5_loadmiss_tid        :out    std_ulogic_vector(0 to 3);
-        xu_iu_complete_qentry     :out    std_ulogic_vector(0 to lmq_entries-1);       
+        xu_iu_complete_qentry     :out    std_ulogic_vector(0 to lmq_entries-1);       -- Load Miss Complete, Reload came backld_m_rel0_done
         xu_iu_complete_tid        :out    std_ulogic_vector(0 to 3);
         xu_iu_complete_target_type     :out    std_ulogic_vector(0 to 1);
 
@@ -304,47 +327,50 @@ ENTITY xuq_lsu_l2cmdq IS
         lsu_xu_dbell_lpid_match       :out    std_ulogic;
         lsu_xu_dbell_pirtag           :out    std_ulogic_vector(50 to 63);
 
+        ac_an_req_pwr_token       :out    std_ulogic;                              -- power token for command coming next cycle
+        ac_an_req                 :out    std_ulogic;                              -- command request valid
+        ac_an_req_ra              :out    std_ulogic_vector(64-real_data_add to 63);  -- real address for request
+        ac_an_req_ttype           :out    std_ulogic_vector(0 to 5);               -- command (transaction) type
+        ac_an_req_thread          :out    std_ulogic_vector(0 to 2);               -- encoded thread ID
+        ac_an_req_wimg_w          :out    std_ulogic;                              -- write-through
+        ac_an_req_wimg_i          :out    std_ulogic;                              -- cache-inhibited
+        ac_an_req_wimg_m          :out    std_ulogic;                              -- memory coherence required
+        ac_an_req_wimg_g          :out    std_ulogic;                              -- guarded memory
+        ac_an_req_endian          :out    std_ulogic;                              -- endian mode (0=big endian, 1=little endian)
+        ac_an_req_user_defined    :out    std_ulogic_vector(0 to 3);               -- user defined bits
+        ac_an_req_spare_ctrl_a0   :out    std_ulogic_vector(0 to 3);               -- spare control bits to L2
+        ac_an_req_ld_core_tag     :out    std_ulogic_vector(0 to 4);               -- load command tag (which load Q)
+        ac_an_req_ld_xfr_len      :out    std_ulogic_vector(0 to 2);               -- transfer length for non-cacheable load
+                                                                                   -- 000 = reserved     100 = 4 bytes
+                                                                                   -- 001 = 1 byte       101 = 8 bytes
+                                                                                   -- 010 = 2 bytes      110 = 16 bytes
+                                                                                   -- 011 = 3 bytes      111 = 32 bytes
+        ac_an_st_byte_enbl        :out    std_ulogic_vector(0 to 15+(st_data_32B_mode*16));   -- byte enables for store data
+        ac_an_st_data             :out    std_ulogic_vector(0 to 127+(st_data_32B_mode*128)); -- store data (Prism uses bits 0 to 127 only)
+        ac_an_st_data_pwr_token   :out    std_ulogic;                      -- store data power token
 
+     -- connect to the compare logic
 
-        ac_an_req_pwr_token       :out    std_ulogic;                              
-        ac_an_req                 :out    std_ulogic;                              
-        ac_an_req_ra              :out    std_ulogic_vector(64-real_data_add to 63);  
-        ac_an_req_ttype           :out    std_ulogic_vector(0 to 5);               
-        ac_an_req_thread          :out    std_ulogic_vector(0 to 2);               
-        ac_an_req_wimg_w          :out    std_ulogic;                              
-        ac_an_req_wimg_i          :out    std_ulogic;                              
-        ac_an_req_wimg_m          :out    std_ulogic;                              
-        ac_an_req_wimg_g          :out    std_ulogic;                              
-        ac_an_req_endian          :out    std_ulogic;                              
-        ac_an_req_user_defined    :out    std_ulogic_vector(0 to 3);               
-        ac_an_req_spare_ctrl_a0   :out    std_ulogic_vector(0 to 3);               
-        ac_an_req_ld_core_tag     :out    std_ulogic_vector(0 to 4);               
-        ac_an_req_ld_xfr_len      :out    std_ulogic_vector(0 to 2);               
-        ac_an_st_byte_enbl        :out    std_ulogic_vector(0 to 15+(st_data_32B_mode*16));   
-        ac_an_st_data             :out    std_ulogic_vector(0 to 127+(st_data_32B_mode*128)); 
-        ac_an_st_data_pwr_token   :out    std_ulogic;                      
+       cmp_lmq_entry_act          :out std_ulogic; -- act for lmq entries
+       cmp_ex3_p_addr_o           :in  std_ulogic_vector(64-real_data_add to 57); -- erat array output
+       cmp_ldq_comp_val           :out std_ulogic_vector(0 to 7); -- enable compares against lmq
+       cmp_ldq_match              :in  std_ulogic_vector(0 to 7); -- compare result (without enable)
+       cmp_ldq_fnd                :in  std_ulogic; -- all the enabled compares "OR"ed together
 
-
-       cmp_lmq_entry_act          :out std_ulogic; 
-       cmp_ex3_p_addr_o           :in  std_ulogic_vector(64-real_data_add to 57); 
-       cmp_ldq_comp_val           :out std_ulogic_vector(0 to 7); 
-       cmp_ldq_match              :in  std_ulogic_vector(0 to 7); 
-       cmp_ldq_fnd                :in  std_ulogic; 
-
-       cmp_l_q_wrt_en             :out std_ulogic_vector(0 to 7);   
+       cmp_l_q_wrt_en             :out std_ulogic_vector(0 to 7);   -- load entry, (hold when not loading)
        cmp_ld_ex7_recov           :out std_ulogic;
        cmp_ex7_ld_recov_addr      :out std_ulogic_vector(64-real_data_add to 57); 
 
-       cmp_ex4_loadmiss_qentry    :out std_ulogic_vector(0 to 7);   
-       cmp_ex4_ld_addr            :in  std_ulogic_vector(64-real_data_add to 57); 
+       cmp_ex4_loadmiss_qentry    :out std_ulogic_vector(0 to 7);   -- mux 3 select
+       cmp_ex4_ld_addr            :in  std_ulogic_vector(64-real_data_add to 57); -- mux 3
 
-       cmp_l_q_rd_en              :out std_ulogic_vector(0 to 7);   
-       cmp_l_miss_entry_addr      :in  std_ulogic_vector(64-real_data_add to 57); 
+       cmp_l_q_rd_en              :out std_ulogic_vector(0 to 7);   -- mux 2 select
+       cmp_l_miss_entry_addr      :in  std_ulogic_vector(64-real_data_add to 57); -- mux 2
 
-       cmp_rel_tag_1hot           :out std_ulogic_vector(0 to 7);   
-       cmp_rel_addr               :in  std_ulogic_vector(64-real_data_add to 57); 
+       cmp_rel_tag_1hot           :out std_ulogic_vector(0 to 7);   -- mux 1 select
+       cmp_rel_addr               :in  std_ulogic_vector(64-real_data_add to 57); -- mux 1
 
-       cmp_back_inv_addr          :out std_ulogic_vector(64-real_data_add to 57); 
+       cmp_back_inv_addr          :out std_ulogic_vector(64-real_data_add to 57); -- compare to each ldq entry
        cmp_back_inv_cmp_val       :out std_ulogic_vector(0 to 7);   
        cmp_back_inv_addr_hit      :in  std_ulogic_vector(0 to 7);   
 
@@ -356,6 +382,7 @@ ENTITY xuq_lsu_l2cmdq IS
        cmp_ex4_st_val             :out std_ulogic                 ; 
        cmp_ex3addr_hit_ex4st      :in  std_ulogic                 ; 
 
+     -- latch and redrive for BXQ
      ac_an_reld_ditc_pop_int    : in  std_ulogic_vector(0 to 3);
      ac_an_reld_ditc_pop_q      : out std_ulogic_vector(0 to 3);
      bx_ib_empty_int            : in  std_ulogic_vector(0 to 3);
@@ -363,10 +390,12 @@ ENTITY xuq_lsu_l2cmdq IS
 
 
 
+     -- Performance Events
      lsu_xu_perf_events         :out std_ulogic_vector(0 to 8);
 
      lmq_pe_recov_state        :out std_ulogic;
 
+     -- Debug Data Bus
      lmq_dbg_dcache_pe          :out std_ulogic_vector(1 to 60);
      lmq_dbg_l2req              :out std_ulogic_vector(0 to 212);
      lmq_dbg_rel                :out std_ulogic_vector(0 to 140);
@@ -380,9 +409,11 @@ ENTITY xuq_lsu_l2cmdq IS
      lmq_dbg_grp5               :out std_ulogic_vector(0 to 87);
      lmq_dbg_grp6               :out std_ulogic_vector(0 to 87);
 
+     -- power
      vdd                        : inout power_logic;
      gnd                        : inout power_logic;
 
+     --pervasive
      l2_data_ecc_err_ue         :out std_ulogic_vector(0 to 3);
      xu_pc_err_l2intrf_ecc      :out std_ulogic;
      xu_pc_err_l2intrf_ue       :out std_ulogic;
@@ -409,8 +440,6 @@ ENTITY xuq_lsu_l2cmdq IS
      scan_in                    :in  std_ulogic_vector(0 to 2);
      scan_out                   :out std_ulogic_vector(0 to 2)
     );
-
-
 
 
 
@@ -999,19 +1028,19 @@ signal rel_set_val_or           :std_ulogic;
 signal lmq_back_invalidated_d   :std_ulogic_vector(0 to lmq_entries-1);
 signal lmq_back_invalidated_l2  :std_ulogic_vector(0 to lmq_entries-1);
 
-signal ex3_loadmiss_qentry       :std_ulogic_vector(0 to lmq_entries-1);       
-signal ex4_loadmiss_qentry       :std_ulogic_vector(0 to lmq_entries-1);       
-signal ex5_loadmiss_qentry_d     :std_ulogic_vector(0 to lmq_entries-1);       
-signal ex6_loadmiss_qentry_d     :std_ulogic_vector(0 to lmq_entries-1);       
-signal ex7_loadmiss_qentry_d     :std_ulogic_vector(0 to lmq_entries-1);       
-signal ex5_loadmiss_qentry       :std_ulogic_vector(0 to lmq_entries-1);       
-signal ex6_loadmiss_qentry       :std_ulogic_vector(0 to lmq_entries-1);       
-signal ex7_loadmiss_qentry       :std_ulogic_vector(0 to lmq_entries-1);       
-signal ex3_loadmiss_target       :std_ulogic_vector(0 to 8);       
+signal ex3_loadmiss_qentry       :std_ulogic_vector(0 to lmq_entries-1);       -- Load Miss Queue entry
+signal ex4_loadmiss_qentry       :std_ulogic_vector(0 to lmq_entries-1);       -- Load Miss Queue entry
+signal ex5_loadmiss_qentry_d     :std_ulogic_vector(0 to lmq_entries-1);       -- Load Miss Queue entry
+signal ex6_loadmiss_qentry_d     :std_ulogic_vector(0 to lmq_entries-1);       -- Load Miss Queue entry
+signal ex7_loadmiss_qentry_d     :std_ulogic_vector(0 to lmq_entries-1);       -- Load Miss Queue entry
+signal ex5_loadmiss_qentry       :std_ulogic_vector(0 to lmq_entries-1);       -- Load Miss Queue entry
+signal ex6_loadmiss_qentry       :std_ulogic_vector(0 to lmq_entries-1);       -- Load Miss Queue entry
+signal ex7_loadmiss_qentry       :std_ulogic_vector(0 to lmq_entries-1);       -- Load Miss Queue entry
+signal ex3_loadmiss_target       :std_ulogic_vector(0 to 8);       -- target gpr
 signal ex3_loadmiss_target_type  :std_ulogic_vector(0 to 1);
 signal ex3_loadmiss_tid          :std_ulogic_vector(0 to 3);
 signal ex4_loadmiss_tid          :std_ulogic_vector(0 to 3);
-signal ex4_loadmiss_target       :std_ulogic_vector(0 to 8);       
+signal ex4_loadmiss_target       :std_ulogic_vector(0 to 8);       -- target gpr
 signal ex4_loadmiss_target_type  :std_ulogic_vector(0 to 1);
 signal ex4_loadmiss_tid_gated1   :std_ulogic_vector(0 to 3);
 signal ex4_loadmiss_tid_gated    :std_ulogic_vector(0 to 3);
@@ -1291,6 +1320,7 @@ constant lmq_drop_rel_offset              : natural :=ex4_drop_touch_offset     
 constant lmq_dvc1_en_offset               : natural :=lmq_drop_rel_offset        + lmq_drop_rel_l2'length;
 constant lmq_dvc2_en_offset               : natural :=lmq_dvc1_en_offset         + lmq_dvc1_en_l2'length;
 constant l_m_queue_offset                 : natural :=lmq_dvc2_en_offset         + lmq_dvc2_en_l2'length;
+-- scan 1
 constant l_m_queue_addrlo_offset          : natural :=l_m_queue_offset           + lmq_entries * l_m_queue(0)'length;
 constant ex4_ld_recov_offset              : natural :=l_m_queue_addrlo_offset    + lmq_entries * l_m_queue_addrlo(0)'length;
 constant ex4_ld_recov_val_offset          : natural :=ex4_ld_recov_offset        + ex4_ld_entry_l2'length;
@@ -1493,6 +1523,7 @@ signal bcfg_siv                           : std_ulogic_vector(0 to bcfg_scan_rig
 signal bcfg_sov                           : std_ulogic_vector(0 to bcfg_scan_right-1);
 
 
+-- Get rid of sinkless net messages
 signal unused_signals                   : std_ulogic;
 
 begin
@@ -1501,6 +1532,10 @@ unused_signals <= or_reduce(unused & ex4_ld_recov_entry(48) & ex7_ld_recov_l2(22
 
 ex3_p_addr <= cmp_ex3_p_addr_o & ex3_p_addr_lwr;
 
+--*************************************************************************************************
+-- Load/Store Queue logic act:  power up ldq logic when there is a valid lsu op in ex3 and leave
+-- it on until the ldq is empty.  Same for stq except use ex4 store to power up.
+--*************************************************************************************************
 
 ldq_active_d <= ex3_stg_act or pe_recov_ld_val_l2 or
                 (ldq_active_l2 and not lmq_empty);
@@ -1522,6 +1557,7 @@ latch_clkg_ctl_override : tri_rlmreg_p
             scout   => sov(clkg_ctl_override_offset to clkg_ctl_override_offset),
             din(0)  => spr_xucr0_clkg_ctl_b3,
             dout(0) => clkg_ctl_override_q);
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 latch_ldq_active : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)
@@ -1562,6 +1598,7 @@ latch_ldq_active_dly : tri_rlmreg_p
             dout(0) => ldq_active_dly_l2);
 
 ldq_act <= ex3_stg_act or pe_recov_ld_val_l2 or ldq_active_l2 or ldq_active_dly_l2 or clkg_ctl_override_q;
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 stq_active_d <= ex4_st_val_l2 or (l2req_recycle_l2 and ex7_ld_par_err) or
                 (stq_active_l2 and st_entry0_val_l2);
@@ -1587,13 +1624,16 @@ latch_stq_active : tri_rlmreg_p
 stq_act <= ex4_st_val_l2 or stq_active_l2 or (l2req_recycle_l2 and ex7_ld_par_err) or st_recycle_act or clkg_ctl_override_q;
 
 
+--******************************************************
+-- Inputs
+--******************************************************
 
-
+-- new user defined attribute bit -> Bypass L1 if a loadmiss
 c_inh <= ex3_cache_inh or ex3_byp_l1;       
 
-dcbt_instr <= ex3_dcbt_instr or ex3_dcbtst_instr or ex3_dcbtls_instr or ex3_dcbtstls_instr;   
+dcbt_instr <= ex3_dcbt_instr or ex3_dcbtst_instr or ex3_dcbtls_instr or ex3_dcbtstls_instr;   -- these touch instructions don't load a GPR
 
-touch_instr <= ex3_dcbt_instr or ex3_dcbtst_instr or ex3_dcbtls_instr or ex3_dcbtstls_instr or 
+touch_instr <= ex3_dcbt_instr or ex3_dcbtst_instr or ex3_dcbtls_instr or ex3_dcbtstls_instr or -- these touch instructions don't load a GPR
                ex3_icbt_instr or ex3_icbtls_instr;
 
 l2only_instr <= (dcbt_instr and ex3_th_fld_l2) or ex3_icbt_instr or ex3_icbtls_instr; 
@@ -1653,6 +1693,7 @@ latch_my_ex4_flush : tri_rlmreg_p
             dout(0) => my_ex4_flush_l2);
 
 
+-- track parity error recovery state
 
 pe_recov_empty_d <= lmq_empty and pe_recov_state_l2;
 
@@ -1772,9 +1813,6 @@ recov_ignr_flush_d <= or_reduce(pe_recov_ld_num_l2);
 
 
 
-
-
-
 ex3_flush_all <= ex3_stg_flush or I1_G1_flush; 
 
 ex4_flush_load  <= (ex7_ld_par_err or ex8_ld_par_err_l2 or ex4_drop_ld_req or l_m_fnd_stg or my_ex4_flush_l2) and not recov_ignr_flush_d;
@@ -1782,7 +1820,7 @@ ex4_flush_load  <= (ex7_ld_par_err or ex8_ld_par_err_l2 or ex4_drop_ld_req or l_
 ex4_flush_load_wo_drop  <= ex7_ld_par_err or l_m_fnd_stg or my_ex4_flush_l2 or
                            (ex4_drop_touch and ex4_ld_recov(38));                
 ex4_flush_store <= (ex7_ld_par_err or ex8_ld_par_err_l2 or l_m_fnd_stg or (ex4_load_l1hit_val and not ex4_drop_ld_req) or my_ex4_flush_l2) or
-                   ((ex4_st_entry_l2(0 to 4) = "10010") and ex4_drop_ld_req);  
+                   ((ex4_st_entry_l2(0 to 4) = "10010") and ex4_drop_ld_req);  -- icblc/dcblc and drop due to I=1
 
 ex5_flush_load_all <= my_ex5_flush and not recov_ignr_flush_d;
 ex5_flush_load_local <= ex5_flush_l2 and not recov_ignr_flush_d;
@@ -1815,6 +1853,9 @@ my_xucr0_mbar_ack    <= my_xucr0_l2(3);
 my_xucr0_tlbsync     <= my_xucr0_l2(4);
 my_xucr0_cls         <= my_xucr0_l2(5);
 
+--******************************************************
+-- Latch the L2 interface Inputs
+--******************************************************
 
 
 latch_anac_data_coming : tri_rlmreg_p
@@ -2034,7 +2075,7 @@ ldq_retry_tag4: if lmq_entries=4 generate begin
    ldq_retry_tag(2 to 4) <= "000"   when ldq_retry_ready(0)='1' else
                             "001"   when ldq_retry_ready(1)='1' else
                             "010"   when ldq_retry_ready(2)='1' else
-                            "011"; 
+                            "011"; --  when ldq_retry_ready(3)='1'
 end generate;
 
 ldq_retry_tag8: if lmq_entries=8 generate begin
@@ -2045,7 +2086,7 @@ ldq_retry_tag8: if lmq_entries=8 generate begin
                             "100"   when ldq_retry_ready(4)='1' else
                             "101"   when ldq_retry_ready(5)='1' else
                             "110"   when ldq_retry_ready(6)='1' else
-                            "111"; 
+                            "111"; --  when ldq_retry_ready(7)='1'
 end generate;
 
 ldq_retry_ready(0) <= ldq_retry_l2(0) and not retry_started_l2(0);
@@ -2641,6 +2682,7 @@ latch_xu_iu_reld_ditc : tri_rlmreg_p
             dout(0) => xu_iu_reld_ditc_clone);
 
 
+-- redrive latch outputs to boxes logic
 
      lsu_reld_data_vld     <= anaclat_data_val;
      lsu_reld_core_tag     <= anaclat_tag(3 to 4);
@@ -2651,6 +2693,9 @@ latch_xu_iu_reld_ditc : tri_rlmreg_p
      lsu_req_st_pop_thrd   <= anaclat_st_pop_thrd;
      lsu_reld_ecc_err      <= anaclat_ecc_err or anaclat_ecc_err_ue;
 
+--******************************************************
+-- Send DBell info to xu
+--******************************************************
 
 latch_lpidr : tri_rlmreg_p
   generic map (width => lpidr_l2'length, init => 0, expand_type => expand_type)
@@ -2677,6 +2722,9 @@ lsu_xu_dbell_lpid_match        <= (anaclat_back_inv_addr(42 to 49) = lpidr_l2(0 
                                   (anaclat_back_inv_addr(42 to 49) = x"00");
 lsu_xu_dbell_pirtag(50 to 63)  <= anaclat_back_inv_addr(50 to 63); 
 
+--******************************************************
+-- Command Sequence Write
+--******************************************************
 
 cmd_seq_incr(0 to 4) <= std_ulogic_vector(unsigned(cmd_seq_l2) + 1);
 cmd_seq_decr(0 to 4) <= std_ulogic_vector(unsigned(cmd_seq_l2) - 1);
@@ -2715,6 +2763,9 @@ new_ld_cmd_seq(0 to 4) <= cmd_seq_decr(0 to 4)   when (ld_m_val and ex4_flush_lo
 
 ld_q_seq_wrap <= (cmd_seq_l2 = cmd_seq_rd_l2) and or_reduce(ld_entry_val_l2);
 
+--******************************************************
+-- Command Sequence Read
+--******************************************************
 
 cmd_seq_rd_incr(0 to 4) <= std_ulogic_vector(unsigned(cmd_seq_rd_l2) + 1);
 
@@ -2739,9 +2790,31 @@ latch_cmd_seq_rd : tri_rlmreg_p
             din     => cmd_seq_rd_d(0 to 4),
             dout    => cmd_seq_rd_l2(0 to 4));
 
+--******************************************************
+-- Queue Entry
+--******************************************************
 
 ex3_new_target_gpr <= ex3_target_gpr or (0 to  8 => touch_instr);
 
+-- bit(0) = c_inh
+-- bit(1:6) = encoded command type(0 to 5)
+-- bit(7:12) = opsize(0 to 5)
+-- bit(13:17) = rot_sel(0 to 4)
+-- bit(18:21) = th_id(0 to 3)
+-- bit(22:26) = cmd_seq_l2(0 to 4)
+-- bit(27:35) = target_gpr(0 to 8)
+-- bit(36) = axu_op_val
+-- bit(37) = little endian mode
+-- bit(38) = dcbt is valid
+-- bit(39:42) = wimg bits
+-- bit(43:46) = user defined bits
+-- bit(47) = algebraic op
+-- bit(48) = L2 only touch (do not write reload data to cache)
+-- bit(49) = way lock
+-- bit(50:51) = way lock bits table select bit (classid)
+-- bit(52) = watch enable
+-- bit(53) = litle endian bit (from erat)
+-- bit(53:xx) = ex3_p_addr(22 to 63)
 ld_queue_entry <= c_inh & cmd_type_ld(0 to 5) & ex3_opsize(0 to 5) & ex3_rot_sel(0 to 4) &
                      ex3_thrd_id(0 to 3) & new_ld_cmd_seq(0 to 4) & ex3_new_target_gpr(0 to 8) &
                      ex3_axu_op_val & ex3_le_mode & touch_instr &
@@ -2832,30 +2905,30 @@ cmd_type_st(0 to 5) <= gate_and( ex3_store_instr    , "100000") or
                        gate_and( load_l1hit_val     , "110100");
 
                  
-ex3_st_entry <= cmd_type_st(0 to 5) &             
-                ex3_byte_en(0 to 31) &            
-                ex3_thrd_id(0 to 3) &             
-                ex3_wimge_bits(4) &               
-                ex3_wimge_bits(0 to 3) &           
-                ex3_usr_bits(0 to 3) &            
-                ex3_opsize(0 to 5) &              
-                ex3_icswx_epid &                  
-                ex3_p_addr;                       
+ex3_st_entry <= cmd_type_st(0 to 5) &             -- bit(0:5) = encoded command type(0 to 5)
+                ex3_byte_en(0 to 31) &            -- bit(6:37) = byte enables(0 to 15)
+                ex3_thrd_id(0 to 3) &             -- bit(38:41) = th_id(0 to 3)
+                ex3_wimge_bits(4) &               -- bit(42) = little endian
+                ex3_wimge_bits(0 to 3) &           -- bit(43:46) = wimg bits
+                ex3_usr_bits(0 to 3) &            -- bit(47:50) = user defined bits
+                ex3_opsize(0 to 5) &              -- bit(51:56) = transfer length
+                ex3_icswx_epid &                  -- bit 57 = icswx is for external pid
+                ex3_p_addr;                       -- bit(58:xx) = ex3_p_addr(0 to 63)
 
 ex4_thrd_encode(0) <= ex4_thrd_id(2) or ex4_thrd_id(3);
 ex4_thrd_encode(1) <= ex4_thrd_id(1) or ex4_thrd_id(3);
 
-ex4_st_addr <= ex4_st_entry_l2(58 to (58+real_data_add-1)) when ex4_st_entry_l2(0 to 5)/="101100" else 
-               (0 to real_data_add-35 => '0') &                                
-                 anaclat_coreid(6 to 7) &                                      
-                 ex4_thrd_encode(0 to 1) &                                     
-                 ex4_st_entry_l2(58+real_data_add-14 to 58+real_data_add-5) &  
-                 '0' &                                                         
-                 ex4_st_entry_l2(58+real_data_add-4) &                         
-                 ex4_st_entry_l2(58+real_data_add-1) &                         
-                 ex4_st_entry_l2(58+real_data_add-2) &                         
-                 ex4_st_entry_l2(58+real_data_add-3) &                         
-                 "000000000000000";                                            
+ex4_st_addr <= ex4_st_entry_l2(58 to (58+real_data_add-1)) when ex4_st_entry_l2(0 to 5)/="101100" else -- /mtspr_trace
+               (0 to real_data_add-35 => '0') &                                -- zeros
+                 anaclat_coreid(6 to 7) &                                      -- 30:31 core ID
+                 ex4_thrd_encode(0 to 1) &                                     -- 32:33 thread ID
+                 ex4_st_entry_l2(58+real_data_add-14 to 58+real_data_add-5) &  -- 34:43 mark type (from 50:59)
+                 '0' &                                                         -- 44
+                 ex4_st_entry_l2(58+real_data_add-4) &                         -- 45    mark valid (from 60)
+                 ex4_st_entry_l2(58+real_data_add-1) &                         -- 46    start trig (from 63)
+                 ex4_st_entry_l2(58+real_data_add-2) &                         -- 47    stop trig  (from 62)
+                 ex4_st_entry_l2(58+real_data_add-3) &                         -- 48    pause trig (from 61)
+                 "000000000000000";                                            -- 49:63
   
   
 s_m_queue0_d <= s_m_queue0                 when (st_entry0_val_l2 and (not (store_credit and ex5_sel_st_req) or
@@ -2863,9 +2936,15 @@ s_m_queue0_d <= s_m_queue0                 when (st_entry0_val_l2 and (not (stor
                                                                       (l2req_recycle_l2 and ex7_ld_par_err)))='1'   else 
                 ex4_st_entry_l2(0 to 57) & ex4_st_addr;
 
+--************************************************************************************************************
+--************************************************************************************************************
+-- STORE QUEUE LOGIC
+-- Store Miss Queue Entry - 4 store miss entries
+--************************************************************************************************************
+--************************************************************************************************************
 
-st_val <= (((ex3_l_s_q_val and not ex3_load_instr) or load_l1hit_val) and 
-              not flush_if_store and not ex3_stg_flush and not I1_G1_flush); 
+st_val <= (((ex3_l_s_q_val and not ex3_load_instr) or load_l1hit_val) and -- not ex3_sync_instr and not ex3_eieio_instr and
+              not flush_if_store and not ex3_stg_flush and not I1_G1_flush); -- or ex3_dci_instr or ex3_ici_instr;
 
 
 thrd_hit_p:  process (l_m_queue(0)(18 to 21), l_m_queue(1)(18 to 21), l_m_queue(2)(18 to 21), l_m_queue(3)(18 to 21), l_m_queue(4)(18 to 21), l_m_queue(5)(18 to 21), l_m_queue(6)(18 to 21), l_m_queue(7)(18 to 21), ld_rel_val_l2, ex3_thrd_id, ex3_sync_instr, ex3_mbar_instr, ex3_tlbsync_instr)
@@ -2876,10 +2955,10 @@ begin
       b2 := '0';
       b3 := '0';
       for i in 0 to lmq_entries-1 loop
-         b0 := (l_m_queue(i)(18) and ld_rel_val_l2(i)) or b0;  
-         b1 := (l_m_queue(i)(19) and ld_rel_val_l2(i)) or b1;  
-         b2 := (l_m_queue(i)(20) and ld_rel_val_l2(i)) or b2;  
-         b3 := (l_m_queue(i)(21) and ld_rel_val_l2(i)) or b3;  
+         b0 := (l_m_queue(i)(18) and ld_rel_val_l2(i)) or b0;  -- thread 0 and entry is valid
+         b1 := (l_m_queue(i)(19) and ld_rel_val_l2(i)) or b1;  -- thread 1 and entry is valid
+         b2 := (l_m_queue(i)(20) and ld_rel_val_l2(i)) or b2;  -- thread 2 and entry is valid
+         b3 := (l_m_queue(i)(21) and ld_rel_val_l2(i)) or b3;  -- thread 3 and entry is valid
       end loop;
    sync_flush <= ((ex3_thrd_id(0) and b0) or
                   (ex3_thrd_id(1) and b1) or
@@ -2890,6 +2969,8 @@ end process;
 
 
 
+-- since this eq does not include xu_lsu_ex5_flush, it might be wrong and cause a new store to be flushed (if
+-- there is only 1 st credit left)
 nxt_st_cred_tkn <= (st_entry0_val_l2 and not (ex5_flush_store and ex5_st_val_l2)) or ob_req_val_l2 or ob_ditc_val_l2 or
                    (mmu_q_val and not mmu_q_entry_l2(0));
 flush_if_store <= (one_st_cred      and  nxt_st_cred_tkn and  ex4_st_val_l2) or
@@ -2897,25 +2978,6 @@ flush_if_store <= (one_st_cred      and  nxt_st_cred_tkn and  ex4_st_val_l2) or
                   (my_xucr0_cred    and (st_entry0_val_l2 or  ex4_st_val_l2));
 
 st_flush <= (not ex3_load_instr and flush_if_store) or sync_flush;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 st_entry0_val_d <= (ex4_st_val_l2 and not ex4_flush_store) or
                    (st_entry0_val_l2 and not (store_credit and ex5_sel_st_req) and not (my_ex5_flush_store and ex5_st_val_l2 and not ex8_ld_par_err_l2)) or
@@ -3056,11 +3118,18 @@ latch_s_m_queue0 : tri_rlmreg_p
             dout    => s_m_queue0);
 
 
+--************************************************************************************************************
+--************************************************************************************************************
+-- END: STORE QUEUE LOGIC
+--************************************************************************************************************
+--************************************************************************************************************
 
-
-
-
-
+--************************************************************************************************************
+--************************************************************************************************************
+-- LOAD QUEUE LOGIC
+-- Load Miss Queue Entry - 4 load miss entries
+--************************************************************************************************************
+--************************************************************************************************************
 ld_m_val <= (ex3_l_s_q_val and ex3_load_instr and not ld_queue_full and not ld_q_seq_wrap) or
             pe_recov_ld_val_l2;
 
@@ -3316,6 +3385,8 @@ end process;
 
 ex3_ld_queue_full <= ld_queue_full or ld_q_seq_wrap;
 
+-- *****************************************************
+--  Need to flush if command is I=1, G=1 load and there already is one in the load Q for that thread
 
 ex4_st_I1_G1_val <= ex4_st_entry_l2(44) and ex4_st_entry_l2(46) and ex4_st_val_l2;
 st_entry_I1_G1_val <= s_m_queue0(44) and s_m_queue0(46) and st_entry0_val_l2;
@@ -3328,10 +3399,10 @@ begin
       b2 := '0';
       b3 := '0';
       for i in 0 to lmq_entries-1 loop
-         b0 := (l_m_queue(i)(40) and l_m_queue(i)(42) and l_m_queue(i)(18) and ld_rel_val_l2(i)) or b0;  
-         b1 := (l_m_queue(i)(40) and l_m_queue(i)(42) and l_m_queue(i)(19) and ld_rel_val_l2(i)) or b1;  
-         b2 := (l_m_queue(i)(40) and l_m_queue(i)(42) and l_m_queue(i)(20) and ld_rel_val_l2(i)) or b2;  
-         b3 := (l_m_queue(i)(40) and l_m_queue(i)(42) and l_m_queue(i)(21) and ld_rel_val_l2(i)) or b3;  
+         b0 := (l_m_queue(i)(40) and l_m_queue(i)(42) and l_m_queue(i)(18) and ld_rel_val_l2(i)) or b0;  -- I=1, G=1 for thread 0 and entry is valid
+         b1 := (l_m_queue(i)(40) and l_m_queue(i)(42) and l_m_queue(i)(19) and ld_rel_val_l2(i)) or b1;  -- I=1, G=1 for thread 1 and entry is valid
+         b2 := (l_m_queue(i)(40) and l_m_queue(i)(42) and l_m_queue(i)(20) and ld_rel_val_l2(i)) or b2;  -- I=1, G=1 for thread 2 and entry is valid
+         b3 := (l_m_queue(i)(40) and l_m_queue(i)(42) and l_m_queue(i)(21) and ld_rel_val_l2(i)) or b3;  -- I=1, G=1 for thread 3 and entry is valid
       end loop;
       I1_G1_thrd0 <= b0 or (ex4_st_I1_G1_val and ex4_st_entry_l2(38)) or (st_entry_I1_G1_val and s_m_queue0(38));
       I1_G1_thrd1 <= b1 or (ex4_st_I1_G1_val and ex4_st_entry_l2(39)) or (st_entry_I1_G1_val and s_m_queue0(39));
@@ -3348,8 +3419,12 @@ I1_G1_flush <= (ex3_wimge_bits(1) and ex3_wimg_g_gated and ex3_thrd_id(0) and I1
                (ex3_wimge_bits(1) and ex3_wimg_g_gated and ex3_thrd_id(3) and I1_G1_thrd3);   
 
 
-
-
+--******************************************************
+-- Check to see if command is already in the load/store miss CAM
+--******************************************************
+-- Want to flush if we have a cacheable load op accessing the same cacheline as an op
+-- already in the load miss queue or if we have a store going to the same cacheline and
+-- a load op is waiting for data to be returned
 
 addr_comp:  for i in 0 to lmq_entries-1 generate begin
    comp_val(i) <= ld_rel_val_l2(i) and ex3_cache_acc and not(ex4_drop_ld_req and ex4_loadmiss_qentry(i)) and not(my_ex4_flush_l2 and ex4_loadmiss_qentry(i));
@@ -3419,6 +3494,8 @@ latch_ex5_lmq_cpy : tri_rlmreg_p
             dout    => ex5_lmq_cpy_l2(0 to lmq_entries-1));
 
 
+-- *************************************************************************
+-- check gpr source for new ops to look for dependency on loadmiss target
 
 targetgpr_comp:  for i in 0 to lmq_entries-1 generate begin
    src0_hit(i) <= (ex1_src0_reg(0 to 7) = l_m_queue(i)(28 to 35)) and ld_rel_val_l2(i) and not (ex4_drop_ld_req and ex4_loadmiss_qentry(i)) and
@@ -3479,6 +3556,10 @@ lm_dep_hit_latch : tri_rlmreg_p
 
 ex2_lm_dep_hit <= ex2_lm_dep_hit_buf;
 
+-- *************************************************************************
+-- Compare back invalidate address to each entry in the load miss queue and
+-- set a bit to remember that this address has been invalidated and cannot
+-- be written valid in the directory when the reload in finished.
 
 cmp_back_inv_addr <= anaclat_back_inv_addr(64-real_data_add to 57);
 
@@ -3511,8 +3592,23 @@ latch_lmq_back_invalidated : tri_rlmreg_p
 
 
 
+--******************************************************
+-- Use a first slot open method for the load
+-- Override a Reload Queue entry when the reload has returned
+--******************************************************
+-- Select which ld miss entry to write to
+--l_q0_wrt_en <= not ld_entry0_val_l2 and ld_m_val;
+--l_q1_wrt_en <= ld_entry0_val_l2 and not ld_entry1_val_l2 and ld_m_val;
+--l_q2_wrt_en <= ld_entry0_val_l2 and ld_entry1_val_l2 and not ld_entry2_val_l2 and ld_m_val;
+--l_q3_wrt_en <= ld_entry0_val_l2 and ld_entry1_val_l2 and ld_entry2_val_l2 and not ld_entry3_val_l2 and ld_m_val;
 
+-- Select which ld miss entry to write to
+--l_q0_wrt_en <= not ld_rel0_val_l2 and ld_m_val;
+--l_q1_wrt_en <= ld_rel0_val_l2 and not ld_rel1_val_l2 and ld_m_val;
+--l_q2_wrt_en <= ld_rel0_val_l2 and ld_rel1_val_l2 and not ld_rel2_val_l2 and ld_m_val;
+--l_q3_wrt_en <= ld_rel0_val_l2 and ld_rel1_val_l2 and ld_rel2_val_l2 and not ld_rel3_val_l2 and ld_m_val;
 
+-- see above commented out logic to see what this is building:
 
 l_q_wrt_en(0) <= ld_m_val and ((not ld_rel_val_l2(0)   and not pe_recov_ld_val_l2) or
                                (ex7_loadmiss_qentry(0) and     pe_recov_ld_val_l2));
@@ -3531,6 +3627,9 @@ wrten: for i in 1 to lmq_entries-1 generate begin
 end generate;
 cmp_l_q_wrt_en <= l_q_wrt_en;
 
+--******************************************************
+-- Load Miss Queue entry0
+--******************************************************
 
 
 rel_done_ecc_err_p:  process (ld_m_rel_done_l2, data_ecc_err_l2)
@@ -3563,6 +3662,14 @@ ldqueue: for i in 0 to lmq_entries-1 generate begin
 
 
 
+-- Want to update ld_rel_valid_l2 when either of the following conditions are met
+-- 1) When its the next queue entry to update
+-- 2) When the reload is done for that queue entry
+-- 3) When this load queue entry has been sent to the L2/BFM and its a lock instruction and caused a hit in the L1
+-- 4) When this load queue entry has been sent to the L2/BFM and its encoded command type bit0 was high
+--      encoded_cmd_type(0) <= indicates command is a dcbf or dcbi or icbi and is not expecting a reload
+
+-- all lock instr are cache miss now and all instr that do not get a reload go to the store Q
 
    reset_lmq_entry(i) <= reset_lmq_entry_rel(i) or
                          (ex4_loadmiss_qentry(i) and ex4_flush_load) or
@@ -3570,7 +3677,7 @@ ldqueue: for i in 0 to lmq_entries-1 generate begin
                          (ex5_loadmiss_qentry(i) and pe_recov_stall and ex6_flush_l2) or 
                          (ex5_loadmiss_qentry(i) and ex7_ld_par_err) or 
                          (ex6_loadmiss_qentry(i) and ex7_ld_par_err) or 
-                         (ex6_loadmiss_qentry(i) and not ex4_loadmiss_qentry(i) and ex6_flush_l2);  
+                         (ex6_loadmiss_qentry(i) and not ex4_loadmiss_qentry(i) and ex6_flush_l2);  -- don't reset on an ex6 flush if the entry has already been reloaded
 
    reset_ldq_hit_barr(i) <= ld_m_rel_done_no_retry(i) or ld_m_rel_done_dly_l2(i) or reset_lmq_entry(i);
 
@@ -3750,6 +3857,13 @@ latch_lmq_dvc2_en : tri_rlmreg_p
             din     => lmq_dvc2_en_d,
             dout    => lmq_dvc2_en_l2);
 
+--************************************************************************************************************
+-- Load parity error recovery pipe - load commands are kept unitl ex7 so that if the load got a parity error
+--                                   it can be re-inserted into the load queue from this pipe.  The load
+--                                   command behind it (ex6) must also be re-inserted into the load queue
+--                                   in order behind the ex7 load.  The rest of the loads (ex4 and ex5) will
+--                                   be flushed.
+--************************************************************************************************************
 
 ex4_ld_entry_d <= cmd_type_ld(0 to 5) &
                   ex3_wimge_bits(0 to 4) &
@@ -3850,44 +3964,44 @@ begin
       ex4_ld_recov_ld_hit_st <= c;
 end process;
 
-ex4_touch <= ( ex4_ld_entry_l2(0 to 5) = "001111") or    
-             ( ex4_ld_entry_l2(0 to 5) = "000111") or    
-             ( ex4_ld_entry_l2(0 to 5) = "011111") or    
-             ( ex4_ld_entry_l2(0 to 5) = "010111") or    
-             ( ex4_ld_entry_l2(0 to 5) = "001101") or    
-             ( ex4_ld_entry_l2(0 to 5) = "000101") or    
-             ( ex4_ld_entry_l2(0 to 5) = "011101") or    
-             ( ex4_ld_entry_l2(0 to 5) = "010101") or    
-             ( ex4_ld_entry_l2(0 to 5) = "000100") or    
-             ( ex4_ld_entry_l2(0 to 5) = "010100");      
+ex4_touch <= ( ex4_ld_entry_l2(0 to 5) = "001111") or    -- dcbt
+             ( ex4_ld_entry_l2(0 to 5) = "000111") or    -- dcbt_l2only
+             ( ex4_ld_entry_l2(0 to 5) = "011111") or    -- dcbtls_l1l2
+             ( ex4_ld_entry_l2(0 to 5) = "010111") or    -- dcbtls_l2only
+             ( ex4_ld_entry_l2(0 to 5) = "001101") or    -- dcbtst_l1l2
+             ( ex4_ld_entry_l2(0 to 5) = "000101") or    -- dcbtst_l2only
+             ( ex4_ld_entry_l2(0 to 5) = "011101") or    -- dcbtstls_l1l2
+             ( ex4_ld_entry_l2(0 to 5) = "010101") or    -- dcbtstls_l2only
+             ( ex4_ld_entry_l2(0 to 5) = "000100") or    -- icbt
+             ( ex4_ld_entry_l2(0 to 5) = "010100");      -- icbtls
 
-ex4_l2only <=( ex4_ld_entry_l2(0 to 5) = "000111") or    
-             ( ex4_ld_entry_l2(0 to 5) = "010111") or    
-             ( ex4_ld_entry_l2(0 to 5) = "000101") or    
-             ( ex4_ld_entry_l2(0 to 5) = "010101") or    
-             ( ex4_ld_entry_l2(0 to 5) = "000100") or    
-             ( ex4_ld_entry_l2(0 to 5) = "010100");      
+ex4_l2only <=( ex4_ld_entry_l2(0 to 5) = "000111") or    -- dcbt_l2only
+             ( ex4_ld_entry_l2(0 to 5) = "010111") or    -- dcbtls_l2only
+             ( ex4_ld_entry_l2(0 to 5) = "000101") or    -- dcbtst_l2only
+             ( ex4_ld_entry_l2(0 to 5) = "010101") or    -- dcbtstls_l2only
+             ( ex4_ld_entry_l2(0 to 5) = "000100") or    -- icbt
+             ( ex4_ld_entry_l2(0 to 5) = "010100");      -- icbtls
 
 ex4_ld_recov <= ex4_ld_recov_entry(0 to 53) & cmp_ex4_ld_addr & ex4_ld_recov_addrlo(58 to 63)  when ex4_ld_m_val='1' else
-                ex4_ld_entry(0) &                 
-                ex4_ld_entry_l2(0 to 5) &         
-                ex4_ld_entry(1 to 6) &            
-                ex4_ld_entry(7 to 11) &           
+                ex4_ld_entry(0) &                 -- cache inhibit
+                ex4_ld_entry_l2(0 to 5) &         -- ttype
+                ex4_ld_entry(1 to 6) &            -- opsize
+                ex4_ld_entry(7 to 11) &           -- rot sel
                 ex4_thrd_id(0 to 3) &
                 cmd_seq_l2(0 to 4) &
-                ex4_ld_entry(12 to 20) &           
-                ex4_ld_entry(21) &                 
-                ex4_ld_entry(22) &                 
-                ex4_touch &                        
-                ex4_ld_entry_l2(6 to 9) &          
-                ex4_ld_entry_l2(11 to 14) &        
-                ex4_ld_entry(23) &                 
-                ex4_l2only &                       
-                ex4_ld_entry(24) &                 
-                ex4_classid_l2(0 to 1) &           
-                ex4_ld_entry(25) &                 
-                ex4_ld_entry_l2(10) &              
-                ex4_ld_entry(26 to (26+(real_data_add-1)));             
+                ex4_ld_entry(12 to 20) &           -- target gpr
+                ex4_ld_entry(21) &                 -- axu op
+                ex4_ld_entry(22) &                 -- little endian mode
+                ex4_touch &                        -- dcbt is valid
+                ex4_ld_entry_l2(6 to 9) &          -- wimg bits
+                ex4_ld_entry_l2(11 to 14) &        -- user defined bits
+                ex4_ld_entry(23) &                 -- algebraic
+                ex4_l2only &                       -- L2 only
+                ex4_ld_entry(24) &                 -- way lock
+                ex4_classid_l2(0 to 1) &           -- way lock bits table select bit (classid)
+                ex4_ld_entry(25) &                 -- watch enable
+                ex4_ld_entry_l2(10) &              -- le bit from erat
+                ex4_ld_entry(26 to (26+(real_data_add-1)));             -- p_addr
                 
 
 ex5_ld_recov_d <= ex4_ld_recov   when pe_recov_stall='0' else
@@ -3972,6 +4086,8 @@ ex4_ld_recov_extra(3) <= xu_lsu_ex4_dvc2_en;
 
 ex5_ld_recov_extra_d(0) <= ex4_ld_recov_extra(0) and (not store_sent and st_entry0_val_l2)         when pe_recov_stall='0' else
                            (ex5_ld_recov_extra_l2(0) and (not store_sent and st_entry0_val_l2)) or
+-- when the 1st pe is detected, ex5 will have the last op that needs to be executed.  By setting this bit, it ensures that
+-- any stores are done before it executes so that it will be the last op and remain in order
                            (ex7_ld_par_err and not pe_recov_state_l2);
 
 ex5_ld_recov_extra_d(1 to 3) <= ex4_ld_recov_extra(1 to 3)                 when pe_recov_stall='0' else
@@ -4134,6 +4250,10 @@ latch_ex7_ld_recov_val : tri_rlmreg_p
          dout(0) => ex7_ld_recov_val_l2);
 
 
+-- Compare store queue to the ex6 recovery load and if they match and ex6 load has ld_hit_st=0, then
+-- the load was 1st and will neeed to set a bit to block the store until the ld queue is empty when
+-- in parity error recovery.  If ex6 ld_hit_st=1, then the store was 1st and does not need to be blocked.
+-- The load will wait in the load queue because of the ld_hit_st bit.
 
 stq_hit_ex6_recov <= (ex6_ld_recov_l2((54) to (54+real_data_add-7-1)) = s_m_queue0(58 to (58+real_data_add-7-1))) and
                      ((ex6_ld_recov_l2(54+real_data_add-6-1) = s_m_queue0(58+real_data_add-6-1)) or my_xucr0_cls) and 
@@ -4145,10 +4265,9 @@ ex4st_hit_ex6_recov <= (ex6_ld_recov_l2((54) to (54+real_data_add-7-1)) = ex4_st
 
 set_st_hit_recov_ld <= stq_hit_ex6_recov or ex4st_hit_ex6_recov;
 
-
 reset_st_hit_recov_ld <= not (pe_recov_state_l2 or ex7_ld_par_err) or
                            (pe_recov_ld_num_l2(1) and lmq_empty and not ex7_ld_recov_val_l2) or 
-                           ((pe_recov_ld_num_l2(1) or pe_recov_ld_num_l2(2)) and lmq_empty and ex7_ld_recov_val_l2 and ex7_ld_recov_extra_l2(0));  
+                           ((pe_recov_ld_num_l2(1) or pe_recov_ld_num_l2(2)) and lmq_empty and ex7_ld_recov_val_l2 and ex7_ld_recov_extra_l2(0));  -- next load is v and will wait for st
 
 st_hit_recov_ld_d <= (set_st_hit_recov_ld and not ex6_ld_recov_extra_l2(0)) or
                      (st_recycle_v_l2 and st_entry0_val_l2 and store_sent) or 
@@ -4176,7 +4295,18 @@ latch_st_hit_recov_ld : tri_rlmreg_p
          din(0)  => st_hit_recov_ld_d,
          dout(0) => st_hit_recov_ld_l2);
 
+--************************************************************************************************************
+--************************************************************************************************************
+-- END: LOAD QUEUE LOGIC
+--************************************************************************************************************
+--************************************************************************************************************
 
+--************************************************************************************************************
+--************************************************************************************************************
+-- INSTRUCTION FETCH QUEUE LOGIC
+-- Instruction Fetch Queue Entry - 4 entries, 1 per thread
+--************************************************************************************************************
+--************************************************************************************************************
 
 ifetch_act <= i_x_request or clkg_ctl_override_q;
 
@@ -4275,6 +4405,9 @@ iu_f_tid1_val <= ifetch_req_l2 and ifetch_thread_l2(1);
 iu_f_tid2_val <= ifetch_req_l2 and ifetch_thread_l2(2);
 iu_f_tid3_val <= ifetch_req_l2 and ifetch_thread_l2(3);
 
+--******************************************************
+-- Instruction Fetch Sequence Write
+--******************************************************
 iu_seq_incr <= std_ulogic_vector(unsigned(iu_seq_l2) + 1);
 
 iu_seq_d <= iu_seq_incr   when ifetch_req_l2   = '1'   else 
@@ -4298,6 +4431,9 @@ latch_iu_seq : tri_rlmreg_p
             din     => iu_seq_d(0 to 2),
             dout    => iu_seq_l2(0 to 2));
 
+--******************************************************
+-- Instruction Fetch Sequence Read
+--******************************************************
 iu_seq_rd_incr <= std_ulogic_vector(unsigned(iu_seq_rd_l2) + 1);
 
 iu_seq_rd_d <= iu_seq_rd_incr when iu_sent_val = '1'   else 
@@ -4321,9 +4457,16 @@ latch_iu_seq_rd : tri_rlmreg_p
             din     => iu_seq_rd_d,
             dout    => iu_seq_rd_l2);
 
+-- Instruction Fetch Queue Entry - 4 Queue Entries
+-- bit(0:4)    = wimge
+-- bit(5:xx) = real address
+-- bit(xx:xx+3) = instruction fetch sequence number
 
 iu_queue_entry <= ifetch_wimge_l2(0 to 4) & ifetch_userdef_l2(0 to 3) & ifetch_ra_l2 & iu_seq_l2;
 
+--******************************************************
+-- Instruction Fetch Queue0 -TID0
+--******************************************************
 
 iuq_act <= ifetch_req_l2 or iu_val_req or clkg_ctl_override_q;
 
@@ -4374,6 +4517,9 @@ latch_iu_q0 : tri_rlmreg_p
             din     => i_f_q0_d,
             dout    => i_f_q0_l2);
 
+--******************************************************
+-- Instruction Fetch Queue1 -TID1
+--******************************************************
 
 iu_f_q1_val_upd <= iu_f_tid1_val & i_f_q1_sent;
 
@@ -4422,6 +4568,9 @@ latch_iu_q1 : tri_rlmreg_p
             din     => i_f_q1_d,
             dout    => i_f_q1_l2);
 
+--******************************************************
+-- Instruction Fetch Queue2 -TID2
+--******************************************************
 
 iu_f_q2_val_upd <= iu_f_tid2_val & i_f_q2_sent;
 
@@ -4470,6 +4619,9 @@ latch_iu_q2 : tri_rlmreg_p
             din     => i_f_q2_d,
             dout    => i_f_q2_l2);
 
+--******************************************************
+-- Instruction Fetch Queue3 -TID3
+--******************************************************
 
 iu_f_q3_val_upd <= iu_f_tid3_val & i_f_q3_sent;
 
@@ -4518,7 +4670,15 @@ latch_iu_q3 : tri_rlmreg_p
             din     => i_f_q3_d,
             dout    => i_f_q3_l2);
 
+--************************************************************************************************************
+--************************************************************************************************************
+-- END: INSTRUCTION FETCH QUEUE LOGIC
+--************************************************************************************************************
+--************************************************************************************************************
 
+--************************************************************************************************************
+-- MMU QUEUE
+--************************************************************************************************************
 
 mm_req_val_d <= not (mm_xu_lsu_req(0 to 3) = "0000");
 
@@ -4527,15 +4687,15 @@ mmq_act <= mm_req_val_d or clkg_ctl_override_q;
 mmu_q_val_d <= (not (mm_xu_lsu_req(0 to 3) = "0000")) or
                (not mmu_sent and mmu_q_val_l2);
 
-mmu_command <= mm_xu_lsu_ttype(0 to 1) &                 
-               mm_xu_lsu_req(0 to 3) &                   
-               mm_xu_lsu_wimge(0 to 4) &                 
-               mm_xu_lsu_u(0 to 3) &                     
-               mm_xu_lsu_lpid(0 to 7) &                  
-               mm_xu_lsu_ind &                           
-               mm_xu_lsu_gs &                            
-               mm_xu_lsu_lbit &                          
-               mm_xu_lsu_addr(64-real_data_add to 63);   
+mmu_command <= mm_xu_lsu_ttype(0 to 1) &                 -- (0:1) command type
+               mm_xu_lsu_req(0 to 3) &                   -- (2:5) thread ID
+               mm_xu_lsu_wimge(0 to 4) &                 -- (6:10) wimg and endian bits
+               mm_xu_lsu_u(0 to 3) &                     -- (11:14) user defined bits
+               mm_xu_lsu_lpid(0 to 7) &                  -- (15:22) lpid
+               mm_xu_lsu_ind &                           -- (23) ind
+               mm_xu_lsu_gs &                            -- (24) gs
+               mm_xu_lsu_lbit &                          -- (25) "L" bit, for large vs. small)
+               mm_xu_lsu_addr(64-real_data_add to 63);   -- (26:??) address field for command
 
 mmu_q_entry_d <= mmu_command         when mmu_q_val_l2 = '0'  else
                  mmu_q_entry_l2;
@@ -4598,6 +4758,11 @@ latch_mmu_q_entry : tri_rlmreg_p
 
 
 
+--************************************************************************************************************
+--************************************************************************************************************
+-- LOAD QUEUE COMMAND COUNT (used to determine credits)
+--************************************************************************************************************
+--************************************************************************************************************
 load_cmd_count_incr(0 to 3) <= std_ulogic_vector(unsigned(load_cmd_count_l2) + 1);
 load_cmd_count_decr(0 to 3) <= std_ulogic_vector(unsigned(load_cmd_count_l2) - 1);
 load_cmd_count_decrby2(0 to 3) <= std_ulogic_vector(unsigned(load_cmd_count_l2) - 2);
@@ -4605,22 +4770,22 @@ load_cmd_count_decrby2(0 to 3) <= std_ulogic_vector(unsigned(load_cmd_count_l2) 
 load_credit_used <= load_sent or iu_sent_val or mmu_ld_sent;
 
 
-decr_load_cnt_lcu0  <= (    anaclat_ld_pop and not (ex6_load_sent_l2 and (ex6_flush_l2 or ex7_ld_par_err))) or  
+-- break apart mux control to fix timing
+decr_load_cnt_lcu0  <= (    anaclat_ld_pop and not (ex6_load_sent_l2 and (ex6_flush_l2 or ex7_ld_par_err))) or  -- when load_credit_used=0
                        (not anaclat_ld_pop and     (ex6_load_sent_l2 and (ex6_flush_l2 or ex7_ld_par_err)));
 dec_by2_ld_cnt_lcu0 <=      anaclat_ld_pop and     (ex6_load_sent_l2 and (ex6_flush_l2 or ex7_ld_par_err));
 hold_load_cnt_lcu0  <= (not anaclat_ld_pop and not (ex6_load_sent_l2 and (ex6_flush_l2 or ex7_ld_par_err)));
 
-incr_load_cnt_lcu1 <=   not anaclat_ld_pop and not (ex6_load_sent_l2 and (ex6_flush_l2 or ex7_ld_par_err));     
+incr_load_cnt_lcu1 <=   not anaclat_ld_pop and not (ex6_load_sent_l2 and (ex6_flush_l2 or ex7_ld_par_err));     -- when load_credit_used=1
 decr_load_cnt_lcu1 <=  (    anaclat_ld_pop and     (ex6_load_sent_l2 and (ex6_flush_l2 or ex7_ld_par_err)));
 hold_load_cnt_lcu1 <=  (not anaclat_ld_pop and     (ex6_load_sent_l2 and (ex6_flush_l2 or ex7_ld_par_err))) or
                        (    anaclat_ld_pop and not (ex6_load_sent_l2 and (ex6_flush_l2 or ex7_ld_par_err)));
 
 
-
-load_cmd_count_lcu0(0 to 3) <= gate_and(decr_load_cnt_lcu0,  load_cmd_count_decr(0 to 3)) or      
+load_cmd_count_lcu0(0 to 3) <= gate_and(decr_load_cnt_lcu0,  load_cmd_count_decr(0 to 3)) or      -- when load_credit_used=0
                                gate_and(dec_by2_ld_cnt_lcu0, load_cmd_count_decrby2(0 to 3)) or 
                                gate_and(hold_load_cnt_lcu0,  load_cmd_count_l2);
-load_cmd_count_lcu1(0 to 3) <= gate_and(incr_load_cnt_lcu1,  load_cmd_count_incr(0 to 3)) or      
+load_cmd_count_lcu1(0 to 3) <= gate_and(incr_load_cnt_lcu1,  load_cmd_count_incr(0 to 3)) or      -- when load_credit_used=1
                                gate_and(decr_load_cnt_lcu1,  load_cmd_count_decr(0 to 3)) or 
                                gate_and(hold_load_cnt_lcu1,  load_cmd_count_l2);
 
@@ -4628,7 +4793,7 @@ load_cmd_count_d(0 to 3) <= gate_and(not load_credit_used,  load_cmd_count_lcu0)
                             gate_and(    load_credit_used,  load_cmd_count_lcu1);
 
 latch_load_cmd_count : tri_rlmreg_p
-  generic map (width => load_cmd_count_l2'length, init => 6, expand_type => expand_type)  
+  generic map (width => load_cmd_count_l2'length, init => 6, expand_type => expand_type)  -- init to 4 to leave 4 credits left
   port map (nclk    => nclk,
             act     => '1',
             forcee => cfg_slp_sl_force,
@@ -4645,22 +4810,27 @@ latch_load_cmd_count : tri_rlmreg_p
             din     => load_cmd_count_d(0 to 3),
             dout    => load_cmd_count_l2(0 to 3) );
 
-ld_credit_pre <= not load_cmd_count_l2(0);   
+ld_credit_pre <= not load_cmd_count_l2(0);   -- when cmd count gets to 8, there are no load credits left
 
 load_credit <= ld_credit_pre and not (my_xucr0_cred and not st_credit_pre);
 
 
+--************************************************************************************************************
+--************************************************************************************************************
+-- STORE QUEUE COMMAND COUNT (used to determine credits)
+--************************************************************************************************************
+--************************************************************************************************************
 store_cmd_count_incr(0 to 5) <= std_ulogic_vector(unsigned(store_cmd_count_l2) + 1);
 store_cmd_count_decr(0 to 5) <= std_ulogic_vector(unsigned(store_cmd_count_l2) - 1);
 store_cmd_count_decby2(0 to 5) <= std_ulogic_vector(unsigned(store_cmd_count_l2) - 2);
 store_cmd_count_decby3(0 to 5) <= std_ulogic_vector(unsigned(store_cmd_count_l2) - 3);
 
 
-st_count_ctrl(0) <= store_sent or mmu_st_sent;              
-st_count_ctrl(1) <= anaclat_st_pop;                         
-st_count_ctrl(2) <= anaclat_st_gather;                      
+st_count_ctrl(0) <= store_sent or mmu_st_sent;              -- +1
+st_count_ctrl(1) <= anaclat_st_pop;                         -- -1
+st_count_ctrl(2) <= anaclat_st_gather;                      -- -1
 st_count_ctrl(3) <= (ex6_store_sent_l2 and ex6_flush_l2) or 
-                    (l2req_recycle_l2 and ex7_ld_par_err);  
+                    (l2req_recycle_l2 and ex7_ld_par_err);  -- -1
 
 incr_store_cmd <=  st_count_ctrl="1000";
 
@@ -4709,11 +4879,16 @@ latch_store_cmd_count : tri_rlmreg_p
             dout    => store_cmd_count_l2(0 to 5) );
 
 
-st_credit_pre <= not store_cmd_count_l2(0);   
+st_credit_pre <= not store_cmd_count_l2(0);   -- When cmd count gets to 32, there are no store credits left.
 
 store_credit <= st_credit_pre and not (my_xucr0_cred and not ld_credit_pre ) and not blk_st_for_pe_recov;
 one_st_cred <= store_cmd_count_l2="011111";
 
+--************************************************************************************************************
+--************************************************************************************************************
+-- INSTRUCTION FETCH QUEUE SELECT LOGIC
+--************************************************************************************************************
+--************************************************************************************************************
 iu_f_q0_sel <= (iu_seq_rd_l2 = i_f_q0_l2((REAL_IFAR_length+9) to (REAL_IFAR_length+11))) and i_f_q0_val_l2;
 iu_f_q1_sel <= (iu_seq_rd_l2 = i_f_q1_l2((REAL_IFAR_length+9) to (REAL_IFAR_length+11))) and i_f_q1_val_l2;
 iu_f_q2_sel <= (iu_seq_rd_l2 = i_f_q2_l2((REAL_IFAR_length+9) to (REAL_IFAR_length+11))) and i_f_q2_val_l2;
@@ -4740,6 +4915,7 @@ i_f_q2_sent <= iu_f_q2_sel and load_credit and send_if_req_l2 and not (ex5_sel_s
 i_f_q3_sent <= iu_f_q3_sel and load_credit and send_if_req_l2 and not (ex5_sel_st_req or ((ob_req_val_l2 or ob_ditc_val_l2 or st_recycle_v_l2) and store_credit)) and
                not (l2req_resend_l2 and ex7_ld_par_err); 
 
+-- valid IU request is in the Instruction Fetch Queue
 iu_val_req <= i_f_q0_val_l2 or i_f_q1_val_l2 or i_f_q2_val_l2 or i_f_q3_val_l2;
 
 iu_sent_val <= iu_val_req and load_credit and send_if_req_l2 and
@@ -4754,11 +4930,30 @@ ld_q_req <= ex4_ld_m_val_not_fl;
 
 mmu_q_val <= mmu_q_val_l2 and not mm_req_val_l2;
 
+-- Round Robin State Machine
+-- Want to update Request Selection when
+-- 1) there are no requests in LDQ, MMUQ or IUQ and received a IU/LD/MMU request
+-- 2) when a Request is sent
 state_trans <= ((ifetch_req_l2 or ld_q_req or mm_req_val_l2) and not (iu_val_req or selected_ld_entry_val or mmu_q_val_l2)) or
                (load_sent or load_flushed or iu_sent_val or mmu_sent) or
                (send_if_req_l2 and not iu_val) or (send_ld_req_l2 and not ld_q_val) or (send_mm_req_l2 and not mmu_q_val_l2);
 
 
+-- select the next state based on this table:
+--
+-- request val  | prev state:   | prev state:  | prev state:   |
+--   I  L  M    |   sel I       |   sel L      |   sel M       |
+-- =============|===============|==============|===============|
+--   0  0  0    |      I        |      L       |       M       |
+--   0  0  1    |      M        |      M       |       M       |
+--   0  1  0    |      L        |      L       |       L       |
+--   0  1  1    |      L        |      M       |       L       |
+--   1  0  0    |      I        |      I       |       I       |
+--   1  0  1    |      M        |      M       |       I       |
+--   1  1  0    |      L        |      I       |       I       |
+--   1  1  1    |      L        |      M       |       I       |
+--
+-- these next state bits should always be 1-hot (init to I=1, L=0, M=0)
 
 sel_if_req <= (    iu_val and not ld_q_val and not mmu_q_val_l2                   ) or
               (    iu_val and not ld_q_val and     mmu_q_val_l2 and send_mm_req_l2) or
@@ -4848,9 +5043,62 @@ latch_send_mm_req : tri_rlmreg_p
             din(0)  => send_mm_req_d,
             dout(0) => send_mm_req_l2);
 
+--************************************************************************************************************
+--************************************************************************************************************
+-- END: INSTRUCTION FETCH QUEUE SELECT LOGIC
+--************************************************************************************************************
+--************************************************************************************************************
 
+--************************************************************************************************************
+--************************************************************************************************************
+-- Reload Operation
+--************************************************************************************************************
+--************************************************************************************************************
+-- reload is complete when all the data has been stored into the cache array
+-- different number of beats of data are given depending if cache inhibit or
+-- cache enabled
+--
+-- ex. cache inhibit load
+--                __    __    __    __    __    __    __    __    __    __    __    __    __
+-- clk           |  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |
+--
+-- rel_val        ____________________________________________________________________________
+--
+-- rel_data_val   ____________________________________________________________________________
+--                             _____
+-- rel_upd_gpr    ____________|     |_________________________________________________________
+--
+-- rel_data       XXXXXXXXXXXX|Beat0|XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--
+-- ex. cache enabled load
+--                __    __    __    __    __    __    __    __    __    __    __    __    __
+-- clk           |  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |
+--                       _____
+-- rel_val        ______|     |_______________________________________________________________
+--                             _______________________
+-- rel_data_val   ____________|                       |_______________________________________
+--                             _____
+-- rel_upd_gpr    ____________|     |_________________________________________________________
+--
+-- rel_data       XXXXXXXXXXXX|Beat0|Beat1|Beat2|Beat3|XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--
+-- ex. cache enabled DCBT/DCBTST
+--                __    __    __    __    __    __    __    __    __    __    __    __    __
+-- clk           |  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |__|  |
+--                       _____
+-- rel_val        ______|     |_______________________________________________________________
+--                             _______________________
+-- rel_data_val   ____________|                       |_______________________________________
+--
+-- rel_upd_gpr    ____________________________________________________________________________
+--
+-- rel_data       XXXXXXXXXXXX|Beat0|Beat1|Beat2|Beat3|XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+--******************************************************
+-- Reload Operation
+--******************************************************
 
+-- latch reload valid and tag to be active the cycle of the data
 
 latch_reld_data_vld : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)
@@ -4889,6 +5137,7 @@ latch_rel_tag : tri_rlmreg_p
             dout    => rel_tag_l2 );
 
 
+-- latch reload valid and tag to be active the cycle after the data (when ecc errors are signaled)
 
 latch_reld_data_vld_dplus1 : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)
@@ -4930,25 +5179,23 @@ latch_rel_tag_dplus1 : tri_rlmreg_p
 
 
 
-
-
-
-
-
 rel_entry_gen: for i in 0 to lmq_entries-1 generate begin
-   rel_entry(i) <= l_m_queue(i)(0) &                                                      
-                   l_m_queue(i)(7 to 12) &                                                
-                   l_m_queue(i)(13 to 17) &                                               
-                   l_m_queue(i)(18 to 21) &                                               
-                   l_m_queue(i)(27 to 35) &                                               
-                   l_m_queue(i)(36) &                                                     
-                   l_m_queue(i)(37) &                                                     
-                   l_m_queue(i)(38) &                                                     
-                   l_m_queue(i)(47) &                                                     
-                  (l_m_queue(i)(48) or lmq_drop_rel_l2(i)) &                              
-                   l_m_queue(i)(49) &                                                     
-                   l_m_queue(i)(50 to 51) &                                               
-                   l_m_queue(i)(52);                                                      
+   rel_entry(i) <= l_m_queue(i)(0) &                                                      -- (0) cache inhibit
+                   l_m_queue(i)(7 to 12) &                                                -- (1:6) op_size
+                   l_m_queue(i)(13 to 17) &                                               -- (7:11) rot_sel
+                   l_m_queue(i)(18 to 21) &                                               -- (12:15) thread id
+                   l_m_queue(i)(27 to 35) &                                               -- (16:24) target_gpr
+                   l_m_queue(i)(36) &                                                     -- (25) ex3_axu_op_val
+                   l_m_queue(i)(37) &                                                     -- (26) le_mode
+                   l_m_queue(i)(38) &                                                     -- (27) upd_gpr(dcbt)
+                   l_m_queue(i)(47) &                                                     -- (28) algebraic op
+                  (l_m_queue(i)(48) or lmq_drop_rel_l2(i)) &                              -- (29) L2 only mode
+                   l_m_queue(i)(49) &                                                     -- (30) way lock enable
+                   l_m_queue(i)(50 to 51) &                                               -- (31) way lock table select bit
+--                   l_m_queue(i)(52) &                                                     -- (33) dvc1
+--                   l_m_queue(i)(53) &                                                     -- (34) dvc2
+                   l_m_queue(i)(52);                                                      -- (33) watch enable
+--                   l_m_queue(i)((54) to (54+real_data_add-4-1));                          -- (34:xx) real address
 
    rel_tag_1hot(i) <= tag_dminus1_1hot_l2(i);
 
@@ -5115,11 +5362,11 @@ rel_addr_d <= cmp_rel_addr & rel_q_addrlo_58;
 
 rel_beats_gen: for i in 0 to lmq_entries-1 generate begin
 
-   l_m_rel_c_i_beat0_d(i) <= (start_rel(i) and rel_cache_inh_d and rel_size_d(0))  or    
-                             (l_m_rel_c_i_beat0_l2(i) and not rel_data_val(i));          
+   l_m_rel_c_i_beat0_d(i) <= (start_rel(i) and rel_cache_inh_d and rel_size_d(0))  or    -- start cache inh 32B reload
+                             (l_m_rel_c_i_beat0_l2(i) and not rel_data_val(i));          -- reset on next data valid
 
-   l_m_rel_c_i_val(i) <= (start_rel(i) and rel_cache_inh_d and not rel_size_d(0))  or    
-                         (l_m_rel_c_i_beat0_l2(i) and rel_data_val(i) );                 
+   l_m_rel_c_i_val(i) <= (start_rel(i) and rel_cache_inh_d and not rel_size_d(0))  or    -- start cache inh non 32B reload
+                         (l_m_rel_c_i_beat0_l2(i) and rel_data_val(i) );                 -- 2nd beat for 32B reloads
 
 
 
@@ -5138,7 +5385,7 @@ rel_beats_gen: for i in 0 to lmq_entries-1 generate begin
                           (ld_m_rel_done_l2(i) and ldq_recirc_rel_val and not ecc_err(i)) or 
                           (l_m_rel_inprog_l2(i) and not (l_m_rel_hit_beat3_l2(i) and not my_xucr0_cls) and 
                                                     not (l_m_rel_hit_beat7_l2(i) and     my_xucr0_cls) and
-                                                    not l_m_rel_val_c_i_dly(i)); 
+                                                    not l_m_rel_val_c_i_dly(i)); -- active through beats 0, 1, 2, and 3
 
 end generate;
 
@@ -5626,8 +5873,13 @@ latch_rel_watch_en : tri_rlmreg_p
             din(0)  => rel_watch_en_d,
             dout(0) => rel_watch_en_l2);
 
-
-
+----------------------------------------------
+---- Reload Complete pulse
+----------------------------------------------
+---- Reload is complete
+---- 1) cacheable reload is complete
+---- 2) uncacheable reload is complete
+---- Reload Complete pulse
 
 rel_done_g: for i in 0 to lmq_entries-1 generate begin
    ld_m_rel_done_d(i) <= (l_m_rel_hit_beat3_l2(i) and not my_xucr0_cls) or
@@ -5717,7 +5969,11 @@ reset_lmq_gen: for i in 0 to lmq_entries-1 generate begin
    reset_lmq_entry_rel(i) <= ld_m_rel_done_dly2_l2(i)  and not data_ecc_err_l2(i);  
 end generate;
 
-
+--************************************************************************************************************
+--************************************************************************************************************
+-- END: Reload Operation
+--************************************************************************************************************
+--************************************************************************************************************
 
 
 any_ld_val_p:  process (ld_entry_val_l2)
@@ -5861,55 +6117,70 @@ q8_lmentry: if lmq_entries=8 generate begin
                              (rd_seq_hit(7) and ex6_loadmiss_qentry(7));
 end generate;
 
+-- above logic could be replaced with this process if you want a more general and elegant (but harder to read) version
+--lmentry_p:  process (l_q_rd_en, l_m_queue)
+--   variable b: std_ulogic_vector(0 to (69+(real_data_add-1)));
+--begin
+--      b := (others => '0');
+--      for i in 0 to lmq_entries-1 loop
+--         b := gate_and(l_q_rd_en(i), l_m_queue(i)) or b;
+--      end loop;
+--      l_miss_entry <= b;
+--end process;
 	   
 
+--******************************************************
+-- Setting up Instruction Fetch
+--******************************************************
+-- Need to match ld/st Q entry that is sent to L2
+iu_f_entry(0 to 5) <= "000000";                                                      -- ctype
+iu_f_entry(6 to 37) <= x"00000000";                                                  -- byte enables
+iu_f_entry(38 to 41) <= iu_f_q0_sel & iu_f_q1_sel & iu_f_q2_sel & iu_f_q3_sel;       -- thread_id
+iu_f_entry(42 to 46) <= iu_f_sel_entry(0 to 4);                                      -- wimge
+iu_f_entry(47 to 49) <= "110";                                                       -- transfer length
 
-
-
-
-
-
-iu_f_entry(0 to 5) <= "000000";                                                      
-iu_f_entry(6 to 37) <= x"00000000";                                                  
-iu_f_entry(38 to 41) <= iu_f_q0_sel & iu_f_q1_sel & iu_f_q2_sel & iu_f_q3_sel;       
-iu_f_entry(42 to 46) <= iu_f_sel_entry(0 to 4);                                      
-iu_f_entry(47 to 49) <= "110";                                                       
-
-
-iu_f_entry(50 to 53) <= iu_f_sel_entry(5 to 8);                                                 
-iu_f_entry(54 to (54+real_data_add-1)) <= iu_f_sel_entry(9 to (9+REAL_IFAR_length-1)) & "0000"; 
+iu_f_entry(50 to 53) <= iu_f_sel_entry(5 to 8);                                                 -- user defined bits
+iu_f_entry(54 to (54+real_data_add-1)) <= iu_f_sel_entry(9 to (9+REAL_IFAR_length-1)) & "0000"; -- real address
 
 iu_thrd(0) <= iu_f_q2_sel or iu_f_q3_sel;
 iu_thrd(1) <= iu_f_q1_sel or iu_f_q3_sel;
 
-ldmq_entry(0 to 5) <= l_miss_entry(1 to 6);                                 
-ldmq_entry(6 to 37) <= x"00000000";                                         
-ldmq_entry(38 to 41) <= l_miss_entry(18 to 21);                             
-ldmq_entry(42 to 45) <= l_miss_entry(39 to 42);                             
-ldmq_entry(46) <= l_miss_entry(53);                                         
-ldmq_entry(47 to 49) <= "001"   when l_miss_entry(12) = '1'   else          
-                        "010"   when l_miss_entry(11) = '1'   else          
-                        "100"   when l_miss_entry(10) = '1'   else          
-                        "101"   when l_miss_entry(9)  = '1'   else          
-                        "110"   when l_miss_entry(8)  = '1'   else          
-                        "111"   when l_miss_entry(7)  = '1'   else          
+--******************************************************
+-- Setting up ld request
+--******************************************************
+ldmq_entry(0 to 5) <= l_miss_entry(1 to 6);                                 -- ctype
+ldmq_entry(6 to 37) <= x"00000000";                                         -- byte enables
+ldmq_entry(38 to 41) <= l_miss_entry(18 to 21);                             -- thread_id
+ldmq_entry(42 to 45) <= l_miss_entry(39 to 42);                             -- wimg
+ldmq_entry(46) <= l_miss_entry(53);                                         -- Little Endian
+--ldmq_entry(47 to 49) <= "011"   when l_miss_entry(0)  = '0'   else          -- transfer length:  full cache line
+ldmq_entry(47 to 49) <= "001"   when l_miss_entry(12) = '1'   else          --                   1 byte
+                        "010"   when l_miss_entry(11) = '1'   else          --                   2 bytes
+                        "100"   when l_miss_entry(10) = '1'   else          --                   4 bytes
+                        "101"   when l_miss_entry(9)  = '1'   else          --                   8 bytes
+                        "110"   when l_miss_entry(8)  = '1'   else          --                  16 bytes
+                        "111"   when l_miss_entry(7)  = '1'   else          --                  32 bytes
                         "000";
-ldmq_entry(50 to 53) <= l_miss_entry(43 to 46);                             
-ldmq_entry(54 to (54+real_data_add-1)) <= cmp_l_miss_entry_addr & l_miss_addrlo;  
+ldmq_entry(50 to 53) <= l_miss_entry(43 to 46);                             -- user defined bits
+--ldmq_entry(54 to (54+real_data_add-1)) <= l_miss_entry(54 to (54+real_data_add-1));  -- real address
+ldmq_entry(54 to (54+real_data_add-1)) <= cmp_l_miss_entry_addr & l_miss_addrlo;  -- real address
 
-with mmu_q_entry_l2(0 to 1) select                                       
-   mmuq_req(0 to 5) <=  "111100"  when "00",                                
-                        "111011"  when "01",                                
-                        "000010"  when "10",                                
-                        "000010"  when others;                              
+--******************************************************
+-- Setting up mmu request
+--******************************************************
+with mmu_q_entry_l2(0 to 1) select                                       -- ctype
+   mmuq_req(0 to 5) <=  "111100"  when "00",                                -- TLBIVAX
+                        "111011"  when "01",                                -- TBLI Complete
+                        "000010"  when "10",                                -- mmu load (tag=01100)
+                        "000010"  when others;                              -- mmu load (tag=01101)
                         
-mmuq_req(6 to 37) <= x"00000000";                                           
-mmuq_req(38 to 41) <= mmu_q_entry_l2(2 to 5);                               
-mmuq_req(42 to 45) <= mmu_q_entry_l2(6 to 9);                               
-mmuq_req(46) <= mmu_q_entry_l2(10);                                         
-mmuq_req(47 to 49) <= "000";                                                
-mmuq_req(50 to 53) <= mmu_q_entry_l2(11 to 14);                             
-mmuq_req(54 to (54+real_data_add-1)) <= mmu_q_entry_l2(26 to (26+real_data_add-1));  
+mmuq_req(6 to 37) <= x"00000000";                                           -- byte enables
+mmuq_req(38 to 41) <= mmu_q_entry_l2(2 to 5);                               -- thread_id
+mmuq_req(42 to 45) <= mmu_q_entry_l2(6 to 9);                               -- wimg
+mmuq_req(46) <= mmu_q_entry_l2(10);                                         -- Little Endian
+mmuq_req(47 to 49) <= "000";                                                -- transfer length
+mmuq_req(50 to 53) <= mmu_q_entry_l2(11 to 14);                             -- user defined bits
+mmuq_req(54 to (54+real_data_add-1)) <= mmu_q_entry_l2(26 to (26+real_data_add-1));  -- real address
 
 
 iu_mmu_entry <= gate_and(send_if_req_l2, iu_f_entry) or
@@ -5919,23 +6190,28 @@ ld_tag(1 to 4) <= gate_and(send_if_req_l2, "10" & iu_thrd) or
                   gate_and(send_ld_req_l2, '0'  & l_m_tag) or 
                   gate_and(send_mm_req_l2, "110" & mmu_q_entry_l2(1) );
 
-
-store_entry(0 to 5) <= s_m_queue0(0 to 5);                                      
-store_entry(6 to 37) <= s_m_queue0(6 to 37);                                    
-store_entry(38 to 41) <= s_m_queue0(38 to 41);                                  
-store_entry(42 to 45) <= s_m_queue0(43 to 46);                                  
-store_entry(46) <= s_m_queue0(42);                                              
-store_entry(47 to 49) <= "001"   when s_m_queue0(56) = '1'   else               
-                         "010"   when s_m_queue0(55) = '1'   else               
-                         "100"   when s_m_queue0(54) = '1'   else               
-                         "101"   when s_m_queue0(53) = '1'   else               
-                         "110"   when s_m_queue0(52) = '1'   else               
-                         "111"   when s_m_queue0(51) = '1'   else               
+--******************************************************
+-- Setting up store request
+--******************************************************
+store_entry(0 to 5) <= s_m_queue0(0 to 5);                                      -- ctype
+store_entry(6 to 37) <= s_m_queue0(6 to 37);                                    -- byte enables
+store_entry(38 to 41) <= s_m_queue0(38 to 41);                                  -- thread_id
+store_entry(42 to 45) <= s_m_queue0(43 to 46);                                  -- wimg
+store_entry(46) <= s_m_queue0(42);                                              -- Little Endian
+store_entry(47 to 49) <= "001"   when s_m_queue0(56) = '1'   else               -- transfer length   1 byte
+                         "010"   when s_m_queue0(55) = '1'   else               --                   2 bytes
+                         "100"   when s_m_queue0(54) = '1'   else               --                   4 bytes
+                         "101"   when s_m_queue0(53) = '1'   else               --                   8 bytes
+                         "110"   when s_m_queue0(52) = '1'   else               --                  16 bytes
+                         "111"   when s_m_queue0(51) = '1'   else               --                  32 bytes
                          "000";
-store_entry(50 to 53) <= s_m_queue0(47 to 50);                                  
-store_entry(54 to (54+real_data_add-1)) <= s_m_queue0(58 to (58+real_data_add-1));  
+store_entry(50 to 53) <= s_m_queue0(47 to 50);                                  -- user defined bits
+store_entry(54 to (54+real_data_add-1)) <= s_m_queue0(58 to (58+real_data_add-1));  -- real address
 
 
+--******************************************************
+-- Store requests from Boxes
+--******************************************************
 latch_ob_pwr_tok : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)
   port map (nclk    => nclk,
@@ -6132,21 +6408,21 @@ latch_ob_data : tri_rlmreg_p
             din     => ob_data_mux,
             dout    => ob_data_l2 );
 
-ob_store(0 to 5) <= "100000"        when ob_req_val_l2='1'  else  
-                    "100010";                                     
+ob_store(0 to 5) <= "100000"        when ob_req_val_l2='1'  else  -- ctype for store
+                    "100010";                                     -- ctype for ditc
 
-ob_store(6 to 37) <= x"00000000"    when ob_ditc_val_l2='1' else  
+ob_store(6 to 37) <= x"00000000"    when ob_ditc_val_l2='1' else  -- byte enables
                      x"FFFF0000"    when ob_qw_l2(59)='0'   else 
                      x"0000FFFF";
-ob_store(38) <= ob_thrd_l2(0 to 1)="00";                          
-ob_store(39) <= ob_thrd_l2(0 to 1)="01";                          
-ob_store(40) <= ob_thrd_l2(0 to 1)="10";                          
-ob_store(41) <= ob_thrd_l2(0 to 1)="11";                          
-ob_store(42 to 45) <= "1010";                                     
-ob_store(46) <= '0';                                              
-ob_store(47 to 49) <= "110";                                      
-ob_store(50 to 53) <= "0000";                                     
-ob_store(54 to (54+real_data_add-7)) <= ob_addr_l2;               
+ob_store(38) <= ob_thrd_l2(0 to 1)="00";                          -- thread_id
+ob_store(39) <= ob_thrd_l2(0 to 1)="01";                          -- thread_id
+ob_store(40) <= ob_thrd_l2(0 to 1)="10";                          -- thread_id
+ob_store(41) <= ob_thrd_l2(0 to 1)="11";                          -- thread_id
+ob_store(42 to 45) <= "1010";                                     -- wimg
+ob_store(46) <= '0';                                              -- Little Endian
+ob_store(47 to 49) <= "110";                                      -- len = 16 bytes
+ob_store(50 to 53) <= "0000";                                     -- user defined bits
+ob_store(54 to (54+real_data_add-7)) <= ob_addr_l2;               -- real address
 ob_store((54+real_data_add-6) to (54+real_data_add-5)) <= ob_qw_l2(58 to 59);
 ob_store((54+real_data_add-4) to (54+real_data_add-1)) <= "0000";
 
@@ -6213,6 +6489,8 @@ mmu_ld_sent <= load_credit and not ex5_sel_st_req and send_mm_req_l2 and mmu_q_v
                not ((ob_req_val_l2 or ob_ditc_val_l2 or st_recycle_v_l2) and store_credit);
 mmu_sent <= mmu_st_sent or mmu_ld_sent or (l2req_resend_l2 and ex7_ld_par_err and mmu_sent_l2);
 
+-- resend or recycle the L2 request if it will be blocked by a load data parity error (resend goes back on the L2
+-- interface the next cycle and recycle will go back to the store queue).
 
 l2req_resend_d <= mmu_sent or bx_cmd_sent_d or iu_sent_val or
                   (load_sent and not lq_rd_en_is_ex5 and not (ex5_flush_load_all and lq_rd_en_is_ex5)) or
@@ -6315,10 +6593,12 @@ latch_xu_mm_lsu_token : tri_rlmreg_p
 
 xu_mm_lsu_token <= mmu_sent_l2 and not ex7_ld_par_err;
 
+-- set bit to indicate that an op was flushed due to a lmq address hit (use to set and release barrior to IU)
 
 
 ex3_val_req <= (ex3_local_dcbf or ex3_l_s_q_val) and not ex3_stg_flush;
 
+-- latch into ex4
 latch_ex4_val_req : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)
   port map (nclk    => nclk,
@@ -6497,18 +6777,16 @@ latch_ldq_barr_active : tri_rlmreg_p
             din     => ldq_barr_active_d(0 to 3),
             dout    => ldq_barr_active_l2(0 to 3) );
 
-
-sync_done <= store_sent and ( ((s_m_queue0(0 to 5) = "110010") or (s_m_queue0(0 to 5) = "101010")) or   
-                              (not my_xucr0_tlbsync  and ( s_m_queue0(0 to 5) = "111010"))) and         
+sync_done <= store_sent and ( ((s_m_queue0(0 to 5) = "110010") or (s_m_queue0(0 to 5) = "101010")) or   -- mbar,lwsync
+                              (not my_xucr0_tlbsync  and ( s_m_queue0(0 to 5) = "111010"))) and         -- tlbsync
              not (ex5_stg_flush and ex5_st_val_for_flush) and st_entry0_val_l2;
-
-
 
 
 sync_done_tid <= gate_and(sync_done, s_m_queue0(38 to 41));
 ldq_barr_done <= lmq_barr_done_tid(0 to 3) and (ldq_barr_active_l2(0 to 3) or xu_lsu_ex5_set_barr(0 to 3));
 
 
+-- Signals Going to IU, Need to flag when the L2 has acknowledged an lwsync or eieio
 latch_ldq_barr_done : tri_rlmreg_p
   generic map (width => ldq_barr_done'length, init => 0, expand_type => expand_type)
   port map (nclk    => nclk,
@@ -6564,14 +6842,21 @@ end generate;
 
 
 
-
-
-
-
    
+--******************************************************
+-- Outputs
+--******************************************************
 
+-- bit(0:5) => ctype
+-- bit(6:21) => byte enables
+-- bit(22:25) => thread_id
+-- bit(26:29) => wimg
+-- bit(30) => little endian
+-- bit(31:33) => transfer length
+-- bit(34:62) => real address
 
-
+-- ***************************************************************************************************
+-- Signals Going to L2
 
 l2req_pwr_token <= iu_val or any_ld_entry_val or st_entry0_val_l2 or ex4_ld_m_val or ex4_st_val_l2 or 
                    mmu_q_val_l2 or
@@ -6622,6 +6907,7 @@ std_be_32: if st_data_32B_mode=1 generate begin
    st_recycle_entry(6 to 37)  <= l2req_st_byte_enbl_l2(0 to 31);
 end generate;
 
+-- encode thread ID that is 1-hot in 38:41
 l2req_thread(0) <= ld_st_request(40) or ld_st_request(41) when (l2req_resend_l2 and ex7_ld_par_err) = '0' else
                    l2req_thread_l2(0);  
 l2req_thread(1) <= ld_st_request(39) or ld_st_request(41) when (l2req_resend_l2 and ex7_ld_par_err) = '0' else
@@ -6953,8 +7239,10 @@ latch_spare_ctrl_a1 : tri_rlmreg_p
 
 
 
+-- format l2 request back into a store entry for recycling after a dcache parity error
 st_recycle_entry(0 to 5)   <= l2req_ttype_l2;
 
+-- byte enables set above
 
 st_recycle_entry(38)       <= l2req_thread_l2(0 to 1) = "00";
 st_recycle_entry(39)       <= l2req_thread_l2(0 to 1) = "01";
@@ -7010,6 +7298,8 @@ latch_st_recycle_v : tri_rlmreg_p
             din(0)  => st_recycle_v_d,
             dout(0) => st_recycle_v_l2 );
 
+-- *************************************************************************
+-- latch info about late ex5 flush into ex6
 
 ex5_load <= load_sent and lq_rd_en_is_ex5;
 
@@ -7090,17 +7380,17 @@ latch_ex5_flush : tri_rlmreg_p
             din(0)  => ex5_flush_d,
             dout(0) => ex5_flush_l2 );
 
-
-ex5_stg_flush <= ((xu_lsu_ex5_flush(0) and ex5_thrd_id(0)) or   
-                  (xu_lsu_ex5_flush(1) and ex5_thrd_id(1)) or   
-                  (xu_lsu_ex5_flush(2) and ex5_thrd_id(2)) or   
-                  (xu_lsu_ex5_flush(3) and ex5_thrd_id(3))) and 
+ex5_stg_flush <= ((xu_lsu_ex5_flush(0) and ex5_thrd_id(0)) or   -- thread 0 flush
+                  (xu_lsu_ex5_flush(1) and ex5_thrd_id(1)) or   -- thread 1 flush
+                  (xu_lsu_ex5_flush(2) and ex5_thrd_id(2)) or   -- thread 2 flush
+                  (xu_lsu_ex5_flush(3) and ex5_thrd_id(3))) and -- thread 3 flush
                  not pe_recov_state_l2;
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 my_ex5_flush <= ex5_stg_flush or ex5_flush_l2;
 
-ex5_flush_store <= ex5_flush_l2; 
-my_ex5_flush_store <= (ex5_stg_flush or ex5_flush_l2); 
+ex5_flush_store <= ex5_flush_l2; -- and not (s_m_queue0(0 to 4) = "10111");  -- dci & ici aren't flushed
+my_ex5_flush_store <= (ex5_stg_flush or ex5_flush_l2); -- and not (s_m_queue0(0 to 4) = "10111");  -- dci & ici aren't flushed
 
 latch_ex6_flush : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)
@@ -7121,6 +7411,8 @@ latch_ex6_flush : tri_rlmreg_p
             dout(0) => ex6_flush_l2 );
 
 
+-- *************************************************************************
+-- latch msr and pid inputs
 
 latch_msr_gs : tri_rlmreg_p
   generic map (width => msr_gs_l2'length, init => 0, expand_type => expand_type)
@@ -7248,22 +7540,23 @@ latch_pid3 : tri_rlmreg_p
             din     => mm_xu_derat_pid3(0 to 13),
             dout    => pid3_l2 );
 
+-- *************************************************************************
+-- STORE DATA
 
-msr_hv <= or_reduce(not msr_gs_l2(0 to 3) and ex4_st_entry_l2(38 to 41));   
-msr_pr <= or_reduce(msr_pr_l2(0 to 3) and ex4_st_entry_l2(38 to 41));   
-msr_ds <= or_reduce(msr_ds_l2(0 to 3) and ex4_st_entry_l2(38 to 41));   
+msr_hv <= or_reduce(not msr_gs_l2(0 to 3) and ex4_st_entry_l2(38 to 41));   -- use thread of req to select msr bit
+msr_pr <= or_reduce(msr_pr_l2(0 to 3) and ex4_st_entry_l2(38 to 41));   -- use thread of req to select msr bit
+msr_ds <= or_reduce(msr_ds_l2(0 to 3) and ex4_st_entry_l2(38 to 41));   -- use thread of req to select msr bit
 pid(0 to 13) <= gate_and(ex4_st_entry_l2(38) , pid0_l2(0 to 13)) or
                 gate_and(ex4_st_entry_l2(39) , pid1_l2(0 to 13)) or
                 gate_and(ex4_st_entry_l2(40) , pid2_l2(0 to 13)) or
                 gate_and(ex4_st_entry_l2(41) , pid3_l2(0 to 13));
 
-
-ditc_dat <= "00000000" &                                         
-            "00" &                                               
-            "000001" &                                           
-            ob_dest_l2(0 to 14) & '0' &                          
-            "00000000" &                                         
-            "0000000000000000" &                                 
+ditc_dat <= "00000000" &                                         -- MSR byte
+            "00" &                                               -- reserved
+            "000001" &                                           -- CT=1 for DITC
+            ob_dest_l2(0 to 14) & '0' &                          -- dest
+            "00000000" &                                         -- LPID
+            "0000000000000000" &                                 -- PID
             x"000000000000000000";
 
 epsc_epr <= (xu_derat_epsc0_epr and ex4_st_entry_l2(38)) or
@@ -7291,10 +7584,10 @@ epsc_epid <= (gate_and(ex4_st_entry_l2(38), xu_derat_epsc0_epid)) or
              (gate_and(ex4_st_entry_l2(40), xu_derat_epsc2_epid)) or 
              (gate_and(ex4_st_entry_l2(41), xu_derat_epsc3_epid));
 
-ex4_icswx_extra_data(0 to 2) <= not epsc_egs & epsc_epr & epsc_eas   when ex4_st_entry_l2(57)='1'  else   
+ex4_icswx_extra_data(0 to 2) <= not epsc_egs & epsc_epr & epsc_eas   when ex4_st_entry_l2(57)='1'  else   -- for icswepx
                                 msr_hv & msr_pr & msr_ds;
 
-ex4_icswx_extra_data(3 to 24)  <= epsc_elpid & epsc_epid             when ex4_st_entry_l2(57)='1'  else   
+ex4_icswx_extra_data(3 to 24)  <= epsc_elpid & epsc_epid             when ex4_st_entry_l2(57)='1'  else   -- for icswepx
                                   lpidr_l2(0 to 7) & pid(0 to 13);
 
 stq_icswx_extra_data_d <= stq_icswx_extra_data_l2   when (st_entry0_val_l2 and not (store_credit and ex5_sel_st_req))='1'   else
@@ -7359,7 +7652,7 @@ std32B: if st_data_32B_mode=1 generate begin
    ex5_st_data_mux(128 to 255) <= ex6_st_data_l2(128 to 255)  when (((l2req_resend_l2 or l2req_recycle_l2) and ex7_ld_par_err) or
                                                                     st_recycle_v_l2) = '1'    else
                                   ex5_st_data_l2(128 to 255)  when st_entry0_val_clone_l2='1' else
-                                  ob_data_l2(0 to 127);      
+                                  ob_data_l2(0 to 127);      -- when ob_req_val_l2='1'
                                   
 end generate;
 
@@ -7394,9 +7687,9 @@ ex5_st_data_mux1(0 to 127) <= icswx_dat(0 to 127)         when s_m_queue0(0 to 4
 ex5_st_data_mux2(0 to 127) <= ob_data_l2(0 to 127)        when ob_req_val_clone_l2='1'    else
                               ditc_dat(0 to 127)          when ob_ditc_val_clone_l2='1'   else
                               ex5_st_data_l2(0 to 31) &
-                                mmu_q_entry_l2(15 to 22) &    
-                                "00000" &                     
-                                mmu_q_entry_l2(23 to 25) &    
+                                mmu_q_entry_l2(15 to 22) &    -- lpid
+                                "00000" &                     -- reserved
+                                mmu_q_entry_l2(23 to 25) &    -- IND,GS,L
                                 ex5_st_data_l2(48 to 127);
 
 ex5_st_data_mux(0 to 127) <= ex6_st_data_l2(0 to 127)  when (((l2req_resend_l2 or l2req_recycle_l2) and ex7_ld_par_err) or
@@ -7425,6 +7718,8 @@ latch_ex6_st_data : tri_rlmreg_p
             dout    => ex6_st_data_l2 );
 ac_an_st_data <= ex6_st_data_l2;
 
+-- ***************************************************************************************************
+-- Flush Conditions
 ex3_stq_flush <= flush_if_store or sync_flush;
 ex3_ig_flush <= I1_G1_flush;
 ex4_l2cmdq_flush_d <= I1_G1_flush & flush_if_store & sync_flush & ld_queue_full & ld_q_seq_wrap;
@@ -7447,13 +7742,11 @@ latch_ex4_l2cmdq_flush : tri_rlmreg_p
             dout    => ex4_l2cmdq_flush_l2 );
 
 
+-- ***************************************************************************************************
+-- Reload outputs
 ldq_rel_op_size(0 to 5) <= rel_size_l2(0 to 5);
 ldq_rel_thrd_id(0 to 3) <= rel_th_id_l2(0 to 3);
 ldq_rel_ci              <= rel_cache_inh_l2;
-
-
-
-
 
 
 
@@ -7569,11 +7862,6 @@ ldq_rel_data_val_early <= data_val_dminus1_l2;
 ldq_rel_retry_val_buf <= ldq_rel_retry_val_dly_l2 and not rel_cache_inh_l2 and not rel_l2only_l2 and
                      not rel_tag_l2(1) and my_beat_last_l2;
 ldq_rel_retry_val <= ldq_rel_retry_val_buf;
-
-
-
-
-
 
 
 
@@ -7794,15 +8082,15 @@ latch_loadmiss_tid : tri_rlmreg_p
 
 xu_iu_ex5_loadmiss_tid(0 to 3) <= ex5_loadmiss_tid(0 to 3);
 
+-- ****************************************************************************************************
+-- Signal command completion to the IU
+-- ****************************************************************************************************
 
 
 
 
 complete_q:  for i in 0 to lmq_entries-1 generate begin
    ecc_err(i) <= beat_ecc_err or data_ecc_err_l2(i);
-
-
-
 
 
    ci_16B_comp_qentry(i) <= data_val_for_rel and (anaclat_tag(1 to 4) = tconv(i, 4)) and l_m_queue(i)(0) and not l_m_queue(i)(7) and not gpr_ecc_err_l2(i);
@@ -7815,15 +8103,15 @@ complete_q:  for i in 0 to lmq_entries-1 generate begin
                              (l_m_queue_addrlo(i)(58) = qw_dminus1_l2(58)) and 
                              ((l_m_queue_addrlo(i)(57) = qw_dminus1_l2(57)) or not my_xucr0_cls) and 
                              not gpr_updated_prev_l2(i) and not gpr_ecc_err_l2(i) and
-                             not (l_m_queue(i)(0) and not l_m_queue(i)(7));                             
+                             not (l_m_queue(i)(0) and not l_m_queue(i)(7));                             -- not 16B I=1 ld
 
 
-   larx_done(i) <= (l_m_queue(i)(1 to 4) = "0010") and l_m_queue(i)(6) and                    
+   larx_done(i) <= (l_m_queue(i)(1 to 4) = "0010") and l_m_queue(i)(6) and                    -- Q entry is for larx
                    ld_m_rel_done_no_retry(i) and not ecc_err(i);
 
 
-   complete_qentry(i) <= (ldm_complete_qentry(i) and     my_xucr0_rel) or         
-                         (ldm_comp_qentry_l2(i)  and not my_xucr0_rel) or         
+   complete_qentry(i) <= (ldm_complete_qentry(i) and     my_xucr0_rel) or         -- L2 reload in back 2 back mode
+                         (ldm_comp_qentry_l2(i)  and not my_xucr0_rel) or         -- L2 reload in gap mode
                          ci_16B_comp_qentry(i);
 
 end generate;
@@ -7979,6 +8267,9 @@ latch_larx_done_tid : tri_rlmreg_p
 
 xu_iu_larx_done_tid <= larx_done_tid_l2;
 
+-- ****************************************************************************************************
+-- Reload interface to the L1 D-Cache
+-- ****************************************************************************************************
 
 
 
@@ -8008,6 +8299,7 @@ update_gpr <= not rel_dcbt_l2 and (rel_addr_l2(58) = qw_l2(58)) and reld_data_vl
               (my_beat1 or my_beat_last_l2 or my_beat_mid or my_noncache_beat) and
               ((rel_addr_l2(57) = qw_l2(57)) or not my_xucr0_cls);
 
+-- latch update_gpr into the next cycle so that ecc error can be checked
 latch_update_gpr : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)
   port map (nclk    => nclk,
@@ -8046,7 +8338,8 @@ latch_rel_beat_crit_qw : tri_rlmreg_p
 gpr_updated:  for i in 0 to lmq_entries-1 generate begin
    set_gpr_updated_prev(i) <= update_gpr_l2 and not ecc_err(i) and
                               (rel_tag_dplus1_l2(1 to 4) = tconv(i, 4)) and
-                              not (ld_m_rel_done_l2(i) and not rel_done_ecc_err);    
+                              not (ld_m_rel_done_l2(i) and not rel_done_ecc_err);    -- don't set if in last cycle of data xfer
+                                                                                     -- and no previous ecc errors
 
    gpr_updated_prev_d(i) <= set_gpr_updated_prev(i) or
                             (gpr_updated_prev_l2(i) and not reset_lmq_entry(i) );
@@ -8067,6 +8360,7 @@ gpr_updated:  for i in 0 to lmq_entries-1 generate begin
 
 end generate;
 
+-- set a latch to remember that the gpr has been updated previously
 latch_gpr_updated_prev : tri_rlmreg_p
   generic map (width => gpr_updated_prev_l2'length, init => 0, expand_type => expand_type)
   port map (nclk    => nclk,
@@ -8214,9 +8508,9 @@ end process;
 rel_cacheable_p:  for i in 0 to lmq_entries-1 generate begin
    rel_cacheable(i) <= not rel_entry(i)(0) and not rel_entry(i)(29) and not lmq_back_invalidated_l2(i);
 
-   rel_set_val(i) <= ld_m_rel_done_l2(i) and                                           
-                     not data_ecc_err_l2(i) and not data_ecc_ue_l2(i) and         
-                     rel_cacheable(i);                                            
+   rel_set_val(i) <= ld_m_rel_done_l2(i) and                                           -- reload is done
+                     not data_ecc_err_l2(i) and not data_ecc_ue_l2(i) and         -- no previous ecc errors
+                     rel_cacheable(i);                                            -- entry is for cacheable data
 end generate;
 
 rel_set_val_or_p:  process (rel_set_val)
@@ -8230,8 +8524,8 @@ begin
 end process;
 
 
-ldq_rel_set_val_buf <= rel_set_val_or and                                  
-                   not beat_ecc_err and not (anaclat_ecc_err_ue and rel_intf_v_dplus1_l2) and  
+ldq_rel_set_val_buf <= rel_set_val_or and                                  -- reload is done
+                   not beat_ecc_err and not (anaclat_ecc_err_ue and rel_intf_v_dplus1_l2) and  -- no ecc errors on last transfer
                    not rel_l2only_dly_l2 and not pe_recov_state_l2;
 
 ldq_rel_set_val <= ldq_rel_set_val_buf;
@@ -8262,14 +8556,8 @@ end process;
 
 
 
-
-
-
-
-
-
-
-
+-- *****************************************************************
+-- gather 16 byte reload data to give 32 bytes to the L1 D-cache
 
 rel_data_a2mode: if a2mode=1 generate begin 
    set_rel_A_data <= reld_data_vld_l2 and     send_rel_A_data_l2;
@@ -8285,6 +8573,7 @@ end generate;
 rel_data_nota2mode: if a2mode=0 generate begin
    rel_A_data_d(0 to 127) <= anaclat_data(0 to 127);
 
+   -- tie unused signals
    set_rel_A_data <= '0';
    set_rel_B_data <= '0';
    rel_B_data_d(0 to 127) <= (others=>'0');
@@ -8331,7 +8620,8 @@ rel_B_data_a2mode: if a2mode=1 generate begin
 end generate;
 
 rel_data_256_a2mode: if a2mode=1 generate begin 
-   send_rel_A_data_d <= not send_rel_A_data_l2 or my_xucr0_rel;    
+   send_rel_A_data_d <= not send_rel_A_data_l2 or my_xucr0_rel;    -- always use rel_A when in back to back l2 mode
+                                                                           -- otherwise toggle between A and B
 
    latch_send_rel_A_data : tri_rlmreg_p
      generic map (width => 1, init => 0, expand_type => expand_type)
@@ -8362,8 +8652,8 @@ end generate;
 
 
 rel_data_256_nota2mode: if a2mode=0 generate begin
-   send_rel_A_data_d  <= '0';  
-   send_rel_A_data_l2 <= '0';  
+   send_rel_A_data_d  <= '0';  -- tie unused signals
+   send_rel_A_data_l2 <= '0';  -- tie unused signals
 
    ldq_rel_256_data(0 to 127) <= anaclat_data(0 to 127)              when qw_l2(59) = '0'       else
                                  rel_A_data_l2(0 to 127);
@@ -8372,6 +8662,7 @@ rel_data_256_nota2mode: if a2mode=0 generate begin
                                    anaclat_data(0 to 127);
 end generate;
 
+-- signal to MMU when the load miss queue is empty
 
 lmq_empty <= ld_rel_val_l2(0 to lmq_entries-1) = (0 to lmq_entries-1 => '0');
 
@@ -8395,6 +8686,7 @@ latch_lmq_stq_empty : tri_rlmreg_p
             din(0)  => xu_mm_lmq_stq_empty_d,
             dout(0) => xu_mm_lmq_stq_empty );
 
+-- signal when each thread is quiesced
 
 lmq_q:  process(ld_rel_val_l2, l_m_queue(0)(18 to 21), l_m_queue(1)(18 to 21), l_m_queue(2)(18 to 21), l_m_queue(3)(18 to 21), l_m_queue(4)(18 to 21), l_m_queue(5)(18 to 21), l_m_queue(6)(18 to 21), l_m_queue(7)(18 to 21))
    variable b: std_ulogic_vector(0 to 3);
@@ -8430,12 +8722,15 @@ latch_quiesce : tri_rlmreg_p
             din     => quiesce_d(0 to 3),
             dout    => lsu_xu_quiesce(0 to 3) );
 
+-- send back invalidates to the D-Cache
 
 is2_l2_inv_val <= back_inv_val_l2;
 
 is2_l2_inv_p_addr <= anaclat_back_inv_addr(64-real_data_add to 63-cl_size);
 
 
+-- ********************************************************************************8
+-- send L2 ecc errors to pervasive:
 
 
 err_l2intrf_ecc_d <= beat_ecc_err and rel_intf_v_dplus1_l2;
@@ -8506,6 +8801,7 @@ latch_err_invld_reld : tri_rlmreg_p
             din(0)  => err_invld_reld_d,
             dout(0) => err_invld_reld_l2 );
 
+-- create error signal we get too many load or store credit pops
 
 err_cred_overrun_d <= store_cmd_count_l2(0 to 1)="11" or load_cmd_count_l2(0 to 1)="11";
 
@@ -8542,6 +8838,8 @@ err_rpt :  tri_direct_err_rpt
             err_out(3) => xu_pc_err_l2credit_overrun);
 
 
+-- *********************************************************************************
+-- Repower Latches for BXQ
 
 latch_reld_ditc_pop : tri_rlmreg_p
   generic map (width => ac_an_reld_ditc_pop_q'length, init => 0, expand_type => expand_type)
@@ -8581,6 +8879,8 @@ latch_bx_ib_empty : tri_rlmreg_p
 
 
 
+-- *********************************************************************************
+-- Spare latches
 
 spare_0_lcb: entity tri.tri_lcbnd(tri_lcbnd)
    port map(vd          => vdd,
@@ -8663,6 +8963,8 @@ spare_4_d   <= not spare_4_l2;
 
 
 
+-- *********************************************************************************
+-- Debug signals
 
 dbg_d(0 to 7) <= l_q_rd_en;
 dbg_d(8 to 11) <= ex4st_hit_ex6_recov &
@@ -8702,208 +9004,209 @@ latch_dbg : tri_rlmreg_p
             din     => dbg_d,
             dout    => dbg_l2 );
 
-lmq_dbg_l2req <= l2req_l2 &                             
-                 l2req_ld_core_tag_l2 &                 
-                 l2req_ra_l2 &                          
-                 l2req_st_byte_enbl_l2(0 to 15) &       
-                 l2req_thread_l2 &                      
-                 l2req_ttype_l2 &                       
-                 l2req_wimg_l2 &                        
-                 l2req_endian_l2 &                      
-                 l2req_user_l2 &                        
-                 l2req_ld_xfr_len_l2 &                  
-                 ex6_st_data_l2(0 to 127);              
+lmq_dbg_l2req <= l2req_l2 &                             --(0)
+                 l2req_ld_core_tag_l2 &                 --(1:5)
+                 l2req_ra_l2 &                          --(6:47)
+                 l2req_st_byte_enbl_l2(0 to 15) &       --(48:63)
+                 l2req_thread_l2 &                      --(64:66)
+                 l2req_ttype_l2 &                       --(67:72)
+                 l2req_wimg_l2 &                        --(73:76)
+                 l2req_endian_l2 &                      --(77)
+                 l2req_user_l2 &                        --(78:81)
+                 l2req_ld_xfr_len_l2 &                  --(82:84)
+                 ex6_st_data_l2(0 to 127);              --(85:212)
 
-lmq_dbg_rel  <= anaclat_data_coming &           
-                anaclat_data_val &              
-                anaclat_reld_crit_qw &          
-                anaclat_ditc &                  
-                anaclat_l1_dump &               
-                anaclat_tag(1 to 4) &           
-                anaclat_qw(58 to 59) &          
-                anaclat_ecc_err &               
-                anaclat_ecc_err_ue &            
-                anaclat_data(0 to 127);         
+lmq_dbg_rel  <= anaclat_data_coming &           --(0)
+                anaclat_data_val &              --(1)
+                anaclat_reld_crit_qw &          --(2)
+                anaclat_ditc &                  --(3)
+                anaclat_l1_dump &               --(4)
+                anaclat_tag(1 to 4) &           --(5:8)
+                anaclat_qw(58 to 59) &          --(9:10)
+                anaclat_ecc_err &               --(11)
+                anaclat_ecc_err_ue &            --(12)
+                anaclat_data(0 to 127);         --(13:140)
 
-lmq_dbg_binv <= anaclat_back_inv &              
-                anaclat_back_inv_addr &         
-                anaclat_back_inv_target_1 &     
-                anaclat_back_inv_target_4;      
+lmq_dbg_binv <= anaclat_back_inv &              --(0)
+                anaclat_back_inv_addr &         --(1:42)
+                anaclat_back_inv_target_1 &     --(43)
+                anaclat_back_inv_target_4;      --(44)
 
-lmq_dbg_pops <= anaclat_ld_pop &                
-                anaclat_st_gather &             
-                anaclat_st_pop &                
-                anaclat_st_pop_thrd;            
+lmq_dbg_pops <= anaclat_ld_pop &                --(0)
+                anaclat_st_gather &             --(1)
+                anaclat_st_pop &                --(2)
+                anaclat_st_pop_thrd;            --(3:5)
 
-lmq_dbg_dcache_pe <= l2req_resend_l2 &                                  
-                     l2req_recycle_l2 &                                 
-                     ex6_ld_recov_val_l2 &                              
-                     ex6_ld_recov_extra_l2(0) &                         
-                     ex7_ld_recov_val_l2 &                              
-                     ex7_ld_recov_extra_l2(0) &                         
-                     ex7_ld_recov_l2(1 to 6) &                          
-                     ex7_ld_recov_l2(18 to 21) &                        
-                     ex7_ld_recov_l2(53 to (53+(real_data_add-2))) &    
-                     st_hit_recov_ld_l2 &                               
-                     pe_recov_state_l2 &                                
-                     blk_ld_for_pe_recov_l2;                            
+lmq_dbg_dcache_pe <= l2req_resend_l2 &                                  -- 1
+                     l2req_recycle_l2 &                                 -- 2
+                     ex6_ld_recov_val_l2 &                              -- 3
+                     ex6_ld_recov_extra_l2(0) &                         -- 4
+                     ex7_ld_recov_val_l2 &                              -- 5
+                     ex7_ld_recov_extra_l2(0) &                         -- 6
+                     ex7_ld_recov_l2(1 to 6) &                          -- 7:12
+                     ex7_ld_recov_l2(18 to 21) &                        -- 13:16
+                     ex7_ld_recov_l2(53 to (53+(real_data_add-2))) &    -- 17:57
+                     st_hit_recov_ld_l2 &                               -- 58
+                     pe_recov_state_l2 &                                -- 59
+                     blk_ld_for_pe_recov_l2;                            -- 60
 
-lmq_dbg_grp0 <= l_m_rel_hit_beat0_l2 &                              
-                l_m_rel_hit_beat1_l2 &                              
-                l_m_rel_hit_beat2_l2 &                              
-                l_m_rel_hit_beat3_l2 &                              
-                l_m_rel_val_c_i_dly &                               
-                lmq_back_invalidated_l2(0 to lmq_entries-1) &       
-                dbg_l2(40 to 40+lmq_entries-1) &                    
-                ldq_retry_l2(0 to lmq_entries-1) &                  
-                retry_started_l2(0 to lmq_entries-1) &              
-                gpr_ecc_err_l2(0 to lmq_entries-1) &                
-                "00";                                               
+lmq_dbg_grp0 <= l_m_rel_hit_beat0_l2 &                              --(0:7)
+                l_m_rel_hit_beat1_l2 &                              --(8:15)
+                l_m_rel_hit_beat2_l2 &                              --(16:23)
+                l_m_rel_hit_beat3_l2 &                              --(24:31)
+                l_m_rel_val_c_i_dly &                               --(32:39)
+                lmq_back_invalidated_l2(0 to lmq_entries-1) &       --(40:47)
+                dbg_l2(40 to 40+lmq_entries-1) &                    --(48:55)
+                ldq_retry_l2(0 to lmq_entries-1) &                  --(56:63)
+                retry_started_l2(0 to lmq_entries-1) &              --(64:71)
+                gpr_ecc_err_l2(0 to lmq_entries-1) &                --(78:85)
+                "00";                                               --(86:87)
 
-lmq_dbg_grp1 <= l_m_rel_hit_beat0_l2 &                              
-                l_m_rel_hit_beat1_l2 &                              
-                l_m_rel_hit_beat2_l2 &                              
-                l_m_rel_hit_beat3_l2 &                              
-                l_m_rel_val_c_i_dly &                               
-                gpr_ecc_err_l2(0 to lmq_entries-1) &                
-                data_ecc_err_l2(0 to lmq_entries-1) &               
-                data_ecc_ue_l2(0 to lmq_entries-1) &                
-                gpr_updated_prev_l2(0 to lmq_entries-1) &           
-                anaclat_data_val &                                  
-                anaclat_reld_crit_qw &                              
-                anaclat_tag(1 to 4) &                               
-                anaclat_qw(58 to 59) &                              
-                anaclat_ecc_err &                                   
-                anaclat_ecc_err_ue;                                 
+lmq_dbg_grp1 <= l_m_rel_hit_beat0_l2 &                              --(0:7)
+                l_m_rel_hit_beat1_l2 &                              --(8:15)
+                l_m_rel_hit_beat2_l2 &                              --(16:23)
+                l_m_rel_hit_beat3_l2 &                              --(24:31)
+                l_m_rel_val_c_i_dly &                               --(32:39)
+                gpr_ecc_err_l2(0 to lmq_entries-1) &                --(40:47)
+                data_ecc_err_l2(0 to lmq_entries-1) &               --(48:55)
+                data_ecc_ue_l2(0 to lmq_entries-1) &                --(56:63)
+                gpr_updated_prev_l2(0 to lmq_entries-1) &           --(64:71)
+                anaclat_data_val &                                  --(78)
+                anaclat_reld_crit_qw &                              --(79)
+                anaclat_tag(1 to 4) &                               --(80:83)
+                anaclat_qw(58 to 59) &                              --(84:85)
+                anaclat_ecc_err &                                   --(86)
+                anaclat_ecc_err_ue;                                 --(87)
 
-lmq_dbg_grp2 <= ex4_l2cmdq_flush_l2(0) &                             
-                ex4_l2cmdq_flush_l2(3) &                             
-                ex4_drop_ld_req &                                   
-                ex5_flush_l2 &                                      
-                ex5_stg_flush &                                     
-                dbg_l2(21 to 26) &                                  
-                ex4_loadmiss_qentry(0 to lmq_entries-1) &           
-                ld_entry_val_l2(0 to lmq_entries-1) &               
-                ld_rel_val_l2(0 to lmq_entries-1) &                 
-                ex4_lmq_cpy_l2(0 to lmq_entries-1) &                
-                send_if_req_l2 &                                    
-                send_ld_req_l2 &                                    
-                send_mm_req_l2 &                                    
-                load_cmd_count_l2 &                                 
-                load_sent_dbglat_l2 &                               
-                dbg_l2(27) &                                        
-                dbg_l2(14) &                                        
-                ex6_load_sent_l2 &                                  
-                ex6_flush_l2 &                                      
-                cmd_seq_l2 &                                        
-                dbg_l2(0 to 7) &                                    
-                dbg_l2(28) &                                        
-                dbg_l2(12) &                                        
-                dbg_l2(13) &                                        
-                l_m_q_hit_st_l2(0 to lmq_entries-1) &               
-                lmq_drop_rel_l2(0 to lmq_entries-1) &               
-                ex4_l2cmdq_flush_l2(4);                             
+lmq_dbg_grp2 <= ex4_l2cmdq_flush_l2(0) &                             --(0)
+                ex4_l2cmdq_flush_l2(3) &                             --(1)
+                ex4_drop_ld_req &                                   --(2)
+                ex5_flush_l2 &                                      --(3)
+                ex5_stg_flush &                                     --(4)
+                dbg_l2(21 to 26) &                                  --(5:10)
+                ex4_loadmiss_qentry(0 to lmq_entries-1) &           --(11:18)
+                ld_entry_val_l2(0 to lmq_entries-1) &               --(19:26)
+                ld_rel_val_l2(0 to lmq_entries-1) &                 --(27:34)
+                ex4_lmq_cpy_l2(0 to lmq_entries-1) &                --(35:42)
+                send_if_req_l2 &                                    --(43)
+                send_ld_req_l2 &                                    --(44)
+                send_mm_req_l2 &                                    --(45)
+                load_cmd_count_l2 &                                 --(46:49)
+                load_sent_dbglat_l2 &                               --(50)
+                dbg_l2(27) &                                        --(51)
+                dbg_l2(14) &                                        --(52)
+                ex6_load_sent_l2 &                                  --(53)
+                ex6_flush_l2 &                                      --(54)
+                cmd_seq_l2 &                                        --(55:59)
+                dbg_l2(0 to 7) &                                    --(60:67)  l_q_rd_en
+                dbg_l2(28) &                                        --(68)
+                dbg_l2(12) &                                        --(69)
+                dbg_l2(13) &                                        --(70)
+                l_m_q_hit_st_l2(0 to lmq_entries-1) &               --(71:78)
+                lmq_drop_rel_l2(0 to lmq_entries-1) &               --(79:86)
+                ex4_l2cmdq_flush_l2(4);                             --(87)
 
-lmq_dbg_grp3 <= ex4_l2cmdq_flush_l2(2) &                            
-                ex4_l2cmdq_flush_l2(1) &                            
-                ex4_l2cmdq_flush_l2(0) &                            
-                l_m_fnd_stg &                                      
-                ex5_flush_l2 &                                     
-                ex5_stg_flush &                                    
-                ex4_st_val_l2 &                                    
-                st_entry0_val_l2 &                                 
-                s_m_queue0(0 to 5) &                               
-                s_m_queue0(58 to (58+real_data_add-6-1)) &         
-                store_cmd_count_l2 &                               
-                dbg_l2(29) &                                       
-                dbg_l2(30) &                                       
-                ex5_sel_st_req &                                   
-                dbg_l2(31) &                                       
-                dbg_l2(32) &                                       
-                ex5_flush_store &                                  
-                ex6_store_sent_l2 &                                
-                ex6_flush_l2 &                                     
-               	l2req_l2 &                                         
-             	l2req_thread_l2 &                                  
-                l2req_ttype_l2 &                                   
-                ob_req_val_l2 &                                    
-                ob_ditc_val_l2 &                                   
-                bx_cmd_stall_l2 &                                  
-                bx_cmd_sent_l2 &                                   
+lmq_dbg_grp3 <= ex4_l2cmdq_flush_l2(2) &                            --(0)
+                ex4_l2cmdq_flush_l2(1) &                            --(1)
+                ex4_l2cmdq_flush_l2(0) &                            --(2)
+                l_m_fnd_stg &                                      --(3)
+                ex5_flush_l2 &                                     --(4)
+                ex5_stg_flush &                                    --(5)
+                ex4_st_val_l2 &                                    --(6)
+                st_entry0_val_l2 &                                 --(7)
+                s_m_queue0(0 to 5) &                               --(8:13)
+                s_m_queue0(58 to (58+real_data_add-6-1)) &         --(14:49)
+                store_cmd_count_l2 &                               --(50:55)
+                dbg_l2(29) &                                       --(56)
+                dbg_l2(30) &                                       --(57)
+                ex5_sel_st_req &                                   --(58)
+                dbg_l2(31) &                                       --(59)
+                dbg_l2(32) &                                       --(60)
+                ex5_flush_store &                                  --(61)
+                ex6_store_sent_l2 &                                --(62)
+                ex6_flush_l2 &                                     --(63)
+               	l2req_l2 &                                         --(64)
+             	l2req_thread_l2 &                                  --(65:67)
+                l2req_ttype_l2 &                                   --(68:73)
+                ob_req_val_l2 &                                    --(74)
+                ob_ditc_val_l2 &                                   --(75)
+                bx_cmd_stall_l2 &                                  --(76)
+                bx_cmd_sent_l2 &                                   --(77)
                 dbg_l2(8 to 11) &
-                st_recycle_v_l2 &                                  
-                l2req_resend_l2 &                                  
-                l2req_recycle_l2 &                                 
-                dbg_l2(33) &                                       
-                mmu_q_val &                                        
-                mmu_q_entry_l2(0);                                 
+                st_recycle_v_l2 &                                  --(82)
+                l2req_resend_l2 &                                  --(83)
+                l2req_recycle_l2 &                                 --(84)
+                dbg_l2(33) &                                       --(85)
+                mmu_q_val &                                        --(86)
+                mmu_q_entry_l2(0);                                 --(87)
 
-lmq_dbg_grp4 <= ifetch_req_l2 &                                    
-                ifetch_ra_l2 &                                     
-                ifetch_thread_l2 &                                 
-                i_f_q0_val_l2 &                                    
-                i_f_q1_val_l2 &                                    
-                i_f_q2_val_l2 &                                    
-                i_f_q3_val_l2 &                                    
-                send_if_req_l2 &                                   
-                send_ld_req_l2 &                                   
-                send_mm_req_l2 &                                   
-                dbg_l2(34 to 37) &                                 
-                dbg_l2(38) &                                       
-               	l2req_l2 &                                         
-             	l2req_thread_l2 &                                  
-                l2req_ttype_l2 &                                   
-                l2req_ld_core_tag_l2 &                             
-                l2req_wimg_l2 &                                    
-                anaclat_data_val &                                 
-                anaclat_reld_crit_qw &                             
-                anaclat_tag(1 to 4) &                              
-                anaclat_qw(58 to 59) &                             
-                anaclat_ecc_err &                                  
-                anaclat_ecc_err_ue &                               
-                load_credit &                                      
-                store_credit &                                     
-                ex5_sel_st_req &                                   
-                '0' ;                                              
+lmq_dbg_grp4 <= ifetch_req_l2 &                                    --(0)
+                ifetch_ra_l2 &                                     --(1:38)
+                ifetch_thread_l2 &                                 --(39:42)
+                i_f_q0_val_l2 &                                    --(43)
+                i_f_q1_val_l2 &                                    --(44)
+                i_f_q2_val_l2 &                                    --(45)
+                i_f_q3_val_l2 &                                    --(46)
+                send_if_req_l2 &                                   --(47)
+                send_ld_req_l2 &                                   --(48)
+                send_mm_req_l2 &                                   --(49)
+                dbg_l2(34 to 37) &                                 --(50:53)
+                dbg_l2(38) &                                       --(54)
+               	l2req_l2 &                                         --(55)
+             	l2req_thread_l2 &                                  --(56:58)
+                l2req_ttype_l2 &                                   --(59:64)
+                l2req_ld_core_tag_l2 &                             --(65:69)
+                l2req_wimg_l2 &                                    --(70:73)
+                anaclat_data_val &                                 --(74)
+                anaclat_reld_crit_qw &                             --(75)
+                anaclat_tag(1 to 4) &                              --(76:79)
+                anaclat_qw(58 to 59) &                             --(80:81)
+                anaclat_ecc_err &                                  --(82)
+                anaclat_ecc_err_ue &                               --(83)
+                load_credit &                                      --(84)
+                store_credit &                                     --(85)
+                ex5_sel_st_req &                                   --(86)
+                '0' ;                                              --(87)
 
-lmq_dbg_grp5 <= mm_req_val_l2 &                                    
-                mmu_q_val_l2 &                                     
-                mmu_q_entry_l2 &                                   
-                send_if_req_l2 &                                   
-                send_ld_req_l2 &                                   
-                send_mm_req_l2 &                                   
-                dbg_l2(39) &                                       
-               	l2req_l2 &                                         
-             	l2req_thread_l2 &                                  
-                l2req_ttype_l2 &                                   
+lmq_dbg_grp5 <= mm_req_val_l2 &                                    --(0)
+                mmu_q_val_l2 &                                     --(1)
+                mmu_q_entry_l2 &                                   --(2:69)
+                send_if_req_l2 &                                   --(70)
+                send_ld_req_l2 &                                   --(71)
+                send_mm_req_l2 &                                   --(72)
+                dbg_l2(39) &                                       --(73)
+               	l2req_l2 &                                         --(74)
+             	l2req_thread_l2 &                                  --(75:77)
+                l2req_ttype_l2 &                                   --(78:83)
                 "0000";
 
-lmq_dbg_grp6 <= ex3_stg_flush &                                    
-                ex4_l2cmdq_flush_l2(0) &                            
-                ex4_l2cmdq_flush_l2(2) &                            
-                ex4_l2cmdq_flush_l2(1) &                            
-                ex4_l2cmdq_flush_l2(3) &                            
-                ex4_drop_ld_req &                                  
-                l_m_fnd_stg &                                      
-                ex4_stg_flush &                                    
-                my_ex4_flush_l2 &                                  
-                ex5_stg_flush &                                    
-                ex2_lm_dep_hit_buf &                               
-                ex3_thrd_id(0 to 3) &                              
-                 dbg_l2(15 to 20) &                                
-                 dbg_l2(21 to 26) &                                
-                ex4_lmq_cpy_l2(0 to lmq_entries-1) &               
-                lmq_collision_t0_l2(0 to lmq_entries-1) &          
-                lmq_collision_t1_l2(0 to lmq_entries-1) &          
-                lmq_collision_t2_l2(0 to lmq_entries-1) &          
-                lmq_collision_t3_l2(0 to lmq_entries-1) &          
-                ldq_barr_active_l2(0 to 3) &                       
-                ldq_barr_done_l2(0 to 3) &                         
-                sync_done_tid_l2(0 to 3) &                         
-                ld_rel_val_l2 &                                    
-                st_entry0_val_l2;                                  
+lmq_dbg_grp6 <= ex3_stg_flush &                                    --(0)
+                ex4_l2cmdq_flush_l2(0) &                            --(1)
+                ex4_l2cmdq_flush_l2(2) &                            --(2)
+                ex4_l2cmdq_flush_l2(1) &                            --(3)
+                ex4_l2cmdq_flush_l2(3) &                            --(4)
+                ex4_drop_ld_req &                                  --(5)
+                l_m_fnd_stg &                                      --(6)
+                ex4_stg_flush &                                    --(7)
+                my_ex4_flush_l2 &                                  --(8)
+                ex5_stg_flush &                                    --(9)
+                ex2_lm_dep_hit_buf &                               --(10)
+                ex3_thrd_id(0 to 3) &                              --(11:14)
+                 dbg_l2(15 to 20) &                                --(15:20)
+                 dbg_l2(21 to 26) &                                --(21:26)
+                ex4_lmq_cpy_l2(0 to lmq_entries-1) &               --(27:34)
+                lmq_collision_t0_l2(0 to lmq_entries-1) &          --(35:42)
+                lmq_collision_t1_l2(0 to lmq_entries-1) &          --(43:50)
+                lmq_collision_t2_l2(0 to lmq_entries-1) &          --(51:58)
+                lmq_collision_t3_l2(0 to lmq_entries-1) &          --(59:66)
+                ldq_barr_active_l2(0 to 3) &                       --(67:70)
+                ldq_barr_done_l2(0 to 3) &                         --(71:74)
+                sync_done_tid_l2(0 to 3) &                         --(75:78)
+                ld_rel_val_l2 &                                    --(79:86)
+                st_entry0_val_l2;                                  --(87)
 
 
+-- scan in and scan out connections
 
 siv(0 to l_m_queue_addrlo_offset-1) <= sov(1 to l_m_queue_addrlo_offset-1) & scan_in(0);
 scan_out(0) <= sov(0) and scan_dis_dc_b;
@@ -8920,5 +9223,3 @@ bcfg_siv(0 to bcfg_siv'right) <= bcfg_sov(1 to bcfg_siv'right) & bcfg_scan_in;
 bcfg_scan_out <= bcfg_sov(0) and scan_dis_dc_b;
 
 end xuq_lsu_l2cmdq;
-
-

@@ -9,6 +9,11 @@
 
 			
 
+--********************************************************************
+--* TITLE: Memory Management Unit TLB Compare Logic
+--* NAME: mmq_tlb_cmp.vhdl
+--*********************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library ibm;
@@ -399,6 +404,7 @@ end mmq_tlb_cmp;
 ARCHITECTURE MMQ_TLB_CMP
           OF MMQ_TLB_CMP
           IS
+--@@  Signal Declarations
 SIGNAL LRU_UPDATE_DATA_PT                : STD_ULOGIC_VECTOR(1 TO 175)  := 
 (OTHERS=> 'U');
 component mmq_tlb_matchline
@@ -473,6 +479,7 @@ constant TLB_PgSize_16MB  : std_ulogic_vector(0 to 3) := "0111";
 constant TLB_PgSize_1MB   : std_ulogic_vector(0 to 3) := "0101";
 constant TLB_PgSize_64KB  : std_ulogic_vector(0 to 3) := "0011";
 constant TLB_PgSize_4KB   : std_ulogic_vector(0 to 3) := "0001";
+-- reserved for indirect entries
 constant ERAT_PgSize_256MB : std_ulogic_vector(0 to 2) := "100";
 constant TLB_PgSize_256MB : std_ulogic_vector(0 to 3) := "1001";
 constant tlb_way0_offset              : natural := 0;
@@ -541,6 +548,25 @@ constant lru_par_err_offset              : natural := tlb_par_err_offset + thdid
 constant cswitch_offset                  : natural := lru_par_err_offset + thdid_width;
 constant spare_c_offset                  : natural := cswitch_offset + 8;
 constant scan_right_2                    : natural := spare_c_offset + 16 - 1;
+--tlb_tag3_d <= ( 0:51   epn &
+--                52:65  pid &
+--                66:67  IS &
+--                68:69  Class &
+--                70:73  state (pr,gs,as,cm) &
+--                74:77  thdid &
+--                78:81  size &
+--                82:83  derat_miss/ierat_miss &
+--                84:85  tlbsx/tlbsrx &
+--                86:87  inval_snoop/tlbre &
+--                88:89  tlbwe/ptereload &
+--                90:97  lpid &
+--                98  indirect
+--                99  atsel &
+--                100:102  esel &
+--                103:105  hes/wq(0:1) &
+--                106:107  lrat/pt &
+--                108  record form
+--                109  endflag
 constant tagpos_epn      : natural  := 0;
 constant tagpos_pid      : natural  := 52;
 constant tagpos_is       : natural  := 66;
@@ -559,6 +585,7 @@ constant tagpos_lrat     : natural  := 106;
 constant tagpos_pt       : natural  := 107;
 constant tagpos_recform  : natural  := 108;
 constant tagpos_endflag  : natural  := 109;
+-- derat,ierat,tlbsx,tlbsrx,snoop,tlbre,tlbwe,ptereload
 constant tagpos_type_derat     : natural  := tagpos_type;
 constant tagpos_type_ierat     : natural  := tagpos_type+1;
 constant tagpos_type_tlbsx     : natural  := tagpos_type+2;
@@ -567,6 +594,7 @@ constant tagpos_type_snoop     : natural  := tagpos_type+4;
 constant tagpos_type_tlbre     : natural  := tagpos_type+5;
 constant tagpos_type_tlbwe     : natural  := tagpos_type+6;
 constant tagpos_type_ptereload : natural  := tagpos_type+7;
+-- state: 0:pr 1:gs 2:as 3:cm
 constant tagpos_pr             : natural  := tagpos_state;
 constant tagpos_gs             : natural  := tagpos_state+1;
 constant tagpos_as             : natural  := tagpos_state+2;
@@ -622,6 +650,7 @@ constant ptepos_size     : natural  := 52;
 constant ptepos_usxwr    : natural  := 56;
 constant ptepos_sw1      : natural  := 62;
 constant ptepos_valid    : natural  := 63;
+-- mmucr1 bits
 constant pos_tlb_pei : natural := 10;
 constant pos_lru_pei : natural := 11;
 constant pos_ictid : natural := 12;
@@ -632,6 +661,8 @@ constant pos_dccd  : natural := 16;
 constant pos_tlbwe_binv : natural := 17;
 constant pos_tlbi_msb : natural := 18;
 constant pos_tlbi_rej : natural := 19;
+-- Latch signals
+-- tag3 phase
 signal tlb_way0_d, tlb_way0_q    : std_ulogic_vector(0 to tlb_way_width-1);
 signal tlb_way1_d, tlb_way1_q    : std_ulogic_vector(0 to tlb_way_width-1);
 signal tlb_way2_d, tlb_way2_q    : std_ulogic_vector(0 to tlb_way_width-1);
@@ -651,6 +682,7 @@ signal tlb_way0_xbitmask_d, tlb_way0_xbitmask_q  : std_ulogic_vector(0 to 4);
 signal tlb_way1_xbitmask_d, tlb_way1_xbitmask_q  : std_ulogic_vector(0 to 4);
 signal tlb_way2_xbitmask_d, tlb_way2_xbitmask_q  : std_ulogic_vector(0 to 4);
 signal tlb_way3_xbitmask_d, tlb_way3_xbitmask_q  : std_ulogic_vector(0 to 4);
+-- tag4 phase
 signal tlb_tag4_d, tlb_tag4_q                    : std_ulogic_vector(0 to tlb_tag_width-1);
 signal tlb_tag4_wayhit_d, tlb_tag4_wayhit_q      : std_ulogic_vector(0 to tlb_ways);
 signal tlb_addr4_d, tlb_addr4_q                  : std_ulogic_vector(0 to tlb_addr_width-1);
@@ -664,6 +696,7 @@ signal tlb_tag4_way_rw_clone_d, tlb_tag4_way_rw_clone_q      : std_ulogic_vector
 signal tlb_tag4_way_rw_or      : std_ulogic_vector(0 to tlb_way_width-1);
 signal tlbwe_tag4_back_inv_d, tlbwe_tag4_back_inv_q :  std_ulogic_vector(0 to thdid_width);
 signal tlbwe_tag4_back_inv_attr_d, tlbwe_tag4_back_inv_attr_q :  std_ulogic_vector(18 to 19);
+-- tag5 phase
 signal tlb_erat_val_d, tlb_erat_val_q     : std_ulogic_vector(0 to 2*thdid_width+1);
 signal tlb_erat_rel_d, tlb_erat_rel_q     : std_ulogic_vector(0 to erat_rel_data_width-1);
 signal tlb_erat_rel_clone_d, tlb_erat_rel_clone_q     : std_ulogic_vector(0 to erat_rel_data_width-1);
@@ -696,6 +729,8 @@ signal msr_gs_q, msr_pr_q   : std_ulogic_vector(0 to thdid_width-1);
 signal spare_a_q, spare_b_q, spare_c_q   : std_ulogic_vector(0 to 15);
 signal spare_nsl_q, spare_nsl_clone_q : std_ulogic_vector(0 to 7);
 signal cswitch_q : std_ulogic_vector(0 to 7);
+-- Logic signals
+--  tag3 phase
 signal pgsize_enable,class_enable,thdid_enable,pid_enable,lpid_enable,ind_enable,iprot_enable  : std_ulogic;
 signal state_enable,extclass_enable : std_ulogic_vector(0 to 1);
 signal addr_enable : std_ulogic_vector(0 to 8);
@@ -716,6 +751,7 @@ signal tlb_tag4_way_act     : std_ulogic;
 signal tlb_tag4_way_clone_act : std_ulogic;
 signal tlb_tag4_way_rw_act     : std_ulogic;
 signal tlb_tag4_way_rw_clone_act     : std_ulogic;
+--  tag4 phase
 signal tlb_tag4_type_sig      : std_ulogic_vector(0 to 7);
 signal tlb_tag4_esel_sig      : std_ulogic_vector(0 to 2);
 signal tlb_tag4_hes_sig       : std_ulogic;
@@ -887,6 +923,7 @@ signal lrat_tag4_lpn_sig              : std_ulogic_vector(22 to 51);
 signal lrat_tag4_rpn_sig              : std_ulogic_vector(22 to 51);
 -- synopsys translate_off
 -- synopsys translate_on
+-- possible eco signals
 signal lru_datain_alt_d         : std_ulogic_vector(4 to 9);
 signal lru_update_data_alt      : std_ulogic_vector(0 to 2);
 signal tlb_tag4_parerr_enab    : std_ulogic;
@@ -898,9 +935,11 @@ signal lru_update_data_erathit_eco    : std_ulogic_vector(0 to 2);
 signal unused_dc  :  std_ulogic_vector(0 to 38);
 -- synopsys translate_off
 -- synopsys translate_on
+-- dd2 eco signals
 signal ECO107332_orred_tag4_thdid_flushed  : std_ulogic;
 signal ECO107332_tlb_par_err_d  : std_ulogic_vector(0 to thdid_width-1);
 signal ECO107332_lru_par_err_d  : std_ulogic_vector(0 to thdid_width-1);
+-- Pervasive
 signal pc_sg_1         : std_ulogic;
 signal pc_sg_0         : std_ulogic;
 signal pc_fce_1        : std_ulogic;
@@ -922,15 +961,18 @@ signal siv_1, sov_1                      : std_ulogic_vector(0 to scan_right_1);
 signal siv_2, sov_2                      : std_ulogic_vector(0 to scan_right_2);
 signal tidn                     : std_ulogic;
 signal tiup                     : std_ulogic;
-  BEGIN 
+  BEGIN --@@ START OF EXECUTABLE CODE FOR MMQ_TLB_CMP
 
 tidn  <=  '0';
 tiup  <=  '1';
+-- tag2 phase signals, tlbwe/re ex4, tlbsx/srx ex5
 tlb_addr3_d  <=  tlb_addr2;
+--  latch tlb array outputs
 tlb_way0_d  <=  tlb_dataout(0 to tlb_way_width-1);
 tlb_way1_d  <=  tlb_dataout(tlb_way_width to 2*tlb_way_width-1);
 tlb_way2_d  <=  tlb_dataout(2*tlb_way_width to 3*tlb_way_width-1);
 tlb_way3_d  <=  tlb_dataout(3*tlb_way_width to 4*tlb_way_width-1);
+--  tlb_ctl may flush the thdid bits
 tlb_tag3_d(0 TO tagpos_thdid-1) <=  tlb_tag2(0 to tagpos_thdid-1);
 tlb_tag3_d(tagpos_thdid TO tagpos_thdid+thdid_width-1) <=   
             (others => '0') when ((tlb_tag4_wayhit_q(tlb_ways)='1' or tlb_tag4_q(tagpos_endflag)='1' or or_reduce(tag4_parerr_q(0 to 4))='1') and
@@ -943,6 +985,7 @@ tlb_tag3_d(tagpos_thdid TO tagpos_thdid+thdid_width-1) <=
                tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1)/="0000") 
       else tlb_tag2(tagpos_thdid to tagpos_thdid+thdid_width-1) and not(tlb_ctl_tag2_flush);
 tlb_tag3_d(tagpos_thdid+thdid_width TO tlb_tag_width-1) <=  tlb_tag2(tagpos_thdid+thdid_width to tlb_tag_width-1);
+-- clones for timing  arrays 0/1
 tlb_tag3_clone1_d(0 TO tagpos_thdid-1) <=  tlb_tag2(0 to tagpos_thdid-1);
 tlb_tag3_clone1_d(tagpos_thdid TO tagpos_thdid+thdid_width-1) <=   
             (others => '0') when ((tlb_tag4_wayhit_q(tlb_ways)='1' or tlb_tag4_q(tagpos_endflag)='1' or or_reduce(tag4_parerr_q(0 to 4))='1') and 
@@ -955,6 +998,7 @@ tlb_tag3_clone1_d(tagpos_thdid TO tagpos_thdid+thdid_width-1) <=
                tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1)/="0000") 
       else tlb_tag2(tagpos_thdid to tagpos_thdid+thdid_width-1) and not(tlb_ctl_tag2_flush);
 tlb_tag3_clone1_d(tagpos_thdid+thdid_width TO tlb_tag_width-1) <=  tlb_tag2(tagpos_thdid+thdid_width to tlb_tag_width-1);
+-- clones for timing  arrays 2/3
 tlb_tag3_clone2_d(0 TO tagpos_thdid-1) <=  tlb_tag2(0 to tagpos_thdid-1);
 tlb_tag3_clone2_d(tagpos_thdid TO tagpos_thdid+thdid_width-1) <=   
             (others => '0') when ((tlb_tag4_wayhit_q(tlb_ways)='1' or tlb_tag4_q(tagpos_endflag)='1' or or_reduce(tag4_parerr_q(0 to 4))='1') and 
@@ -967,6 +1011,13 @@ tlb_tag3_clone2_d(tagpos_thdid TO tagpos_thdid+thdid_width-1) <=
                tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1)/="0000") 
       else tlb_tag2(tagpos_thdid to tagpos_thdid+thdid_width-1) and not(tlb_ctl_tag2_flush);
 tlb_tag3_clone2_d(tagpos_thdid+thdid_width TO tlb_tag_width-1) <=  tlb_tag2(tagpos_thdid+thdid_width to tlb_tag_width-1);
+--  size        tlb_tag3_cmpmask: 01234
+--    1GB                         11111
+--  256MB                         01111
+--   16MB                         00111
+--    1MB                         00011
+--   64KB                         00001
+--    4KB                         00000
 tlb_tag3_cmpmask_d(0) <=  Eq(tlb_tag2(tagpos_size to tagpos_size+3), TLB_PgSize_1GB);
 tlb_tag3_cmpmask_d(1) <=  Eq(tlb_tag2(tagpos_size to tagpos_size+3), TLB_PgSize_1GB) or 
                          Eq(tlb_tag2(tagpos_size to tagpos_size+3), TLB_PgSize_256MB);
@@ -997,6 +1048,20 @@ tlb_tag3_cmpmask_clone_d(4) <=  Eq(tlb_tag2(tagpos_size to tagpos_size+3), TLB_P
                                Eq(tlb_tag2(tagpos_size to tagpos_size+3), TLB_PgSize_16MB) or
                                Eq(tlb_tag2(tagpos_size to tagpos_size+3), TLB_PgSize_1MB) or
                                Eq(tlb_tag2(tagpos_size to tagpos_size+3), TLB_PgSize_64KB);
+--  size      tlb_way<n>_cmpmask: 01234
+--    1GB                         11111
+--  256MB                         01111
+--   16MB                         00111
+--    1MB                         00011
+--   64KB                         00001
+--    4KB                         00000
+--  size     tlb_way<n>_xbitmask: 01234
+--    1GB                         10000
+--  256MB                         01000
+--   16MB                         00100
+--    1MB                         00010
+--   64KB                         00001
+--    4KB                         00000
 tlb_way0_cmpmask_d(0) <=  Eq(tlb_dataout(0*tlb_way_width+waypos_size   to 0*tlb_way_width+waypos_size+3),   TLB_PgSize_1GB);
 tlb_way0_cmpmask_d(1) <=  Eq(tlb_dataout(0*tlb_way_width+waypos_size   to 0*tlb_way_width+waypos_size+3),   TLB_PgSize_1GB) or 
                            Eq(tlb_dataout(0*tlb_way_width+waypos_size   to 0*tlb_way_width+waypos_size+3),   TLB_PgSize_256MB);
@@ -1077,6 +1142,7 @@ tlb_way3_xbitmask_d(1) <=  Eq(tlb_dataout(3*tlb_way_width+waypos_size   to 3*tlb
 tlb_way3_xbitmask_d(2) <=  Eq(tlb_dataout(3*tlb_way_width+waypos_size   to 3*tlb_way_width+waypos_size+3),   TLB_PgSize_16MB);
 tlb_way3_xbitmask_d(3) <=  Eq(tlb_dataout(3*tlb_way_width+waypos_size   to 3*tlb_way_width+waypos_size+3),   TLB_PgSize_1MB);
 tlb_way3_xbitmask_d(4) <=  Eq(tlb_dataout(3*tlb_way_width+waypos_size   to 3*tlb_way_width+waypos_size+3),   TLB_PgSize_64KB);
+-- TLB Parity Checking
 tlb_way0_lo_calc_par(0) <=  xor_reduce(tlb_way0_q(0   to 7));
 tlb_way0_lo_calc_par(1) <=  xor_reduce(tlb_way0_q(8   to 15));
 tlb_way0_lo_calc_par(2) <=  xor_reduce(tlb_way0_q(16   to 23));
@@ -1169,7 +1235,17 @@ tag4_parerr_d(0) <=  tlb_way0_parerr;
 tag4_parerr_d(1) <=  tlb_way1_parerr;
 tag4_parerr_d(2) <=  tlb_way2_parerr;
 tag4_parerr_d(3) <=  tlb_way3_parerr;
+-- end of TLB Parity Checking
+-- lru data format
+--   0:3  - valid(0:3)
+--   4:6  - LRU
+--   7  - parity
+--   8:11  - iprot(0:3)
+--   12:14  - reserved
+--   15  - parity
 lru_tag3_dataout_d  <=  lru_dataout;
+-- tag3 phase signals, tlbwe/re ex5, tlbsx/srx ex6
+--  tlb_ctl may flush the thdid bits
 tlb_tag4_d(0 TO tagpos_thdid-1) <=  tlb_tag3_q(0 to tagpos_thdid-1);
 tlb_tag4_d(tagpos_thdid TO tagpos_thdid+thdid_width-1) <=  
     (others => '0') when ((tlb_tag4_wayhit_q(tlb_ways)='1' or tlb_tag4_q(tagpos_endflag)='1' or or_reduce(tag4_parerr_q(0 to 4))='1') and 
@@ -1183,6 +1259,33 @@ tlb_tag4_d(tagpos_thdid TO tagpos_thdid+thdid_width-1) <=
      else tlb_tag3_q(tagpos_thdid to tagpos_thdid+thdid_width-1) and not(tlb_ctl_tag3_flush);
 tlb_tag4_d(tagpos_thdid+thdid_width TO tlb_tag_width-1) <=  tlb_tag3_q(tagpos_thdid+thdid_width to tlb_tag_width-1);
 tlb_addr4_d  <=  tlb_addr3_q;
+-- chosen way logic
+-- tagpos_type_derat,ierat,tlbsx,tlbsrx,snoop,tlbre,tlbwe,ptereload
+--   (ierat or derat) ptereload (tlbsx or tlbsrx)  tlbre tlbwe  tlb_wayhit  MAS0.HES  MAS0.ESEL  old_lru  tag4_way
+--                1       0                  x       x     x        0             x         x      x         0
+--                1       0                  x       x     x        1             x         x      x         1
+--                1       0                  x       x     x        2             x         x      x         2
+--                1       0                  x       x     x        3             x         x      x         3
+--                x       0                  1       x     x        0             x         x      x         0
+--                x       0                  1       x     x        1             x         x      x         1
+--                x       0                  1       x     x        2             x         x      x         2
+--                x       0                  1       x     x        3             x         x      x         3
+--                x       x                  x       1     x        x             x         0      x         0
+--                x       x                  x       1     x        x             x         1      x         1
+--                x       x                  x       1     x        x             x         2      x         2
+--                x       x                  x       1     x        x             x         3      x         3
+--                x       x                  x       x     1        x             0         0      x         0
+--                x       x                  x       x     1        x             0         1      x         1
+--                x       x                  x       x     1        x             0         2      x         2
+--                x       x                  x       x     1        x             0         3      x         3
+--                x       x                  x       x     1        x             1         x      0         0
+--                x       x                  x       x     1        x             1         x      1         1
+--                x       x                  x       x     1        x             1         x      2         2
+--                x       x                  x       x     1        x             1         x      3         3
+--                x       1                  x       x     x        x             x         x      0         0
+--                x       1                  x       x     x        x             x         x      1         1
+--                x       1                  x       x     x        x             x         x      2         2
+--                x       1                  x       x     x        x             x         x      3         3
 tlb_tag4_way_d  <=  ( tlb_way0_q and (0 to tlb_way_width-1 => tlb_wayhit(0)) ) or
                   ( tlb_way1_q and (0 to tlb_way_width-1 => tlb_wayhit(1)) );
 tlb_tag4_way_clone_d  <=  ( tlb_way2_q and (0 to tlb_way_width-1 => tlb_wayhit(2)) ) or
@@ -1220,6 +1323,55 @@ tlb_tag4_way_rw_act  <=  or_reduce(tlb_tag3_clone1_q(tagpos_thdid to tagpos_thdi
 tlb_tag4_way_rw_clone_act  <=  or_reduce(tlb_tag3_clone2_q(tagpos_thdid to tagpos_thdid+thdid_width-1)) and 
                           (tlb_tag3_clone2_q(tagpos_type_tlbre) or tlb_tag3_clone2_q(tagpos_type_tlbwe) or tlb_tag3_clone2_q(tagpos_type_ptereload));
 lru_tag4_dataout_d  <=  lru_tag3_dataout_q;
+--tlb_tag3_d <= ( 0:51   epn &
+--                52:65  pid &
+--                66:67  IS &
+--                68:69  Class &
+--                70:73  state (pr,gs,as,cm) &
+--                74:77  thdid &
+--                78:81  size &
+--                82:83  derat_miss/ierat_miss &
+--                84:85  tlbsx/tlbsrx &
+--                86:87  inval_snoop/tlbre &
+--                88:89  tlbwe/ptereload &
+--                90:97  lpid &
+--                98  indirect
+--                99  atsel &
+--                100:102  esel &
+--                103:105  hes/wq(0:1) &
+--                106:107  lrat/pt &
+--                108  record form
+--                109  endflag
+--  tagpos_epn      : natural  := 0;
+--  tagpos_pid      : natural  := 52; -- 14 bits
+--  tagpos_is       : natural  := 66;
+--  tagpos_class    : natural  := 68;
+--  tagpos_state    : natural  := 70; -- state: 0:pr 1:gs 2:as 3:cm
+--  tagpos_thdid    : natural  := 74;
+--  tagpos_size     : natural  := 78;
+--  tagpos_type     : natural  := 82; -- derat,ierat,tlbsx,tlbsrx,snoop,tlbre,tlbwe,ptereload
+--  tagpos_lpid     : natural  := 90;
+--  tagpos_ind      : natural  := 98;
+--  tagpos_atsel    : natural  := 99;
+--  tagpos_esel     : natural  := 100;
+--  tagpos_hes      : natural  := 103;
+--  tagpos_wq       : natural  := 104;
+--  tagpos_lrat     : natural  := 106;
+--  tagpos_pt       : natural  := 107;
+--  tagpos_recform  : natural  := 108;
+--  tagpos_endflag  : natural  := 109;
+-- For snoop ttypes...
+--  tagpos_is -> IS(0): Local snoop
+--  tagpos_is+1 to tagpos_is+3 -> IS(1)/Class: 0=all in lpar, 1=tid, 2=gs, 3=vpn, 4=class0, 5=class1, 6=class2, 7=class3
+-- bits 0-7: override for chunks of msb of address for bus snoops, depends on pgsize and mmucr1.tlbi_msb bit
+-- mmucr1 11-LRUPEI, 12:13-ICTID/ITTID, 14:15-DCTID/DTTID, 16-DCCD, 17-TLBWE_BINV, 18-TLBI_MSB
+--  size      tlb_tag3_cmpmask_q: 01234
+--    1GB                         11111
+--  256MB                         01111
+--   16MB                         00111
+--    1MB                         00011
+--   64KB                         00001
+--    4KB                         00000
 addr_enable(0) <=  ( or_reduce(tlb_tag3_clone1_q(tagpos_type_derat to tagpos_type_tlbsrx)) and 
                       not tlb_tag3_clone1_q(tagpos_type_ptereload) )  
                or ( tlb_tag3_clone1_q(tagpos_type_snoop) and Eq(tlb_tag3_clone1_q(tagpos_is to tagpos_is+3),"1011") );
@@ -1264,6 +1416,7 @@ addr_enable(6) <=  ( or_reduce(tlb_tag3_clone1_q(tagpos_type_derat to tagpos_typ
 addr_enable(7) <=  ( or_reduce(tlb_tag3_clone1_q(tagpos_type_derat to tagpos_type_tlbsrx)) and 
                       not tlb_tag3_clone1_q(tagpos_type_ptereload) )  
                or ( tlb_tag3_clone1_q(tagpos_type_snoop) and Eq(tlb_tag3_clone1_q(tagpos_is+1 to tagpos_is+3),"011") );
+-- bit 8: override to ignore all address bits
 addr_enable(8) <=  ( or_reduce(tlb_tag3_clone1_q(tagpos_type_derat to tagpos_type_tlbsrx)) and 
                       not tlb_tag3_clone1_q(tagpos_type_ptereload) )  
                or ( tlb_tag3_clone1_q(tagpos_type_snoop) and Eq(tlb_tag3_clone1_q(tagpos_is+1 to tagpos_is+3),"011") );
@@ -1271,17 +1424,22 @@ class_enable  <=  '1' when (tlb_tag3_clone1_q(tagpos_type_snoop)='1' and tlb_tag
            else '0';
 pgsize_enable  <=  tlb_tag3_clone1_q(tagpos_type_snoop) and Eq(tlb_tag3_clone1_q(tagpos_is+1 to tagpos_is+3),"011");
 extclass_enable  <=  "00";
+--  tagpos_type     : natural  := 82; -- derat,ierat,tlbsx,tlbsrx,snoop,tlbre,tlbwe,ptereload
+--thdid_enable <= '1' when (tlb_tag3_clone1_q(tagpos_type_derat to tagpos_type_ierat) /=  00  and tlb_tag3_clone1_q(tagpos_type_ptereload)='0')
+--           else '0'; -- derat,ierat
 thdid_enable  <=  or_reduce(tlb_tag3_clone1_q(tagpos_type_derat to tagpos_type_tlbsrx)) and not tlb_tag3_clone1_q(tagpos_type_ptereload);
 pid_enable  <=  '1' when (tlb_tag3_clone1_q(tagpos_type_derat to tagpos_type_tlbsrx) /= "0000" and 
                             tlb_tag3_clone1_q(tagpos_type_ptereload)='0') 
          else '1' when (tlb_tag3_clone1_q(tagpos_type_snoop)='1' and tlb_tag3_clone1_q(tagpos_is+1 to tagpos_is+3)="001") 
           else '1' when (tlb_tag3_clone1_q(tagpos_type_snoop)='1' and tlb_tag3_clone1_q(tagpos_is+1 to tagpos_is+3)="011") 
            else '0';
+-- gs enable
 state_enable(0) <=  '1' when (tlb_tag3_clone1_q(tagpos_type_derat to tagpos_type_tlbsrx) /= "0000" and 
                             tlb_tag3_clone1_q(tagpos_type_ptereload)='0') 
                else '1' when (tlb_tag3_clone1_q(tagpos_type_snoop)='1' and tlb_tag3_clone1_q(tagpos_is+1 to tagpos_is+3)="010" ) 
                 else '1' when (tlb_tag3_clone1_q(tagpos_type_snoop)='1' and tlb_tag3_clone1_q(tagpos_is+1 to tagpos_is+3)="011" ) 
                  else '0';
+-- as enable
 state_enable(1) <=  '1' when (tlb_tag3_clone1_q(tagpos_type_derat to tagpos_type_tlbsrx) /= "0000" and 
                             tlb_tag3_clone1_q(tagpos_type_ptereload)='0') 
                 else '1' when (tlb_tag3_clone1_q(tagpos_type_snoop)='1' and tlb_tag3_clone1_q(tagpos_is+1 to tagpos_is+3)="011" ) 
@@ -1295,9 +1453,13 @@ ind_enable  <=  ( or_reduce(tlb_tag3_clone1_q(tagpos_type_derat to tagpos_type_t
            or ( tlb_tag3_clone1_q(tagpos_type_snoop) and Eq(tlb_tag3_clone1_q(tagpos_is+1 to tagpos_is+3),"011") ) 
            or ( tlb_tag3_clone1_q(tagpos_type_snoop) and Eq(tlb_tag3_clone1_q(tagpos_is+1 to tagpos_is+3),"001") and tlb_tag3_clone1_q(tagpos_ind) );
 iprot_enable  <=  tlb_tag3_clone1_q(tagpos_type_snoop);
+-- For snoop ttypes...
+--  tagpos_is -> IS(0): Local snoop
+--  tagpos_is+1 to tagpos_is+3 -> IS(1)/Class: 0=all in lpar, 1=tid, 2=gs, 3=vpn, 4=class0, 5=class1, 6=class2, 7=class3
 comp_extclass  <=  (others => '0');
 comp_iprot  <=  '0';
 comp_ind  <=  tlb_tag3_clone1_q(tagpos_ind) and not(tlb_tag3_clone1_q(tagpos_type_snoop) and Eq(tlb_tag3_clone1_q(tagpos_is+1 to tagpos_is+3),"001"));
+------------------- cloned compare logic,   for timing: tlb array 0/1 on set above, tlb array 2/3 on set below
 addr_enable_clone(0) <=  ( or_reduce(tlb_tag3_clone2_q(tagpos_type_derat to tagpos_type_tlbsrx)) and 
                       not tlb_tag3_clone2_q(tagpos_type_ptereload) )  
                or ( tlb_tag3_clone2_q(tagpos_type_snoop) and Eq(tlb_tag3_clone2_q(tagpos_is to tagpos_is+3),"1011") );
@@ -1342,6 +1504,7 @@ addr_enable_clone(6) <=  ( or_reduce(tlb_tag3_clone2_q(tagpos_type_derat to tagp
 addr_enable_clone(7) <=  ( or_reduce(tlb_tag3_clone2_q(tagpos_type_derat to tagpos_type_tlbsrx)) and 
                       not tlb_tag3_clone2_q(tagpos_type_ptereload) )  
                or ( tlb_tag3_clone2_q(tagpos_type_snoop) and Eq(tlb_tag3_clone2_q(tagpos_is+1 to tagpos_is+3),"011") );
+-- bit 8: override to ignore all address bits
 addr_enable_clone(8) <=  ( or_reduce(tlb_tag3_clone2_q(tagpos_type_derat to tagpos_type_tlbsrx)) and 
                       not tlb_tag3_clone2_q(tagpos_type_ptereload) )  
                or ( tlb_tag3_clone2_q(tagpos_type_snoop) and Eq(tlb_tag3_clone2_q(tagpos_is+1 to tagpos_is+3),"011") );
@@ -1355,11 +1518,13 @@ pid_enable_clone  <=  '1' when (tlb_tag3_clone2_q(tagpos_type_derat to tagpos_ty
          else '1' when (tlb_tag3_clone2_q(tagpos_type_snoop)='1' and tlb_tag3_clone2_q(tagpos_is+1 to tagpos_is+3)="001") 
           else '1' when (tlb_tag3_clone2_q(tagpos_type_snoop)='1' and tlb_tag3_clone2_q(tagpos_is+1 to tagpos_is+3)="011") 
            else '0';
+-- gs enable
 state_enable_clone(0) <=  '1' when (tlb_tag3_clone2_q(tagpos_type_derat to tagpos_type_tlbsrx) /= "0000" and 
                             tlb_tag3_clone2_q(tagpos_type_ptereload)='0') 
                else '1' when (tlb_tag3_clone2_q(tagpos_type_snoop)='1' and tlb_tag3_clone2_q(tagpos_is+1 to tagpos_is+3)="010" ) 
                 else '1' when (tlb_tag3_clone2_q(tagpos_type_snoop)='1' and tlb_tag3_clone2_q(tagpos_is+1 to tagpos_is+3)="011" ) 
                  else '0';
+-- as enable
 state_enable_clone(1) <=  '1' when (tlb_tag3_clone2_q(tagpos_type_derat to tagpos_type_tlbsrx) /= "0000" and 
                             tlb_tag3_clone2_q(tagpos_type_ptereload)='0') 
                 else '1' when (tlb_tag3_clone2_q(tagpos_type_snoop)='1' and tlb_tag3_clone2_q(tagpos_is+1 to tagpos_is+3)="011" ) 
@@ -1373,9 +1538,14 @@ ind_enable_clone  <=  ( or_reduce(tlb_tag3_clone2_q(tagpos_type_derat to tagpos_
            or ( tlb_tag3_clone2_q(tagpos_type_snoop) and Eq(tlb_tag3_clone2_q(tagpos_is+1 to tagpos_is+3),"011") ) 
            or ( tlb_tag3_clone2_q(tagpos_type_snoop) and Eq(tlb_tag3_clone2_q(tagpos_is+1 to tagpos_is+3),"001") and tlb_tag3_clone2_q(tagpos_ind) );
 iprot_enable_clone  <=  tlb_tag3_clone2_q(tagpos_type_snoop);
+-- For snoop ttypes...
+--  tagpos_is -> IS(0): Local snoop
+--  tagpos_is+1 to tagpos_is+3 -> IS(1)/Class: 0=all in lpar, 1=tid, 2=gs, 3=vpn, 4=class0, 5=class1, 6=class2, 7=class3
 comp_extclass_clone  <=  (others => '0');
 comp_iprot_clone  <=  '0';
 comp_ind_clone  <=  tlb_tag3_clone2_q(tagpos_ind) and not(tlb_tag3_clone2_q(tagpos_type_snoop) and Eq(tlb_tag3_clone2_q(tagpos_is+1 to tagpos_is+3),"001"));
+------------------- end of cloned compare logic
+-- tag4 phase signals, tlbwe/re ex6, tlbsx/srx ex7
 tlb_tag4_type_sig(0 TO 7) <=  tlb_tag4_q(tagpos_type to tagpos_type+7);
 tlb_tag4_esel_sig(0 TO 2) <=  tlb_tag4_q(tagpos_esel to tagpos_esel+2);
 tlb_tag4_hes_sig  <=  tlb_tag4_q(tagpos_hes);
@@ -1385,6 +1555,8 @@ tlb_tag4_hv_op  <=  or_reduce( not msr_gs_q and not msr_pr_q and tlb_tag4_q(tagp
 multihit  <=  not(Eq(tlb_tag4_wayhit_q(0 to 3),"0000") or Eq(tlb_tag4_wayhit_q(0 to 3),"1000") or Eq(tlb_tag4_wayhit_q(0 to 3),"0100") 
                           or Eq(tlb_tag4_wayhit_q(0 to 3),"0010") or Eq(tlb_tag4_wayhit_q(0 to 3),"0001"))
              and or_reduce(tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1));
+--  unused tagpos_is def is mas1_v, mas1_iprot for tlbwe, and is (pte.valid & 0) for ptereloads
+-- hes=1 valid bits update data
 tlb_tag4_hes1_mas1_v(0 TO thdid_width-1) <=  
          ( (tlb_tag4_q(tagpos_is) & lru_tag4_dataout_q(1 to 3))                           and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+0) and tlb_tag4_q(tagpos_hes) and not lru_tag4_dataout_q(4) and not lru_tag4_dataout_q(5))) ) 
       or ( (lru_tag4_dataout_q(0) & tlb_tag4_q(tagpos_is) & lru_tag4_dataout_q(2 to 3)) and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+0) and tlb_tag4_q(tagpos_hes) and not lru_tag4_dataout_q(4) and     lru_tag4_dataout_q(5))) ) 
@@ -1405,6 +1577,7 @@ tlb_tag4_hes1_mas1_v(0 TO thdid_width-1) <=
       or ( (lru_tag4_dataout_q(0) & tlb_tag4_q(tagpos_is) & lru_tag4_dataout_q(2 to 3)) and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+3) and tlb_tag4_q(tagpos_hes) and not lru_tag4_dataout_q(4) and     lru_tag4_dataout_q(5))) ) 
       or ( (lru_tag4_dataout_q(0 to 1) & tlb_tag4_q(tagpos_is) & lru_tag4_dataout_q(3))  and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+3) and tlb_tag4_q(tagpos_hes) and     lru_tag4_dataout_q(4) and not lru_tag4_dataout_q(6))) ) 
       or ( (lru_tag4_dataout_q(0 to 2) & tlb_tag4_q(tagpos_is))                          and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+3) and tlb_tag4_q(tagpos_hes) and     lru_tag4_dataout_q(4) and     lru_tag4_dataout_q(6))) );
+-- hes=0 valid bits update data
 tlb_tag4_hes0_mas1_v(0 TO thdid_width-1) <=  
          ( (tlb_tag4_q(tagpos_is) & lru_tag4_dataout_q(1 to 3))                          and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+0) and not tlb_tag4_q(tagpos_hes) and not tlb_tag4_q(tagpos_esel+1) and not tlb_tag4_q(tagpos_esel+2))) ) 
       or ( (lru_tag4_dataout_q(0) & tlb_tag4_q(tagpos_is) & lru_tag4_dataout_q(2 to 3)) and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+0) and not tlb_tag4_q(tagpos_hes) and not tlb_tag4_q(tagpos_esel+1) and     tlb_tag4_q(tagpos_esel+2))) ) 
@@ -1425,6 +1598,7 @@ tlb_tag4_hes0_mas1_v(0 TO thdid_width-1) <=
       or ( (lru_tag4_dataout_q(0) & tlb_tag4_q(tagpos_is) & lru_tag4_dataout_q(2 to 3)) and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+3) and not tlb_tag4_q(tagpos_hes) and not tlb_tag4_q(tagpos_esel+1) and     tlb_tag4_q(tagpos_esel+2))) ) 
       or ( (lru_tag4_dataout_q(0 to 1) & tlb_tag4_q(tagpos_is) & lru_tag4_dataout_q(3)) and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+3) and not tlb_tag4_q(tagpos_hes) and     tlb_tag4_q(tagpos_esel+1) and not tlb_tag4_q(tagpos_esel+2))) ) 
       or ( (lru_tag4_dataout_q(0 to 2) & tlb_tag4_q(tagpos_is))                          and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+3) and not tlb_tag4_q(tagpos_hes) and     tlb_tag4_q(tagpos_esel+1) and     tlb_tag4_q(tagpos_esel+2))) );
+-- hes=1 iprot bits update data
 tlb_tag4_hes1_mas1_iprot(0 TO thdid_width-1) <=  
          ( (tlb_tag4_q(tagpos_is+1) & lru_tag4_dataout_q(9 to 11))                           and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+0) and tlb_tag4_q(tagpos_hes) and not lru_tag4_dataout_q(4) and not lru_tag4_dataout_q(5))) ) 
       or ( (lru_tag4_dataout_q(8) & tlb_tag4_q(tagpos_is+1) & lru_tag4_dataout_q(10 to 11)) and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+0) and tlb_tag4_q(tagpos_hes) and not lru_tag4_dataout_q(4) and     lru_tag4_dataout_q(5))) ) 
@@ -1445,6 +1619,7 @@ tlb_tag4_hes1_mas1_iprot(0 TO thdid_width-1) <=
       or ( (lru_tag4_dataout_q(8) & tlb_tag4_q(tagpos_is+1) & lru_tag4_dataout_q(10 to 11)) and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+3) and tlb_tag4_q(tagpos_hes) and not lru_tag4_dataout_q(4) and     lru_tag4_dataout_q(5))) ) 
       or ( (lru_tag4_dataout_q(8 to 9) & tlb_tag4_q(tagpos_is+1) & lru_tag4_dataout_q(11))  and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+3) and tlb_tag4_q(tagpos_hes) and     lru_tag4_dataout_q(4) and not lru_tag4_dataout_q(6))) ) 
       or ( (lru_tag4_dataout_q(8 to 10) & tlb_tag4_q(tagpos_is+1))                          and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+3) and tlb_tag4_q(tagpos_hes) and     lru_tag4_dataout_q(4) and     lru_tag4_dataout_q(6))) );
+-- hes=0 iprot bits update data
 tlb_tag4_hes0_mas1_iprot(0 TO thdid_width-1) <=  
          ( (tlb_tag4_q(tagpos_is+1) & lru_tag4_dataout_q(9 to 11))                           and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+0) and not tlb_tag4_q(tagpos_hes) and not tlb_tag4_q(tagpos_esel+1) and not tlb_tag4_q(tagpos_esel+2))) ) 
       or ( (lru_tag4_dataout_q(8) & tlb_tag4_q(tagpos_is+1) & lru_tag4_dataout_q(10 to 11)) and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+0) and not tlb_tag4_q(tagpos_hes) and not tlb_tag4_q(tagpos_esel+1) and     tlb_tag4_q(tagpos_esel+2))) ) 
@@ -1465,6 +1640,7 @@ tlb_tag4_hes0_mas1_iprot(0 TO thdid_width-1) <=
       or ( (lru_tag4_dataout_q(8) & tlb_tag4_q(tagpos_is+1) & lru_tag4_dataout_q(10 to 11)) and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+3) and not tlb_tag4_q(tagpos_hes) and not tlb_tag4_q(tagpos_esel+1) and     tlb_tag4_q(tagpos_esel+2))) ) 
       or ( (lru_tag4_dataout_q(8 to 9) & tlb_tag4_q(tagpos_is+1) & lru_tag4_dataout_q(11))  and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+3) and not tlb_tag4_q(tagpos_hes) and     tlb_tag4_q(tagpos_esel+1) and not tlb_tag4_q(tagpos_esel+2))) ) 
       or ( (lru_tag4_dataout_q(8 to 10) & tlb_tag4_q(tagpos_is+1))                          and (0 to thdid_width-1 => (tlb_tag4_q(tagpos_thdid+3) and not tlb_tag4_q(tagpos_hes) and     tlb_tag4_q(tagpos_esel+1) and     tlb_tag4_q(tagpos_esel+2))) );
+-- ptereload write phase signals
 tlb_tag4_ptereload_v(0 TO thdid_width-1) <=  (ptereload_req_pte_lat(ptepos_valid) & lru_tag4_dataout_q(1 to 3)) 
                         when (lru_tag4_dataout_q(4 to 5)="00") 
                else (lru_tag4_dataout_q(0) & ptereload_req_pte_lat(ptepos_valid) & lru_tag4_dataout_q(2 to 3)) 
@@ -1483,6 +1659,9 @@ tlb_tag4_ptereload_iprot(0 TO thdid_width-1) <=  ('0' & lru_tag4_dataout_q(9 to 
                else (lru_tag4_dataout_q(8 to 10) & '0') 
                         when (lru_tag4_dataout_q(4)='1' and lru_tag4_dataout_q(6)='1') 
                else lru_tag4_dataout_q(8 to 11);
+--                        0     1     2     3      4     5     6     7
+--      tag type bits --> derat,ierat,tlbsx,tlbsrx,snoop,tlbre,tlbwe,ptereload
+--        lrat_tag4_hit_status(0:3) -> val,hit,multihit,inval_pgsize
 lru_write_d  <=  (others => '1') when ( (tlb_tag4_q(tagpos_type_derat)='1' or tlb_tag4_q(tagpos_type_ierat)='1') 
                               and tlb_tag4_q(tagpos_type_ptereload)='0'
                               and tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1)/="0000" 
@@ -1514,6 +1693,14 @@ lru_write_d  <=  (others => '1') when ( (tlb_tag4_q(tagpos_type_derat)='1' or tl
                                  or ((lru_tag4_dataout_q(3)='0' or lru_tag4_dataout_q(11)='0') and lru_tag4_dataout_q(4)='1' and lru_tag4_dataout_q(6)='1')) ) 
           else (others => '0');
 lru_wr_addr_d  <=  tlb_addr4_q;
+-- lru data format
+--   0:3  - valid(0:3)
+--   4:6  - LRU
+--   7  - parity
+--   8:11  - iprot(0:3)
+--   12:14  - reserved
+--   15  - parity
+--  tagpos_type:   derat,ierat,tlbsx,tlbsrx,snoop,tlbre,tlbwe,ptereload
 lru_update_clear_enab  <=  '1' when ( xu_mm_xucr4_mmu_mchk_q='0' and xu_mm_ccr2_notlb_b='1' and   
                                      ((tlb_tag4_q(tagpos_type_derat)='1' or tlb_tag4_q(tagpos_type_ierat)='1') and tlb_tag4_q(tagpos_type_ptereload)='0') and  
                                        (multihit='1' or or_reduce(tag4_parerr_q(0 to 4))='1') )
@@ -1524,6 +1711,7 @@ lru_update_data_enab  <=  '1' when ( ((tlb_tag4_q(tagpos_type_derat)='1' or tlb_
                                  or (tlb_tag4_q(tagpos_type_ptereload)='1')  
                                  or (tlb_tag4_q(tagpos_type_snoop)='1') )    
                    else '0';
+-- valid bits
 lru_datain_d(0 TO 3) <=  (others => '0') when lru_update_clear_enab='1'
                      else ( lru_tag4_dataout_q(0 to 3) and 
                            (lru_tag4_dataout_q(8 to 11) or not(tlb_tag4_wayhit_q(0 to 3))) )
@@ -1535,6 +1723,7 @@ lru_datain_d(0 TO 3) <=  (others => '0') when lru_update_clear_enab='1'
                      else tlb_tag4_ptereload_v(0 to thdid_width-1)
                            when tlb_tag4_q(tagpos_type_ptereload)='1'  
                      else lru_tag4_dataout_q(0 to 3);
+-- LRU bits
 lru_datain_d(4 TO 6) <=  (others => '0') when lru_update_clear_enab='1'
                     else lru_update_data when lru_update_data_enab='1'
                     else lru_tag4_dataout_q(4 to 6);
@@ -1543,6 +1732,7 @@ lru_datain_alt_d(4 TO 6) <=  lru_update_data_alt when ((tlb_tag4_q(tagpos_type_d
                     else lru_update_data when (tlb_tag4_q(tagpos_type_tlbwe)='1' and (tlb_tag4_q(tagpos_atsel)='0' or tlb_tag4_q(tagpos_gs)='1')) 
                     else lru_update_data when (tlb_tag4_q(tagpos_type_ptereload)='1') 
                     else lru_tag4_dataout_q(4 to 6);
+-- old lru value if no hits
 lru_update_data_alt     <=  (lru_tag4_dataout_q(4 to 6) and (4 to 6 => not tlb_tag4_wayhit_q(4))) or
                           (lru_update_data_snoophit_eco and (4 to 6 => tlb_tag4_wayhit_q(4) and tlb_tag4_q(tagpos_type_snoop))) or
                           (lru_update_data_erathit_eco  and (4 to 6 => tlb_tag4_wayhit_q(4) and not tlb_tag4_q(tagpos_type_ptereload) 
@@ -1572,6 +1762,7 @@ lru_update_data_erathit_eco(0 TO 2) <=  "01" & lru_tag4_dataout_q(6)      when (
                                    else '1' & lru_tag4_dataout_q(5) & '0' when (tlb_tag4_wayhit_q(3) and not lru_tag4_dataout_q(10))='1'
                                    else lru_tag4_dataout_q(4 to 6);
 lru_datain_alt_d(9) <=  xor_reduce(lru_datain_d(0 to 3) & lru_update_data_erathit_eco(0 to 2));
+-- iprot bits
 lru_datain_d(8 TO 11) <=  (others => '0') when lru_update_clear_enab='1'
                      else tlb_tag4_hes1_mas1_iprot(0 to thdid_width-1)
                            when tlb_tag4_q(tagpos_type_tlbwe)='1' and tlb_tag4_q(tagpos_hes)='1'  
@@ -1581,13 +1772,220 @@ lru_datain_d(8 TO 11) <=  (others => '0') when lru_update_clear_enab='1'
                            when tlb_tag4_q(tagpos_type_ptereload)='1'  
                      else lru_tag4_dataout_q(8 to 11);
 lru_datain_d(12 TO 14) <=  (others => '0');
+-- LRU Parity Generation
 lru_datain_d(7) <=  xor_reduce(lru_datain_d(0 to 6));
 lru_datain_d(15) <=  xor_reduce(lru_datain_d(8 to 14) & mmucr1_q(pos_lru_pei));
+-- LRU Parity Checking
 lru_calc_par(0) <=  xor_reduce(lru_tag3_dataout_q(0 to 6));
 lru_calc_par(1) <=  xor_reduce(lru_tag3_dataout_q(8 to 14));
 tag4_parerr_d(4) <=  or_reduce(lru_calc_par(0 to 1) xor (lru_tag3_dataout_q(7) & lru_tag3_dataout_q(15)));
 tlb_tag4_parerr_enab  <=  or_reduce(tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1)) and 
                          (or_reduce(tlb_tag4_q(tagpos_type_derat to tagpos_type_tlbsrx)) or tlb_tag4_q(tagpos_type_tlbre));
+-- end of LRU Parity Checking
+-- tag4 phase signals, tlbwe/re ex6, tlbsx/srx ex7
+--                        0     1     2     3      4     5     6     7
+--      tag type bits --> derat,ierat,tlbsx,tlbsrx,snoop,tlbre,tlbwe,ptereload
+--       tlb_tag4_is: 0:3 -> IS/Class: 0=all, 1=tid, 2=gs, 3=epn, 4=class0, 5=class1, 6=class2, 7=class3
+-- Encoder for the LRU update data
+--
+-- Final Table Listing
+--      *INPUTS*============================================*OUTPUTS*=============*
+--      |                                                   |                     |
+--      | tlb_tag4_type_sig                                 |  lru_update_data    |
+--      | |        tlb_tag4_hes_sig                         |  |                  |
+--      | |        | tlb_tag4_esel_sig                      |  |                  |
+--      | |        | |   tlb_tag4_wq_sig                    |  |                  |
+--      | |        | |   |  tlb_tag4_is_sig                 |  |                  |
+--      | |        | |   |  |    tlb_tag4_wayhit_q          |  |                  |
+--      | |        | |   |  |    |    lru_tag4_dataout_q    |  |                  |
+--      | |        | |   |  |    |    |                     |  |                  |
+--      | |        | |   |  |    |    |                     |  |                  |
+--      | |        | |   |  |    |    |         111111      |  |                  |
+--      | 01234567 | 012 01 0123 0123 0123456789012345      |  012                |
+--      *TYPE*==============================================+=====================+
+--      | PPPPPPPP P PPP PP PPPP PPPP PPPPPPPPPPPPPPPP      |  PPP                |
+--      *POLARITY*----------------------------------------->|  +++                |
+--      *PHASE*-------------------------------------------->|  TTT                |
+--      *OPTIMIZE*----------------------------------------->|   AAA                 |
+--      *TERMS*=============================================+=====================+
+--    1 | ------0- - --- -- ---- ---1 111-----1110----      |  1.1                |
+--    2 | ----1--- - --- -- ---- 0--1 111------110----      |  1.1                |
+--    3 | ------1- 1 --- -- 1--- ---- 1-110-----10----      |  1.1                |
+--    4 | -------1 - --- -- ---- ---- 1-110-----10----      |  1.1                |
+--    5 | ----0-00 - --- -- ---- 1--- 1111------10----      |  111                |
+--    6 | ------1- 0 -00 -- 1--- ---- -111------10----      |  111                |
+--    7 | ----1--- - --- -- ---- 00-1 111-------10----      |  1.1                |
+--    8 | ----0-00 - --- -- ---- -1-- 111-------10----      |  1.1                |
+--    9 | ------1- 0 -01 -- 1--- ---- 1-1-------10----      |  1.1                |
+--   10 | ----0-00 - --- -- ---- --1- 111-----11-0----      |  1.1                |
+--   11 | ------1- 1 --- -- 1--- ---- 11-11-0----0----      |  ..1                |
+--   12 | -------1 - --- -- ---- ---- 11-11-0----0----      |  ..1                |
+--   13 | ------1- 1 --- -- ---- ---- --110-1----0----      |  ..1                |
+--   14 | -------1 - --- -- ---- ---- --110-1----0----      |  ..1                |
+--   15 | ------1- 1 --- -- 1--- ---- 101---1----0----      |  1.1                |
+--   16 | -------1 - --- -- ---- ---- 101---1----0----      |  1.1                |
+--   17 | ------1- 1 --- -- 1--- ---- 011---1----0----      |  1.1                |
+--   18 | -------1 - --- -- ---- ---- 011---1----0----      |  1.1                |
+--   19 | ----0-00 - --- -- ---- ---0 --1---1----0----      |  ..1                |
+--   20 | ------1- 0 -0- -- ---- ---- --1---1----0----      |  ..1                |
+--   21 | ------1- 1 --- -- 1--- ---- 111100-----0----      |  .1.                |
+--   22 | -------1 - --- -- ---- ---- 111100-----0----      |  .1.                |
+--   23 | ------1- 1 --- -- 1--- ---- 110--------0----      |  ..1                |
+--   24 | -------1 - --- -- ---- ---- 110--------0----      |  ..1                |
+--   25 | ----1--- - --- -- ---- 0001 111--------0----      |  1.1                |
+--   26 | ------1- 0 -10 -- 1--- ---- 11---------0----      |  ..1                |
+--   27 | ------0- - --- -- ---- -1-- 1-11----1011----      |  .1.                |
+--   28 | -------- 1 --- -- ---- ---- 1----1--1-11----      |  .1.                |
+--   29 | ------0- - --- -- ---- ---- 1----1--1-11----      |  .1.                |
+--   30 | ------1- 0 -01 -- ---- ---- 1-11----1-11----      |  .1.                |
+--   31 | ------0- - --- -- ---- --1- 11------110-----      |  1..                |
+--   32 | ----1--- - --- -- ---- 0-1- 11-------10-----      |  1..                |
+--   33 | ------1- 1 --- -- 1--- ---- 111100----0-----      |  .1.                |
+--   34 | -------1 - --- -- ---- ---- 111100----0-----      |  .1.                |
+--   35 | ------1- 1 --- -- 1--- ---- 1-110-----0-----      |  1..                |
+--   36 | -------1 - --- -- ---- ---- 1-110-----0-----      |  1..                |
+--   37 | ----0-00 - --- -- ---- 1--- 1111------0-----      |  11.                |
+--   38 | ------1- 0 -00 -- 1--- ---- -111------0-----      |  11.                |
+--   39 | ------1- 1 --- -- 1--- ---- 10--------0-----      |  1..                |
+--   40 | -------1 - --- -- ---- ---- 10--------0-----      |  1..                |
+--   41 | ------1- 1 --- -- 1--- ---- 01--------0-----      |  1..                |
+--   42 | -------1 - --- -- ---- ---- 01--------0-----      |  1..                |
+--   43 | ----1--- - --- -- ---- 001- 11--------0-----      |  1..                |
+--   44 | ----0-00 - --- -- ---- -1-- 11--------0-----      |  1..                |
+--   45 | ------1- 0 -01 -- 1--- ---- 1---------0-----      |  1..                |
+--   46 | -------- 1 --- -- ---- ---- --1---1-111-----      |  ..1                |
+--   47 | ------0- - --- -- ---- ---- --1---1-111-----      |  ..1                |
+--   48 | ------1- 0 -11 -- ---- ---- 111-----111-----      |  ..1                |
+--   49 | ------1- 1 --- -- ---- ---- --1-0-1---1-----      |  ..1                |
+--   50 | -------1 - --- -- ---- ---- --1-0-1---1-----      |  ..1                |
+--   51 | -------- - --- -- ---- ---- -01---1---1-----      |  ..1                |
+--   52 | -------- - --- -- ---- ---- 0-1---1---1-----      |  ..1                |
+--   53 | ------00 - --- -- ---- ---0 --1---1---1-----      |  ..1                |
+--   54 | ------00 - --- -- ---- --1- --1---1---1-----      |  ..1                |
+--   55 | ------1- 0 -0- -- ---- ---- --1---1---1-----      |  ..1                |
+--   56 | ----1--- - --- -- ---- 001- 1110------1-----      |  1.1                |
+--   57 | ------1- 1 --- -- 1--- ---- 11-0------1-----      |  ..1                |
+--   58 | -------1 - --- -- ---- ---- 11-0------1-----      |  ..1                |
+--   59 | ------1- 1 --- -- 1--- ---- --1-1---10------      |  .1.                |
+--   60 | -------1 - --- -- ---- ---- --1-1---10------      |  .1.                |
+--   61 | ----0-00 - --- -- ---- --1- 1111----10------      |  .11                |
+--   62 | ----0-00 - --- -- ---- ---1 1-11----10------      |  .1.                |
+--   63 | ----1--- - --- -- ---- -1-- 1-11----10------      |  .1.                |
+--   64 | ------1- 0 -10 -- 1--- ---- 11-1----10------      |  .11                |
+--   65 | ------1- 0 -11 -- 1--- ---- 1-1-----10------      |  .1.                |
+--   66 | ------1- 1 --- -- 1--- ---- 11111-0--0------      |  ..1                |
+--   67 | -------1 - --- -- ---- ---- 11111-0--0------      |  ..1                |
+--   68 | ------00 - --- -- ---- 11-- --1---1--0------      |  ..1                |
+--   69 | ----1--- - --- -- ---- 01-- ------1--0------      |  ..1                |
+--   70 | ------1- 1 --- -- 1--- ---- -11100---0------      |  .1.                |
+--   71 | -------1 - --- -- ---- ---- -11100---0------      |  .1.                |
+--   72 | ------1- 1 --- -- 1--- ---- -1--11---0------      |  .1.                |
+--   73 | -------1 - --- -- ---- ---- -1--11---0------      |  .1.                |
+--   74 | ----0--- - --- -- 1--- ---- 11-0-1---0------      |  .1.                |
+--   75 | ----0-00 - --- -- ---- -0-- 1----1---0------      |  .1.                |
+--   76 | ------1- 0 -1- -- ---- ---- 1----1---0------      |  .1.                |
+--   77 | ----0-00 - --- -- ---- 1--- 1-11-----0------      |  .1.                |
+--   78 | ------1- 0 -00 -- 1--- ---- --11-----0------      |  .1.                |
+--   79 | ------1- 1 --- -- 1--- ---- 0--------0------      |  .1.                |
+--   80 | -------1 - --- -- ---- ---- 0--------0------      |  .1.                |
+--   81 | ----1--- - --- -- ---- 01-- 1--------0------      |  .1.                |
+--   82 | ----0--- - --- -- 1--- ---- 11-0-1--11------      |  11.                |
+--   83 | -------- 1 --- -- ---- ---- 11--1---11------      |  1..                |
+--   84 | ------0- - --- -- ---- ---- 11--1---11------      |  1..                |
+--   85 | -------1 - --- -- ---- ---- 1--0----11------      |  1..                |
+--   86 | ------1- 1 --- -- 1--- ---- 1-0-----11------      |  1..                |
+--   87 | -------1 - --- -- ---- ---- 1-0-----11------      |  1..                |
+--   88 | ----0-00 - --- -- ---- ---1 11------11------      |  1..                |
+--   89 | ------1- 0 -1- -- ---- ---- 11------11------      |  1..                |
+--   90 | ----1--- - --- -- ---- 0--- 11--1----1------      |  1..                |
+--   91 | ----1--- - --- -- ---- 01-- 1110-----1------      |  1.1                |
+--   92 | ----1--- - --- -- ---- 01-- 110------1------      |  1..                |
+--   93 | ------1- 1 --- -- 1--- ---- 11111-0-0-------      |  ..1                |
+--   94 | -------1 - --- -- ---- ---- 11111-0-0-------      |  ..1                |
+--   95 | ----1--- - --- -- ---- 1--- ------1-0-------      |  ..1                |
+--   96 | ----0-00 - --- -- ---- --1- 111-----0-------      |  ..1                |
+--   97 | ------1- 0 -10 -- 1--- ---- 11------0-------      |  ..1                |
+--   98 | ------1- 1 --- -- 1--- ---- 1--0-0--1-------      |  1..                |
+--   99 | ------1- 1 --- -- ---- ---- 1---11--1-------      |  .1.                |
+--   100 | -------1 - --- -- ---- ---- 1---11--1-------      |  .1.                |
+--   101 | ------00 - --- -- ---- -0-- 1----1--1-------      |  .1.                |
+--   102 | ------1- 0 -1- -- ---- ---- 1----1--1-------      |  .1.                |
+--   103 | ----1--- - --- -- ---- ---- 1----1--1-------      |  .1.                |
+--   104 | ----1--- - --- -- ---- -0-- 11--1---1-------      |  1..                |
+--   105 | ----1--- - --- -- ---- 1--- 1110----1-------      |  1.1                |
+--   106 | ----1--- - --- -- ---- 1--- 110-----1-------      |  1..                |
+--   107 | ----1--- - --- -- ---- 1--- 10------1-------      |  .1.                |
+--   108 | ------1- 1 --- -- 1--- ---- -0------1-------      |  .1.                |
+--   109 | -------1 - --- -- ---- ---- -0------1-------      |  .1.                |
+--   110 | ------1- 1 --- -- 0--- ---- ----0-1---------      |  ..1                |
+--   111 | ------00 - --- -- ---- 0000 --1---1---------      |  ..1                |
+--   112 | ----1--- - --- -- ---- --0- --1---1---------      |  ..1                |
+--   113 | ------1- 1 --- -- 0--- ---- --1---1---------      |  ..1                |
+--   114 | -------- - --- -- ---- ---- 00----1---------      |  ..1                |
+--   115 | ------1- - --- -- 0--- ---- -0----1---------      |  ..1                |
+--   116 | ------1- 0 --0 -- ---- ---- -0----1---------      |  ..1                |
+--   117 | ------1- 0 -1- -- ---- ---- -0----1---------      |  ..1                |
+--   118 | ------00 - --- -- ---- ---- -0----1---------      |  ..1                |
+--   119 | ------1- - --- -- 0--- ---- 0-----1---------      |  ..1                |
+--   120 | ------1- 0 --1 -- ---- ---- 0-----1---------      |  ..1                |
+--   121 | ------1- 0 -1- -- ---- ---- 0-----1---------      |  ..1                |
+--   122 | ------00 - --- -- ---- ---- 0-----1---------      |  ..1                |
+--   123 | ----1--- - --- -- ---- 0000 ------1---------      |  ..1                |
+--   124 | ------1- 0 -0- -- 0--- ---- ------1---------      |  ..1                |
+--   125 | ----0--- - --0 -- 1--- ---- 11-0-1----------      |  .1.                |
+--   126 | ----0--- - -01 -- ---- ---- 11-0-1----------      |  .1.                |
+--   127 | ----0-0- - --- -- ---- ---- 11-0-1----------      |  .1.                |
+--   128 | ----0--- - --1 -- ---- ---- 110--1----------      |  .1.                |
+--   129 | ----0--- 1 --- -- ---- ---- 110--1----------      |  .1.                |
+--   130 | ----0-0- - --- -- ---- ---- 110--1----------      |  .1.                |
+--   131 | ------1- 0 -00 -- 1--- ---- --0--1----------      |  .1.                |
+--   132 | ------00 - --- -- ---- 0000 1----1----------      |  .1.                |
+--   133 | ----1--- - --- -- ---- 0--- 1----1----------      |  .1.                |
+--   134 | ------1- - -1- -- 0--- ---- 1----1----------      |  .1.                |
+--   135 | ------1- 1 --- -- 0--- ---- 1----1----------      |  .1.                |
+--   136 | ----1--- - --- -- ---- 0000 -----1----------      |  .1.                |
+--   137 | ------1- 1 --- -- 0--- ---- 10--1-----------      |  .1.                |
+--   138 | ------00 - --- -- ---- 0000 11--1-----------      |  1..                |
+--   139 | ----1--- - --- -- ---- 00-- 11--1-----------      |  1..                |
+--   140 | ------1- 1 --- -- 0--- ---- 11--1-----------      |  1..                |
+--   141 | ----1--- - --- -- ---- 0000 ----1-----------      |  1..                |
+--   142 | ------1- 1 --- -- 1--- ---- 1100------------      |  1.1                |
+--   143 | -------1 - --- -- ---- ---- 1100------------      |  1.1                |
+--   144 | ------1- 1 --- -- 1--- ---- 1010------------      |  1.1                |
+--   145 | -------1 - --- -- ---- ---- 1010------------      |  1.1                |
+--   146 | ------1- 1 --- -- 1--- ---- 0110------------      |  1.1                |
+--   147 | -------1 - --- -- ---- ---- 0110------------      |  1.1                |
+--   148 | ----1--- - --- -- ---- 0001 1110------------      |  1.1                |
+--   149 | ----0-00 - --- -- ---- ---- 1110------------      |  1.1                |
+--   150 | ------1- 0 -00 -- 1--- ---- -110------------      |  1.1                |
+--   151 | ------1- 0 -01 -- 1--- ---- 1-10------------      |  1.1                |
+--   152 | ------1- 0 -10 -- 1--- ---- 11-0------------      |  1.1                |
+--   153 | ------1- 0 -00 -- 1--- ---- 0--0------------      |  .1.                |
+--   154 | ------1- 1 --- -- 1--- ---- 100-------------      |  1..                |
+--   155 | -------1 - --- -- ---- ---- 100-------------      |  1..                |
+--   156 | ------1- 1 --- -- 1--- ---- 010-------------      |  1..                |
+--   157 | -------1 - --- -- ---- ---- 010-------------      |  1..                |
+--   158 | ----1--- - --- -- ---- 00-1 110-------------      |  1..                |
+--   159 | ----1--- - --- -- ---- 001- 110-------------      |  1..                |
+--   160 | ------1- 0 -11 -- ---- ---- 110-------------      |  1..                |
+--   161 | ----0-00 - --- -- ---- ---- 110-------------      |  1..                |
+--   162 | ------1- 0 -00 -- 1--- ---- -10-------------      |  1..                |
+--   163 | ------1- 0 -00 -- 1--- ---- 0-0-------------      |  .1.                |
+--   164 | ------1- 0 -01 -- 1--- ---- 1-0-------------      |  1..                |
+--   165 | ------1- 0 -11 -- 0--- ---- 111-------------      |  ..1                |
+--   166 | ------1- 1 --- -- 1--- ---- 00--------------      |  .1.                |
+--   167 | -------1 - --- -- ---- ---- 00--------------      |  .1.                |
+--   168 | ----1--- - --- -- ---- 0--1 10--------------      |  .1.                |
+--   169 | ----1--- - --- -- ---- 0-1- 10--------------      |  .1.                |
+--   170 | ----1--- - --- -- ---- 01-- 10--------------      |  .1.                |
+--   171 | ------1- 0 -1- -- ---- ---- 10--------------      |  .1.                |
+--   172 | ----0-00 - --- -- ---- ---- 10--------------      |  .1.                |
+--   173 | ------1- 0 -00 -- 1--- ---- -0--------------      |  .1.                |
+--   174 | ------1- 0 -1- -- 0--- ---- 11--------------      |  1..                |
+--   175 | ------1- 0 -01 -- 0--- ---- 1---------------      |  .1.                |
+--      *=========================================================================*
+--
+-- Table LRU_UPDATE_DATA Signal Assignments for Product Terms
 MQQ1:LRU_UPDATE_DATA_PT(1) <=
     Eq(( TLB_TAG4_TYPE_SIG(6) & TLB_TAG4_WAYHIT_Q(3) & 
     LRU_TAG4_DATAOUT_Q(0) & LRU_TAG4_DATAOUT_Q(1) & 
@@ -2470,6 +2868,7 @@ MQQ175:LRU_UPDATE_DATA_PT(175) <=
     TLB_TAG4_ESEL_SIG(1) & TLB_TAG4_ESEL_SIG(2) & 
     TLB_TAG4_IS_SIG(0) & LRU_TAG4_DATAOUT_Q(0)
      ) , STD_ULOGIC_VECTOR'("100101"));
+-- Table LRU_UPDATE_DATA Signal Assignments for Outputs
 MQQ176:LRU_UPDATE_DATA(0) <= 
     (LRU_UPDATE_DATA_PT(1) OR LRU_UPDATE_DATA_PT(2)
      OR LRU_UPDATE_DATA_PT(3) OR LRU_UPDATE_DATA_PT(4)
@@ -2582,6 +2981,34 @@ MQQ178:LRU_UPDATE_DATA(2) <=
      OR LRU_UPDATE_DATA_PT(151) OR LRU_UPDATE_DATA_PT(152)
      OR LRU_UPDATE_DATA_PT(165));
 
+--glorp1
+-- lru data format
+--   0:3  - valid(0:3)
+--   4:6  - LRU
+--   7  - parity
+--   8:11  - iprot(0:3)
+--   12:14  - reserved
+--   15  - parity
+-- tlb_low_data
+--  0:51  - EPN
+--  52:55  - SIZE (4b)
+--  56:59  - ThdID
+--  60:61  - Class
+--  62  - ExtClass
+--  63  - TID_NZ
+--  64:65  - reserved (2b)
+--  66:73  - 8b for LPID
+--  74:83  - parity 10bits
+-- mmucr3
+--  49  X-bit
+--  50:51  R,C
+--  52  ECL
+--  53  TID_NZ
+--  54:55  Class
+--  56:57  WLC
+--  58:59  ResvAttr
+--  60:63  ThdID
+--  unused tagpos_is def is mas1_v, mas1_iprot for tlbwe, and is (pte.valid & 0) for ptereloads
 gen64_tlb_datain: if rs_data_width = 64 generate
 tlb_datain_lo_tlbwe_0_nopar(0 TO tlb_word_width-10-1) <=  
                     (tlb_tag4_q(tagpos_epn to tagpos_epn+31) and (0 to 31 => tlb_tag4_q(tagpos_cm))) & tlb_tag4_q(tagpos_epn+32 to tagpos_epn+51) & tlb_tag4_q(tagpos_size to tagpos_size+3) & mmucr3_0(60   to 63) & 
@@ -2674,6 +3101,35 @@ tlb_datainb_d(0 TO tlb_word_width-1) <=
                                         when (tlb_tag4_ptereload_sig='1') else  
                      tlb_datainb_q(0 to tlb_word_width-1);
 end generate gen32_tlb_datain;
+-- tlb_high_data
+--  84       -  0      - X-bit
+--  85:87    -  1:3    - reserved (3b)
+--  88:117   -  4:33   - RPN (30b)
+--  118:119  -  34:35  - R,C
+--  120:121  -  36:37  - WLC (2b)
+--  122      -  38     - ResvAttr
+--  123      -  39     - VF
+--  124      -  40     - IND
+--  125:128  -  41:44  - U0-U3
+--  129:133  -  45:49  - WIMGE
+--  134:135  -  50:51  - UX,SX
+--  136:137  -  52:53  - UW,SW
+--  138:139  -  54:55  - UR,SR
+--  140      -  56  - GS
+--  141      -  57  - TS
+--  142:143  -  58:59  - reserved (2b)
+--  144:149  -  60:65  - 6b TID msbs
+--  150:157  -  66:73  - 8b TID lsbs
+--  158:167  -  74:83  - parity 10bits
+-- mmucr3
+--  49  X-bit
+--  50:51  R,C
+--  52  ECL
+--  53  TID_NZ
+--  54:55  Class
+--  56:57  WLC
+--  58:59  ResvAttr
+--  60:63  ThdID
 ptereload_req_derived_usxwr(0) <=  ptereload_req_pte_lat(ptepos_usxwr+0) and ptereload_req_pte_lat(ptepos_r);
 ptereload_req_derived_usxwr(1) <=  ptereload_req_pte_lat(ptepos_usxwr+1) and ptereload_req_pte_lat(ptepos_r);
 ptereload_req_derived_usxwr(2) <=  ptereload_req_pte_lat(ptepos_usxwr+2) and ptereload_req_pte_lat(ptepos_r) and ptereload_req_pte_lat(ptepos_c);
@@ -2774,6 +3230,7 @@ tlb_datain_hi_gs_ptereload_nopar    <=
                      "00" & '0' & '0' & '0' & ptereload_req_pte_lat(ptepos_ubits to ptepos_ubits+3) & ptereload_req_pte_lat(ptepos_wimge to ptepos_wimge+4) & 
                      ptereload_req_derived_usxwr(0 to 5) & 
                      tlb_tag4_q(tagpos_gs) & tlb_tag4_q(tagpos_as) & "00" & tlb_tag4_q(tagpos_pid to tagpos_pid+pid_width-1);
+--  unused tagpos_is def is mas1_v, mas1_iprot for tlbwe, and is (pte.valid & 0) for ptereloads
 tlb_dataina_d(tlb_word_width TO 2*tlb_word_width-1) <=  
                      tlb_datain_hi_hv_tlbwe_0_nopar   & tlb_datain_hi_hv_tlbwe_0_par   
                         when (tlb_tag4_q(tagpos_thdid+0)='1'   and tlb_tag4_q(tagpos_type_tlbwe)='1' and (tlb_tag4_q(tagpos_gs)='0' or tlb_tag4_q(tagpos_is)='0')) else  
@@ -2818,6 +3275,36 @@ tlb_datainb_d(tlb_word_width TO 2*tlb_word_width-1) <=
                      tlb_datain_hi_gs_ptereload_nopar &  tlb_datain_hi_gs_ptereload_par
                         when (tlb_tag4_ptereload_sig='1' and tlb_tag4_q(tagpos_gs)='1') else  
                      tlb_datainb_q(tlb_word_width to 2*tlb_word_width-1);
+-- tlb_high_data
+--  84       -  0      - X-bit
+--  85:87    -  1:3    - reserved (3b)
+--  88:117   -  4:33   - RPN (30b)
+--  118:119  -  34:35  - R,C
+--  120:121  -  36:37  - WLC (2b)
+--  122      -  38     - ResvAttr
+--  123      -  39     - VF
+--  124      -  40     - IND
+--  125:128  -  41:44  - U0-U3
+--  129:133  -  45:49  - WIMGE
+--  134:135  -  50:51  - UX,SX
+--  136:137  -  52:53  - UW,SW
+--  138:139  -  54:55  - UR,SR
+--  140      -  56  - GS
+--  141      -  57  - TS
+--  142:143  -  58:59  - reserved (2b)
+--  144:149  -  60:65  - 6b TID msbs
+--  150:157  -  66:73  - 8b TID lsbs
+--  158:167  -  74:83  - parity 10bits
+-- mmucr3
+--  49  X-bit
+--  50:51  R,C
+--  52  ECL
+--  53  TID_NZ
+--  54:55  Class
+--  56:57  WLC
+--  58:59  ResvAttr
+--  60:63  ThdID
+-- TLB Parity Generation
 tlb_datain_lo_tlbwe_0_par(0) <=  xor_reduce(tlb_datain_lo_tlbwe_0_nopar(0   to 7));
 tlb_datain_lo_tlbwe_0_par(1) <=  xor_reduce(tlb_datain_lo_tlbwe_0_nopar(8   to 15));
 tlb_datain_lo_tlbwe_0_par(2) <=  xor_reduce(tlb_datain_lo_tlbwe_0_nopar(16   to 23));
@@ -2968,9 +3455,83 @@ tlb_datain_hi_gs_ptereload_par(6) <=  xor_reduce(tlb_datain_hi_gs_ptereload_nopa
 tlb_datain_hi_gs_ptereload_par(7) <=  xor_reduce(tlb_datain_hi_gs_ptereload_nopar(50 to 57));
 tlb_datain_hi_gs_ptereload_par(8) <=  xor_reduce(tlb_datain_hi_gs_ptereload_nopar(58 to 65));
 tlb_datain_hi_gs_ptereload_par(9) <=  xor_reduce(tlb_datain_hi_gs_ptereload_nopar(66 to 73));
+-- ex7 phase signals
 tlb_dataina          <=  tlb_dataina_q;
 tlb_datainb          <=  tlb_datainb_q;
 tlb_cmp_dbg_tag5_tlb_datain_q  <=  tlb_dataina_q;
+--glorp2
+-- tlb_low_data
+--  0:51  - EPN
+--  52:55  - SIZE (4b)
+--  56:59  - ThdID
+--  60:61  - Class
+--  62:63  - ExtClass
+--  64:65  - reserved (2b)
+--  66:73  - 8b for LPID
+--  74:83  - parity 10bits
+-- tlb_high_data
+--  84       -  0      - X-bit
+--  85:87    -  1:3    - reserved (3b)
+--  88:117   -  4:33   - RPN (30b)
+--  118:119  -  34:35  - R,C
+--  120:121  -  36:37  - WLC (2b)
+--  122      -  38     - ResvAttr
+--  123      -  39     - VF
+--  124      -  40     - IND
+--  125:128  -  41:44  - U0-U3
+--  129:133  -  45:49  - WIMGE
+--  134:136  -  50:52  - UX,UW,UR
+--  137:139  -  53:55  - SX,SW,SR
+--  140      -  56  - GS
+--  141      -  57  - TS
+--  142:143  -  58:59  - reserved (2b)
+--  144:149  -  60:65  - 6b TID msbs
+--  150:157  -  66:73  - 8b TID lsbs
+--  158:167  -  74:83  - parity 10bits
+----------- this is what the erat expects on reload bus
+--  0:51  - EPN
+--  52  - X
+--  53:55  - SIZE
+--  56  - V
+--  57:60  - ThdID
+--  61:62  - Class
+--  63:64  - ExtClass
+--  65  - write enable
+--  0:3 66:69 - reserved RPN
+--  4:33 70:99 - RPN
+--  34:35 100:101 - R,C
+--  36 102 - reserved
+--  37:38 103:104 - WLC
+--  39 105 - ResvAttr
+--  40 106 - VF
+--  41:44 107:110 - U0-U3
+--  45:49 111:115 - WIMGE
+--  50:51 116:117 - UX,SX
+--  52:53 118:119 - UW,SW
+--  54:55 120:121 - UR,SR
+--  56 122 - GS
+--  57 123 - TS
+--  58:65 124:131 - TID lsbs
+-----------
+--  waypos_epn      : natural  := 0;
+--  waypos_size     : natural  := 52;
+--  waypos_thdid    : natural  := 56;
+--  waypos_class    : natural  := 60;
+--  waypos_extclass : natural  := 62;
+--  waypos_lpid     : natural  := 66;
+--  waypos_xbit     : natural  := 84;
+--  waypos_rpn      : natural  := 88;
+--  waypos_rc       : natural  := 118;
+--  waypos_wlc      : natural  := 120;
+--  waypos_resvattr : natural  := 122;
+--  waypos_vf       : natural  := 123;
+--  waypos_ind      : natural  := 124;
+--  waypos_ubits    : natural  := 125;
+--  waypos_wimge    : natural  := 129;
+--  waypos_usxwr    : natural  := 134;
+--  waypos_gs       : natural  := 140;
+--  waypos_ts       : natural  := 141;
+--  waypos_tid      : natural  := 144; -- 14 bits
 tlb_erat_rel_d(eratpos_epn TO epn_width-1) <=  tlb_tag4_way_or(waypos_epn to waypos_epn+epn_width-1) 
                   when tlb_tag4_erat_data_cap='1' else tlb_erat_rel_q(eratpos_epn to epn_width-1);
 tlb_erat_rel_d(eratpos_x) <=  tlb_tag4_way_or(waypos_xbit) 
@@ -2987,6 +3548,20 @@ tlb_erat_rel_clone_d(eratpos_size TO eratpos_size+2) <=   erat_pgsize(0 to 2)
                   when tlb_tag4_erat_data_cap='1' else tlb_erat_rel_clone_q(eratpos_size to eratpos_size+2);
 tlb_erat_rel_clone_d(eratpos_v) <=  '1' 
                   when tlb_tag4_erat_data_cap='1' else tlb_erat_rel_clone_q(eratpos_v);
+-- mmucr1 11-LRUPEI, 12:13-ICTID/ITTID, 14:15-DCTID/DTTID, 16-DCCD, 17-TLBWE_BINV, 18-TLBI_MSB
+--
+--                                 ERAT reload THDID values
+-- TTYPE              ITTID  DTTID  DCCD    THDID(0:3)             term
+-----------------------------------------------------------------------
+-- ierat                0      -     -      TLB_entry.thdid(0:3)     (1)
+-- ierat                1      -     -      TLB_entry.tid(2:5)       (2)
+-- htw inst             0      -     -      IND entry.thdid(0:3)     (3)
+-- htw inst             1      -     -      PTE_reload.pid(2:5)      (4)
+-- derat                -      0     -      TLB_entry.thdid(0:3)     (1)
+-- derat                -      1     -      TLB_entry.tid(2:5)       (2)
+-- htw data             -      0     -      IND entry.thdid(0:3)     (3)
+-- htw data             -      1     -      PTE_reload.pid(2:5)      (4)
+--
 tlb_erat_rel_d(eratpos_thdid TO eratpos_thdid+thdid_width-1) <=  
        tlb_tag4_way_or(waypos_thdid to waypos_thdid+thdid_width-1) 
         when ((tlb_tag4_q(tagpos_type_ierat)='1' and tlb_tag4_q(tagpos_type_ptereload)='0' and mmucr1_q(pos_ittid)='0' and tlb_tag4_q(tagpos_ind)='0') or
@@ -3015,6 +3590,29 @@ tlb_erat_rel_clone_d(eratpos_thdid TO eratpos_thdid+thdid_width-1) <=
            when ((tlb_tag4_q(tagpos_type_ierat)='1' and tlb_tag4_q(tagpos_type_ptereload)='1' and mmucr1_clone_q(pos_ittid)='1' and tlb_tag4_q(tagpos_ind)='0') or
                   (tlb_tag4_q(tagpos_type_derat)='1' and tlb_tag4_q(tagpos_type_ptereload)='1' and mmucr1_clone_q(pos_dttid)='1' and tlb_tag4_q(tagpos_ind)='0'))
              else tlb_erat_rel_clone_q(eratpos_thdid to eratpos_thdid+thdid_width-1);
+-- mmucr1 11-LRUPEI, 12:13-ICTID/ITTID, 14:15-DCTID/DTTID, 16-DCCD, 17-TLBWE_BINV, 18-TLBI_MSB
+--
+--                                 ERAT reload CLASS values
+-- TTYPE              ICTID  DCTID  DCCD    CLASS(0:1)                term
+---------------------------------------------------------------------------
+-- ierat                0      -     -      TLB_entry.class(0:1)      (1)
+-- ierat                1      -     -      TLB_entry.tid(0:1)        (2)
+-- htw inst             0      -     -       00                       (4)
+-- htw inst             1      -     -      PTE_reload.pid(0:1)       (5)
+-- derat non-epid       -      0     0       0  & TLB_entry.class(1)  (3)
+-- derat non-epid       -      0     1      TLB_entry.class(0:1)      (1)
+-- derat non-epid       -      1     -      TLB_entry.tid(0:1)        (2)
+-- derat epid load      -      0     0       10                       (3)
+-- derat epid store     -      0     0       11                       (3)
+-- derat epid           -      0     1      TLB_entry.class(0:1)      (1)
+-- derat epid           -      1     -      TLB_entry.tid(0:1)        (2)
+-- htw data non-epid    -      0     -       00                       (4)
+-- htw data non-epid    -      1     -      PTE_reload.pid(0:1)       (5)
+-- htw data epid load   -      0     -       10                       (4)
+-- htw data epid store  -      0     -       11                       (4)
+-- htw data epid        -      1     -      PTE_reload.pid(0:1)       (5)
+--
+-- non-clone is the ierat side
 tlb_erat_rel_d(eratpos_class TO eratpos_class+class_width-1) <=  
        tlb_tag4_way_or(waypos_class to waypos_class+class_width-1) 
         when tlb_tag4_erat_data_cap='1' and
@@ -3036,6 +3634,7 @@ tlb_erat_rel_d(eratpos_class TO eratpos_class+class_width-1) <=
                    ((tlb_tag4_q(tagpos_type_ierat)='1' and tlb_tag4_q(tagpos_type_ptereload)='1' and mmucr1_q(pos_ictid)='1' and tlb_tag4_q(tagpos_ind)='0') or
                     (tlb_tag4_q(tagpos_type_derat)='1' and tlb_tag4_q(tagpos_type_ptereload)='1' and mmucr1_q(pos_dctid)='1' and tlb_tag4_q(tagpos_ind)='0'))
                else tlb_erat_rel_q(eratpos_class to eratpos_class+class_width-1);
+-- clone is the derat side
 tlb_erat_rel_clone_d(eratpos_class TO eratpos_class+class_width-1) <=  
        tlb_tag4_way_or(waypos_class to waypos_class+class_width-1) 
         when tlb_tag4_erat_data_cap='1' and
@@ -3057,6 +3656,7 @@ tlb_erat_rel_clone_d(eratpos_class TO eratpos_class+class_width-1) <=
                    ((tlb_tag4_q(tagpos_type_ierat)='1' and tlb_tag4_q(tagpos_type_ptereload)='1' and mmucr1_clone_q(pos_ictid)='1' and tlb_tag4_q(tagpos_ind)='0') or
                     (tlb_tag4_q(tagpos_type_derat)='1' and tlb_tag4_q(tagpos_type_ptereload)='1' and mmucr1_clone_q(pos_dctid)='1' and tlb_tag4_q(tagpos_ind)='0'))
                else tlb_erat_rel_clone_q(eratpos_class to eratpos_class+class_width-1);
+-- non-clone is the ierat side
 tlb_erat_rel_d(eratpos_extclass TO eratpos_extclass+1) <=  tlb_tag4_way_or(waypos_extclass to waypos_extclass+1) 
                   when tlb_tag4_erat_data_cap='1' else tlb_erat_rel_q(eratpos_extclass to eratpos_extclass+1);
 tlb_erat_rel_d(eratpos_wren) <=  '1' when (tlb_tag4_erat_data_cap='1' and 
@@ -3090,6 +3690,7 @@ tlb_erat_rel_d(eratpos_ts) <=  tlb_tag4_way_or(waypos_ts)
                   when tlb_tag4_erat_data_cap='1' else tlb_erat_rel_q(eratpos_ts);
 tlb_erat_rel_d(eratpos_tid TO eratpos_tid+pid_width_erat-1) <=  tlb_tag4_way_or(waypos_tid+6 to waypos_tid+14-1) 
                   when tlb_tag4_erat_data_cap='1' else tlb_erat_rel_q(eratpos_tid to eratpos_tid+pid_width_erat-1);
+-- clone is the derat side
 tlb_erat_rel_clone_d(eratpos_extclass TO eratpos_extclass+1) <=  tlb_tag4_way_or(waypos_extclass to waypos_extclass+1) 
                   when tlb_tag4_erat_data_cap='1' else tlb_erat_rel_clone_q(eratpos_extclass to eratpos_extclass+1);
 tlb_erat_rel_clone_d(eratpos_wren) <=  '1' when (tlb_tag4_erat_data_cap='1' and 
@@ -3130,11 +3731,32 @@ tlb_tag4_erat_data_cap  <=  '1' when ((tlb_tag4_q(tagpos_type_ierat)='1' or tlb_
                                tlb_tag4_q(tagpos_type_ptereload)='1' and tlb_tag4_q(tagpos_ind)='0' and
                                tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1)/="0000" )  
                      else '0';
+-- page size 4b to 3b swizzles for erat reloads
 erat_pgsize(0 TO 2) <=  ERAT_PgSize_1GB  when tlb_tag4_way_or(waypos_size to waypos_size+3)=TLB_PgSize_1GB
                  else  ERAT_PgSize_16MB when tlb_tag4_way_or(waypos_size to waypos_size+3)=TLB_PgSize_16MB
                  else  ERAT_PgSize_1MB  when tlb_tag4_way_or(waypos_size to waypos_size+3)=TLB_PgSize_1MB
                  else  ERAT_PgSize_64KB when tlb_tag4_way_or(waypos_size to waypos_size+3)=TLB_PgSize_64KB
                  else  ERAT_PgSize_4KB;
+--  tagpos_epn      : natural  := 0;
+--  tagpos_pid      : natural  := 52; -- 14 bits
+--  tagpos_is       : natural  := 66;
+--  tagpos_class    : natural  := 68;
+--  tagpos_state    : natural  := 70; -- state: 0:pr 1:gs 2:as 3:cm
+--  tagpos_thdid    : natural  := 74;
+--  tagpos_size     : natural  := 78;
+--  tagpos_type     : natural  := 82; -- derat,ierat,tlbsx,tlbsrx,snoop,tlbre,tlbwe,ptereload
+--  tagpos_lpid     : natural  := 90;
+--  tagpos_ind      : natural  := 98;
+--  tagpos_atsel    : natural  := 99;
+--  tagpos_esel     : natural  := 100;
+--  tagpos_hes      : natural  := 103;
+--  tagpos_wq       : natural  := 104;
+--  tagpos_lrat     : natural  := 106;
+--  tagpos_pt       : natural  := 107;
+--  tagpos_recform  : natural  := 108;
+--  tagpos_endflag  : natural  := 109;
+-- the ierat response
+--   ierat threadwise valid
 tlb_erat_val_d(0 TO 3) <=  (tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1) or ierat_tag4_dup_thdid(0 to thdid_width-1)) 
                          when (tlb_tag4_q(tagpos_type_ierat)='1' and tlb_tag4_q(tagpos_type_ptereload)='0' and 
                                  tlb_tag4_q(tagpos_ind)='0' and tlb_tag4_wayhit_q(tlb_ways)='1' and
@@ -3154,6 +3776,8 @@ tlb_erat_val_d(4) <=  tlb_tag4_q(tagpos_type_ierat)
                    else tlb_tag4_q(tagpos_type_ierat) 
                          when (tlb_tag4_q(tagpos_type_ptereload)='1' and tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1)/="0000")  
                    else '0';
+-- the derat response
+--   derat threadwise valid
 tlb_erat_val_d(5 TO 8) <=  (tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1) or derat_tag4_dup_thdid(0 to thdid_width-1)) 
                          when (tlb_tag4_q(tagpos_type_derat)='1' and tlb_tag4_q(tagpos_type_ptereload)='0' and 
                                  tlb_tag4_q(tagpos_ind)='0' and tlb_tag4_wayhit_q(tlb_ways)='1' and
@@ -3173,6 +3797,26 @@ tlb_erat_val_d(9) <=  tlb_tag4_q(tagpos_type_derat)
                    else tlb_tag4_q(tagpos_type_derat) 
                          when (tlb_tag4_q(tagpos_type_ptereload)='1' and tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1)/="0000")  
                    else '0';
+--  waypos_epn      : natural  := 0;
+--  waypos_size     : natural  := 52;
+--  waypos_thdid    : natural  := 56;
+--  waypos_class    : natural  := 60;
+--  waypos_extclass : natural  := 62;
+--  waypos_lpid     : natural  := 66;
+--  waypos_xbit     : natural  := 84;
+--  waypos_rpn      : natural  := 88;
+--  waypos_rc       : natural  := 118;
+--  waypos_wlc      : natural  := 120;
+--  waypos_resvattr : natural  := 122;
+--  waypos_vf       : natural  := 123;
+--  waypos_ind      : natural  := 124;
+--  waypos_ubits    : natural  := 125;
+--  waypos_wimge    : natural  := 129;
+--  waypos_usxwr    : natural  := 134;
+--  waypos_gs       : natural  := 140;
+--  waypos_ts       : natural  := 141;
+--  waypos_tid      : natural  := 144; -- 14 bits
+-- chosen tag4_way compares to erat requests from mmq_tlb_req for duplicate checking
 ierat_req0_tag4_thdid_match     <=  '1' when or_reduce(tlb_tag4_way_or(waypos_thdid to waypos_thdid+thdid_width-1) and ierat_req0_thdid)='1'   else '0';
 ierat_req0_tag4_pid_match       <=  '1' when (tlb_tag4_way_or(waypos_tid to waypos_tid+pid_width-1)=ierat_req0_pid   or or_reduce(tlb_tag4_way_or(waypos_tid to waypos_tid+pid_width-1))='0') 
                               else '0';
@@ -3323,19 +3967,24 @@ derat_ex5_tag4_epn_match     <=  '1' when (tlb_tag4_way_or(waypos_epn to waypos_
                                             (tlb_tag4_way_or(waypos_epn to waypos_epn+epn_width-13)=derat_ex5_epn(52-epn_width to 39) and tlb_tag4_way_or(waypos_size to waypos_size+3)=TLB_PgSize_16MB) or
                                             (tlb_tag4_way_or(waypos_epn to waypos_epn+epn_width-19)=derat_ex5_epn(52-epn_width to 33) and tlb_tag4_way_or(waypos_size to waypos_size+3)=TLB_PgSize_1GB)
                              else '0';
+--  tlb_cmp_ierat_dup_val  bits 0:3 are req<t>_tag5_match, 4 is tag5 hit_reload, 5 is stretched hit_reload, 6 is ierat iu5 stage dup, 7:9 counter
+-- hit pulse to ierat
 tlb_erat_dup_d(4) <=  tlb_tag4_q(tagpos_type_ierat)
                          when (tlb_tag4_q(tagpos_type_ptereload)='0' and tlb_tag4_way_or(waypos_ind)='0' and 
                                  tlb_tag4_wayhit_q(tlb_ways)='1' and multihit='0' and 
                                     tlb_tag4_q(tagpos_wq+1)='0' and or_reduce(tag4_parerr_q(0 to 4))='0') 
                    else '0';
+-- extended duplicate strobe to ierat
 tlb_erat_dup_d(5) <=  '1' when (tlb_erat_dup_d(4)='1' or tlb_erat_dup_q(4)='1')    
                  else '1' when tlb_erat_dup_q(7 to 9)/="000"  
                  else '0';
+-- ierat duplicate in iu4 stage
 tlb_erat_dup_d(6) <=  tlb_tag4_q(tagpos_type_ierat) when 
                                    (ierat_iu4_tag4_lpid_match='1' and ierat_iu4_tag4_pid_match='1' and 
                                     ierat_iu4_tag4_as_match='1' and ierat_iu4_tag4_gs_match='1' and 
                                     ierat_iu4_tag4_epn_match='1' and ierat_iu4_tag4_thdid_match='1' and
                                     ierat_iu4_valid='1' and tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1)/="0000") else '0';
+-- ierat duplicate counter
 tlb_erat_dup_d(7 TO 9) <=  "001" when (tlb_erat_dup_q(4)='1' and tlb_erat_dup_q(7 to 9)="000")
                        else "010" when tlb_erat_dup_q(7 to 9)="001" 
                        else "011" when tlb_erat_dup_q(7 to 9)="010" 
@@ -3345,19 +3994,24 @@ tlb_erat_dup_d(7 TO 9) <=  "001" when (tlb_erat_dup_q(4)='1' and tlb_erat_dup_q(
                        else "111" when tlb_erat_dup_q(7 to 9)="110"
                        else "000" when tlb_erat_dup_q(7 to 9)="111"  
                        else tlb_erat_dup_q(7 to 9);
+--  tlb_cmp_ierat_dup_val  bits 10:13 are req<t>_tag5_match, 14 is tag5 hit_reload, 15 is stretched hit_reload, 16 is ierat iu5 stage dup, 17:19 counter
+-- hit pulse to derat
 tlb_erat_dup_d(14) <=  tlb_tag4_q(tagpos_type_derat) 
                          when (tlb_tag4_q(tagpos_type_ptereload)='0' and tlb_tag4_way_or(waypos_ind)='0' and 
                                  tlb_tag4_wayhit_q(tlb_ways)='1' and multihit='0' and 
                                     tlb_tag4_q(tagpos_wq+1)='0' and or_reduce(tag4_parerr_q(0 to 4))='0') 
                    else '0';
+-- extended duplicate strobe to derat
 tlb_erat_dup_d(15) <=  '1' when (tlb_erat_dup_d(14)='1' or tlb_erat_dup_q(14)='1')    
                  else '1' when tlb_erat_dup_q(17 to 19)/="000"  
                  else '0';
+-- derat duplicate in ex5 stage
 tlb_erat_dup_d(16) <=  tlb_tag4_q(tagpos_type_derat) when 
                                    (derat_ex5_tag4_lpid_match='1' and derat_ex5_tag4_pid_match='1' and 
                                     derat_ex5_tag4_as_match='1' and derat_ex5_tag4_gs_match='1' and 
                                     derat_ex5_tag4_epn_match='1' and derat_ex5_tag4_thdid_match='1' and
                                     derat_ex5_valid='1' and tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1)/="0000") else '0';
+-- derat duplicate hit counter
 tlb_erat_dup_d(17 TO 19) <=  "001" when (tlb_erat_dup_q(14)='1' and tlb_erat_dup_q(17 to 19)="000")
                        else "010" when tlb_erat_dup_q(17 to 19)="001" 
                        else "011" when tlb_erat_dup_q(17 to 19)="010" 
@@ -3367,6 +4021,7 @@ tlb_erat_dup_d(17 TO 19) <=  "001" when (tlb_erat_dup_q(14)='1' and tlb_erat_dup
                        else "111" when tlb_erat_dup_q(17 to 19)="110"
                        else "000" when tlb_erat_dup_q(17 to 19)="111"  
                        else tlb_erat_dup_q(17 to 19);
+-- used in erat reload thdid to invalidate existing duplicates
 ierat_tag4_dup_thdid      <=   ((0 to 3 => tlb_erat_dup_d(0)) and ierat_req0_thdid(0 to 3) and (0 to 3 => ierat_req0_nonspec) and (0 to 3 => not tlb_tag4_q(tagpos_wq+1))) or  
                               ((0 to 3 => tlb_erat_dup_d(1)) and ierat_req1_thdid(0 to 3) and (0 to 3 => ierat_req1_nonspec) and (0 to 3 => not tlb_tag4_q(tagpos_wq+1))) or
                               ((0 to 3 => tlb_erat_dup_d(2)) and ierat_req2_thdid(0 to 3) and (0 to 3 => ierat_req2_nonspec) and (0 to 3 => not tlb_tag4_q(tagpos_wq+1))) or
@@ -3380,12 +4035,31 @@ tlb_tag4_size_not_supp  <=  '0' when (tlb_tag4_q(tagpos_size to tagpos_size+3)=T
                               tlb_tag4_q(tagpos_size to tagpos_size+3)=TLB_PgSize_1MB or  tlb_tag4_q(tagpos_size to tagpos_size+3)=TLB_PgSize_16MB or 
                               tlb_tag4_q(tagpos_size to tagpos_size+3)=TLB_PgSize_1GB or 
                               (tlb_tag4_q(tagpos_size to tagpos_size+3)=TLB_PgSize_256MB and tlb_tag4_q(tagpos_ind)='1')) else '1';
+-- tell the XU that the derat miss is done, and release the thread hold(s)
 eratmiss_done_d  <=  tlb_erat_val_q(0 to 3) or tlb_erat_val_q(5 to 8);
 tlb_miss_d  <=  tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1) 
                   when ((tlb_tag4_q(tagpos_type_ierat)='1' or tlb_tag4_q(tagpos_type_derat)='1') and tlb_tag4_q(tagpos_type_ptereload)='0' and 
                           tlb_tag4_q(tagpos_endflag)='1' and tlb_tag4_wayhit_q(0 to 3) = "0000"     
                             and or_reduce(tag4_parerr_q(0 to 4))='0')  
          else (others => '0');
+-- Event     |          Exceptions
+--           | PT fault   | TLB Inelig | LRAT miss
+----------------------------------------------------------
+-- tlbwe     |  -         | hv_priv=1  | lrat_miss=1
+--           |            | tlbi=1     | esr_pt=0
+--           |            | esr_pt=0   |
+----------------------------------------------------------
+-- ptereload | DSI        | DSI        | lrat_miss=1
+--  (data)   | pt_fault=1 | tlbi=1     | esr_pt=1
+--           | PT=1       | esr_pt=0 ? | esr_data=1
+--           |            |            | esr_epid=class(0)
+--           |            |            | esr_st=class(1)
+----------------------------------------------------------
+-- ptereload | ISI        | ISI        | lrat_miss=1
+--  (inst)   | pt_fault=1 | tlbi=1     | esr_pt=1
+--           | PT=1       | esr_pt=0 ? | esr_data=0
+----------------------------------------------------------
+--  unused tagpos_is def is mas1_v, mas1_iprot for tlbwe, and is pte.valid & 0 for ptereloads
 tlb_inelig_d  <=  tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1) 
                   when (tlb_tag4_q(tagpos_type_ptereload)='1' and tlb_tag4_q(tagpos_is)='1' and lru_tag4_dataout_q(0 to 3)="1111" and lru_tag4_dataout_q(8 to 11)="1111")  
                     or (tlb_tag4_q(tagpos_type_ptereload)='1' and tlb_tag4_q(tagpos_is)='1' and tlb_tag4_size_not_supp='1')  
@@ -3409,6 +4083,22 @@ pt_fault_d    <=  tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1)
                              tlb_tag4_q(tagpos_wq to tagpos_wq+1)="10" and  
                                tlb_tag4_q(tagpos_pt)='1' )    
          else (others => '0');
+--  unused tagpos_is def is mas1_v, mas1_iprot for tlbwe, and is (pte.valid & 0) for ptereloads
+-- E.HV Privilege exceptions:
+-- 1. guest sup executes tlbre, tlbsx, tlbivax, eratre, eratwe, eratsx, eratilx, or erativax (xu_cpl handles)
+-- 2. guest sup executes mtspr or mfspr to a hv priviledged spr (xu_cpl handles)
+-- 3. guest sup executes tlbwe, tlbsrx, or tlbilx with EPCR DGTMI =1 (xu_cpl handles)
+-- 4. guest sup executes cache locking op when MSRP UCLEP =1 (xu_cpl handles)
+-- 5. guest sup tlbwe when TLB0CFG GTWE =0
+-- 6. guest sup tlbwe when MMUCFG LRAT =0
+-- 7. guest sup tlbwe when MAS0 HES =1 and TLBE V =1 and TLBE IPROT =1 and (MAS0 WQ =00 or MAS0 WQ =11 or (MAS0 WQ =01 and resv. exists)),
+--         except when write cond. not allowed by reservation is impl. depend.
+-- 8. guest sup tlbwe when MAS0 HES =1 and MAS1 IPROT =1 and(MAS0 WQ =00 or MAS0 WQ =11 or (MAS0 WQ =01 and resv. exists)),
+--         except when write cond. not allowed by reservation is impl. depend.
+-- 9. guest sup tlbwe when MAS0 HES =0 and MAS0 WQ /=10
+-- 10. guest sup tlbwe when MAS0 HES =1 and MAS1 V =0 ??? -> random lru way invalidates allowed by current 2.06 ISA
+--      ..this is a possible security hole..FSL considering RFC to allow hvpriv except
+-- 11. guest sup tlbilx with MAS5 SGS =0 ??? -> should be protected via mas5 and mas8 are hv priv spr's
 hv_priv_d   <=  (tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1) and not(tlb_ctl_tag4_flush))  
     when ( tlb_tag4_q(tagpos_type_tlbwe)='1' and tlb_tag4_q(tagpos_gs)='1' and tlb_tag4_q(tagpos_pr)='0' and tlb0cfg_gtwe='0' ) or 
           ( tlb_tag4_q(tagpos_type_tlbwe)='1' and tlb_tag4_q(tagpos_gs)='1' and tlb_tag4_q(tagpos_pr)='0' and mmucfg_lrat='0' ) or 
@@ -3473,6 +4163,7 @@ tlb_tag4_tlbre_parerr  <=   (tag4_parerr_q(0) and tlb_tag4_q(tagpos_type_tlbre) 
 end generate parerr_gen1;
 tlb_tag5_except_d  <=  (hv_priv_d or lrat_miss_d or tlb_inelig_d or pt_fault_d or 
                         tlb_multihit_err_d or tlb_par_err_d or lru_par_err_d);
+-- these are spares for exceptions
 tlb_isi_d  <=  tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1) 
                when (tlb_tag4_q(tagpos_type_ierat)='1' and tlb_tag4_q(tagpos_type_ptereload)='0' and 
                        tlb_tag4_wayhit_q(0 to 3) = "0000" and tlb_tag4_q(tagpos_endflag)='1') 
@@ -3481,6 +4172,72 @@ tlb_dsi_d  <=  tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1)
                 when (tlb_tag4_q(tagpos_type_derat)='1' and tlb_tag4_q(tagpos_type_ptereload)='0'  and 
                         tlb_tag4_wayhit_q(0 to 3) = "0000" and tlb_tag4_q(tagpos_endflag)='1') 
          else (others => '0');
+-- tlb_low_data
+--  0:51  - EPN
+--  52:55  - SIZE (4b)
+--  56:59  - ThdID
+--  60:61  - Class
+--  62:63  - ExtClass
+--  64:65  - reserved (2b)
+--  66:73  - 8b for LPID
+--  74:83  - parity 10bits
+-- tlb_high_data
+--  84       -  0      - X-bit
+--  85:87    -  1:3    - reserved (3b)
+--  88:117   -  4:33   - RPN (30b)
+--  118:119  -  34:35  - R,C
+--  120:121  -  36:37  - WLC (2b)
+--  122      -  38     - ResvAttr
+--  123      -  39     - VF
+--  124      -  40     - IND
+--  125:128  -  41:44  - U0-U3
+--  129:133  -  45:49  - WIMGE
+--  134:136  -  50:52  - UX,UW,UR
+--  137:139  -  53:55  - SX,SW,SR
+--  140      -  56  - GS
+--  141      -  57  - TS
+--  142:143  -  58:59  - reserved (2b)
+--  144:149  -  60:65  - 6b TID msbs
+--  150:157  -  66:73  - 8b TID lsbs
+--  158:167  -  74:83  - parity 10bits
+--  tagpos_epn      : natural  := 0;
+--  tagpos_pid      : natural  := 52; -- 14 bits
+--  tagpos_is       : natural  := 66;
+--  tagpos_class    : natural  := 68;
+--  tagpos_state    : natural  := 70; -- state: 0:pr 1:gs 2:as 3:cm
+--  tagpos_thdid    : natural  := 74;
+--  tagpos_size     : natural  := 78;
+--  tagpos_type     : natural  := 82; -- derat,ierat,tlbsx,tlbsrx,snoop,tlbre,tlbwe,ptereload
+--  tagpos_lpid     : natural  := 90;
+--  tagpos_ind      : natural  := 98;
+--  tagpos_atsel    : natural  := 99;
+--  tagpos_esel     : natural  := 100;
+--  tagpos_hes      : natural  := 103;
+--  tagpos_wq       : natural  := 104;
+--  tagpos_lrat     : natural  := 106;  lrat for tlbwe enabled
+--  tagpos_pt       : natural  := 107;  tlb can be loaded from page table (hwt enabled)
+--  tagpos_recform  : natural  := 108;
+--  tagpos_endflag  : natural  := 109;
+-- waypos_epn      : natural  := 0;
+-- waypos_size     : natural  := 52;
+-- waypos_thdid    : natural  := 56;
+-- waypos_class    : natural  := 60;
+-- waypos_extclass : natural  := 62;
+-- waypos_lpid     : natural  := 66;
+-- waypos_xbit     : natural  := 84;
+-- waypos_rpn      : natural  := 88;
+-- waypos_rc       : natural  := 118;
+-- waypos_wlc      : natural  := 120;
+-- waypos_resvattr : natural  := 122;
+-- waypos_vf       : natural  := 123;
+-- waypos_ind      : natural  := 124;
+-- waypos_ubits    : natural  := 125;
+-- waypos_wimge    : natural  := 129;
+-- waypos_usxwr    : natural  := 134;
+-- waypos_gs       : natural  := 140;
+-- waypos_ts       : natural  := 141;
+-- waypos_tid      : natural  := 144; -- 14 bits
+-- these are tag3 phase components
 matchline_comb0   : mmq_tlb_matchline
  generic map (have_xbit => 1, num_pgsizes => 5, have_cmpmask => 1, cmpmask_width => 5)
   port map (
@@ -3699,6 +4456,9 @@ matchline_comb3   : mmq_tlb_matchline
     dbg_ind_match                    => tlb_way3_ind_match,
     dbg_iprot_match                  => tlb_way3_iprot_match
    );
+-----------------------------------------------------------------------
+-- output assignments
+-----------------------------------------------------------------------
 tlb_cmp_ierat_dup_val(0 TO 6) <=  tlb_erat_dup_q(0 to 6);
 tlb_cmp_derat_dup_val(0 TO 6) <=  tlb_erat_dup_q(10 to 16);
 tlb_cmp_erat_dup_wait   <=  tlb_erat_dup_q(5) & tlb_erat_dup_q(15);
@@ -3765,6 +4525,26 @@ tlb_mas1_iprot          <=  lru_tag4_dataout_q(8) when
                                  (tlb_tag4_q(tagpos_type_tlbsx)='1' and tlb_tag4_wayhit_q(0 to tlb_ways)="00011") or
                                  (tlb_tag4_q(tagpos_type_tlbre)='1' and tlb_tag4_q(tagpos_esel+1 to tagpos_esel+2)="11")
                           else '0';
+--  waypos_epn      : natural  := 0;
+--  waypos_size     : natural  := 52;
+--  waypos_thdid    : natural  := 56;
+--  waypos_class    : natural  := 60;
+--  waypos_extclass : natural  := 62;
+--  waypos_lpid     : natural  := 66;
+--  waypos_xbit     : natural  := 84;
+--  waypos_rpn      : natural  := 88;
+--  waypos_rc       : natural  := 118;
+--  waypos_wlc      : natural  := 120;
+--  waypos_resvattr : natural  := 122;
+--  waypos_vf       : natural  := 123;
+--  waypos_ind      : natural  := 124;
+--  waypos_ubits    : natural  := 125;
+--  waypos_wimge    : natural  := 129;
+--  waypos_usxwr    : natural  := 134;
+--  waypos_gs       : natural  := 140;
+--  waypos_ts       : natural  := 141;
+--  waypos_tid      : natural  := 144; -- 14 bits
+-- constant tagpos_type     : natural  := 82; -- derat,ierat,tlbsx,tlbsrx,snoop,tlbre,tlbwe,ptereload
 tlb_mas1_tid            <=  tlb_tag4_way_rw_or(waypos_tid to waypos_tid+13) when ( or_reduce(tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1))='1' and 
                                   (tlb_tag4_q(tagpos_type_tlbre) or tlb_tag4_q(tagpos_type_tlbwe) or tlb_tag4_q(tagpos_type_ptereload))='1' )
                           else tlb_tag4_way_or(waypos_tid to waypos_tid+13);
@@ -3905,6 +4685,61 @@ tlb_htw_req_tag(tagpos_ind) <=  tlb_tag4_q(tagpos_ind);
 tlb_htw_req_tag(tagpos_atsel) <=  tlb_tag4_way_or(waypos_thdid);
 tlb_htw_req_tag(tagpos_esel TO tagpos_esel+2) <=  tlb_tag4_way_or(waypos_thdid+1 to waypos_thdid+3);
 tlb_htw_req_tag(tagpos_hes TO tlb_tag_width-1) <=  tlb_tag4_q(tagpos_hes to tlb_tag_width-1);
+--constant tagpos_epn      : natural  := 0;
+--constant tagpos_pid      : natural  := 52; -- 14 bits
+--constant tagpos_is       : natural  := 66;
+--constant tagpos_class    : natural  := 68;
+--constant tagpos_state    : natural  := 70; -- state: 0:pr 1:gs 2:as 3:cm
+--constant tagpos_thdid    : natural  := 74;
+--constant tagpos_size     : natural  := 78;
+--constant tagpos_type     : natural  := 82; -- derat,ierat,tlbsx,tlbsrx,snoop,tlbre,tlbwe,ptereload
+--constant tagpos_lpid     : natural  := 90;
+--constant tagpos_ind      : natural  := 98;
+--constant tagpos_atsel    : natural  := 99;
+--constant tagpos_esel     : natural  := 100;
+--constant tagpos_hes      : natural  := 103;
+--constant tagpos_wq       : natural  := 104;
+--constant tagpos_lrat     : natural  := 106;
+--constant tagpos_pt       : natural  := 107;
+--constant tagpos_recform  : natural  := 108;
+--constant tagpos_endflag  : natural  := 109;
+--  waypos_epn      : natural  := 0;
+--  waypos_size     : natural  := 52;
+--  waypos_thdid    : natural  := 56;
+--  waypos_class    : natural  := 60;
+--  waypos_extclass : natural  := 62;
+--  waypos_lpid     : natural  := 66;
+--  waypos_xbit     : natural  := 84;
+--  waypos_rpn      : natural  := 88;
+--  waypos_rc       : natural  := 118;
+--  waypos_wlc      : natural  := 120;
+--  waypos_resvattr : natural  := 122;
+--  waypos_vf       : natural  := 123;
+--  waypos_ind      : natural  := 124;
+--  waypos_ubits    : natural  := 125;
+--  waypos_wimge    : natural  := 129;
+--  waypos_usxwr    : natural  := 134;
+--  waypos_gs       : natural  := 140;
+--  waypos_ts       : natural  := 141;
+--  waypos_tid      : natural  := 144; -- 14 bits
+-----------------------------------------------------------------------
+-- Performance events
+-----------------------------------------------------------------------
+----------------------------------------------------
+-- t* threadwise event list
+----------------------------------------------------
+-- 0    TLB hit direct entry (instr.)     (ind=0 entry hit for fetch)
+-- 1    TLB miss direct entry (instr.)    (ind=0 entry missed for fetch)
+-- 2    TLB miss indirect entry (instr.)  (ind=1 entry missed for fetch, results in i-tlb exception)
+-- 3    H/W tablewalk hit (instr.)        (ptereload with PTE.V=1 for fetch)
+-- 4    H/W tablewalk miss (instr.)       (ptereload with PTE.V=0 for fetch, results in PT fault exception -> isi)
+-- 5    TLB hit direct entry (data)       (ind=0 entry hit for load/store/cache op)
+-- 6    TLB miss direct entry (data)      (ind=0 entry miss for load/store/cache op)
+-- 7    TLB miss indirect entry (data)    (ind=1 entry missed for load/store/cache op, results in d-tlb exception)
+-- 8    H/W tablewalk hit (data)          (ptereload with PTE.V=1 for load/store/cache op)
+-- 9    H/W tablewalk miss (data)         (ptereload with PTE.V=0 for load/store/cache op, results in PT fault exception -> dsi)
+-- 10   IERAT miss (or latency), edge (or level)    (total ierat misses or latency)
+-- 11   DERAT miss (or latency), edge (or level)    (total derat misses or latency)
 tlb_cmp_perf_event_t0(0) <=  tlb_tag4_q(tagpos_thdid+0) and tlb_tag4_q(tagpos_type_ierat) and not tlb_tag4_q(tagpos_type_ptereload) and 
                                     not tlb_tag4_q(tagpos_ind) and tlb_tag4_wayhit_q(tlb_ways) and not multihit;
 tlb_cmp_perf_event_t0(1) <=  tlb_tag4_q(tagpos_thdid+0) and tlb_tag4_q(tagpos_type_ierat) and not tlb_tag4_q(tagpos_type_ptereload) and 
@@ -4002,6 +4837,33 @@ tlb_cmp_perf_event_t3(8) <=  tlb_tag4_q(tagpos_thdid+3) and tlb_tag4_q(tagpos_ty
 tlb_cmp_perf_event_t3(9) <=  tlb_tag4_q(tagpos_thdid+3) and tlb_tag4_q(tagpos_type_derat) and tlb_tag4_q(tagpos_type_ptereload) and 
                                      not tlb_tag4_q(tagpos_is);
 tlb_cmp_perf_state       <=  tlb_tag4_q(tagpos_gs) & tlb_tag4_q(tagpos_pr);
+----------------------------------------------------
+-- core single event list
+----------------------------------------------------
+-- t0 group
+-- 12   IERAT miss total (part of direct entry search total)
+-- 13   DERAT miss total (part of direct entry search total)
+-- 14   TLB miss direct entry total (total TLB ind=0 misses)
+-- 15   TLB hit direct entry first page size
+----------------------------------------------------
+-- t1 group
+-- 12   TLB indirect entry hits total (=page table searches)
+-- 13   H/W tablewalk successful installs total (with no PTfault, TLB ineligible, or LRAT miss)
+-- 14   LRAT translation request total (for GS=1 tlbwe and ptereload)
+-- 15   LRAT misses total (for GS=1 tlbwe and ptereload)
+----------------------------------------------------
+-- t2 group
+-- 12   Page table faults total (PTE.V=0 for ptereload, resulting in isi/dsi)
+-- 13   TLB ineligible total (all TLB ways are iprot=1 for ptereloads, resulting in isi/dsi)
+-- 14   tlbwe conditional failed total (total tlbwe WQ=01 with no reservation match)
+-- 15   tlbwe conditional success total (total tlbwe WQ=01 with reservation match)
+----------------------------------------------------
+-- t3 group
+-- 12   tlbilx local invalidations sourced total (sourced tlbilx on this core total)
+-- 13   tlbivax invalidations sourced total (sourced tlbivax on this core total)
+-- 14   tlbivax snoops total (total tlbivax snoops received from bus, local bit = don't care)
+-- 15   TLB flush requests total (TLB requested flushes due to TLB busy or instruction hazards)
+----------------------------------------------------
 tlb_cmp_perf_miss_direct         <=   or_reduce(tlb_tag4_q(tagpos_thdid to tagpos_thdid+thdid_width-1)) and or_reduce(tlb_tag4_q(tagpos_type_derat to tagpos_type_ierat)) and 
                                     not tlb_tag4_q(tagpos_type_ptereload) and not tlb_tag4_q(tagpos_ind) and not tlb_tag4_wayhit_q(tlb_ways) and 
                                     (tlb_tag3_q(tagpos_ind) or tlb_tag4_q(tagpos_endflag));
@@ -4032,6 +4894,21 @@ tlb_cmp_perf_lrat_request   <=  or_reduce(tlb_tag4_q(tagpos_thdid to tagpos_thdi
                             tlb_tag4_q(tagpos_wq to tagpos_wq+1)="10" and   
                              tlb_tag4_q(tagpos_pt)='1')       
         else '0';
+-- 0    TLB hit direct entry (instr.)     (ind=0 entry hit for fetch)
+-- 1    TLB miss direct entry (instr.)    (ind=0 entry missed for fetch)
+-- 2    TLB miss indirect entry (instr.)  (ind=1 entry missed for fetch, results in i-tlb exception)
+-- 3    H/W tablewalk hit (instr.)        (ptereload with PTE.V=1 for fetch)
+-- 4    H/W tablewalk miss (instr.)       (ptereload with PTE.V=0 for fetch, results in PT fault exception -> isi)
+-- 5    TLB hit direct entry (data)       (ind=0 entry hit for load/store/cache op)
+-- 6    TLB miss direct entry (data)      (ind=0 entry miss for load/store/cache op)
+-- 7    TLB miss indirect entry (data)    (ind=1 entry missed for load/store/cache op, results in d-tlb exception)
+-- 8    H/W tablewalk hit (data)          (ptereload with PTE.V=1 for load/store/cache op)
+-- 9    H/W tablewalk miss (data)         (ptereload with PTE.V=0 for load/store/cache op, results in PT fault exception -> dsi)
+-- 10   IERAT miss (or latency), edge (or level)    (total ierat misses or latency)
+-- 11   DERAT miss (or latency), edge (or level)    (total derat misses or latency)
+-----------------------------------------------------------------------
+-- Debug trigger and data signals
+-----------------------------------------------------------------------
 tlb_cmp_dbg_tag4                    <=  tlb_tag4_q;
 tlb_cmp_dbg_tag4_wayhit             <=  tlb_tag4_wayhit_q;
 tlb_cmp_dbg_addr4                   <=  tlb_addr4_q;
@@ -4146,6 +5023,10 @@ unused_dc(35) <=  LRAT_TAG3_HIT_STATUS(0);
 unused_dc(36) <=  LRAT_TAG3_HIT_STATUS(3);
 unused_dc(37) <=  or_reduce(LRAT_TAG3_HIT_ENTRY);
 unused_dc(38) <=  or_reduce(LRAT_TAG4_HIT_ENTRY);
+-----------------------------------------------------------------------
+-- Latches
+-----------------------------------------------------------------------
+-- tag3 phase:  tlb array data output way latches
 tlb_way0_latch: tri_rlmreg_p
   generic map (width => tlb_way0_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4214,6 +5095,7 @@ tlb_way3_latch: tri_rlmreg_p
             scout   => sov_1(tlb_way3_offset to tlb_way3_offset+tlb_way3_q'length-1),
             din     => tlb_way3_d(0 to tlb_way_width-1),
             dout    => tlb_way3_q(0 to tlb_way_width-1)  );
+-- tag3 phase: from tag forwarding pipeline
 tlb_tag3_latch: tri_rlmreg_p
   generic map (width => tlb_tag3_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4265,6 +5147,7 @@ tlb_tag3_clone2_latch: tri_rlmreg_p
             scout   => sov_1(tlb_tag3_clone2_offset to tlb_tag3_clone2_offset+tlb_tag3_clone2_q'length-1),
             din     => tlb_tag3_clone2_d(0 to tlb_tag_width-1),
             dout    => tlb_tag3_clone2_q(0 to tlb_tag_width-1)  );
+-- tag3 phase: from tlb_ctl pipeline addr forwarding
 tlb_addr3_latch: tri_rlmreg_p
   generic map (width => tlb_addr3_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4282,6 +5165,8 @@ tlb_addr3_latch: tri_rlmreg_p
             scout   => sov_2(tlb_addr3_offset to tlb_addr3_offset+tlb_addr3_q'length-1),
             din     => tlb_addr3_d(0 to tlb_addr_width-1),
             dout    => tlb_addr3_q(0 to tlb_addr_width-1)  );
+-- lru g8t array is 2 cyc, data out is in tag3 now
+-- tag3 phase: from lru data output
 lru_tag3_dataout_latch: tri_rlmreg_p
  generic map (width => lru_tag3_dataout_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
  port map (vd      => vdd,
@@ -4299,6 +5184,7 @@ lru_tag3_dataout_latch: tri_rlmreg_p
            scout   => sov_2(lru_tag3_dataout_offset to lru_tag3_dataout_offset+lru_tag3_dataout_q'length-1),
            din     => lru_tag3_dataout_d(0 to 15),
            dout    => lru_tag3_dataout_q(0 to 15)  );
+-- tag3 phase: size decoded compare mask tag bits
 tlb_tag3_cmpmask_latch: tri_rlmreg_p
  generic map (width => tlb_tag3_cmpmask_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
  port map (vd      => vdd,
@@ -4333,6 +5219,7 @@ tlb_tag3_cmpmask_clone_latch: tri_rlmreg_p
            scout   => sov_1(tlb_tag3_cmpmask_clone_offset to tlb_tag3_cmpmask_clone_offset+tlb_tag3_cmpmask_clone_q'length-1),
            din     => tlb_tag3_cmpmask_clone_d,
            dout    => tlb_tag3_cmpmask_clone_q  );
+-- tag3 phase: size decoded compare mask way bits
 tlb_way0_cmpmask_latch: tri_rlmreg_p
  generic map (width => tlb_way0_cmpmask_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
  port map (vd      => vdd,
@@ -4469,6 +5356,7 @@ tlb_way3_xbitmask_latch: tri_rlmreg_p
            scout   => sov_1(tlb_way3_xbitmask_offset to tlb_way3_xbitmask_offset+tlb_way3_xbitmask_q'length-1),
            din     => tlb_way3_xbitmask_d,
            dout    => tlb_way3_xbitmask_q  );
+-- tag4 phase
 tlb_tag4_latch: tri_rlmreg_p
   generic map (width => tlb_tag4_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4673,6 +5561,7 @@ tlbwe_tag4_back_inv_attr_latch: tri_rlmreg_p
             scout   => sov_2(tlbwe_tag4_back_inv_attr_offset to tlbwe_tag4_back_inv_attr_offset+tlbwe_tag4_back_inv_attr_q'length-1),
             din     => tlbwe_tag4_back_inv_attr_d,
             dout    => tlbwe_tag4_back_inv_attr_q );
+-- tag5 phase
 tlb_erat_val_latch: tri_rlmreg_p
   generic map (width => tlb_erat_val_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -5115,6 +6004,7 @@ lru_par_err_latch: tri_rlmreg_p
             scout   => sov_2(lru_par_err_offset to lru_par_err_offset+lru_par_err_q'length-1),
             din     => ECO107332_lru_par_err_d(0 to thdid_width-1),
             dout    => lru_par_err_q(0 to thdid_width-1));
+-- Changed these to scannable to fix nsl > 1 depth into mmq_dbg nsl's
 mmucr1_latch: tri_rlmreg_p
   generic map (width => mmucr1_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -5132,6 +6022,7 @@ mmucr1_latch: tri_rlmreg_p
             scout   => sov_0(mmucr1_offset to mmucr1_offset+mmucr1_q'length-1),
             din     => mmucr1,
             dout    => mmucr1_q );
+-- Changed these to scannable to fix nsl > 1 depth into mmq_dbg nsl's
 mmucr1_clone_latch: tri_rlmreg_p
   generic map (width => mmucr1_clone_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -5200,6 +6091,14 @@ cswitch_latch: tri_rlmreg_p
             scout   => sov_2(cswitch_offset to cswitch_offset+cswitch_q'length-1),
             din     => cswitch_q,
             dout    => cswitch_q );
+-- cswitch0: 1= allow tlbwe back inv for iprot=1 entries only
+-- cswitch1: 1= allow tlbwe back inv for hes=1 (lru selected)
+-- cswitch2: 1= allow tlbwe back inv that ignores erat extclass for iprot=1 entries only
+-- cswitch3: 1= allow tlbwe back inv for ind=1 entries
+-- cswitch4: 1= allow tlbwe back inv for ind=1 entries
+-- cswitch5: 1= allow tlbsx hit with parerr to update mas regs
+-- cswitch6: 1= allow tlbsx miss with parerr to update mas regs
+-- cswitch7: 1= allow tlbre with parerr to update mas regs
 spare_c_latch: tri_rlmreg_p
   generic map (width => spare_c_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -5217,6 +6116,8 @@ spare_c_latch: tri_rlmreg_p
             scout   => sov_2(spare_c_offset to spare_c_offset+spare_c_q'length-1),
             din     => spare_c_q,
             dout    => spare_c_q );
+-- non-scannable timing latches
+-- Changed these to spares
 spare_nsl_latch : tri_regk
   generic map (width => spare_nsl_q'length, init => 0, expand_type => expand_type, needs_sreset => 0)
   port map (nclk    => nclk, vd => vdd, gd => gnd,
@@ -5277,6 +6178,9 @@ msr_pr_latch : tri_regk
             thold_b => pc_func_slp_nsl_thold_0_b(0),
             din     => xu_mm_msr_pr,
             dout    => msr_pr_q);
+--------------------------------------------------
+-- thold/sg latches
+--------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 5, expand_type => expand_type)
   port map (vd          => vdd,
@@ -5341,6 +6245,9 @@ perv_nsl_lcbor_clone: tri_lcbor
             act_dis     => tidn,
             forcee => pc_func_slp_nsl_force(1),
             thold_b     => pc_func_slp_nsl_thold_0_b(1));
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv_0(0 TO scan_right_0) <=  sov_0(1 to scan_right_0) & ac_func_scan_in(0);
 ac_func_scan_out(0) <=  sov_0(0);
 siv_1(0 TO scan_right_1) <=  sov_1(1 to scan_right_1) & ac_func_scan_in(1);
@@ -5348,4 +6255,3 @@ ac_func_scan_out(1) <=  sov_1(0);
 siv_2(0 TO scan_right_2) <=  sov_2(1 to scan_right_2) & ac_func_scan_in(2);
 ac_func_scan_out(2) <=  sov_2(0);
 END MMQ_TLB_CMP;
-

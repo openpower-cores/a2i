@@ -7,6 +7,16 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--
+--*****************************************************************************
+--*
+--*  TITLE: uc_hooks
+--*
+--*  NAME:  fuq_dcd_uc_hooks.vhdl
+--*
+--*  DESC:   This is for microcoded Divide and Square Root
+--*
+--*****************************************************************************
 
 
 
@@ -21,23 +31,25 @@ library ieee,ibm,support,tri,work;
    use ibm.std_ulogic_ao_support.all; 
    use ibm.std_ulogic_mux_support.all; 
 
+---------------------------------------------------------------------
 
 
 entity fuq_dcd_uc_hooks is
-generic(expand_type                    : integer := 2  ); 
+generic(expand_type                    : integer := 2  ); -- 0 - ibm tech, 1 - other );
 port(
    	nclk                                 	: in  clk_logic;                
         thold_0_b                             	: in  std_ulogic;
         sg_0                                	: in  std_ulogic;
         f_ucode_si                           	: in  std_ulogic;           
-        forcee : in  std_ulogic; 
-        delay_lclkr                    : in  std_ulogic; 
-        mpw1_b                         : in  std_ulogic; 
-        mpw2_b                         : in  std_ulogic; 
+        forcee : in  std_ulogic; -- tidn,
+        delay_lclkr                    : in  std_ulogic; -- tidn,
+        mpw1_b                         : in  std_ulogic; -- tidn,
+        mpw2_b                         : in  std_ulogic; -- tidn,
         vdd                                 	: inout power_logic;
         gnd                                 	: inout power_logic;
         msr_fp_act                              : in    std_ulogic;
         perr_sm_running                         : in    std_ulogic;
+        ---------------------------------------------------------------
         iu_fu_rf0_instr_v                       : in  std_ulogic;                  
         iu_fu_rf0_instr                         : in  std_ulogic_vector(0 to 31);  
         iu_fu_rf0_ucfmul                        : in  std_ulogic;
@@ -67,7 +79,7 @@ port(
         f_dcd_rf1_sqrt_beg                      : out std_ulogic;                  
         f_dcd_rf1_uc_mid                        : out std_ulogic;                  
         f_dcd_rf1_uc_end                        : out std_ulogic;                  
-        ex4_uc_special                          : out std_ulogic;   
+        ex4_uc_special                          : out std_ulogic;   -- to block iterations in fuq_axu_fu_dep (is1)
         f_dcd_rf1_uc_special                    : out std_ulogic;                  
         f_dcd_rf1_uc_ft_pos                     : out std_ulogic;                  
         f_dcd_rf1_uc_ft_neg                     : out std_ulogic;                  
@@ -311,8 +323,7 @@ signal ex5_instr_flush                                   : std_ulogic;
  signal uc_scr_t3_oth_b    :std_ulogic_vector(0 to 11);
 
 
-
-
+----------------------------------
 signal uc_1st_v_th_b      :std_ulogic_vector(0 to 3);
 signal fdiving_n1st_th    :std_ulogic_vector(0 to 3);
 signal fdivsing_n1st_th   :std_ulogic_vector(0 to 3);
@@ -359,13 +370,9 @@ signal rf0_f2_dvsq , rf0_f2_dv , rf0_f2_sq , rf0_f2_mul :std_ulogic ;
 
 
 
-
-
-
-
-
 begin
 
+-- ucmode=0 on last iteration but uc_scr_t*_l2(7) won't have been cleared yet
 uc_mid_rf0 <=  (uc_scr_t0_l2(7) and thread_id_rf0(0) and ucode_mode_rf0) or
                (uc_scr_t1_l2(7) and thread_id_rf0(1) and ucode_mode_rf0) or
                (uc_scr_t2_l2(7) and thread_id_rf0(2) and ucode_mode_rf0) or
@@ -374,18 +381,98 @@ uc_mid_rf0 <=  (uc_scr_t0_l2(7) and thread_id_rf0(0) and ucode_mode_rf0) or
 
 
 
+-- update # of inputs and outputs   .i xx   .o xx
+-- run "espvhdlexpand fuq_dcd_uc_hooks.vhdl > fuq_dcd_uc_hooks_new.vhdl" in a typescript to regenerate logic below table
+--@@ ESPRESSO ABLE START @@
+-- .i 9
+-- .o 18
+-- .ilb uc_1st_instr_rf0 fdiving_rf0 fdivsing_rf0 fsqrting_rf0 fsqrtsing_rf0 iu_fu_rf0_ifar(58)
+-- iu_fu_rf0_ifar(59) iu_fu_rf0_ifar(60) iu_fu_rf0_ifar(61)
+-- .ob uc_fa_pos uc_fc_pos uc_fb_pos uc_fc_0_5
+-- uc_fc_hulp uc_fb_1_0 uc_fb_0_75 uc_fb_0_5 uc_fa_dis_par_rf0 uc_fb_dis_par_rf0 uc_fc_dis_par_rf0
+-- uc_op_rnd_v uc_op_rnd(0) uc_op_rnd(1) uc_inc_lsb uc_scr_wr uc_scr_sel(0) uc_scr_sel(1)
+-- .type fr
+-- #
+-- ##################################################################################################################################
+-- #
+-- #  uc_1st_instr_rf0                    # OUTPUTS ##################################################################################
+-- #  |                                   0 1 2 3 4 5 6 7         8 9 10               11 12  13 14 15
+-- #  |   fdiving_rf0                     uc_fa_pos                                     uc_op_rnd_v
+-- #  |   | fdivsing_rf0                  | uc_fc_pos                                   | uc_op_rnd(0:1)
+-- #  |   | |                             | | uc_fb_pos           uc_fa_dis_par_rf0     | |
+-- #  |   | |  fsqrting_rf0               | | | uc_fc_0_5         | uc_fb_dis_par_rf0   | |
+-- #  |   | |  | fsqrtsing_rf0            | | | | uc_fc_hulp      | | uc_fc_dis_par_rf0 | |  uc_inc_lsb
+-- #  |   | |  | |                        | | | | | uc_fb_1_0     | | |                 | |  |
+-- #  |   | |  | |  iu_fu_rf0_ifar        | | | | | | uc_fb_0_75  | | |                 | |  |   uc_scr_wr
+-- #  |   | |  | |  |                     | | | | | | | uc_fb_0_5 | | |                 | |  |   | uc_scr_sel
+-- #  |   | |  | |  |                     | | | | | | | |         | | |                 | |  |   | |
+-- #  |   | |  | |  5566                  | | | | | | | |         | | |                 | |  |   | |
+-- #  |   | |  | |  8901                  | | | | | | | |         | | |                 | |  |   | |
+-- ########################################################################################################################################
+-- #--------------------------------------------------------------------------------------------------------------------------- not div or sqrt
+--    0   0 0  0 0  ----                  0 0 0 0 0 0 0 0         0 0 0                 0 -- 0   0 00
+-- #--------------------------------------------------------------------------------------------------------------------------- shared
+--    1   - -  - -  ----                  0 0 0 0 0 0 0 0         0 0 0                 0 00 0   0 00                             # fre for fdiv(s), frsqrte for fsqrt(s)		
+-- #------ fdiv hooks --------------------------------------------------------------------------------------------------------- fdiv hooks
+--    0   1 0  0 0  0001                  1 1 1 0 0 1 0 0         1 1 1                 1 00 0   0 00                             # fnmsub
+--    0   1 0  0 0  0010                  1 1 0 0 0 0 0 0         1 0 1                 1 00 0   0 00                             # fmul		
+--    0   1 0  0 0  0011                  0 0 1 0 0 0 0 1         0 1 1                 1 00 0   0 00                             # fmadd	
+--    0   1 0  0 0  0100                  1 0 1 0 0 0 0 0         1 1 0                 1 00 0   0 00                             # fmadd	
+--    0   1 0  0 0  0101                  1 0 1 0 0 0 0 0         1 1 0                 1 00 0   0 00                             # fnmsub
+--    0   1 0  0 0  0110                  0 0 1 0 0 0 1 0         0 1 0                 1 00 0   0 00                             # fmadd	
+--    0   1 0  0 0  0111                  0 0 0 0 0 0 0 0         0 0 0                 1 00 0   0 00                             # fmul		
+--    0   1 0  0 0  1000                  0 0 0 0 0 0 0 0         0 0 0                 1 01 0   0 00                             # fmadd	
+--    0   1 0  0 0  1001                  0 0 0 0 0 0 0 0         0 0 0                 1 01 1   0 00                             # fmadd	
+--    0   1 0  0 0  1010                  1 0 1 0 0 0 0 0         1 1 0                 1 00 0   1 01                             # fnmsub
+--    0   1 0  0 0  1011                  1 0 1 0 0 0 0 0         1 1 0                 1 00 0   1 10                             # fnmsub
+--    0   1 0  0 0  1100                  1 0 1 0 1 0 0 0         1 1 1                 1 00 0   1 11                             # fnmsub
+-- #  0   0 0  0 0  1101                  0 0 0 0 0 0 0 0         0 0 1                 0 -- 0   0 00                             # fmul_uc	
+-- #------ fdivs hooks -------------------------------------------------------------------------------------------------------- fdivs hooks
+--    0   0 1  0 0  0001                  1 1 1 0 0 1 0 0         1 1 1                 1 00 0   0 00                             # fnmsub
+--    0   0 1  0 0  0010                  1 1 0 0 0 0 0 0         1 0 1                 1 00 0   0 00                             # fmul		
+--    0   0 1  0 0  0011                  1 0 1 0 0 0 0 0         1 1 0                 1 01 0   0 00                             # fmadds	
+--    0   0 1  0 0  0100                  1 0 1 0 0 0 0 0         1 1 0                 1 01 1   0 00                             # fmadds	
+--    0   0 1  0 0  0101                  1 0 1 0 0 0 0 0         1 1 0                 1 00 0   1 01                             # fnmsub
+--    0   0 1  0 0  0110                  1 0 1 0 0 0 0 0         1 1 0                 1 00 0   1 10                             # fnmsub
+--    0   0 1  0 0  0111                  1 0 1 0 1 0 0 0         1 1 0                 1 00 0   1 11                             # fnmsub
+-- #  0   0 0  0 0  1000                  0 0 0 0 0 0 0 0         0 0 0                 0 -- 0   0 00                             # fmuls_uc	
+-- #------ fsqrt hooks -------------------------------------------------------------------------------------------------------- fsqrt hooks
+--    0   0 0  1 0  0001                  0 1 0 1 0 0 0 0         0 0 1                 1 00 0   0 00                             # fmul		
+--    0   0 0  1 0  0010                  0 0 0 0 0 0 0 0         0 0 0                 1 00 0   0 00                             # fmul		
+--    0   0 0  1 0  0011                  0 0 1 0 0 0 0 1         0 1 1                 1 00 0   0 00                             # fnmsub
+--    0   0 0  1 0  0100                  0 0 0 0 0 0 0 0         0 0 0                 1 00 0   0 00                             # fmadd	
+--    0   0 0  1 0  0101                  0 0 0 0 0 0 0 0         0 0 0                 1 00 0   0 00                             # fmadd	
+--    0   0 0  1 0  0110                  0 0 0 0 0 0 0 0         0 0 0                 1 00 0   0 00                             # fnmsub
+--    0   0 0  1 0  0111                  0 0 0 0 0 0 0 0         0 0 0                 1 01 0   0 00                             # fmadd	
+--    0   0 0  1 0  1000                  0 0 0 0 0 0 0 0         0 0 0                 1 01 1   0 00                             # fmadd	
+--    0   0 0  1 0  1001                  0 0 0 0 0 0 0 0         0 0 0                 1 00 0   1 01                             # fnmsub
+--    0   0 0  1 0  1010                  0 0 0 0 0 0 0 0         0 0 0                 1 00 0   1 10                             # fnmsub
+--    0   0 0  1 0  1011                  0 0 0 0 0 0 0 0         0 0 0                 1 00 0   1 11                             # fnmsub
+-- #  0   0 0  0 0  1100                  0 0 0 0 0 0 0 0         0 0 0                 0 -- 0   0 00                             # fmul_uc		
+-- #------ fsqrts hooks ------------------------------------------------------------------------------------------------------- fsqrts hooks
+--    0   0 0  0 1  0001                  0 1 0 1 0 0 0 0         0 0 1                 1 00 0   0 00                             # fmul		
+--    0   0 0  0 1  0010                  0 0 0 0 0 0 0 0         0 0 0                 1 00 0   0 00                             # fmul		
+--    0   0 0  0 1  0011                  0 0 0 0 0 0 0 0         0 0 0                 1 00 0   0 00                             # fnmsub
+--    0   0 0  0 1  0100                  0 0 0 0 0 0 0 0         0 0 0                 1 01 0   0 00                             # fmadd	
+--    0   0 0  0 1  0101                  0 0 0 0 0 0 0 0         0 0 0                 1 01 1   0 00                             # fmadd	
+--    0   0 0  0 1  0110                  0 0 0 0 0 0 0 0         0 0 0                 1 00 0   1 01                             # fnmsub
+--    0   0 0  0 1  0111                  0 0 0 0 0 0 0 0         0 0 0                 1 00 0   1 10                             # fnmsub
+--    0   0 0  0 1  1000                  0 0 0 0 0 0 0 0         0 0 0                 1 00 0   1 11                             # fnmsub
+-- #  0   0 0  0 0  1001                  0 0 0 0 0 0 0 0         0 0 0                 0 -- 0   0 00                             # fmuls_uc		
+--
+--
+--
+--
+--
+--
+--
+--
+-- .e
+--@@ ESPRESSO ABLE END @@
 
-
-
-
-
-
-
-
-
-
-
-
+--///////////////////////////////////////////////////////////////////////
+--// begin experiment
+--///////////////////////////////////////////////////////////////////////
 
 uc_1st_v_th_b(0) <= not( iu_fu_rf0_instr_v and uc_1st_instr_l2(0) );
 uc_1st_v_th_b(1) <= not( iu_fu_rf0_instr_v and uc_1st_instr_l2(1) );
@@ -473,6 +560,7 @@ rf0_n1st_fsqrtsing <=  (uc_mode_rf0_th(0) and fsqrtsing_n1st_th(0) ) or
  rf0_ifar_12       <= rf0_ifar_dcd(1)  or rf0_ifar_dcd(2)  ;
  rf0_ifar_13       <= rf0_ifar_dcd(1)  or rf0_ifar_dcd(3)  ;
 
+------------------------------------------------------------------------
 
  uc_op_rnd_v <= 
    (rf0_n1st_fdiving   and  tiup        ) or 
@@ -583,6 +671,9 @@ rf0_n1st_fsqrtsing <=  (uc_mode_rf0_th(0) and fsqrtsing_n1st_th(0) ) or
 
 
 
+--///////////////////////////////////////////////////////////////////////
+--// end experiment
+--///////////////////////////////////////////////////////////////////////
 
 
 
@@ -608,6 +699,8 @@ uc_1st_instr_ld(3) <= uc_beg_rf0     when  iu_fu_rf0_instr_v='1' and uc_scr_thre
 
 
 
+-- this register is used to force the ifar to 0000 on the first instruction of a ucode routine (table lookup)
+-- subsequent instructions will already have ifar = 1,2,3 etc.
    uc_1st_instr_reg:  tri_rlmreg_p
     generic map (init => 0, expand_type => expand_type, width => 4)
     port map (
@@ -620,27 +713,25 @@ uc_1st_instr_ld(3) <= uc_beg_rf0     when  iu_fu_rf0_instr_v='1' and uc_scr_thre
       thold_b  => thold_0_b, sg       => sg_0,
       scin     => uc_1st_instr_scin,
       scout    => uc_1st_instr_scout,
+      ---------------------------------------------
       din(0 to 3)  => uc_1st_instr_ld,
                              
+      ---------------------------------------------
       dout(0 to 3) => uc_1st_instr_l2
 
+      ---------------------------------------------
       );
 
        
 
 
 
+--
+-- The first uc instruction of fdiv/fsqrt is fre or frsqrte,  otherwise abort, it could be a prenorm for a previous instr
 uc_abort_rf0(0) <= uc_1st_instr_l2(0) and not((iu_fu_rf0_instr(26 to 28) = "110") and iu_fu_rf0_instr(30) = '0'); 
 uc_abort_rf0(1) <= uc_1st_instr_l2(1) and not((iu_fu_rf0_instr(26 to 28) = "110") and iu_fu_rf0_instr(30) = '0'); 
 uc_abort_rf0(2) <= uc_1st_instr_l2(2) and not((iu_fu_rf0_instr(26 to 28) = "110") and iu_fu_rf0_instr(30) = '0'); 
 uc_abort_rf0(3) <= uc_1st_instr_l2(3) and not((iu_fu_rf0_instr(26 to 28) = "110") and iu_fu_rf0_instr(30) = '0'); 
-
-
-
-
-
-
-
 
 
 
@@ -690,16 +781,19 @@ uc_round_mode_ld(6 to 7) <= f_mad_ex3_uc_round_mode    when uc_scr_wr_ex3 = '1' 
       thold_b  => thold_0_b, sg       => sg_0,
       scin     => uc_round_mode_scin,
       scout    => uc_round_mode_scout,
+      ---------------------------------------------
       din(0 to 7)  => uc_round_mode_ld,
                              
+      ---------------------------------------------
       dout(0 to 7) => uc_round_mode_l2
 
+      ---------------------------------------------
       );
 
 
 
-uc_special_cases_ex3(0)       <= f_mad_ex3_uc_special;  
-uc_special_cases_ex3(1)       <= f_mad_ex3_uc_res_sign;  
+uc_special_cases_ex3(0)       <= f_mad_ex3_uc_special;  -- '1' indicates special case (not handled by ucode)
+uc_special_cases_ex3(1)       <= f_mad_ex3_uc_res_sign;  -- not really a special case but the cycle timing lines up here
 uc_special_cases_ex3(2 to 7)  <= f_mad_ex3_uc_vxsnan & f_mad_ex3_uc_zx & f_mad_ex3_uc_vxidi & f_mad_ex3_uc_vxzdz & f_mad_ex3_uc_vxsqrt & '1';
 
 uc_special_cases_t0_ex3(8 to 11) <= "0000" when  f_mad_ex3_uc_special='1'   else
@@ -726,6 +820,9 @@ uc_hooks_rc_rf0 <= '0'                   when uc_beg_rf0_v ='1' and perr_sm_runn
                    iu_fu_rf0_instr(31);
 
 
+--//#################################################################################################
+--//## flatten out the output mux
+--//#################################################################################################
 
 q1_p_ulp_th(0) <= q1_p_ulp_early_l2(0) and not uc_scr_t0_l2(0) ;
 q1_p_ulp_th(1) <= q1_p_ulp_early_l2(1) and not uc_scr_t1_l2(0) ;
@@ -768,6 +865,7 @@ u_afii:  rf0_fra_fast_ii(4)    <= not rf0_fra_fast_i_b(4);
 
 
 
+--//###################################################################################################
 
 rf0_i(0 to 31) <= iu_fu_rf0_instr(0 to 31);
 
@@ -779,15 +877,16 @@ rf0_f2_sq      <= rf0_i(26) and not rf0_i(27) and     rf0_i(28) and     rf0_i(29
 rf0_f2_mul     <= rf0_i(26) and not rf0_i(27) and not rf0_i(28) and not rf0_i(29) and     rf0_i(30) ;
 
 
+-- 3F = double     3B = single
 
-uc_div_beg_rf0    <= fp_operation_rf0   and                  rf0_f2_dv   and iu_fu_rf0_instr_v ;
-uc_sqrt_beg_rf0   <= fp_operation_rf0   and                  rf0_f2_sq   and iu_fu_rf0_instr_v ;
+uc_div_beg_rf0    <= fp_operation_rf0   and                  rf0_f2_dv   and iu_fu_rf0_instr_v ;-- 1 load to latch
+uc_sqrt_beg_rf0   <= fp_operation_rf0   and                  rf0_f2_sq   and iu_fu_rf0_instr_v ;-- 1 load to latch
 uc_fdiv_beg_rf0   <= fp_operation_rf0   and     rf0_i(3) and rf0_f2_dv     ;
 uc_fdivs_beg_rf0  <= fp_operation_rf0   and not rf0_i(3) and rf0_f2_dv     ;
 uc_fsqrt_beg_rf0  <= fp_operation_rf0   and     rf0_i(3) and rf0_f2_sq     ;
 uc_fsqrts_beg_rf0 <= fp_operation_rf0   and not rf0_i(3) and rf0_f2_sq     ;
-uc_dvsq_beg_rf0   <= fp_operation_rf0   and                  rf0_f2_dvsq   ;
-fmulx_uc_rf0      <= fp_operation_rf0   and                  rf0_f2_mul    ;
+uc_dvsq_beg_rf0   <= fp_operation_rf0   and                  rf0_f2_dvsq   ;-- fdiv,fdivs,fsqrt,fsqrts
+fmulx_uc_rf0      <= fp_operation_rf0   and                  rf0_f2_mul    ;-- fmuls, fmul
 
 
 
@@ -804,51 +903,53 @@ uc_op_rf0(2) <= uc_fsqrt_beg_rf0 ;
 uc_op_rf0(3) <= uc_fsqrts_beg_rf0;
 
 
+-------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------- uc_scr ---------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------
+-- collect sign, zero, & rc info for ucode divide algorithm
 
-   uc_sign_zero_t0(0 to 11) <= uc_scr_t0_l2(0 to 1) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t0_l2(4 to 11)    when uc_scr_sel_ex6 = "01"  else  
-                               uc_scr_t0_l2(0 to 3) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t0_l2(6 to 11)    when uc_scr_sel_ex6 = "10"  else  
-                               uc_scr_t0_l2(0 to 5) & f_mad_ex6_uc_sign & "00000"; 
+   uc_sign_zero_t0(0 to 11) <= uc_scr_t0_l2(0 to 1) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t0_l2(4 to 11)    when uc_scr_sel_ex6 = "01"  else  -- save sign & zero
+                               uc_scr_t0_l2(0 to 3) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t0_l2(6 to 11)    when uc_scr_sel_ex6 = "10"  else  -- save sign & zero
+                               uc_scr_t0_l2(0 to 5) & f_mad_ex6_uc_sign & "00000"; --    last uc before the mult by 1
 
-   uc_sign_zero_t1(0 to 11) <= uc_scr_t1_l2(0 to 1) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t1_l2(4 to 11)    when uc_scr_sel_ex6 = "01"  else  
-                               uc_scr_t1_l2(0 to 3) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t1_l2(6 to 11)    when uc_scr_sel_ex6 = "10"  else  
-                               uc_scr_t1_l2(0 to 5) & f_mad_ex6_uc_sign & "00000"; 
+   uc_sign_zero_t1(0 to 11) <= uc_scr_t1_l2(0 to 1) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t1_l2(4 to 11)    when uc_scr_sel_ex6 = "01"  else  -- save sign & zero
+                               uc_scr_t1_l2(0 to 3) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t1_l2(6 to 11)    when uc_scr_sel_ex6 = "10"  else  -- save sign & zero
+                               uc_scr_t1_l2(0 to 5) & f_mad_ex6_uc_sign & "00000"; --    last uc before the mult by 1
 
-   uc_sign_zero_t2(0 to 11) <= uc_scr_t2_l2(0 to 1) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t2_l2(4 to 11)    when uc_scr_sel_ex6 = "01"  else  
-                               uc_scr_t2_l2(0 to 3) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t2_l2(6 to 11)    when uc_scr_sel_ex6 = "10"  else  
-                               uc_scr_t2_l2(0 to 5) & f_mad_ex6_uc_sign & "00000"; 
+   uc_sign_zero_t2(0 to 11) <= uc_scr_t2_l2(0 to 1) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t2_l2(4 to 11)    when uc_scr_sel_ex6 = "01"  else  -- save sign & zero
+                               uc_scr_t2_l2(0 to 3) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t2_l2(6 to 11)    when uc_scr_sel_ex6 = "10"  else  -- save sign & zero
+                               uc_scr_t2_l2(0 to 5) & f_mad_ex6_uc_sign & "00000"; --    last uc before the mult by 1
 
-   uc_sign_zero_t3(0 to 11) <= uc_scr_t3_l2(0 to 1) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t3_l2(4 to 11)    when uc_scr_sel_ex6 = "01"  else  
-                               uc_scr_t3_l2(0 to 3) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t3_l2(6 to 11)    when uc_scr_sel_ex6 = "10"  else  
-                               uc_scr_t3_l2(0 to 5) & f_mad_ex6_uc_sign & "00000"; 
-
-
+   uc_sign_zero_t3(0 to 11) <= uc_scr_t3_l2(0 to 1) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t3_l2(4 to 11)    when uc_scr_sel_ex6 = "01"  else  -- save sign & zero
+                               uc_scr_t3_l2(0 to 3) & f_mad_ex6_uc_sign & f_mad_ex6_uc_zero & uc_scr_t3_l2(6 to 11)    when uc_scr_sel_ex6 = "10"  else  -- save sign & zero
+                               uc_scr_t3_l2(0 to 5) & f_mad_ex6_uc_sign & "00000"; --    last uc before the mult by 1
 
 
 
-   uc_scr_t0_upd(0)  <=  uc_1st_instr_l2(0) = '1' and uc_scr_t0_l2(7) = '0' and uc_scr_thread_rf1 = "00" ;
-   uc_scr_t1_upd(0)  <=  uc_1st_instr_l2(1) = '1' and uc_scr_t1_l2(7) = '0' and uc_scr_thread_rf1 = "01" ;
-   uc_scr_t2_upd(0)  <=  uc_1st_instr_l2(2) = '1' and uc_scr_t2_l2(7) = '0' and uc_scr_thread_rf1 = "10" ;
-   uc_scr_t3_upd(0)  <=  uc_1st_instr_l2(3) = '1' and uc_scr_t3_l2(7) = '0' and uc_scr_thread_rf1 = "11" ;
+   uc_scr_t0_upd(0)  <=  uc_1st_instr_l2(0) = '1' and uc_scr_t0_l2(7) = '0' and uc_scr_thread_rf1 = "00" ;-- clear bits 0:6 and latch rc of original ppc fdiv(s) or fsqrt(s) rc
+   uc_scr_t1_upd(0)  <=  uc_1st_instr_l2(1) = '1' and uc_scr_t1_l2(7) = '0' and uc_scr_thread_rf1 = "01" ;-- clear bits 0:6 and latch rc of original ppc fdiv(s) or fsqrt(s) rc
+   uc_scr_t2_upd(0)  <=  uc_1st_instr_l2(2) = '1' and uc_scr_t2_l2(7) = '0' and uc_scr_thread_rf1 = "10" ;-- clear bits 0:6 and latch rc of original ppc fdiv(s) or fsqrt(s) rc
+   uc_scr_t3_upd(0)  <=  uc_1st_instr_l2(3) = '1' and uc_scr_t3_l2(7) = '0' and uc_scr_thread_rf1 = "11" ;-- clear bits 0:6 and latch rc of original ppc fdiv(s) or fsqrt(s) rc
 
-   uc_scr_t0_upd(1)  <=  uc_end_ex6_l2                                                              and uc_scr_thread_ex6 = "00" ; 
-   uc_scr_t1_upd(1)  <=  uc_end_ex6_l2                                                              and uc_scr_thread_ex6 = "01" ; 
-   uc_scr_t2_upd(1)  <=  uc_end_ex6_l2                                                              and uc_scr_thread_ex6 = "10" ; 
-   uc_scr_t3_upd(1)  <=  uc_end_ex6_l2                                                              and uc_scr_thread_ex6 = "11" ; 
+   uc_scr_t0_upd(1)  <=  uc_end_ex6_l2                                                              and uc_scr_thread_ex6 = "00" ; -- clear bits 0:7 end of ucode
+   uc_scr_t1_upd(1)  <=  uc_end_ex6_l2                                                              and uc_scr_thread_ex6 = "01" ; -- clear bits 0:7 end of ucode
+   uc_scr_t2_upd(1)  <=  uc_end_ex6_l2                                                              and uc_scr_thread_ex6 = "10" ; -- clear bits 0:7 end of ucode
+   uc_scr_t3_upd(1)  <=  uc_end_ex6_l2                                                              and uc_scr_thread_ex6 = "11" ; -- clear bits 0:7 end of ucode
 
-   uc_scr_t0_upd(2)  <= ((not ucode_mode_rf0 and not uc_end_rf0) or uc_abort_rf0(0) ) and iu_fu_rf0_instr_v  and thread_id_rf0(0) ; 
-   uc_scr_t1_upd(2)  <= ((not ucode_mode_rf0 and not uc_end_rf0) or uc_abort_rf0(1) ) and iu_fu_rf0_instr_v  and thread_id_rf0(1) ; 
-   uc_scr_t2_upd(2)  <= ((not ucode_mode_rf0 and not uc_end_rf0) or uc_abort_rf0(2) ) and iu_fu_rf0_instr_v  and thread_id_rf0(2) ; 
-   uc_scr_t3_upd(2)  <= ((not ucode_mode_rf0 and not uc_end_rf0) or uc_abort_rf0(3) ) and iu_fu_rf0_instr_v  and thread_id_rf0(3) ; 
+   uc_scr_t0_upd(2)  <= ((not ucode_mode_rf0 and not uc_end_rf0) or uc_abort_rf0(0) ) and iu_fu_rf0_instr_v  and thread_id_rf0(0) ; -- clear bits 0:7 ppc instr
+   uc_scr_t1_upd(2)  <= ((not ucode_mode_rf0 and not uc_end_rf0) or uc_abort_rf0(1) ) and iu_fu_rf0_instr_v  and thread_id_rf0(1) ; -- clear bits 0:7 ppc instr
+   uc_scr_t2_upd(2)  <= ((not ucode_mode_rf0 and not uc_end_rf0) or uc_abort_rf0(2) ) and iu_fu_rf0_instr_v  and thread_id_rf0(2) ; -- clear bits 0:7 ppc instr
+   uc_scr_t3_upd(2)  <= ((not ucode_mode_rf0 and not uc_end_rf0) or uc_abort_rf0(3) ) and iu_fu_rf0_instr_v  and thread_id_rf0(3) ; -- clear bits 0:7 ppc instr
 
-   uc_scr_t0_upd(3)  <= uc_scr_wr_ex3_l2 and uc_scr_sel_ex3 = "00" and uc_scr_t0_l2(7) = '1' and uc_scr_thread_ex3 = "00" ; 
-   uc_scr_t1_upd(3)  <= uc_scr_wr_ex3_l2 and uc_scr_sel_ex3 = "00" and uc_scr_t1_l2(7) = '1' and uc_scr_thread_ex3 = "01" ; 
-   uc_scr_t2_upd(3)  <= uc_scr_wr_ex3_l2 and uc_scr_sel_ex3 = "00" and uc_scr_t2_l2(7) = '1' and uc_scr_thread_ex3 = "10" ; 
-   uc_scr_t3_upd(3)  <= uc_scr_wr_ex3_l2 and uc_scr_sel_ex3 = "00" and uc_scr_t3_l2(7) = '1' and uc_scr_thread_ex3 = "11" ; 
+   uc_scr_t0_upd(3)  <= uc_scr_wr_ex3_l2 and uc_scr_sel_ex3 = "00" and uc_scr_t0_l2(7) = '1' and uc_scr_thread_ex3 = "00" ; -- check for ugly ops, save final sig
+   uc_scr_t1_upd(3)  <= uc_scr_wr_ex3_l2 and uc_scr_sel_ex3 = "00" and uc_scr_t1_l2(7) = '1' and uc_scr_thread_ex3 = "01" ; -- check for ugly ops, save final sig
+   uc_scr_t2_upd(3)  <= uc_scr_wr_ex3_l2 and uc_scr_sel_ex3 = "00" and uc_scr_t2_l2(7) = '1' and uc_scr_thread_ex3 = "10" ; -- check for ugly ops, save final sig
+   uc_scr_t3_upd(3)  <= uc_scr_wr_ex3_l2 and uc_scr_sel_ex3 = "00" and uc_scr_t3_l2(7) = '1' and uc_scr_thread_ex3 = "11" ; -- check for ugly ops, save final sig
 
-   uc_scr_t0_upd(4)  <= uc_scr_wr_ex6 = '1'                      and uc_scr_t0_l2(0) = '0' and uc_scr_t0_l2(7) = '1' and uc_scr_thread_ex6 = "00" ;
-   uc_scr_t1_upd(4)  <= uc_scr_wr_ex6 = '1'                      and uc_scr_t1_l2(0) = '0' and uc_scr_t1_l2(7) = '1' and uc_scr_thread_ex6 = "01" ;
-   uc_scr_t2_upd(4)  <= uc_scr_wr_ex6 = '1'                      and uc_scr_t2_l2(0) = '0' and uc_scr_t2_l2(7) = '1' and uc_scr_thread_ex6 = "10" ;
-   uc_scr_t3_upd(4)  <= uc_scr_wr_ex6 = '1'                      and uc_scr_t3_l2(0) = '0' and uc_scr_t3_l2(7) = '1' and uc_scr_thread_ex6 = "11" ;
+   uc_scr_t0_upd(4)  <= uc_scr_wr_ex6 = '1'                      and uc_scr_t0_l2(0) = '0' and uc_scr_t0_l2(7) = '1' and uc_scr_thread_ex6 = "00" ;-- save sign & zero
+   uc_scr_t1_upd(4)  <= uc_scr_wr_ex6 = '1'                      and uc_scr_t1_l2(0) = '0' and uc_scr_t1_l2(7) = '1' and uc_scr_thread_ex6 = "01" ;-- save sign & zero
+   uc_scr_t2_upd(4)  <= uc_scr_wr_ex6 = '1'                      and uc_scr_t2_l2(0) = '0' and uc_scr_t2_l2(7) = '1' and uc_scr_thread_ex6 = "10" ;-- save sign & zero
+   uc_scr_t3_upd(4)  <= uc_scr_wr_ex6 = '1'                      and uc_scr_t3_l2(0) = '0' and uc_scr_t3_l2(7) = '1' and uc_scr_thread_ex6 = "11" ;-- save sign & zero
 
 
    uc_scr_t0_fbk_x <= not( uc_scr_t0_upd(0) or uc_scr_t0_upd(1) or uc_scr_t0_upd(3) or uc_scr_t0_upd(4) );
@@ -906,6 +1007,31 @@ uc_op_rf0(3) <= uc_fsqrts_beg_rf0;
   
 
 
+-- uc scr thread 0,1,2,3 ----------------------------------------------------------------
+-- bit 0 = 0 indicates regular case
+--  bit 1  final sign
+--  bit 2  q1r_sign
+--  bit 3  q1r_zero
+--  bit 4  q1ulpr_sign
+--  bit 5  q1ulpr_zero
+--  bit 6  q1hulpr_sign
+--  bit 7  divide or square root in progress
+--  bit 8  fdiv
+--  bit 9  fdivs
+--  bit 10 fsqrt
+--  bit 11 fsqrts
+-- bit 0 = 1 indicates special case
+--  bit 1 final sign (not used)
+--  bit 2 NaN
+--  bit 3 ZX
+--  bit 4 VXIDI
+--  bit 5 VXZDZ
+--  bit 6
+--  bit 7 divide or square root in progress
+--  bit 8  fdiv
+--  bit 9  fdivs
+--  bit 10 fsqrt
+--  bit 11 fsqrts
 
    uc_scr_t0_is2:  tri_rlmreg_p    generic map (init => 0, expand_type => expand_type, width => 12)    port map (
       nclk     => nclk,                  act      => msr_fp_act,
@@ -1036,10 +1162,11 @@ uc_fc_pos_rf0 <= uc_fc_pos or uc_end_rf0_v;
       thold_b  => thold_0_b, sg       => sg_0,
       scin     => pipe_rf1_scin,
       scout    => pipe_rf1_scout,
+      ---------------------------------------------
       din(00)        =>  uc_div_beg_rf0,
       din(01)        =>  uc_sqrt_beg_rf0,
-      din(02)        =>  uc_mid_rf0,   
-      din(03)        =>  uc_end_rf0_vf,   
+      din(02)        =>  uc_mid_rf0,   -- 13 bit expt. overflow/underflow disable.  do not set fpscr.
+      din(03)        =>  uc_end_rf0_vf,   -- 13 bit expt. overflow/underflow disable.  do not set fpscr.
       din(04)        =>  '0',
       din(05)        =>  uc_fa_pos,
       din(06)        =>  uc_fc_pos_rf0,
@@ -1057,6 +1184,7 @@ uc_fc_pos_rf0 <= uc_fc_pos or uc_end_rf0_v;
       din(18)        =>  uc_op_rnd_v,
       din(19 to 20)  =>  uc_op_rnd(0 to 1),
       din(21)        =>  iu_fu_rf0_ucfmul,
+      ---------------------------------------------
       dout(00)       =>  uc_div_beg_rf1,
       dout(01)       =>  uc_sqrt_beg_rf1,
       dout(02)       =>  uc_mid_rf1,
@@ -1078,6 +1206,7 @@ uc_fc_pos_rf0 <= uc_fc_pos or uc_end_rf0_v;
       dout(18)       =>  uc_op_rnd_v_rf1_l2,
       dout(19 to 20) =>  uc_op_rnd_rf1_l2(0 to 1),
       dout(21)       =>  rf1_ucfmul
+      ---------------------------------------------
       );
 
 
@@ -1088,6 +1217,7 @@ rf0_instr_flush  <= ((thread_id_rf0(0) and xu_rf0_flush(0)) or
 
 uc_scr_wr_rf0 <= (uc_scr_wr or uc_beg_rf0) and iu_fu_rf0_instr_v and not rf0_instr_flush;
 
+-- uc_scr write pipe -----------------------------
    uc_scr_wr_pipe_rf1:  tri_rlmreg_p
     generic map (init => 0, expand_type => expand_type, width => 8)
     port map (
@@ -1100,18 +1230,21 @@ uc_scr_wr_rf0 <= (uc_scr_wr or uc_beg_rf0) and iu_fu_rf0_instr_v and not rf0_ins
       thold_b  => thold_0_b, sg       => sg_0,
       scin     => uc_scr_wr_pipe_rf1_scin,
       scout    => uc_scr_wr_pipe_rf1_scout,
+      ---------------------------------------------
       din(0)      => uc_scr_wr_rf0,
       din(1 to 2) => uc_scr_sel(0 to 1),
       din(3 to 4) => uc_scr_thread_rf0(0 to 1),
       din(5)      => uc_gs_v_rf0,
       din(6)      => uc_inc_lsb,
       din(7)      => uc_beg_rf0_v,
+      ---------------------------------------------
       dout(0)      => uc_scr_wr_rf1_l2,
       dout(1 to 2) => uc_scr_sel_rf1(0 to 1),
       dout(3 to 4) => uc_scr_thread_rf1(0 to 1),
       dout(5)      => uc_gs_v_rf1,
       dout(6)      => uc_inc_lsb_rf1,
       dout(7)      => uc_beg_rf1
+      ---------------------------------------------
       );
 
 rf1_instr_flush  <= ((uc_scr_thread_rf1(0 to 1) = "00" and xu_rf1_flush(0)) or
@@ -1136,6 +1269,7 @@ uc_end_rf1    <= uc_end_rf1_l2;
       thold_b  => thold_0_b, sg       => sg_0,
       scin     => uc_scr_wr_pipe_ex1_scin,
       scout    => uc_scr_wr_pipe_ex1_scout,
+      ---------------------------------------------
       din(0)      => uc_scr_wr_rf1,
       din(1 to 2) => uc_scr_sel_rf1(0 to 1),
       din(3 to 4) => uc_scr_thread_rf1(0 to 1),
@@ -1143,6 +1277,7 @@ uc_end_rf1    <= uc_end_rf1_l2;
       din(6)      => uc_inc_lsb_rf1,
       din(7)      => uc_end_rf1_v,
       din(8)      => uc_beg_rf1,
+      ---------------------------------------------
       dout(0)      => uc_scr_wr_ex1_l2,
       dout(1 to 2) => uc_scr_sel_ex1(0 to 1),
       dout(3 to 4) => uc_scr_thread_ex1(0 to 1),
@@ -1150,6 +1285,7 @@ uc_end_rf1    <= uc_end_rf1_l2;
       dout(6)      => uc_inc_lsb_ex1,
       dout(7)      => uc_end_ex1_l2,
       dout(8)      => uc_beg_ex1
+      ---------------------------------------------
       );
 
 ex1_instr_flush  <= ((uc_scr_thread_ex1(0 to 1) = "00" and xu_ex1_flush(0)) or
@@ -1161,6 +1297,7 @@ uc_scr_wr_ex1 <= uc_scr_wr_ex1_l2 and not ex1_instr_flush;
 
 uc_end_ex1    <= uc_end_ex1_l2 and not ex1_instr_flush;
 
+-- uc_scr write pipe -----------------------------
    uc_scr_wr_pipe_ex2:  tri_rlmreg_p
     generic map (init => 0, expand_type => expand_type, width => 9)
     port map (
@@ -1173,6 +1310,7 @@ uc_end_ex1    <= uc_end_ex1_l2 and not ex1_instr_flush;
       thold_b  => thold_0_b, sg       => sg_0,
       scin     => uc_scr_wr_pipe_ex2_scin,
       scout    => uc_scr_wr_pipe_ex2_scout,
+      ---------------------------------------------
       din(0)      => uc_scr_wr_ex1,
       din(1 to 2) => uc_scr_sel_ex1(0 to 1),
       din(3 to 4) => uc_scr_thread_ex1(0 to 1),
@@ -1180,6 +1318,7 @@ uc_end_ex1    <= uc_end_ex1_l2 and not ex1_instr_flush;
       din(6)      => uc_inc_lsb_ex1,
       din(7)      => uc_end_ex1,
       din(8)      => uc_beg_ex1,
+      ---------------------------------------------
       dout(0)      => uc_scr_wr_ex2_l2,
       dout(1 to 2) => uc_scr_sel_ex2(0 to 1),
       dout(3 to 4) => uc_scr_thread_ex2(0 to 1),
@@ -1187,6 +1326,7 @@ uc_end_ex1    <= uc_end_ex1_l2 and not ex1_instr_flush;
       dout(6)      => uc_inc_lsb_ex2,
       dout(7)      => uc_end_ex2_l2,
       dout(8)      => uc_beg_ex2
+      ---------------------------------------------
       );
 
 ex2_instr_flush  <= ((uc_scr_thread_ex2(0 to 1) = "00" and xu_ex2_flush(0)) or
@@ -1198,6 +1338,7 @@ uc_scr_wr_ex2 <= uc_scr_wr_ex2_l2 and not ex2_instr_flush;
 
 uc_end_ex2    <= uc_end_ex2_l2 and not ex2_instr_flush;
 
+-- uc_scr write pipe -----------------------------
    uc_scr_wr_pipe_ex3:  tri_rlmreg_p
     generic map (init => 0, expand_type => expand_type, width => 7)
     port map (
@@ -1210,16 +1351,19 @@ uc_end_ex2    <= uc_end_ex2_l2 and not ex2_instr_flush;
       thold_b  => thold_0_b, sg       => sg_0,
       scin     => uc_scr_wr_pipe_ex3_scin,
       scout    => uc_scr_wr_pipe_ex3_scout,
+      ---------------------------------------------
       din(0)      => uc_scr_wr_ex2,
       din(1 to 2) => uc_scr_sel_ex2(0 to 1),
       din(3 to 4) => uc_scr_thread_ex2(0 to 1),
       din(5)      => uc_end_ex2,
       din(6)      => uc_beg_ex2,
+      ---------------------------------------------
       dout(0)      => uc_scr_wr_ex3_l2,
       dout(1 to 2) => uc_scr_sel_ex3(0 to 1),
       dout(3 to 4) => uc_scr_thread_ex3(0 to 1),
       dout(5)      => uc_end_ex3_l2,
       dout(6)      => uc_beg_ex3
+      ---------------------------------------------
       );
 
 
@@ -1237,8 +1381,9 @@ uc_scr_wr_ex3       <= uc_scr_wr_ex3_l2 and not ex3_instr_flush       ;
 
 uc_end_ex3    <= uc_end_ex3_l2    and not ex3_instr_flush;
 
-uc_scr_wr_ex4_ld <= uc_scr_wr_ex3 and (uc_scr_sel_ex3(0) or uc_scr_sel_ex3(1));  
+uc_scr_wr_ex4_ld <= uc_scr_wr_ex3 and (uc_scr_sel_ex3(0) or uc_scr_sel_ex3(1));  -- uc_scr_sel_ex2=00 only writes in ex3
 
+-- uc_scr write pipe -----------------------------
    uc_scr_wr_pipe_ex4:  tri_rlmreg_p
     generic map (init => 0, expand_type => expand_type, width => 7)
     port map (
@@ -1251,16 +1396,19 @@ uc_scr_wr_ex4_ld <= uc_scr_wr_ex3 and (uc_scr_sel_ex3(0) or uc_scr_sel_ex3(1));
       thold_b  => thold_0_b, sg       => sg_0,
       scin     => uc_scr_wr_pipe_ex4_scin,
       scout    => uc_scr_wr_pipe_ex4_scout,
+      ---------------------------------------------
       din(0)      => uc_scr_wr_ex4_ld,
       din(1 to 2) => uc_scr_sel_ex3(0 to 1),
       din(3 to 4) => uc_scr_thread_ex3(0 to 1),
       din(5)      => uc_end_ex3,
       din(6)      => uc_beg_ex3,
+      ---------------------------------------------
       dout(0)      => uc_scr_wr_ex4_l2,
       dout(1 to 2) => uc_scr_sel_ex4(0 to 1),
       dout(3 to 4) => uc_scr_thread_ex4(0 to 1),
       dout(5)      => uc_end_ex4_l2,
       dout(6)      => uc_beg_ex4
+      ---------------------------------------------
       );
 
 ex4_instr_flush  <= ((uc_scr_thread_ex4(0 to 1) = "00" and xu_ex4_flush(0)) or
@@ -1272,6 +1420,7 @@ uc_scr_wr_ex4 <= uc_scr_wr_ex4_l2 and not ex4_instr_flush;
 
 uc_end_ex4    <= uc_end_ex4_l2    and not ex4_instr_flush;
 
+-- uc_scr write pipe -----------------------------
    uc_scr_wr_pipe_ex5:  tri_rlmreg_p
     generic map (init => 0, expand_type => expand_type, width => 6)
     port map (
@@ -1284,14 +1433,17 @@ uc_end_ex4    <= uc_end_ex4_l2    and not ex4_instr_flush;
       thold_b  => thold_0_b, sg       => sg_0,
       scin     => uc_scr_wr_pipe_ex5_scin,
       scout    => uc_scr_wr_pipe_ex5_scout,
+      ---------------------------------------------
       din(0)      => uc_scr_wr_ex4,
       din(1 to 2) => uc_scr_sel_ex4(0 to 1),
       din(3 to 4) => uc_scr_thread_ex4(0 to 1),
       din(5)      => uc_end_ex4,
+      ---------------------------------------------
       dout(0)      => uc_scr_wr_ex5_l2,
       dout(1 to 2) => uc_scr_sel_ex5(0 to 1),
       dout(3 to 4) => uc_scr_thread_ex5(0 to 1),
       dout(5)      => uc_end_ex5_l2
+      ---------------------------------------------
       );
 
 ex5_instr_flush  <= ((uc_scr_thread_ex5(0 to 1) = "00" and xu_ex5_flush(0)) or
@@ -1303,6 +1455,7 @@ uc_scr_wr_ex5 <= uc_scr_wr_ex5_l2 and not ex5_instr_flush;
 
 uc_end_ex5    <= uc_end_ex5_l2    and not ex5_instr_flush;
 
+-- uc_scr write pipe -----------------------------
    uc_scr_wr_pipe_ex6:  tri_rlmreg_p
     generic map (init => 0, expand_type => expand_type, width => 6)
     port map (
@@ -1315,14 +1468,17 @@ uc_end_ex5    <= uc_end_ex5_l2    and not ex5_instr_flush;
       thold_b  => thold_0_b, sg       => sg_0,
       scin     => uc_scr_wr_pipe_ex6_scin,
       scout    => uc_scr_wr_pipe_ex6_scout,
+      ---------------------------------------------
       din(0)      => uc_scr_wr_ex5,
       din(1 to 2) => uc_scr_sel_ex5(0 to 1),
       din(3 to 4) => uc_scr_thread_ex5(0 to 1),
       din(5)      => uc_end_ex5,
+      ---------------------------------------------
       dout(0)      => uc_scr_wr_ex6,
       dout(1 to 2) => uc_scr_sel_ex6(0 to 1),
       dout(3 to 4) => uc_scr_thread_ex6(0 to 1),
       dout(5)      => uc_end_ex6_l2
+      ---------------------------------------------
       );
 
 
@@ -1348,10 +1504,13 @@ q1_p_ulp_early_ld(3) <=  (not uc_scr_t3_l2(3) and not uc_scr_t3_l2(4)) or  uc_sc
       thold_b  => thold_0_b, sg       => sg_0,
       scin     => q1_p_ulp_early_scin,
       scout    => q1_p_ulp_early_scout,
+      ---------------------------------------------
       din(0 to 3)  => q1_p_ulp_early_ld(0 to 3),
                              
+      ---------------------------------------------
       dout(0 to 3) => q1_p_ulp_early_l2(0 to 3)
 
+      ---------------------------------------------
       );
 
 
@@ -1362,19 +1521,45 @@ q1_p_ulp_early_ld(3) <=  (not uc_scr_t3_l2(3) and not uc_scr_t3_l2(4)) or  uc_sc
 
 
 
+-- q1_p_ulp_rf0 selects s3 instead of s1
+-- q1_m_ulp_rf0 changes  multiply by 3ff000... to 3fefffff...
 
 
+--@@ ESPRESSO ABLE START @@
+-- .i 4-- .o 3
+-- .ilb q1r_zero_rf0 q1ulpr_zero_rf0  q1r_sign_rf0 q1ulpr_sign_rf0
+-- .ob q1_p_ulp_rf0 q1_rf0 q1_m_ulp_rf0
+-- .type fr
+-- #
+-- ###################################################################################################################
+-- #
+-- #       q1r_zero_rf0                          q1r_sign_rf0            q1_p_ulp_rf0
+-- #       |  q1ulpr_zero_rf0                    |  q1ulpr_sign_rf0      |  q1_rf0
+-- #       |  |                                  |  |                    |  |  q1_m_ulp_rf0
+-- #       |  |                                  |  |                    |  |  |
+-- ###################################################################################################################
+--
+--         0  1                                  -  -                    1  0  0
+--         1  0                                  -  -                    0  1  0
+--         0  0                                  0  0                    1  0  0
+--         0  0                                  0  1                    0  1  0
+--         0  0                                  1  1                    0  0  1
+-- ###################################################################################################################
+-- .e
+--@@ ESPRESSO ABLE END @@
 
+--@@ ESPRESSO OGIC START @@
+-- logic generated on: Fri Jul 13 08:08:16 2007
 
 
 q1_m_ulp_rf0 <= (not q1r_zero_rf0 and not q1ulpr_zero_rf0 and  q1r_sign_rf0);
 
 
+--@@ ESPRESSO OGIC END @@
 
 
-
-uc_fc_1_minus <=      q1_m_ulp_rf0 and uc_normal_end_rf0 ;      
-uc_fc_1_0     <=  not q1_m_ulp_rf0 and uc_end_rf0_v ;             
+uc_fc_1_minus <=      q1_m_ulp_rf0 and uc_normal_end_rf0 ;      --    1 - 1/2 ulp   (3FEFFF...)
+uc_fc_1_0     <=  not q1_m_ulp_rf0 and uc_end_rf0_v ;             --    1.0   (3FF000...)
 
 
 
@@ -1459,7 +1644,40 @@ uc_round_mode_ex2(1) <= (uc_round_mode_l2(1) and uc_scr_thread_ex2 = "00") or
 
 
 
+--@@ ESPRESSO ABLE START @@
+-- .i 7
+-- .o 2
+-- .ilb q1r_zero_ex2 q1ulpr_zero_ex2 uc_round_mode_ex2(0) uc_round_mode_ex2(1) q1r_sign_ex2 q1ulpr_sign_ex2 q1hulpr_sign_ex2
+-- .ob uc_gs_ex2(0) uc_gs_ex2(1)
+-- .type fr
+-- #
+-- ###################################################################################################################
+-- #
+-- #       q1r_zero_ex2       uc_round_mode_ex2  q1r_sign_ex2                                  uc_gs_ex2(0:1)
+-- #       |  q1ulpr_zero_ex2 |                  |  q1ulpr_sign_ex2                            |
+-- #       |  |               |                  |  |  q1hulpr_sign_ex2                        |
+-- #       |  |               |                  |  |  |                                       |
+-- ###################################################################################################################
+--
+--         0  1               --                 -  -  -                                       00
+--         1  0               --                 -  -  -                                       00
+--  # Nearest
+--         0  0               00                 0  0  -                                       01
+--         0  0               00                 0  1  0                                       11
+--         0  0               00                 0  1  1                                       01
+--         0  0               00                 1  1  -                                       11
+--  # Zero
+--         0  0               01                 -  -  -                                       01
+--  # +Inf
+--         0  0               10                 -  -  -                                       01
+--  # -Inf
+--         0  0               11                 -  -  -                                       01
+-- ###################################################################################################################
+-- .e
+--@@ ESPRESSO ABLE END @@
 
+--@@ ESPRESSO OGIC START @@
+-- logic generated on: Thu Jul 19 13:06:53 2007
 uc_gs_ex2(0) <= (not q1r_zero_ex2 and not q1ulpr_zero_ex2 and not uc_round_mode_ex2(0)
 		 and not uc_round_mode_ex2(1) and  q1ulpr_sign_ex2
 		 and not q1hulpr_sign_ex2) or
@@ -1469,6 +1687,7 @@ uc_gs_ex2(0) <= (not q1r_zero_ex2 and not q1ulpr_zero_ex2 and not uc_round_mode_
 
 uc_gs_ex2(1) <= (not q1r_zero_ex2 and not q1ulpr_zero_ex2);
 
+--@@ ESPRESSO OGIC END @@
 
 
 
@@ -1487,9 +1706,9 @@ uc_ignore_flush_rf1 <= uc_div_beg_rf1 or uc_sqrt_beg_rf1;
 
 
 
-
-
-
+-- when stage rf1 is valid the uc_scr will be sent out for the active thread
+-- when stage rf0 and rf1 are not valid the uc_scr will be sent out for thread 0
+-- when stage rf0 is valid and rf1 is not the stage 0 hook bits will be sent out
 
 evnt_div_sqrt_ip(0 to 3) <= uc_scr_t0_l2(7) & uc_scr_t1_l2(7) & uc_scr_t2_l2(7) & uc_scr_t3_l2(7);
 
@@ -1522,10 +1741,12 @@ uc_hooks_debug(53) <= uc_end_rf1_l2       ;
 uc_hooks_debug(54 to 55) <= uc_scr_thread_ex1(0 to 1) ;
 
 
+-- Unused Nets
 spare_unused(0 to 19) <= rf0_i(6 to 25);
 spare_unused(20)      <= rf0_i(31);
 spare_unused(21)      <= spare;
 
+-- scan ring connections
 
   uc_1st_instr_scin      <= f_ucode_si                   & uc_1st_instr_scout(0 to 2);
   uc_round_mode_scin      <= uc_1st_instr_scout(3)       & uc_round_mode_scout(0 to 6);
@@ -1547,5 +1768,3 @@ spare_unused(21)      <= spare;
 
 
 end fuq_dcd_uc_hooks;
-
-   

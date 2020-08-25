@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  xuq_fxu_a_A Top
+--
 LIBRARY ieee;       USE ieee.std_logic_1164.all;
 LIBRARY support;    
                     USE support.power_logic_pkg.all;
@@ -24,11 +26,17 @@ entity xuq_fxu_a is
         hvmode                              : integer := 1;
         real_data_add                       : integer := 42);
     port(
+        ---------------------------------------------------------------------
+        -- Clocks & Power
+        ---------------------------------------------------------------------
         nclk                                : in clk_logic;
         vdd                                 : inout power_logic;
         gnd                                 : inout power_logic;
         vcs                                 : inout power_logic;
 
+        ---------------------------------------------------------------------
+        -- Pervasive
+        ---------------------------------------------------------------------
         an_ac_scan_dis_dc_b                 : in     std_ulogic;     
         func_scan_in                        : in     std_ulogic_vector(14 to 14);
         func_scan_out                       : out    std_ulogic_vector(14 to 14);
@@ -48,13 +56,13 @@ entity xuq_fxu_a is
         pc_xu_abist_wl144_comp_ena          : in     std_ulogic;
         pc_xu_abist_raw_dc_b                : in     std_ulogic;
         pc_xu_ccflush_dc                    : in     std_ulogic;
-        bo_enable_2                         : in     std_ulogic; 
-        pc_xu_bo_reset                      : in     std_ulogic; 
+        bo_enable_2                         : in     std_ulogic; -- general bolt-on enable, probably DC
+        pc_xu_bo_reset                      : in     std_ulogic; -- execute sticky bit decode
         pc_xu_bo_unload                     : in     std_ulogic;
         pc_xu_bo_load                       : in     std_ulogic;
-        pc_xu_bo_shdata                     : in     std_ulogic; 
-        pc_xu_bo_select                     : in     std_ulogic_vector(0 to 1); 
-        xu_pc_bo_fail                       : out    std_ulogic_vector(0 to 1); 
+        pc_xu_bo_shdata                     : in     std_ulogic; -- shift data for timing write
+        pc_xu_bo_select                     : in     std_ulogic_vector(0 to 1); -- select for mask and hier writes
+        xu_pc_bo_fail                       : out    std_ulogic_vector(0 to 1); -- fail/no-fix reg
         xu_pc_bo_diagout                    : out    std_ulogic_vector(0 to 1);
         clkoff_dc_b                         : in     std_ulogic;
         d_mode_dc                           : in     std_ulogic;
@@ -78,6 +86,9 @@ entity xuq_fxu_a is
         gptr_scan_in                        : in     std_ulogic;
         gptr_scan_out                       : out    std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Interface with IU
+        ---------------------------------------------------------------------
         iu_xu_is2_vld                       : in  std_ulogic;
         iu_xu_is2_ifar                      : in  std_ulogic_vector(62-eff_ifar to 61);
         iu_xu_is2_tid                       : in  std_ulogic_vector(0 to threads-1);
@@ -113,9 +124,15 @@ entity xuq_fxu_a is
         xu_iu_multdiv_done                  : out std_ulogic_vector(0 to threads-1);
         xu_iu_membar_tid                    : out std_ulogic_vector(0 to threads-1);
 
+        ---------------------------------------------------------------------
+        -- Interface with LSU
+        ---------------------------------------------------------------------
         lsu_xu_ldq_barr_done                : in  std_ulogic_vector(0 to threads-1);
         lsu_xu_barr_done                    : in  std_ulogic_vector(0 to threads-1);
 
+        ---------------------------------------------------------------------
+        -- Interface with FXU B
+        ---------------------------------------------------------------------
         fxa_fxb_rf0_val                     : out std_ulogic_vector(0 to threads-1);
         fxa_fxb_rf0_issued                  : out std_ulogic_vector(0 to threads-1);
         fxa_fxb_rf0_ucode_val               : out std_ulogic_vector(0 to threads-1);
@@ -175,6 +192,9 @@ entity xuq_fxu_a is
         fxb_fxa_ex6_clear_barrier           : in  std_ulogic_vector(0 to threads-1);
         fxa_perf_muldiv_in_use              : out std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Flushes
+        ---------------------------------------------------------------------
         xu_is2_flush                        : in  std_ulogic_vector(0 to threads-1);
         xu_rf0_flush                        : in  std_ulogic_vector(0 to threads-1);
         xu_rf1_flush                        : in  std_ulogic_vector(0 to threads-1);
@@ -188,12 +208,21 @@ entity xuq_fxu_a is
         fxa_iu_set_barr_tid                 : out std_ulogic_vector(0 to threads-1);
         spr_xucr4_div_barr_thres            : in  std_ulogic_vector(0 to 7);
 
+        ---------------------------------------------------------------------
+        -- ICSWX
+        ---------------------------------------------------------------------
         an_ac_back_inv                      : in  std_ulogic;
         an_ac_back_inv_addr                 : in  std_ulogic_vector(62 to 63);
         an_ac_back_inv_target_bit3          : in  std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Interface with SPR
+        ---------------------------------------------------------------------
         dec_spr_rf0_instr                   : out std_ulogic_vector(0 to 31);
 
+        ---------------------------------------------------------------------
+        -- Parity
+        ---------------------------------------------------------------------
         pc_xu_inj_regfile_parity            : in std_ulogic_vector(0 to 3);
         xu_pc_err_regfile_parity            : out std_ulogic_vector(0 to threads-1);
         xu_pc_err_regfile_ue                : out std_ulogic_vector(0 to 3);
@@ -201,6 +230,9 @@ entity xuq_fxu_a is
         cpl_gpr_regfile_seq_beg             : in  std_ulogic;
         gpr_cpl_regfile_seq_end             : out std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Interface with LSU
+        ---------------------------------------------------------------------
         xu_lsu_rf0_derat_is_extload         : out std_ulogic;
         xu_lsu_rf0_derat_is_extstore        : out std_ulogic;
         xu_lsu_rf0_derat_val                : out std_ulogic_vector(0 to threads-1);
@@ -220,6 +252,9 @@ architecture xuq_fxu_a of xuq_fxu_a is
     constant tiup                           : std_ulogic := '1';
     constant tidn                           : std_ulogic := '0';
 
+    ---------------------------------------------------------------------
+    -- Pervasive Signals
+    ---------------------------------------------------------------------
     signal func_sl_thold_1                  : std_ulogic;
     signal func_nsl_thold_1                 : std_ulogic;
     signal time_sl_thold_1                  : std_ulogic;
@@ -247,6 +282,9 @@ architecture xuq_fxu_a of xuq_fxu_a is
     signal func_scan_out_gate               : std_ulogic_vector(14 to 14);
     signal func_so_thold_0_b, so_force      : std_ulogic;
 
+    ---------------------------------------------------------------------
+    -- ABIST
+    ---------------------------------------------------------------------
     signal abst_sl_thold_0_b                : std_ulogic;
     signal abst_sl_force                    : std_ulogic;
     signal pc_xu_abist_raddr_0_q            : std_ulogic_vector(2 to 9);
@@ -272,9 +310,15 @@ architecture xuq_fxu_a of xuq_fxu_a is
     signal abst_scan_in_2_q                 : std_ulogic;
     signal abst_scan_out_2_q                : std_ulogic;
 
+    ---------------------------------------------------------------------
+    -- Scan Chain
+    ---------------------------------------------------------------------
     signal siv_14                           : std_ulogic_vector(0 to 1);
     signal sov_14                           : std_ulogic_vector(0 to 1);
 
+    ---------------------------------------------------------------------
+    -- GPR Signals
+    ---------------------------------------------------------------------
     signal dec_gpr_rf0_re0                  : std_ulogic;
     signal dec_gpr_rf0_re1                  : std_ulogic;
     signal dec_gpr_rf0_re2                  : std_ulogic;
@@ -302,10 +346,16 @@ begin
     
     mark_unused(gpr_we1_debug);
 
+    ---------------------------------------------------------------------
+    -- Clear Barrier
+    ---------------------------------------------------------------------
     xu_iu_membar_tid            <= lsu_xu_ldq_barr_done or xu_div_coll_barr_done;
     
     xu_iu_multdiv_done          <= xu_div_barr_done or fxb_fxa_ex6_clear_barrier or lsu_xu_barr_done;
 
+    ---------------------------------------------------------------------
+    -- ABIST latches
+    ---------------------------------------------------------------------
     abist_reg: tri_rlmreg_p
         generic map (init => 0, expand_type => expand_type, width => 45, needs_sreset => 0)
         port map (vd                                => vdd,
@@ -332,6 +382,7 @@ begin
                   din(36 to 39)                     => pc_xu_abist_di_0,
                   din(40 to 43)                     => pc_xu_abist_di_1,
                   din(44)                           => pc_xu_abist_wl144_comp_ena,
+                  ---------------------------------------------------------------------
                   dout(0 to 7)                      => pc_xu_abist_raddr_0_q,
                   dout(8 to 15)                     => pc_xu_abist_raddr_1_q,
                   dout(16)                          => pc_xu_abist_grf_renb_0_q,
@@ -380,6 +431,9 @@ begin
 
 
 
+    -------------------------------------------------
+    -- Pervasive
+    -------------------------------------------------
     perv_2to1_reg: tri_plat
         generic map (width => 10, expand_type => expand_type)
         port map (vd        => vdd,
@@ -465,6 +519,9 @@ begin
    func_so_thold_0_b       <= not func_sl_thold_0;
 
 
+    -------------------------------------------------------------------------------
+    -- Decode A
+    -------------------------------------------------------------------------------
     xu_dec_a : entity work.xuq_dec_a(xuq_dec_a)
     generic map(
         expand_type                         => expand_type,
@@ -603,6 +660,9 @@ begin
         spr_xucr0_clkg_ctl_b0               => spr_xucr0_clkg_ctl_b0,
         dec_debug                           => dec_debug);
 
+    ---------------------------------------------------------------------
+    -- GPR
+    ---------------------------------------------------------------------
     gpr_rel_data                <= lsu_xu_rot_rel_data & "000000";
 
     xuq_fxu_gpr : entity work.xuq_fxu_gpr(xuq_fxu_gpr)
@@ -647,13 +707,13 @@ begin
         r1e_abist_comp_en               => pc_xu_abist_wl144_comp_ena_q,
         abist_raw_dc_b                  => pc_xu_abist_raw_dc_b,
 
-        bo_enable_2                     => bo_enable_2,                     
-        pc_xu_bo_reset                  => pc_xu_bo_reset,                      
+        bo_enable_2                     => bo_enable_2,                     -- general bolt-on enable, probably DC
+        pc_xu_bo_reset                  => pc_xu_bo_reset,                      -- execute sticky bit decode
         pc_xu_bo_unload                 => pc_xu_bo_unload,
         pc_xu_bo_load                   => pc_xu_bo_load,
-        pc_xu_bo_shdata                 => pc_xu_bo_shdata,                     
-        pc_xu_bo_select                 => pc_xu_bo_select,                     
-        xu_pc_bo_fail                   => xu_pc_bo_fail,                       
+        pc_xu_bo_shdata                 => pc_xu_bo_shdata,                     -- shift data for timing write
+        pc_xu_bo_select                 => pc_xu_bo_select,                     -- select for mask and hier writes
+        xu_pc_bo_fail                   => xu_pc_bo_fail,                       -- fail/no-fix reg
         xu_pc_bo_diagout                => xu_pc_bo_diagout,
 
         lcb_fce_0                       => fce_0(1),
@@ -736,3 +796,4 @@ mark_unused(gpr_data_out_2(64 to 77));
 
 
 end architecture xuq_fxu_a;
+

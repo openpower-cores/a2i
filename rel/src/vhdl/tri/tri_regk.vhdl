@@ -7,6 +7,10 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_regk.vhdl
+-- *! DESCRIPTION : Multi-bit non-scannable latch, LCB included
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
@@ -19,24 +23,25 @@ library tri; use tri.tri_latches_pkg.all;
 entity tri_regk is
   generic (
     width               : integer := 4;
-    offset              : integer range 0 to 65535 := 0 ; 
-    init                : integer := 0;                   
+    offset              : integer range 0 to 65535 := 0 ; --starting bit
+    init                : integer := 0;                   -- will be converted to the least signficant
+                                                          -- 31 bits of init_v
     synthclonedlatch    : string  := "";
-    needs_sreset        : integer := 1 ;                  
-    expand_type         : integer := 1 );                 
+    needs_sreset        : integer := 1 ;                  -- for inferred latches
+    expand_type         : integer := 1 );                 -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
 
   port (
     vd      : inout power_logic;
     gd      : inout power_logic;
     nclk    : in  clk_logic;
-    act     : in  std_ulogic := '1'; 
-    forcee   : in  std_ulogic := '0'; 
-    thold_b : in  std_ulogic := '1'; 
-    d_mode  : in  std_ulogic := '0'; 
-    delay_lclkr : in  std_ulogic := '0'; 
-    mpw1_b  : in  std_ulogic := '1'; 
-    mpw2_b  : in  std_ulogic := '1'; 
-    din     : in  std_ulogic_vector(offset to offset+width-1);  
+    act     : in  std_ulogic := '1'; -- 1: functional, 0: no clock
+    forcee   : in  std_ulogic := '0'; -- 1: force LCB active
+    thold_b : in  std_ulogic := '1'; -- 1: functional, 0: no clock
+    d_mode  : in  std_ulogic := '0'; -- 1: disable pulse mode, 0: pulse mode
+    delay_lclkr : in  std_ulogic := '0'; -- 0: functional
+    mpw1_b  : in  std_ulogic := '1'; -- pulse width control bit
+    mpw2_b  : in  std_ulogic := '1'; -- pulse width control bit
+    din     : in  std_ulogic_vector(offset to offset+width-1);  -- data in
     dout    : out std_ulogic_vector(offset to offset+width-1) );
 
   -- synopsys translate_off
@@ -50,7 +55,7 @@ architecture tri_regk of tri_regk is
   constant init_v : std_ulogic_vector(0 to width-1) := std_ulogic_vector( to_unsigned( init, width ) );
   constant zeros : std_ulogic_vector(0 to width-1) := (0 to width-1 => '0');
 
-begin  
+begin  -- tri_regk
 
   a: if expand_type = 1 generate
     signal sreset : std_ulogic;
@@ -94,4 +99,3 @@ begin
   end generate a;
 
 end tri_regk;
-

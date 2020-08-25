@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU SPR - per core registers & array
+--
 library ieee,ibm,support,work,tri;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -40,19 +42,23 @@ port(
    scan_in                          : in  std_ulogic;
    scan_out                         : out std_ulogic;
 
+   -- Decode
    ex1_instr                        : in  std_ulogic_vector(11 to 20);
    ex1_tid                          : in  std_ulogic_vector(0 to threads-1);
    dec_spr_ex1_is_mfspr             : in  std_ulogic;
    dec_spr_ex1_is_mtspr             : in  std_ulogic;
 
+   -- Write Interface
    ex6_valid                        : in  std_ulogic_vector(0 to threads-1);
    ex6_spr_wd                       : in  std_ulogic_vector(64-regsize to 63);
 
+   -- SPRT Interface
    cspr_tspr_ex6_is_mtspr           : out std_ulogic;
    cspr_tspr_ex6_instr              : out std_ulogic_vector(11 to 20);
    cspr_tspr_ex2_is_mfspr           : out std_ulogic;
    cspr_tspr_ex2_instr              : out std_ulogic_vector(11 to 20);
 
+   -- Read Data
    tspr_cspr_ex2_tspr_rt            : in  std_ulogic_vector(0 to regsize*threads-1);
    fspr_byp_ex3_spr_rt              : out std_ulogic_vector(64-regsize to 63);
    mux_spr_ex2_rt                   : in std_ulogic_vector(64-regsize to 63);
@@ -60,12 +66,16 @@ port(
    ex2_is_any_load_dac              : in  std_ulogic;
    ex2_is_any_store_dac             : in  std_ulogic;
 
+   -- DAC
    xu_lsu_ex4_dvc1_en               : out std_ulogic;
    xu_lsu_ex4_dvc2_en               : out std_ulogic;
+   -- For Stores only, not gated by dvc*_en
    lsu_xu_ex2_dvc1_st_cmp           : in  std_ulogic_vector(8-regsize/8 to 7);
    lsu_xu_ex2_dvc2_st_cmp           : in  std_ulogic_vector(8-regsize/8 to 7);
+   -- For load hits only, gated by dvc*_en
    lsu_xu_ex8_dvc1_ld_cmp           : in  std_ulogic_vector(8-regsize/8 to 7);
    lsu_xu_ex8_dvc2_ld_cmp           : in  std_ulogic_vector(8-regsize/8 to 7);
+   -- For reloads only, all signals are gated by dvc*_en
    lsu_xu_rel_dvc1_en               : in  std_ulogic;
    lsu_xu_rel_dvc2_en               : in  std_ulogic;
    lsu_xu_rel_dvc_thrd_id           : in  std_ulogic_vector(0 to 3);
@@ -83,6 +93,7 @@ port(
    fxu_cpl_ex3_dac3w_cmpr           : out std_ulogic_vector(0 to threads-1);
    fxu_cpl_ex3_dac4w_cmpr           : out std_ulogic_vector(0 to threads-1);
    
+   -- SPRs
    spr_bit_act                      : in  std_ulogic;
    spr_msr_pr                       : in  std_ulogic_vector(0 to threads-1);
    spr_msr_ds                       : in  std_ulogic_vector(0 to threads-1);
@@ -109,6 +120,7 @@ port(
    tspr_cspr_dbcr2_dvc2be           : in  std_ulogic_vector(0 to 8*threads-1);
 
 
+   -- Power
    vdd                              : inout power_logic;
    gnd                              : inout power_logic
 );
@@ -119,65 +131,70 @@ port(
 end xuq_fxu_spr_cspr;
 architecture xuq_fxu_spr_cspr of xuq_fxu_spr_cspr is
 
+-- Types
 subtype DO                            is std_ulogic_vector(65-regsize to 64);
+-- SPR Registers
 signal dac1_d         , dac1_q         : std_ulogic_vector(64-(regsize) to 63);
 signal dac2_d         , dac2_q         : std_ulogic_vector(64-(regsize) to 63);
 signal dac3_d         , dac3_q         : std_ulogic_vector(64-(regsize) to 63);
 signal dac4_d         , dac4_q         : std_ulogic_vector(64-(regsize) to 63);
+-- FUNC Scanchain
 constant dac1_offset                   : natural := 0;
 constant dac2_offset                   : natural := dac1_offset     + dac1_q'length*a2mode;
 constant dac3_offset                   : natural := dac2_offset     + dac2_q'length*a2mode;
 constant dac4_offset                   : natural := dac3_offset     + dac3_q'length;
 constant last_reg_offset               : natural := dac4_offset     + dac4_q'length;
-signal exx_act_q,                 exx_act_d                   : std_ulogic_vector(2 to 5);                
-signal ex2_dac12m_q,              ex2_dac12m_d                : std_ulogic_vector(0 to 7);                
-signal ex2_dac34m_q,              ex2_dac34m_d                : std_ulogic_vector(0 to 7);                
-signal ex2_instr_q                                            : std_ulogic_vector(11 to 20);              
-signal ex2_is_mfspr_q                                         : std_ulogic;                               
-signal ex2_is_mtspr_q                                         : std_ulogic;                               
-signal ex2_tid_q                                              : std_ulogic_vector(0 to threads-1);        
-signal ex3_dac1r_cmpr_q,          ex2_dac1r_cmpr              : std_ulogic_vector(0 to threads-1);        
-signal ex3_dac1w_cmpr_q,          ex2_dac1w_cmpr              : std_ulogic_vector(0 to threads-1);        
-signal ex3_dac2r_cmpr_q,          ex2_dac2r_cmpr              : std_ulogic_vector(0 to threads-1);        
-signal ex3_dac2w_cmpr_q,          ex2_dac2w_cmpr              : std_ulogic_vector(0 to threads-1);        
-signal ex3_dac3r_cmpr_q,          ex2_dac3r_cmpr              : std_ulogic_vector(0 to threads-1);        
-signal ex3_dac3w_cmpr_q,          ex2_dac3w_cmpr              : std_ulogic_vector(0 to threads-1);        
-signal ex3_dac4r_cmpr_q,          ex2_dac4r_cmpr              : std_ulogic_vector(0 to threads-1);        
-signal ex3_dac4w_cmpr_q,          ex2_dac4w_cmpr              : std_ulogic_vector(0 to threads-1);        
-signal ex3_dvc1w_cmpr_q,          ex2_dvc1w_cmpr              : std_ulogic_vector(0 to threads-1);        
-signal ex3_dvc2w_cmpr_q,          ex2_dvc2w_cmpr              : std_ulogic_vector(0 to threads-1);        
-signal ex3_instr_q                                            : std_ulogic_vector(11 to 20);              
-signal ex3_is_mtspr_q                                         : std_ulogic;                               
-signal ex3_spr_rt_q,              ex3_spr_rt_d                : std_ulogic_vector(64-regsize to 63);      
-signal ex4_dvc1_en_q,             ex3_dvc1_en                 : std_ulogic;                               
-signal ex4_dvc2_en_q,             ex3_dvc2_en                 : std_ulogic;                               
-signal ex4_instr_q                                            : std_ulogic_vector(11 to 20);              
-signal ex4_is_mtspr_q                                         : std_ulogic;                               
-signal ex5_dvc1_en_q                                          : std_ulogic;                               
-signal ex5_dvc2_en_q                                          : std_ulogic;                               
-signal ex5_instr_q                                            : std_ulogic_vector(11 to 20);              
-signal ex5_is_mtspr_q                                         : std_ulogic;                               
-signal ex6_dvc1_en_q                                          : std_ulogic;                               
-signal ex6_dvc2_en_q                                          : std_ulogic;                               
-signal ex6_instr_q                                            : std_ulogic_vector(11 to 20);              
-signal ex6_is_mtspr_q                                         : std_ulogic;                               
-signal ex7_dvc1_en_q                                          : std_ulogic;                               
-signal ex7_dvc2_en_q                                          : std_ulogic;                               
-signal ex7_val_q                                              : std_ulogic_vector(0 to threads-1);        
-signal ex8_dvc1_en_q                                          : std_ulogic;                               
-signal ex8_dvc2_en_q                                          : std_ulogic;                               
-signal ex8_val_q                                              : std_ulogic_vector(0 to threads-1);        
-signal dbcr0_dac1_q                                           : std_ulogic_vector(0 to 2*threads-1);      
-signal dbcr0_dac2_q                                           : std_ulogic_vector(0 to 2*threads-1);      
-signal dbcr0_dac3_q                                           : std_ulogic_vector(0 to 2*threads-1);      
-signal dbcr0_dac4_q                                           : std_ulogic_vector(0 to 2*threads-1);      
-signal dbcr2_dvc1m_on_q,          dbcr2_dvc1m_on_d            : std_ulogic_vector(0 to threads-1);        
-signal dbcr2_dvc2m_on_q,          dbcr2_dvc2m_on_d            : std_ulogic_vector(0 to threads-1);        
-signal dvc1r_cmpr_q,              dvc1r_cmpr_d                : std_ulogic_vector(0 to threads-1);        
-signal dvc2r_cmpr_q,              dvc2r_cmpr_d                : std_ulogic_vector(0 to threads-1);        
-signal msr_ds_q                                               : std_ulogic_vector(0 to threads-1);        
-signal msr_pr_q                                               : std_ulogic_vector(0 to threads-1);        
-signal spr_bit_act_q                                          : std_ulogic;                               
+-- Latches
+signal exx_act_q,                 exx_act_d                   : std_ulogic_vector(2 to 5);                -- input=>exx_act_d                  , act=>tiup                 , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex2_dac12m_q,              ex2_dac12m_d                : std_ulogic_vector(0 to 7);                -- input=>ex2_dac12m_d               , act=>exx_act(1)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex2_dac34m_q,              ex2_dac34m_d                : std_ulogic_vector(0 to 7);                -- input=>ex2_dac34m_d               , act=>exx_act(1)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex2_instr_q                                            : std_ulogic_vector(11 to 20);              -- input=>ex1_instr                  , act=>exx_act(1)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex2_is_mfspr_q                                         : std_ulogic;                               -- input=>dec_spr_ex1_is_mfspr       , act=>exx_act(1)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex2_is_mtspr_q                                         : std_ulogic;                               -- input=>dec_spr_ex1_is_mtspr       , act=>exx_act(1)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex2_tid_q                                              : std_ulogic_vector(0 to threads-1);        -- input=>ex1_tid                    , act=>exx_act(1)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex3_dac1r_cmpr_q,          ex2_dac1r_cmpr              : std_ulogic_vector(0 to threads-1);        -- input=>ex2_dac1r_cmpr             , act=>exx_act(2)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex3_dac1w_cmpr_q,          ex2_dac1w_cmpr              : std_ulogic_vector(0 to threads-1);        -- input=>ex2_dac1w_cmpr             , act=>exx_act(2)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex3_dac2r_cmpr_q,          ex2_dac2r_cmpr              : std_ulogic_vector(0 to threads-1);        -- input=>ex2_dac2r_cmpr             , act=>exx_act(2)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex3_dac2w_cmpr_q,          ex2_dac2w_cmpr              : std_ulogic_vector(0 to threads-1);        -- input=>ex2_dac2w_cmpr             , act=>exx_act(2)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex3_dac3r_cmpr_q,          ex2_dac3r_cmpr              : std_ulogic_vector(0 to threads-1);        -- input=>ex2_dac3r_cmpr             , act=>exx_act(2)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex3_dac3w_cmpr_q,          ex2_dac3w_cmpr              : std_ulogic_vector(0 to threads-1);        -- input=>ex2_dac3w_cmpr             , act=>exx_act(2)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex3_dac4r_cmpr_q,          ex2_dac4r_cmpr              : std_ulogic_vector(0 to threads-1);        -- input=>ex2_dac4r_cmpr             , act=>exx_act(2)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex3_dac4w_cmpr_q,          ex2_dac4w_cmpr              : std_ulogic_vector(0 to threads-1);        -- input=>ex2_dac4w_cmpr             , act=>exx_act(2)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex3_dvc1w_cmpr_q,          ex2_dvc1w_cmpr              : std_ulogic_vector(0 to threads-1);        -- input=>ex2_dvc1w_cmpr             , act=>exx_act(2)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex3_dvc2w_cmpr_q,          ex2_dvc2w_cmpr              : std_ulogic_vector(0 to threads-1);        -- input=>ex2_dvc2w_cmpr             , act=>exx_act(2)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex3_instr_q                                            : std_ulogic_vector(11 to 20);              -- input=>ex2_instr_q                , act=>exx_act(2)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex3_is_mtspr_q                                         : std_ulogic;                               -- input=>ex2_is_mtspr_q             , act=>exx_act(2)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex3_spr_rt_q,              ex3_spr_rt_d                : std_ulogic_vector(64-regsize to 63);      -- input=>ex3_spr_rt_d               , act=>exx_act(2)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex4_dvc1_en_q,             ex3_dvc1_en                 : std_ulogic;                               -- input=>ex3_dvc1_en                , act=>exx_act(3)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex4_dvc2_en_q,             ex3_dvc2_en                 : std_ulogic;                               -- input=>ex3_dvc2_en                , act=>exx_act(3)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex4_instr_q                                            : std_ulogic_vector(11 to 20);              -- input=>ex3_instr_q                , act=>exx_act(3)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex4_is_mtspr_q                                         : std_ulogic;                               -- input=>ex3_is_mtspr_q             , act=>exx_act(3)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex5_dvc1_en_q                                          : std_ulogic;                               -- input=>ex4_dvc1_en_q              , act=>exx_act(4)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex5_dvc2_en_q                                          : std_ulogic;                               -- input=>ex4_dvc2_en_q              , act=>exx_act(4)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex5_instr_q                                            : std_ulogic_vector(11 to 20);              -- input=>ex4_instr_q                , act=>exx_act(4)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex5_is_mtspr_q                                         : std_ulogic;                               -- input=>ex4_is_mtspr_q             , act=>exx_act(4)           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_dvc1_en_q                                          : std_ulogic;                               -- input=>ex5_dvc1_en_q              , act=>exx_act(5)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_dvc2_en_q                                          : std_ulogic;                               -- input=>ex5_dvc2_en_q              , act=>exx_act(5)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_instr_q                                            : std_ulogic_vector(11 to 20);              -- input=>ex5_instr_q                , act=>exx_act(5)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_is_mtspr_q                                         : std_ulogic;                               -- input=>ex5_is_mtspr_q             , act=>exx_act(5)           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex7_dvc1_en_q                                          : std_ulogic;                               -- input=>ex6_dvc1_en_q              , act=>tiup                 , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex7_dvc2_en_q                                          : std_ulogic;                               -- input=>ex6_dvc2_en_q              , act=>tiup                 , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex7_val_q                                              : std_ulogic_vector(0 to threads-1);        -- input=>ex6_valid                  , act=>tiup                 , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal ex8_dvc1_en_q                                          : std_ulogic;                               -- input=>ex7_dvc1_en_q              , act=>tiup                 , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex8_dvc2_en_q                                          : std_ulogic;                               -- input=>ex7_dvc2_en_q              , act=>tiup                 , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex8_val_q                                              : std_ulogic_vector(0 to threads-1);        -- input=>ex7_val_q                  , act=>tiup                 , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal dbcr0_dac1_q                                           : std_ulogic_vector(0 to 2*threads-1);      -- input=>spr_dbcr0_dac1             , act=>spr_bit_act_q        , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal dbcr0_dac2_q                                           : std_ulogic_vector(0 to 2*threads-1);      -- input=>spr_dbcr0_dac2             , act=>spr_bit_act_q        , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal dbcr0_dac3_q                                           : std_ulogic_vector(0 to 2*threads-1);      -- input=>spr_dbcr0_dac3             , act=>spr_bit_act_q        , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal dbcr0_dac4_q                                           : std_ulogic_vector(0 to 2*threads-1);      -- input=>spr_dbcr0_dac4             , act=>spr_bit_act_q        , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal dbcr2_dvc1m_on_q,          dbcr2_dvc1m_on_d            : std_ulogic_vector(0 to threads-1);        -- input=>dbcr2_dvc1m_on_d           , act=>spr_bit_act_q        , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal dbcr2_dvc2m_on_q,          dbcr2_dvc2m_on_d            : std_ulogic_vector(0 to threads-1);        -- input=>dbcr2_dvc2m_on_d           , act=>spr_bit_act_q        , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal dvc1r_cmpr_q,              dvc1r_cmpr_d                : std_ulogic_vector(0 to threads-1);        -- input=>dvc1r_cmpr_d               , act=>spr_bit_act_q        , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal dvc2r_cmpr_q,              dvc2r_cmpr_d                : std_ulogic_vector(0 to threads-1);        -- input=>dvc2r_cmpr_d               , act=>spr_bit_act_q        , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal msr_ds_q                                               : std_ulogic_vector(0 to threads-1);        -- input=>spr_msr_ds                 , act=>tiup                 , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal msr_pr_q                                               : std_ulogic_vector(0 to threads-1);        -- input=>spr_msr_pr                 , act=>tiup                 , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal spr_bit_act_q                                          : std_ulogic;                               -- input=>spr_bit_act                , act=>tiup                 , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+-- Scanchains
 constant exx_act_offset                            : integer := last_reg_offset;
 constant ex3_dac1r_cmpr_offset                     : integer := exx_act_offset                 + exx_act_q'length;
 constant ex3_dac1w_cmpr_offset                     : integer := ex3_dac1r_cmpr_offset          + ex3_dac1r_cmpr_q'length;
@@ -214,6 +231,7 @@ constant spr_bit_act_offset                        : integer := msr_pr_offset   
 constant scan_right                                : integer := spr_bit_act_offset             + 1;
 signal siv                                         : std_ulogic_vector(0 to scan_right-1);
 signal sov                                         : std_ulogic_vector(0 to scan_right-1);
+-- Signals
 signal tiup                                        : std_ulogic;
 signal tidn                                        : std_ulogic_vector(00 to 63);
 signal ex2_instr                                   : std_ulogic_vector(11 to 20);
@@ -237,6 +255,7 @@ signal ex8_dvc1_en,            ex8_dvc2_en         : std_ulogic_vector(0 to thre
 signal rel_dvc1_en,            rel_dvc2_en         : std_ulogic_vector(0 to threads-1);
 signal exx_act                                     : std_ulogic_vector(1 to 5);
 
+-- Data
 
 signal ex6_dac1_di                     : std_ulogic_vector(dac1_q'range);
 signal ex6_dac2_di                     : std_ulogic_vector(dac2_q'range);
@@ -286,19 +305,25 @@ cspr_tspr_ex6_instr     <= ex6_instr_q;
 cspr_tspr_ex2_is_mfspr  <= ex2_is_mfspr_q;
 cspr_tspr_ex2_instr     <= ex2_instr_q;
 
+-- SPR Input Control
+-- DAC1
 dac1_act       <= ex6_dac1_we;
 dac1_d         <= ex6_dac1_di;
 
+-- DAC2
 dac2_act       <= ex6_dac2_we;
 dac2_d         <= ex6_dac2_di;
 
+-- DAC3
 dac3_act       <= ex6_dac3_we;
 dac3_d         <= ex6_dac3_di;
 
+-- DAC4
 dac4_act       <= ex6_dac4_we;
 dac4_d         <= ex6_dac4_di;
 
 
+-- Compare Address Against DAC regs
 ex2_dac12m_d               <= fanout(or_reduce(tspr_cspr_dbcr2_dac12m and ex1_tid),ex2_dac12m_d'length);
 ex2_dac34m_d               <= fanout(or_reduce(tspr_cspr_dbcr3_dac34m and ex1_tid),ex2_dac34m_d'length);
 
@@ -315,6 +340,7 @@ ex2_dac2_cmpr_sel          <= ex2_dac2_cmpr when ex2_dac12m_q(0)='0' else ex2_da
 ex2_dac3_cmpr_sel          <= ex2_dac3_cmpr;
 ex2_dac4_cmpr_sel          <= ex2_dac4_cmpr when ex2_dac34m_q(0)='0' else ex2_dac3_cmpr;
 
+-- Determine if DAC is enabled for this thread
 xuq_fxu_spr_dac1en : entity work.xuq_spr_dacen(xuq_spr_dacen)
 generic map(
    threads                          => threads)
@@ -513,6 +539,7 @@ ex2_cspr_rt <=
 	(dac4_do(DO'range)        and (DO'range => ex2_dac4_re    ));
 end generate;
 
+-- Read Muxing
 ex2_tspr_rt                <= mux_t(tspr_cspr_ex2_tspr_rt,ex2_tid_q);
 ex3_spr_rt_d               <= gate((ex2_tspr_rt or ex2_cspr_rt),ex2_is_mfspr_q);
 fspr_byp_ex3_spr_rt        <= ex3_spr_rt_q;
@@ -520,19 +547,19 @@ fspr_byp_ex3_spr_rt        <= ex3_spr_rt_q;
 mark_unused(tidn);
 
 
-ex2_dac1_rdec     <= (ex2_instr(11 to 20) = "1110001001");   
-ex2_dac2_rdec     <= (ex2_instr(11 to 20) = "1110101001");   
-ex2_dac3_rdec     <= (ex2_instr(11 to 20) = "1000111010");   
-ex2_dac4_rdec     <= (ex2_instr(11 to 20) = "1001011010");   
+ex2_dac1_rdec     <= (ex2_instr(11 to 20) = "1110001001");   --  316
+ex2_dac2_rdec     <= (ex2_instr(11 to 20) = "1110101001");   --  317
+ex2_dac3_rdec     <= (ex2_instr(11 to 20) = "1000111010");   --  849
+ex2_dac4_rdec     <= (ex2_instr(11 to 20) = "1001011010");   --  850
 ex2_dac1_re       <=  ex2_dac1_rdec;
 ex2_dac2_re       <=  ex2_dac2_rdec;
 ex2_dac3_re       <=  ex2_dac3_rdec;
 ex2_dac4_re       <=  ex2_dac4_rdec;
 
-ex6_dac1_wdec     <= (ex6_instr(11 to 20) = "1110001001");   
-ex6_dac2_wdec     <= (ex6_instr(11 to 20) = "1110101001");   
-ex6_dac3_wdec     <= (ex6_instr(11 to 20) = "1000111010");   
-ex6_dac4_wdec     <= (ex6_instr(11 to 20) = "1001011010");   
+ex6_dac1_wdec     <= (ex6_instr(11 to 20) = "1110001001");   --  316
+ex6_dac2_wdec     <= (ex6_instr(11 to 20) = "1110101001");   --  317
+ex6_dac3_wdec     <= (ex6_instr(11 to 20) = "1000111010");   --  849
+ex6_dac4_wdec     <= (ex6_instr(11 to 20) = "1001011010");   --  850
 ex6_dac1_we       <= ex6_val and ex6_is_mtspr and  ex6_dac1_wdec;
 ex6_dac2_we       <= ex6_val and ex6_is_mtspr and  ex6_dac2_wdec;
 ex6_dac3_we       <= ex6_val and ex6_is_mtspr and  ex6_dac3_wdec;
@@ -540,19 +567,24 @@ ex6_dac4_we       <= ex6_val and ex6_is_mtspr and  ex6_dac4_wdec;
 
 
 
-ex6_dac1_di    <= ex6_spr_wd(64-(regsize) to 63)   ; 
+-- DAC1
+ex6_dac1_di    <= ex6_spr_wd(64-(regsize) to 63)   ; --DAC1
 dac1_do        <= tidn(0 to 64-(regsize))          &
-						dac1_q(64-(regsize) to 63)       ; 
-ex6_dac2_di    <= ex6_spr_wd(64-(regsize) to 63)   ; 
+						dac1_q(64-(regsize) to 63)       ; --DAC1
+-- DAC2
+ex6_dac2_di    <= ex6_spr_wd(64-(regsize) to 63)   ; --DAC2
 dac2_do        <= tidn(0 to 64-(regsize))          &
-						dac2_q(64-(regsize) to 63)       ; 
-ex6_dac3_di    <= ex6_spr_wd(64-(regsize) to 63)   ; 
+						dac2_q(64-(regsize) to 63)       ; --DAC2
+-- DAC3
+ex6_dac3_di    <= ex6_spr_wd(64-(regsize) to 63)   ; --DAC3
 dac3_do        <= tidn(0 to 64-(regsize))          &
-						dac3_q(64-(regsize) to 63)       ; 
-ex6_dac4_di    <= ex6_spr_wd(64-(regsize) to 63)   ; 
+						dac3_q(64-(regsize) to 63)       ; --DAC3
+-- DAC4
+ex6_dac4_di    <= ex6_spr_wd(64-(regsize) to 63)   ; --DAC4
 dac4_do        <= tidn(0 to 64-(regsize))          &
-						dac4_q(64-(regsize) to 63)       ; 
+						dac4_q(64-(regsize) to 63)       ; --DAC4
 
+-- Unused Signals
 mark_unused(dac1_do(0 to 64-regsize));
 mark_unused(dac2_do(0 to 64-regsize));
 mark_unused(dac3_do(0 to 64-regsize));
@@ -622,6 +654,7 @@ generic map(width   => dac4_q'length, init => 0, expand_type => expand_type, nee
             dout    => dac4_q);
 
 
+-- Latch Instances
 exx_act_latch : tri_rlmreg_p
   generic map (width => exx_act_q'length, init => 0, expand_type => expand_type, needs_sreset => 1)
   port map (nclk    => nclk, vd => vdd, gd => gnd,

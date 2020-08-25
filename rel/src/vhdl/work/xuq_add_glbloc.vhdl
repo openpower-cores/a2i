@@ -16,9 +16,11 @@ library ibm;
   use ibm.std_ulogic_ao_support.all;
   use ibm.std_ulogic_mux_support.all;
 
+-- input phase is important
+-- (change X (B) by switching xor/xnor )
 
 entity xuq_add_glbloc is port(
-     g01        :in  std_ulogic_vector(0 to 7) ; 
+     g01        :in  std_ulogic_vector(0 to 7) ; -- after xor
      t01        :in  std_ulogic_vector(0 to 7) ;
      g08        :out std_ulogic ;
      t08        :out std_ulogic
@@ -34,11 +36,6 @@ ARCHITECTURE xuq_add_glbloc  OF xuq_add_glbloc  IS
  signal g02_b, t02_b :std_ulogic_vector(0 to 3);
  signal g04,   t04   :std_ulogic_vector(0 to 1);
  signal g08_b, t08_b :std_ulogic;
-
-
-
-
-
 
 
 BEGIN
@@ -69,9 +66,8 @@ BEGIN
 
 
 
-  u_g08_x: g08      <= not ( g08_b  ) ; 
+  u_g08_x: g08      <= not ( g08_b  ) ; -- output
 
-  u_t08_x: t08      <= not ( t08_b  ) ; 
+  u_t08_x: t08      <= not ( t08_b  ) ; -- output
 
-END; 
-
+END; -- ARCH xuq_add_glbloc

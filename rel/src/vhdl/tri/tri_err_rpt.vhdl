@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_err_rpt.vhdl
+-- *! DESCRIPTION : Error Reporting Component
+-- *!
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
@@ -20,31 +25,35 @@ library tri; use tri.tri_latches_pkg.all;
 entity tri_err_rpt is
 
   generic (
-      width        : positive := 1;               
-      mask_reset_value : std_ulogic_vector := "0";
-      inline       : boolean := false;            
-      share_mask   : boolean := false;            
-      use_nlats    : boolean := false;            
-      needs_sreset : integer := 1 ;        
-      expand_type  : integer := 1 );       
+      width        : positive := 1;               -- number of errors of the same type
+      mask_reset_value : std_ulogic_vector := "0";-- use to set default/flush value for mask bits
+      inline       : boolean := false;            -- make hold latch be inline; err_out is sticky -- default to shadow
+      share_mask   : boolean := false;            -- PERMISSION NEEDED for true
+                                                  -- used for width >1 to reduce area of mask (common error disable)
+      use_nlats    : boolean := false;            -- only necessary in standby area to be able to reset to init value
+      needs_sreset : integer := 1 ;        -- for inferred latches
+      expand_type  : integer := 1 );       -- 1 = non-ibm, 2 = ibm (MPG)
 
   port (
       vd            : inout power_logic;
       gd            : inout power_logic;
-      err_d1clk     : in  std_ulogic;           
+      err_d1clk     : in  std_ulogic;           -- caution: if lcb uses powersavings, errors must always get reported
       err_d2clk     : in  std_ulogic;
       err_lclk      : in  clk_logic;
+      -- error scan chain (func or mode)
       err_scan_in   : in  std_ulogic_vector(0 to width-1);
       err_scan_out  : out std_ulogic_vector(0 to width-1);
+      -- clock gateable mode clocks
       mode_dclk     : in  std_ulogic;
       mode_lclk     : in  clk_logic;
+      -- mode scan chain
       mode_scan_in  : in  std_ulogic_vector(0 to width-1);
       mode_scan_out : out std_ulogic_vector(0 to width-1);
 
       err_in        : in  std_ulogic_vector(0 to width-1);
       err_out       : out std_ulogic_vector(0 to width-1);
 
-      hold_out      : out std_ulogic_vector(0 to width-1); 
+      hold_out      : out std_ulogic_vector(0 to width-1); -- sticky error hold latch for trap usage
       mask_out      : out std_ulogic_vector(0 to width-1)
   );
   -- synopsys translate_off
@@ -55,7 +64,7 @@ end tri_err_rpt;
 
 architecture tri_err_rpt of tri_err_rpt is
 
-begin  
+begin  -- tri_err_rpt
 
   a: if expand_type /= 2 generate
     constant mask_initv : std_ulogic_vector(0 to (mask_reset_value'length + width-1)):=mask_reset_value & (0 to width-1=>'0');
@@ -66,6 +75,7 @@ begin
     -- synopsys translate_off
     -- synopsys translate_on
   begin
+    -- hold latches
     hold_in  <= err_in or hold_lt;
 
     hold: entity tri.tri_nlat_scan
@@ -85,6 +95,7 @@ begin
        q_b       => open
      );
 
+    -- mask
     m: if (share_mask = false) generate
         mask_lt <= mask_initv(0 to width-1);
     end generate m;
@@ -94,6 +105,7 @@ begin
 
     mode_scan_out <= (others => '0');
 
+    -- assign outputs
     hold_out <= hold_lt;
     mask_out <= mask_lt;
 
@@ -110,4 +122,3 @@ begin
   end generate a;
 
 end tri_err_rpt;
-

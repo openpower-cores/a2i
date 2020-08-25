@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--
+--  Description: Pervasive ABIST bolt-on sync and staging
+--
+--*****************************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library ibm,clib;
@@ -18,7 +23,7 @@ library tri;
 use tri.tri_latches_pkg.all;
 
 entity pcq_abist_bolton_stg is
-generic(expand_type             : integer := 2);     
+generic(expand_type             : integer := 2);     -- 0=ibm (umbra), 1=non-ibm, 2=ibm (mpg)
 port(
      vdd              : inout power_logic;
      gnd              : inout power_logic;
@@ -66,7 +71,7 @@ signal pc_pc_bc_fcreset_1         : std_ulogic;
 
 begin
 
-    bolton_enable_sync_meta : entity tri.tri_plat 
+    bolton_enable_sync_meta : entity tri.tri_plat -- non-scan plats, cannot use tri_async_lt scan latch for this
     generic map(
       width       => 6,
       expand_type => expand_type)
@@ -88,7 +93,7 @@ begin
 	q(4)   => pc_pc_bc_fcshdata_1,
 	q(5)   => pc_pc_bc_fcreset_1);
 
-    bolton_enable_sync : entity tri.tri_plat 
+    bolton_enable_sync : entity tri.tri_plat -- non-scan plats, cannot use tri_async_lt scan latch for this
     generic map(
       width       => 6,
       expand_type => expand_type)
@@ -111,7 +116,7 @@ begin
 	q(5) => pc_pc_bo_fcreset_0);
 
 
-    bolton_enable_sync_2 : entity tri.tri_plat 
+    bolton_enable_sync_2 : entity tri.tri_plat -- non-scan plats, cannot use tri_async_lt scan latch for this
     generic map(
       width       => 4,
       expand_type => expand_type)
@@ -130,6 +135,7 @@ begin
 	q(3) => pc_pc_bo_enable_0);
 
 
+-- Splitting out bx/fu/xu unit bolton_enable signals 4to3 staging for placement + timing
     bx_bolton_enable_4_3 : entity tri.tri_plat
     generic map( width => 1, expand_type => expand_type)
     port map(
@@ -161,6 +167,7 @@ begin
       q(0)   => pc_xu_bo_enable_3 );
 
 
+-- Splitting out iu/mm unit bolton_enable signals 5to4 staging for placement + timing
     iu_bolton_enable_5_4 : entity tri.tri_plat
     generic map( width => 1, expand_type => expand_type)
     port map(

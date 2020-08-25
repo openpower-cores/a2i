@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--
+--  Description: Pervasive Core LCB Control Component
+--
+--*****************************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library ibm;
@@ -18,7 +23,7 @@ library tri;
 use tri.tri_latches_pkg.all;
 
 entity pcq_clks_ctrl is
-generic(expand_type             : integer := 2          
+generic(expand_type             : integer := 2          -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
 );         
 port(
     vdd                         : inout power_logic;
@@ -40,6 +45,7 @@ port(
     rg_ck_fast_xstop            : in    std_ulogic;
     ct_ck_pm_ccflush_disable    : in    std_ulogic;
     ct_ck_pm_raise_tholds       : in    std_ulogic;
+--  --Thold + control outputs to the units
     pc_pc_ccflush_out_dc        : out   std_ulogic;
     pc_pc_gptr_sl_thold_4       : out   std_ulogic;
     pc_pc_time_sl_thold_4       : out   std_ulogic;
@@ -66,6 +72,7 @@ port(
 end pcq_clks_ctrl;
 
 architecture pcq_clks_ctrl of pcq_clks_ctrl is
+-- Scan ring select decodes for scan_type_dc vector
 constant scantype_func : natural  := 0;
 constant scantype_mode : natural  := 1;
 constant scantype_ccfg : natural  := 2;
@@ -79,7 +86,7 @@ constant scantype_time : natural  := 7;
 constant scantype_bndy : natural  := 8;
 constant scantype_fary : natural  := 9;
 
-signal scan_type_b                      : std_ulogic_vector(0 to 8); 
+signal scan_type_b                      : std_ulogic_vector(0 to 8); -- scantype;
 signal fast_xstop_gated_staged          : std_ulogic;
 signal fce_in, sg_in                    : std_ulogic;
 signal ary_nsl_thold, func_nsl_thold    : std_ulogic;
@@ -113,15 +120,20 @@ signal unused_signals                   : std_ulogic;
 begin
 
 
+-- unused signals
 unused_signals <= or_reduce(scan_type_b(2) & scan_type_b(4) & scan_type_b(6 to 8) & lbist_ip_dc);
  
+-- detect test dc mode
 testdc  <= gsd_test_enable_dc and not gsd_test_acmode_dc;
 
+-- enable sg/fce before latching
 sg_in   <= sg_5   and ccenable_dc;
 fce_in  <= fce_5  and ccenable_dc;
    
+-- scan chain type
 scan_type_b <= GATE_AND(sg_in, not scan_type_dc);
 
+-- setup for xx_thold_5 inputs
 thold_overide_ctrl <= fast_xstop_gated_staged and not sg_in and not lbist_en_dc and not gsd_test_enable_dc;
 
 rtim_sl_thold   <=  rtim_sl_thold_5;
@@ -129,16 +141,23 @@ func_sl_thold   <=  func_sl_thold_5  OR thold_overide_ctrl;
 func_nsl_thold  <=  func_nsl_thold_5 OR thold_overide_ctrl;
 ary_nsl_thold   <=  ary_nsl_thold_5  OR thold_overide_ctrl;
 
+-- setup for plat flush control signals
+-- Active when power_management enabled (PM_Sleep_enable or PM_RVW_enable active)
+-- If plats were in flush mode, forces plats to be clocked again for power-savings.
 pm_ccflush_disable_dc <= ct_ck_pm_ccflush_disable;
 
 ccflush_out_dc_int   <= ccflush_dc AND (NOT pm_ccflush_disable_dc OR lbist_en_dc OR testdc);
 pc_pc_ccflush_out_dc <= ccflush_out_dc_int;
 
 
+-- OR and MUX of thold signals
+                         -- scan only: stop if not scanning, not part of LBIST, hence no sg_in here
 gptr_sl_thold_in      <= func_sl_thold  or not scan_type_dc(scantype_gptr) or not ccenable_dc;
 
+                         -- scan only: stop if not scanning, not part of LBIST, hence no sg_in here
 time_sl_thold_in      <= func_sl_thold  or not scan_type_dc(scantype_time) or not ccenable_dc;
 
+                         -- scan only: stop if not scanning, not part of LBIST, hence no sg_in here
 repr_sl_thold_in      <= func_sl_thold  or not scan_type_dc(scantype_repr) or not ccenable_dc; 
 
 
@@ -181,6 +200,7 @@ ary_slp_nsl_thold_in  <= ary_nsl_thold;
 rtim_sl_thold_in      <= rtim_sl_thold;
 
 
+-- PLAT staging/redrive
 fast_stop_staging: tri_plat
    generic map( width => 1, expand_type => expand_type)
    port map( vd      => vdd,
@@ -252,4 +272,3 @@ thold_plat: tri_plat
            ); 
 
 end pcq_clks_ctrl;
-

@@ -8,6 +8,9 @@
 -- license is available.
 
 			
+--********************************************************************
+--* TITLE: I-ERAT CAM Tri-Library Model
+--* NAME: tri_cam_32x143_1r1w1c
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -101,6 +104,7 @@ entity tri_cam_32x143_1r1w1c  is
    rd_cam_data                    :  out  std_ulogic_vector(0 to cam_data_width-1);
 
 
+----- new ports for IO plus -----------------------
 bypass_mux_enab_np1   :  in  std_ulogic;
 bypass_attr_np1       :  in  std_ulogic_vector(0 to 20);
 attr_np2	        :  out std_ulogic_vector(0 to 20);
@@ -238,11 +242,13 @@ signal bram2_addra,   bram2_addrb         : std_ulogic_vector(0 to 9);
 signal bram0_wea, bram1_wea, bram2_wea   : std_ulogic;
 signal array_cmp_data_bram    : std_ulogic_vector(0 to 55);
 signal array_cmp_data_bramp    : std_ulogic_vector(66 to 72);
+-- Latches
 signal sreset_q                           : std_ulogic;
 signal gate_fq,         gate_d            : std_ulogic;
 signal comp_addr_np1_d, comp_addr_np1_q  : std_ulogic_vector(52-rpn_width to 51);
 signal rpn_np2_d,rpn_np2_q               : std_ulogic_vector(52-rpn_width to 51);
 signal attr_np2_d,attr_np2_q             : std_ulogic_vector(0 to 20);
+-- CAM entry signals
 signal     entry0_epn_d,   entry0_epn_q        : std_ulogic_vector(0 to 51);
 signal     entry0_xbit_d,   entry0_xbit_q      : std_ulogic;
 signal     entry0_size_d,   entry0_size_q      : std_ulogic_vector(0 to 2);
@@ -795,6 +801,7 @@ signal wr_array_data_bram  : std_ulogic_vector(0 to 72);
 signal rd_array_data_d_std      : std_logic_vector(0 to 72);
 signal array_cmp_data_bram_std  : std_logic_vector(0 to 55);
 signal array_cmp_data_bramp_std : std_logic_vector(66 to 72);
+-- latch signals
 signal rd_array_data_d         : std_ulogic_vector(0 to array_data_width-1);
 signal rd_array_data_q        : std_ulogic_vector(0 to array_data_width-1);
 signal cam_cmp_data_d          : std_ulogic_vector(0 to cam_data_width-1);
@@ -1640,6 +1647,9 @@ entry31_cmpmask_q  <= entry31_cmpmask_d;
 end if;
 end if;
 end process;
+-----------------------------------------------------------------------
+-- latch input logic
+-----------------------------------------------------------------------
 comp_addr_np1_d <= comp_addr(52-rpn_width to 51);
 cam_hit_d <= '1' when (match_vec /= "00000000000000000000000000000000" and comp_request='1') else '0';
 cam_hit_entry_d <= "00001" when match_vec(0 to 1)="01" else
@@ -1707,6 +1717,7 @@ with wr_entry0_sel(1)   select
 with wr_entry0_sel(0)   select
  entry0_cmpmask_d       <= wr_cam_data(75 to 83)     when '1',
                           entry0_cmpmask_q    when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry0_sel(0)   select
  entry0_parity_d(0   to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry0_parity_q(0   to 3)   when others;
@@ -1754,6 +1765,7 @@ with wr_entry1_sel(1)   select
 with wr_entry1_sel(0)   select
  entry1_cmpmask_d       <= wr_cam_data(75 to 83)     when '1',
                           entry1_cmpmask_q    when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry1_sel(0)   select
  entry1_parity_d(0   to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry1_parity_q(0   to 3)   when others;
@@ -1801,6 +1813,7 @@ with wr_entry2_sel(1)   select
 with wr_entry2_sel(0)   select
  entry2_cmpmask_d       <= wr_cam_data(75 to 83)     when '1',
                           entry2_cmpmask_q    when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry2_sel(0)   select
  entry2_parity_d(0   to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry2_parity_q(0   to 3)   when others;
@@ -1848,6 +1861,7 @@ with wr_entry3_sel(1)   select
 with wr_entry3_sel(0)   select
  entry3_cmpmask_d       <= wr_cam_data(75 to 83)     when '1',
                           entry3_cmpmask_q    when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry3_sel(0)   select
  entry3_parity_d(0   to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry3_parity_q(0   to 3)   when others;
@@ -1895,6 +1909,7 @@ with wr_entry4_sel(1)   select
 with wr_entry4_sel(0)   select
  entry4_cmpmask_d       <= wr_cam_data(75 to 83)     when '1',
                           entry4_cmpmask_q    when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry4_sel(0)   select
  entry4_parity_d(0   to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry4_parity_q(0   to 3)   when others;
@@ -1942,6 +1957,7 @@ with wr_entry5_sel(1)   select
 with wr_entry5_sel(0)   select
  entry5_cmpmask_d       <= wr_cam_data(75 to 83)     when '1',
                           entry5_cmpmask_q    when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry5_sel(0)   select
  entry5_parity_d(0   to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry5_parity_q(0   to 3)   when others;
@@ -1989,6 +2005,7 @@ with wr_entry6_sel(1)   select
 with wr_entry6_sel(0)   select
  entry6_cmpmask_d       <= wr_cam_data(75 to 83)     when '1',
                           entry6_cmpmask_q    when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry6_sel(0)   select
  entry6_parity_d(0   to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry6_parity_q(0   to 3)   when others;
@@ -2036,6 +2053,7 @@ with wr_entry7_sel(1)   select
 with wr_entry7_sel(0)   select
  entry7_cmpmask_d       <= wr_cam_data(75 to 83)     when '1',
                           entry7_cmpmask_q    when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry7_sel(0)   select
  entry7_parity_d(0   to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry7_parity_q(0   to 3)   when others;
@@ -2083,6 +2101,7 @@ with wr_entry8_sel(1)   select
 with wr_entry8_sel(0)   select
  entry8_cmpmask_d       <= wr_cam_data(75 to 83)     when '1',
                           entry8_cmpmask_q    when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry8_sel(0)   select
  entry8_parity_d(0   to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry8_parity_q(0   to 3)   when others;
@@ -2130,6 +2149,7 @@ with wr_entry9_sel(1)   select
 with wr_entry9_sel(0)   select
  entry9_cmpmask_d       <= wr_cam_data(75 to 83)     when '1',
                           entry9_cmpmask_q    when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry9_sel(0)   select
  entry9_parity_d(0   to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry9_parity_q(0   to 3)   when others;
@@ -2177,6 +2197,7 @@ with wr_entry10_sel(1)  select
 with wr_entry10_sel(0)  select
  entry10_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry10_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry10_sel(0)  select
  entry10_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry10_parity_q(0  to 3)   when others;
@@ -2224,6 +2245,7 @@ with wr_entry11_sel(1)  select
 with wr_entry11_sel(0)  select
  entry11_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry11_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry11_sel(0)  select
  entry11_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry11_parity_q(0  to 3)   when others;
@@ -2271,6 +2293,7 @@ with wr_entry12_sel(1)  select
 with wr_entry12_sel(0)  select
  entry12_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry12_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry12_sel(0)  select
  entry12_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry12_parity_q(0  to 3)   when others;
@@ -2318,6 +2341,7 @@ with wr_entry13_sel(1)  select
 with wr_entry13_sel(0)  select
  entry13_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry13_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry13_sel(0)  select
  entry13_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry13_parity_q(0  to 3)   when others;
@@ -2365,6 +2389,7 @@ with wr_entry14_sel(1)  select
 with wr_entry14_sel(0)  select
  entry14_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry14_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry14_sel(0)  select
  entry14_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry14_parity_q(0  to 3)   when others;
@@ -2412,6 +2437,7 @@ with wr_entry15_sel(1)  select
 with wr_entry15_sel(0)  select
  entry15_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry15_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry15_sel(0)  select
  entry15_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry15_parity_q(0  to 3)   when others;
@@ -2459,6 +2485,7 @@ with wr_entry16_sel(1)  select
 with wr_entry16_sel(0)  select
  entry16_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry16_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry16_sel(0)  select
  entry16_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry16_parity_q(0  to 3)   when others;
@@ -2506,6 +2533,7 @@ with wr_entry17_sel(1)  select
 with wr_entry17_sel(0)  select
  entry17_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry17_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry17_sel(0)  select
  entry17_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry17_parity_q(0  to 3)   when others;
@@ -2553,6 +2581,7 @@ with wr_entry18_sel(1)  select
 with wr_entry18_sel(0)  select
  entry18_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry18_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry18_sel(0)  select
  entry18_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry18_parity_q(0  to 3)   when others;
@@ -2600,6 +2629,7 @@ with wr_entry19_sel(1)  select
 with wr_entry19_sel(0)  select
  entry19_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry19_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry19_sel(0)  select
  entry19_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry19_parity_q(0  to 3)   when others;
@@ -2647,6 +2677,7 @@ with wr_entry20_sel(1)  select
 with wr_entry20_sel(0)  select
  entry20_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry20_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry20_sel(0)  select
  entry20_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry20_parity_q(0  to 3)   when others;
@@ -2694,6 +2725,7 @@ with wr_entry21_sel(1)  select
 with wr_entry21_sel(0)  select
  entry21_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry21_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry21_sel(0)  select
  entry21_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry21_parity_q(0  to 3)   when others;
@@ -2741,6 +2773,7 @@ with wr_entry22_sel(1)  select
 with wr_entry22_sel(0)  select
  entry22_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry22_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry22_sel(0)  select
  entry22_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry22_parity_q(0  to 3)   when others;
@@ -2788,6 +2821,7 @@ with wr_entry23_sel(1)  select
 with wr_entry23_sel(0)  select
  entry23_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry23_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry23_sel(0)  select
  entry23_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry23_parity_q(0  to 3)   when others;
@@ -2835,6 +2869,7 @@ with wr_entry24_sel(1)  select
 with wr_entry24_sel(0)  select
  entry24_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry24_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry24_sel(0)  select
  entry24_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry24_parity_q(0  to 3)   when others;
@@ -2882,6 +2917,7 @@ with wr_entry25_sel(1)  select
 with wr_entry25_sel(0)  select
  entry25_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry25_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry25_sel(0)  select
  entry25_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry25_parity_q(0  to 3)   when others;
@@ -2929,6 +2965,7 @@ with wr_entry26_sel(1)  select
 with wr_entry26_sel(0)  select
  entry26_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry26_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry26_sel(0)  select
  entry26_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry26_parity_q(0  to 3)   when others;
@@ -2976,6 +3013,7 @@ with wr_entry27_sel(1)  select
 with wr_entry27_sel(0)  select
  entry27_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry27_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry27_sel(0)  select
  entry27_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry27_parity_q(0  to 3)   when others;
@@ -3023,6 +3061,7 @@ with wr_entry28_sel(1)  select
 with wr_entry28_sel(0)  select
  entry28_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry28_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry28_sel(0)  select
  entry28_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry28_parity_q(0  to 3)   when others;
@@ -3070,6 +3109,7 @@ with wr_entry29_sel(1)  select
 with wr_entry29_sel(0)  select
  entry29_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry29_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry29_sel(0)  select
  entry29_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry29_parity_q(0  to 3)   when others;
@@ -3117,6 +3157,7 @@ with wr_entry30_sel(1)  select
 with wr_entry30_sel(0)  select
  entry30_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry30_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry30_sel(0)  select
  entry30_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry30_parity_q(0  to 3)   when others;
@@ -3164,6 +3205,7 @@ with wr_entry31_sel(1)  select
 with wr_entry31_sel(0)  select
  entry31_cmpmask_d      <= wr_cam_data(75 to 83)     when '1',
                           entry31_cmpmask_q   when others;
+-- the cam parity bits.. some wr_array_data bits contain parity for cam
 with wr_entry31_sel(0)  select
  entry31_parity_d(0  to 3)  <= wr_array_data(rpn_width+21 to rpn_width+24)      when '1',
                                entry31_parity_q(0  to 3)   when others;
@@ -3179,6 +3221,7 @@ with wr_entry31_sel(1)  select
 with wr_entry31_sel(1)  select
  entry31_parity_d(9)    <= wr_array_data(rpn_width+30)     when '1',
                           entry31_parity_q(9)   when others;
+-- entry valid and thdid next state logic
 entry0_inval   <= (comp_invalidate and match_vec(0))   or flash_invalidate;
 entry0_v_muxsel(0   to 1) <= (entry0_inval   & wr_entry0_sel(0));
 with entry0_v_muxsel(0   to 1) select
@@ -3499,6 +3542,7 @@ with entry31_v_muxsel(0  to 1) select
 with wr_entry31_sel(0)  select
  entry31_thdid_d(0  to 3) <= wr_cam_data(57 to 60)  when '1',
                                entry31_thdid_q(0  to 3)  when others;
+-- CAM compare data out mux
 entry0_cam_vec   <= entry0_epn_q   & entry0_xbit_q   & entry0_size_q   & entry0_v_q   & entry0_thdid_q   &
                       entry0_class_q   & entry0_extclass_q   & entry0_hv_q   & entry0_ds_q   & entry0_pid_q   & entry0_cmpmask_q;
 entry1_cam_vec   <= entry1_epn_q   & entry1_xbit_q   & entry1_size_q   & entry1_v_q   & entry1_thdid_q   &
@@ -3599,6 +3643,7 @@ with cam_cmp_data_muxsel select
                      entry31_cam_vec  when "011111",
                      cam_cmp_data_q  when others;
 cam_cmp_data_np1 <= cam_cmp_data_q;
+-- CAM read data out mux
 rd_cam_data_muxsel <= not(rd_val) & rw_entry;
 with rd_cam_data_muxsel select
    rd_cam_data_d <= entry0_cam_vec when "000000",
@@ -3634,6 +3679,7 @@ with rd_cam_data_muxsel select
                      entry30_cam_vec  when "011110",
                      entry31_cam_vec  when "011111",
                      rd_cam_data_q  when others;
+-- CAM compare parity out mux
 with cam_cmp_data_muxsel select
   cam_cmp_parity_d <= entry0_parity_q when "000000",
                      entry1_parity_q   when "000001",
@@ -3672,6 +3718,7 @@ array_cmp_data_np1(0 to 50) <= array_cmp_data_bram(2 to 31) & array_cmp_data_bra
 array_cmp_data_np1(51 to 60) <= cam_cmp_parity_q;
 array_cmp_data_np1(61 to 67) <= array_cmp_data_bramp(66 to 72);
 array_cmp_data <= array_cmp_data_np1;
+-- CAM read parity out mux
 with rd_cam_data_muxsel select
    rd_array_data_d(51 to 60) <= entry0_parity_q when "000000",
                      entry1_parity_q   when "000001",
@@ -3720,6 +3767,9 @@ attr_np2_d(0 to 20)         <= ( bypass_attr_np1(0 to 20) and (0 to 20 => bypass
                                        ( array_cmp_data_np1(30 to 50) and (30 to 50 => not bypass_mux_enab_np1) );
 rpn_np2(22 to 51)  <=  rpn_np2_q(22 to 51);
 attr_np2(0 to 20)  <=  attr_np2_q(0 to 20);
+-----------------------------------------------------------------------
+-- matchline component instantiations
+-----------------------------------------------------------------------
 matchline_comb0   : tri_cam_32x143_1r1w1c_matchline
  generic map (have_xbit => 1,
              num_pgsizes => 5,
@@ -4872,6 +4922,9 @@ matchline_comb31  : tri_cam_32x143_1r1w1c_matchline
 
     match                            => match_vec(31)        
   );
+-----------------------------------------------------------------------
+-- BRAM signal assignments
+-----------------------------------------------------------------------
 bram0_wea   <= wr_array_val(0) and gate_fq;
 bram1_wea   <= wr_array_val(1) and gate_fq;
 bram2_wea   <= wr_array_val(1) and gate_fq;
@@ -4881,17 +4934,21 @@ bram2_addra(10-num_entry_log2 to 9)   <= rw_entry(0 to num_entry_log2-1);
 bram0_addrb(9-num_entry_log2 to 8)    <= cam_hit_entry_q;
 bram1_addrb(11-num_entry_log2 to 10)  <= cam_hit_entry_q;
 bram2_addrb(10-num_entry_log2 to 9)   <= cam_hit_entry_q;
+-- Unused Address Bits
 bram0_addra(0 to 8-num_entry_log2) <= (others => '0');
 bram0_addrb(0 to 8-num_entry_log2) <= (others => '0');
 bram1_addra(0 to 10-num_entry_log2) <= (others => '0');
 bram1_addrb(0 to 10-num_entry_log2) <= (others => '0');
 bram2_addra(0 to 9-num_entry_log2) <= (others => '0');
 bram2_addrb(0 to 9-num_entry_log2) <= (others => '0');
+-- This ram houses the RPN(20:51) bits, wr_array_data_bram(0:31)
+--   uses wr_array_val(0), parity is wr_array_data_bram(66:69)
 bram0 : ramb16_s36_s36
 
 -- pragma translate_off
 generic map(
 
+-- all, none, warning_only, generate_x_only
 sim_collision_check => "none")
 
 -- pragma translate_on
@@ -4915,11 +4972,14 @@ port map(
 	               wea   => bram0_wea,
 	               web   => '0'
 	               );
+-- This ram houses the RPN(18:19),R,C,4xResv bits, wr_array_data_bram(32:39)
+--   uses wr_array_val(1), parity is wr_array_data_bram(70)
 bram1 : ramb16_s9_s9
 
 -- pragma translate_off
 generic map(
 
+-- all, none, warning_only, generate_x_only
 sim_collision_check => "none")
 
 -- pragma translate_on
@@ -4943,11 +5003,14 @@ port map(
 	               wea   => bram1_wea,
 	               web   => '0'
 	               );
+-- This ram houses the 1xResv,U0-U3,WIMGE,UX,UW,UR,SX,SW,SR bits, wr_array_data_bram(40:55)
+--   uses wr_array_val(2), parity is wr_array_data_bram(71:72)
 bram2 : ramb16_s18_s18
 
 -- pragma translate_off
 generic map(
 
+-- all, none, warning_only, generate_x_only
 sim_collision_check => "none")
 
 -- pragma translate_on
@@ -4971,6 +5034,22 @@ port map(
 	               wea   => bram2_wea,
 	               web   => '0'
 	               );
+-- array write data swizzle -> convert 68-bit data to 73-bit bram data
+-- 32x143 version, 42b RA
+-- wr_array_data
+--  0:29  - RPN
+--  30:31  - R,C
+--  32:35  - ResvAttr
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:47  - UX,UW,UR
+--  48:50  - SX,SW,SR
+--  51:60  - CAM parity
+--  61:67  - Array parity
+-- RTX layout in A2_AvpEratHelper.C
+--  ram0(0:31):  00  & RPN(0:29)
+--  ram1(0:7) :  00  & R,C,ResvAttr(0:3)
+--  ram2(0:15): '0' & U(0:3),WIMGE,UX,UW,UR,SX,SW,SR
 wr_array_data_bram(0 to 72) <= "00" & wr_array_data(0 to 29) & 
                                  "00" & wr_array_data(30 to 35) & 
                                  '0' & wr_array_data(36 to 50) &
@@ -4982,6 +5061,9 @@ rd_array_data_d(36 to 50)       <= std_ulogic_vector(rd_array_data_d_std(41 to 5
 rd_array_data_d(61 to 67)      <= std_ulogic_vector(rd_array_data_d_std(66 to 72));
 array_cmp_data_bram             <= std_ulogic_vector(array_cmp_data_bram_std);
 array_cmp_data_bramp            <= std_ulogic_vector(array_cmp_data_bramp_std);
+-----------------------------------------------------------------------
+-- entity output assignments
+-----------------------------------------------------------------------
 rd_array_data <= rd_array_data_q;
 cam_cmp_data <= cam_cmp_data_q;
 rd_cam_data <= rd_cam_data_q;
@@ -5025,4 +5107,3 @@ regfile_scan_out <= regfile_scan_in;
 time_scan_out <= time_scan_in;
 end generate;
 end tri_cam_32x143_1r1w1c;
-

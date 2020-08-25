@@ -7,6 +7,10 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_lcbnd.vhdl
+-- *! DESCRIPTION : Wrapper for nlat LCB - will not run in pulsed mode
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
@@ -19,7 +23,7 @@ library tri; use tri.tri_latches_pkg.all;
 
 entity tri_lcbnd is
 
-  generic ( expand_type : integer := 1 ); 
+  generic ( expand_type : integer := 1 ); -- 1 = non-ibm, 2 = ibm (MPG)
 
   port (
         vd          : inout power_logic;
@@ -63,4 +67,3 @@ begin
   end generate a;
 
 end tri_lcbnd;
-

@@ -7,15 +7,17 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  Prioritizer
+--
 library ieee,ibm,support;
 use ieee.std_logic_1164.all;
 use ibm.std_ulogic_function_support.reverse;
 
 entity xuq_cpl_pri is
 generic(
-   size                             :     integer range 3 to 32 := 32;  
-   rev                              :     integer range 0 to 1  := 0;   
-   cmp_zero                         :     integer range 0 to 1  := 0);  
+   size                             :     integer range 3 to 32 := 32;  -- Size of "cond"
+   rev                              :     integer range 0 to 1  := 0;   -- 0 = 0 is highest,   1 = 0 is lowest
+   cmp_zero                         :     integer range 0 to 1  := 0);  -- 1 = include comparing cond to zero in pri vector
 port(
    cond                             : in  std_ulogic_vector(0 to size-1);
    pri                              : out std_ulogic_vector(0 to size-1+cmp_zero);
@@ -42,6 +44,7 @@ rev_gen1   : if rev  = 1 generate
           l0(0 to s)    <= reverse(cond(0 to s));
 end generate;  
 
+-- Odd Numbered Levels are inverted
 
 l1_not:  or_l1(0)       <= not   l0(0);
 l1_nor:  or_l1(1 to s)  <=       l0(0 to s-1) nor     l0(1 to s);

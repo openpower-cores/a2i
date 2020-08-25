@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU SPR - per thread register slice
+--
 library ieee,ibm,support,work,tri;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -35,23 +37,28 @@ port(
    scan_in                          : in  std_ulogic;
    scan_out                         : out std_ulogic;
    
+   -- Read Interface
    cspr_tspr_ex2_instr              : in  std_ulogic_vector(11 to 20);
    tspr_cspr_ex2_tspr_rt            : out std_ulogic_vector(64-regsize to 63);
 
+   -- Write Interface
    ex5_val                          : in  std_ulogic;
    cspr_tspr_ex5_is_mtspr           : in  std_ulogic;
    cspr_tspr_ex5_instr              : in  std_ulogic_vector(11 to 20);
    ex5_spr_wd                       : in  std_ulogic_vector(64-regsize to 63);
    ex5_cia_p1                       : in  std_ulogic_vector(62-eff_ifar to 61);
    
+   -- Decode Signals
    ex4_lr_update                    : in  std_ulogic;
    ex4_ctr_dec_update               : in  std_ulogic;
 
 
+   -- SPRs
    spr_iar                          : in  std_ulogic_vector(62-eff_ifar to 61);
 	spr_ctr                          : out std_ulogic_vector(0 to regsize-1);
 	spr_lr                           : out std_ulogic_vector(0 to regsize-1);
 
+   -- Power
    vdd                              : inout power_logic;
    gnd                              : inout power_logic
 );
@@ -62,22 +69,31 @@ port(
 end xuq_cpl_spr_tspr;
 architecture xuq_cpl_spr_tspr of xuq_cpl_spr_tspr is
 
+-- Types
 subtype DO                            is std_ulogic_vector(65-regsize to 64);
+-- SPR Registers
 signal ctr_d          , ctr_q          : std_ulogic_vector(64-(regsize) to 63);
 signal lr_d           , lr_q           : std_ulogic_vector(64-(regsize) to 63);
+-- FUNC Scanchain
 constant ctr_offset                    : natural := 0;
 constant lr_offset                     : natural := ctr_offset      + ctr_q'length;
 constant last_reg_offset               : natural := lr_offset       + lr_q'length;
+-- BCFG Scanchain
 constant last_reg_offset_bcfg          : natural := 1;
+-- CCFG Scanchain
 constant last_reg_offset_ccfg          : natural := 1;
+-- DCFG Scanchain
 constant last_reg_offset_dcfg          : natural := 1;
-signal ex5_lr_update_q                 : std_ulogic;                 
-signal ex5_ctr_dec_update_q            : std_ulogic;                 
+-- Latches
+signal ex5_lr_update_q                 : std_ulogic;                 -- ex4_lr_update
+signal ex5_ctr_dec_update_q            : std_ulogic;                 -- ex4_ctr_dec_update
+-- Scanchains
 constant ex5_lr_update_offset          : integer := last_reg_offset;
 constant ex5_ctr_dec_update_offset     : integer := ex5_lr_update_offset           + 1;
 constant scan_right                    : integer := ex5_ctr_dec_update_offset      + 1;
 signal siv                             : std_ulogic_vector(0 to scan_right-1);
 signal sov                             : std_ulogic_vector(0 to scan_right-1);
+-- Signals
 signal tiup                            : std_ulogic;
 signal tidn                            : std_ulogic_vector(00 to 63);
 signal ex2_instr                       : std_ulogic_vector(11 to 20);
@@ -86,6 +102,7 @@ signal ex5_instr                       : std_ulogic_vector(11 to 20);
 signal ex5_lr_update                   : std_ulogic;
 signal ex5_ctr_dec_update              : std_ulogic;
 signal spr_iar_int                     : std_ulogic_vector(0 to 62);
+-- Data
 
 signal ex5_ctr_di                      : std_ulogic_vector(ctr_q'range);
 signal ex5_lr_di                       : std_ulogic_vector(lr_q'range);
@@ -122,14 +139,18 @@ ex5_ctr_dec_update   <= ex5_val and ex5_ctr_dec_update_q;
 
 spr_iar_int    <= tidn(0 to 62-eff_ifar) & spr_iar;
 
+-- SPR Input Control
+-- CTR
 ctr_act        <= ex5_ctr_we or ex5_ctr_dec_update;
 
 with ex5_ctr_dec_update_q select
    ctr_d       <= std_ulogic_vector(unsigned(ctr_q) - 1) when '1',
                   ex5_ctr_di                             when others;
 
+-- IAR
 iar_act        <= tiup;
 
+-- LR
 lr_act         <= ex5_lr_we or ex5_lr_update;
 
 with ex5_lr_update select
@@ -164,16 +185,16 @@ tspr_cspr_ex2_tspr_rt <=
 	(lr_do(DO'range)          and (DO'range => ex2_lr_re      ));
 end generate;
 
-ex2_ctr_rdec      <= (ex2_instr(11 to 20) = "0100100000");   
-ex2_iar_rdec      <= (ex2_instr(11 to 20) = "1001011011");   
-ex2_lr_rdec       <= (ex2_instr(11 to 20) = "0100000000");   
+ex2_ctr_rdec      <= (ex2_instr(11 to 20) = "0100100000");   --    9
+ex2_iar_rdec      <= (ex2_instr(11 to 20) = "1001011011");   --  882
+ex2_lr_rdec       <= (ex2_instr(11 to 20) = "0100000000");   --    8
 ex2_ctr_re        <=  ex2_ctr_rdec;
 ex2_iar_re        <=  ex2_iar_rdec;
 ex2_lr_re         <=  ex2_lr_rdec;
 
-ex5_ctr_wdec      <= (ex5_instr(11 to 20) = "0100100000");   
-ex5_iar_wdec      <= (ex5_instr(11 to 20) = "1001011011");   
-ex5_lr_wdec       <= (ex5_instr(11 to 20) = "0100000000");   
+ex5_ctr_wdec      <= (ex5_instr(11 to 20) = "0100100000");   --    9
+ex5_iar_wdec      <= (ex5_instr(11 to 20) = "1001011011");   --  882
+ex5_lr_wdec       <= (ex5_instr(11 to 20) = "0100000000");   --    8
 ex5_ctr_we        <= ex5_val and ex5_is_mtspr and  ex5_ctr_wdec;
 ex5_iar_we        <= ex5_val and ex5_is_mtspr and  ex5_iar_wdec;
 ex5_lr_we         <= ex5_val and ex5_is_mtspr and  ex5_lr_wdec;
@@ -181,16 +202,20 @@ ex5_lr_we         <= ex5_val and ex5_is_mtspr and  ex5_lr_wdec;
 spr_ctr                    <= ctr_q(64-(regsize) to 63);
 spr_lr                     <= lr_q(64-(regsize) to 63);
 
-ex5_ctr_di     <= ex5_spr_wd(64-(regsize) to 63)   ; 
+-- CTR
+ex5_ctr_di     <= ex5_spr_wd(64-(regsize) to 63)   ; --CTR
 ctr_do         <= tidn(0 to 64-(regsize))          &
-						ctr_q(64-(regsize) to 63)        ; 
+						ctr_q(64-(regsize) to 63)        ; --CTR
+-- IAR
 iar_do         <= tidn(0 to 0)                     &
-						spr_iar_int(1 to 62)             & 
-						tidn(62 to 63)                   ; 
-ex5_lr_di      <= ex5_spr_wd(64-(regsize) to 63)   ; 
+						spr_iar_int(1 to 62)             & --IAR
+						tidn(62 to 63)                   ; --///
+-- LR
+ex5_lr_di      <= ex5_spr_wd(64-(regsize) to 63)   ; --LR
 lr_do          <= tidn(0 to 64-(regsize))          &
-						lr_q(64-(regsize) to 63)         ; 
+						lr_q(64-(regsize) to 63)         ; --LR
 
+-- Unused Signals
 mark_unused(ctr_do(0 to 64-regsize));
 mark_unused(iar_do(0 to 64-regsize));
 mark_unused(lr_do(0 to 64-regsize));
@@ -228,6 +253,7 @@ mark_unused(spr_iar_int(0));
 mark_unused(iar_act);
 mark_unused(ex5_iar_we);
 
+-- Latch Instances
 ex5_lr_update_latch : tri_rlmlatch_p
   generic map (init => 0, expand_type => expand_type, needs_sreset => 1)
   port map (nclk    => nclk, vd => vdd, gd => gnd,

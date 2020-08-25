@@ -9,6 +9,11 @@
 
 			
 
+--********************************************************************
+--* TITLE: Memory Management Unit TLB Input Request Queue from ERATs
+--* NAME: mmq_tlb_req.vhdl
+--*********************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library ibm;
@@ -298,6 +303,7 @@ constant derat_ex6_pid_offset    : natural := derat_ex6_ttype_offset + 2;
 constant derat_ex6_lpid_offset   : natural := derat_ex6_pid_offset + pid_width;
 constant spare_offset               : natural := derat_ex6_lpid_offset + lpid_width;
 constant scan_right                 : natural := spare_offset + 32 -1;
+-- Latch signals
 signal ierat_req0_valid_d,   ierat_req0_valid_q          : std_ulogic;
 signal ierat_req0_nonspec_d,   ierat_req0_nonspec_q      : std_ulogic;
 signal ierat_req0_thdid_d,   ierat_req0_thdid_q      : std_ulogic_vector(0 to thdid_width-1);
@@ -404,11 +410,13 @@ signal derat_inptr_d, derat_inptr_q    : std_ulogic_vector(0 to 1);
 signal derat_outptr_d, derat_outptr_q    : std_ulogic_vector(0 to 1);
 signal tlb_seq_derat_req_d, tlb_seq_derat_req_q  : std_ulogic;
 signal spare_q    : std_ulogic_vector(0 to 31);
+-- logic signals
 signal ierat_req_pid_mux : std_ulogic_vector(0 to pid_width-1);
 signal tlb_req_quiesce_b : std_ulogic_vector(0 to thdid_width-1);
 signal unused_dc  :  std_ulogic_vector(0 to 12);
 -- synopsys translate_off
 -- synopsys translate_on
+-- Pervasive
 signal pc_sg_1         : std_ulogic;
 signal pc_sg_0         : std_ulogic;
 signal pc_func_sl_thold_1        : std_ulogic;
@@ -422,6 +430,13 @@ signal pc_func_slp_sl_force : std_ulogic;
 signal siv                      : std_ulogic_vector(0 to scan_right);
 signal sov                      : std_ulogic_vector(0 to scan_right);
 begin
+-----------------------------------------------------------------------
+-- Logic
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+-- Glorp1 - common stuff for erat-only and tlb
+-----------------------------------------------------------------------
+-- not quiesced
 tlb_req_quiesce_b(0 to thdid_width-1) <=
  ( (0 to thdid_width-1 => ierat_req0_valid_q)   and ierat_req0_thdid_q(0   to thdid_width-1) ) or
  ( (0 to thdid_width-1 => ierat_req1_valid_q)   and ierat_req1_thdid_q(0   to thdid_width-1) ) or
@@ -440,6 +455,7 @@ tlb_req_quiesce_b(0 to thdid_width-1) <=
 tlb_req_quiesce <= not tlb_req_quiesce_b;
 xu_mm_ierat_flush_d <= xu_mm_ierat_flush;
 xu_mm_ierat_miss_d  <= xu_mm_ierat_miss;
+-- iu pipe for non-speculative ierat flush processing
 ierat_iu3_flush_d <=  iu_mm_ierat_flush;
 ierat_iu3_valid_d <=  iu_mm_ierat_req;
 ierat_iu4_valid_d <=  '1' when (ierat_iu3_valid_q='1' and or_reduce(ierat_iu3_thdid_q and not(ierat_iu3_flush_q) and not(xu_mm_ierat_flush_q))='1')
@@ -463,6 +479,7 @@ ierat_iu5_thdid_d   <= ierat_iu4_thdid_q;
 ierat_iu5_epn_d   <= ierat_iu4_epn_q;
 ierat_iu5_state_d   <= ierat_iu4_state_q;
 ierat_iu5_pid_d   <= ierat_iu4_pid_q;
+-- ierat request queue logic pointers
 ierat_inptr_d <= "00" when ierat_req0_valid_q='1' and ierat_req0_nonspec_q='0' and or_reduce(ierat_req0_thdid_q and (ierat_iu3_flush_q or xu_mm_ierat_flush_q))='1'
               else "01" when ierat_req1_valid_q='1' and ierat_req1_nonspec_q='0' and or_reduce(ierat_req1_thdid_q and (ierat_iu3_flush_q or xu_mm_ierat_flush_q))='1'
               else "10" when ierat_req2_valid_q='1' and ierat_req2_nonspec_q='0' and or_reduce(ierat_req2_thdid_q and (ierat_iu3_flush_q or xu_mm_ierat_flush_q))='1'
@@ -504,6 +521,8 @@ tlb_seq_ierat_req_d <= '1' when ((ierat_outptr_q="00" and ierat_req0_valid_q='1'
               (ierat_outptr_q="11" and ierat_req3_valid_q='1' and ierat_req3_nonspec_q='1' and or_reduce(ierat_req3_thdid_q and  not(xu_mm_ierat_flush_q))='1'))
               else '0';
 tlb_seq_ierat_req <= tlb_seq_ierat_req_q;
+-- i-erat queue valid bit is ierat_req<t>_valid_q
+--  tlb_cmp_ierat_dup_val  bits 0:3 are req<t>_tag5_match, 4 is tag5 hit_reload, 5 is stretched hit_reload, 6 is ierat iu5 stage dup
 ierat_req0_valid_d   <= '1' when (ierat_iu5_valid_q='1' and or_reduce(ierat_iu5_thdid_q and not(ierat_iu3_flush_q) and not(xu_mm_ierat_flush_q))='1'
                                         and ierat_req0_valid_q='0'   and ierat_inptr_q="00")
                    else '0' when (ierat_req0_valid_q='1'   and ierat_req0_nonspec_q='0'   and or_reduce(ierat_req0_thdid_q   and xu_mm_ierat_flush_q)='1')
@@ -612,6 +631,7 @@ ierat_req_pid_mux <= pid1 when iu_mm_ierat_thdid(1)='1'
             else pid2 when iu_mm_ierat_thdid(2)='1'
             else pid3 when iu_mm_ierat_thdid(3)='1'
             else pid0;
+-- xu pipe for non-speculative derat flush processing
 derat_ex4_valid_d <=  '1' when (xu_mm_derat_req='1' and or_reduce(xu_mm_derat_thdid and not(xu_ex3_flush))='1')
                    else '0';
 derat_ex5_valid_d <=  '1' when (derat_ex4_valid_q='1' and or_reduce(derat_ex4_thdid_q and not(xu_mm_ex4_flush))='1')
@@ -639,10 +659,12 @@ derat_ex6_epn_d   <= derat_ex5_epn_q;
 derat_ex6_state_d   <= derat_ex5_state_q;
 derat_ex6_ttype_d   <= derat_ex5_ttype_q;
 derat_ex6_pid_d   <= derat_ex5_pid_q;
+-- use derat lpid for external pid ops
 derat_ex5_lpid_d <= derat_ex4_lpid_q when derat_ex4_valid_q='1' and derat_ex4_ttype_q(0)='1' 
                else lpidr;
 derat_ex6_lpid_d <= derat_ex5_lpid_q when derat_ex5_valid_q='1' and derat_ex5_ttype_q(0)='1' 
                else lpidr;
+-- derat request queue logic pointers
 derat_inptr_d <=    "01" when derat_inptr_q="00" and derat_req1_valid_q='0' and derat_ex6_valid_q='1'
               else "10" when derat_inptr_q="00" and derat_req2_valid_q='0' and derat_ex6_valid_q='1'
               else "11" when derat_inptr_q="00" and derat_req3_valid_q='0' and derat_ex6_valid_q='1'
@@ -680,6 +702,8 @@ tlb_seq_derat_req_d <= '1' when ((derat_outptr_q="00" and derat_req0_valid_q='1'
               (derat_outptr_q="11" and derat_req3_valid_q='1'))
               else '0';
 tlb_seq_derat_req <= tlb_seq_derat_req_q;
+-- d-erat queue valid bit is derat_req<t>_valid_q
+--  tlb_cmp_derat_dup_val  : in std_ulogic_vector(0 to 6); -- bit 4 hit/miss pulse, 5 is stretched hit/miss, 6 is ex6 dup
 derat_req0_valid_d   <=  '1' when (derat_ex6_valid_q='1' and derat_req0_valid_q='0'   and derat_inptr_q="00")
                    else '0' when (derat_req_taken='1' and derat_req0_valid_q='1'   and derat_outptr_q="00")
                    else '0' when (tlb_cmp_derat_dup_val(0)='1'   and tlb_cmp_derat_dup_val(4)='1') 
@@ -764,6 +788,9 @@ derat_req3_dup_d(1)   <= '0' when (derat_req_taken='1' and derat_req3_valid_q='1
                    else tlb_cmp_derat_dup_val(6) when (derat_ex6_valid_q='1' and derat_req3_valid_q='0'   and derat_inptr_q="11") 
                    else tlb_cmp_derat_dup_val(3)   when (derat_req3_valid_q='1'   and derat_req3_dup_q(1)='0'   and tlb_cmp_derat_dup_val(4)='0'  and tlb_cmp_derat_dup_val(5)='1') 
                    else derat_req3_dup_q(1);
+-----------------------------------------------------------------------
+-- output assignments
+-----------------------------------------------------------------------
 ierat_req_epn <= ierat_req1_epn_q when (ierat_outptr_q="01")
             else ierat_req2_epn_q when (ierat_outptr_q="10")
             else ierat_req3_epn_q when (ierat_outptr_q="11")
@@ -918,6 +945,7 @@ tlb_req_dbg_derat_req_ttype_q(2 to 3)    <= derat_req1_ttype_q(0 to 1);
 tlb_req_dbg_derat_req_ttype_q(4 to 5)    <= derat_req2_ttype_q(0 to 1);
 tlb_req_dbg_derat_req_ttype_q(6 to 7)    <= derat_req3_ttype_q(0 to 1);
 tlb_req_dbg_derat_req_dup_q          <= derat_req0_dup_q(1) & derat_req1_dup_q(1) & derat_req2_dup_q(1) & derat_req3_dup_q(1);
+-- unused spare signal assignments
 unused_dc(0) <= or_reduce(LCB_DELAY_LCLKR_DC(1 TO 4));
 unused_dc(1) <= or_reduce(LCB_MPW1_DC_B(1 TO 4));
 unused_dc(2) <= PC_FUNC_SL_FORCE;
@@ -931,6 +959,10 @@ unused_dc(9) <= or_reduce(MM_XU_TLB_MISS);
 unused_dc(10) <= TLB_SEQ_IERAT_DONE;
 unused_dc(11) <= TLB_SEQ_DERAT_DONE;
 unused_dc(12) <= mmucr2_act_override;
+-----------------------------------------------------------------------
+-- Latches
+-----------------------------------------------------------------------
+-- ierat miss request latches
 ierat_req0_valid_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1509,6 +1541,7 @@ xu_mm_ierat_miss_latch: tri_rlmreg_p
             scout   => sov(xu_mm_ierat_miss_offset to xu_mm_ierat_miss_offset+xu_mm_ierat_miss_q'length-1),
             din     => xu_mm_ierat_miss_d,
             dout    => xu_mm_ierat_miss_q  );
+-- ierat miss request latches
 ierat_iu3_valid_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1764,6 +1797,7 @@ ierat_iu5_pid_latch:   tri_rlmreg_p
             scout   => sov(ierat_iu5_pid_offset   to ierat_iu5_pid_offset+ierat_iu5_pid_q'length-1),
             din     => ierat_iu5_pid_d(0   to pid_width-1),
             dout    => ierat_iu5_pid_q(0   to pid_width-1)  );
+-- derat miss request latches
 derat_req0_valid_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2359,6 +2393,7 @@ tlb_seq_derat_req_latch: tri_rlmlatch_p
             scout   => sov(tlb_seq_derat_req_offset),
             din     => tlb_seq_derat_req_d,
             dout    => tlb_seq_derat_req_q);
+-- derat miss request latches
 derat_ex4_valid_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2733,6 +2768,9 @@ spare_latch: tri_rlmreg_p
             scout   => sov(spare_offset to spare_offset+spare_q'length-1),
             din     => spare_q,
             dout    => spare_q  );
+--------------------------------------------------
+-- thold/sg latches
+--------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 3, expand_type => expand_type)
   port map (vd          => vdd,
@@ -2773,7 +2811,9 @@ perv_lcbor_func_slp_sl: tri_lcbor
             act_dis     => lcb_act_dis_dc,
             forcee => pc_func_slp_sl_force,
             thold_b     => pc_func_slp_sl_thold_0_b);
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv(0 to scan_right) <= sov(1 to scan_right) & ac_func_scan_in;
 ac_func_scan_out <= sov(0);
 end mmq_tlb_req;
-

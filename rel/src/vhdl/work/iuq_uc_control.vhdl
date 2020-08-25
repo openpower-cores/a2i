@@ -7,6 +7,13 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--********************************************************************
+--*
+--* TITLE: Microcode Control
+--*
+--* NAME: iuq_uc_control.vhdl
+--*
+--*********************************************************************
 
 library ieee,ibm,support,tri,work;
 use ieee.std_logic_1164.all;
@@ -39,23 +46,23 @@ port(
      xu_iu_spr_xer              : in std_ulogic_vector(57 to 63);
      flush                      : in std_ulogic;
      restart                    : in std_ulogic;
-     flush_ifar                 : in std_ulogic_vector(41 to 61);  
+     flush_ifar                 : in std_ulogic_vector(41 to 61);  -- ucode-style address & state to flush to
      ib_flush                   : in std_ulogic;
-     ib_flush_ifar              : in std_ulogic_vector(41 to 61);  
+     ib_flush_ifar              : in std_ulogic_vector(41 to 61);  -- ucode-style address & state to flush to
      buff_avail                 : in std_ulogic;
      load_command               : in std_ulogic;
      new_instr                  : in std_ulogic_vector(0 to 31);
      start_addr                 : in std_ulogic_vector(0 to 9);
-     xer_type                   : in std_ulogic;  
+     xer_type                   : in std_ulogic;  -- instruction uses XER:  need to wait until XER guaranteed valid
      early_end                  : in std_ulogic;
      force_ep                   : in std_ulogic;
-     new_cond                   : in std_ulogic;  
+     new_cond                   : in std_ulogic;  -- If '1', will skip lines with skip_cond bit set
 
      uc_act_thread              : out std_ulogic;
      vld_fast                   : out std_ulogic;
 
      ra_valid                   : out std_ulogic;
-     rom_ra                     : out std_ulogic_vector(0 to 9); 
+     rom_ra                     : out std_ulogic_vector(0 to 9); -- read address
 
      data_valid                 : in std_ulogic;
      rom_data                   : in std_ulogic_vector(32 to ucode_width-1);
@@ -110,6 +117,7 @@ subtype s3 is std_ulogic_vector(0 to 2);
 signal bubble_fast      : std_ulogic;
 signal valid_fast       : std_ulogic;
 
+-- Latches
 signal xu_iu_spr_xer_d  : std_ulogic_vector(57 to 63);
 signal bubble_d         : std_ulogic;
 signal valid_d          : std_ulogic;
@@ -145,9 +153,10 @@ signal force_ep_l2      : std_ulogic;
 
 
 signal new_command      : std_ulogic;
-signal uC_flush         : std_ulogic;    
+signal uC_flush         : std_ulogic;    --flush to uCode
 signal uc_act           : std_ulogic;
 
+--
 signal template_code    : std_ulogic_vector(0 to 31);
 signal uc_end           : std_ulogic;
 signal uc_end_early     : std_ulogic;
@@ -162,7 +171,7 @@ signal sel16_20         : std_ulogic_vector(0 to 1);
 signal sel21_25         : std_ulogic_vector(0 to 1);
 signal sel26_30         : std_ulogic;
 signal sel31            : std_ulogic;
-signal cr_bf2fxm        : std_ulogic;   
+signal cr_bf2fxm        : std_ulogic;   -- for mtocrf
 signal skip_cond        : std_ulogic;
 signal skip_zero        : std_ulogic;
 signal loop_addr        : std_ulogic_vector(0 to 9);
@@ -172,6 +181,7 @@ signal ep_instr         : std_ulogic;
 signal ucode_end        : std_ulogic;
 signal fxm              : std_ulogic_vector(0 to 7);
 
+--timing fixes
 signal sel0_5_late      : std_ulogic;
 signal sel6_10_late     : std_ulogic_vector(0 to 1);
 signal sel11_15_late    : std_ulogic_vector(0 to 1);
@@ -188,6 +198,7 @@ signal instr_late_d     : std_ulogic_vector(6 to 20);
 signal instr_late_l2    : std_ulogic_vector(6 to 20);
 
 
+-- control
 signal last_loop        : std_ulogic;
 signal loopback_part1   : std_ulogic;   
 signal loopback         : std_ulogic;
@@ -209,7 +220,10 @@ begin
 
 
 
-new_command <= load_command and not bubble_l2;  
+-----------------------------------------------------------------------
+-- load new command
+-----------------------------------------------------------------------
+new_command <= load_command and not bubble_l2;  -- guard against back-to-back uCode instructions from Issue
 uC_flush <= flush and not restart and (valid_l2 or wait_l2);
 
 uc_act <= load_command or valid_l2 or wait_l2 or spr_ic_clockgate_dis;
@@ -231,6 +245,7 @@ valid_fast <= (new_command and not flush) or
               (ib_flush and not flush);
 
 
+-- RT
 instr_d(0 to 5) <= new_instr(0 to 5)            when new_command = '1'
               else instr_l2(0 to 5);
 
@@ -268,8 +283,8 @@ uc_end     <= rom_data(32);
 uc_end_early <= rom_data(33);
 loop_begin <= rom_data(34);
 loop_end   <= rom_data(35) and inLoop_l2;
-loop_end_rom <= rom_data(35);   
-count_src  <= rom_data(36 to 38);       
+loop_end_rom <= rom_data(35);   -- for timing fix.  Must check inLoop_l2 wherever this is used.
+count_src  <= rom_data(36 to 38);       -- 00: NB(3:4), 01: "000" & 2's comp NB(3:4), 10: mult of 4 & XER(62:63), 11: 2's comp XER(62:63), 100: RT(inverted), 101: NB(0:2) - word mode, 110: XER(57:61) - word mode, 111: loop_init
 extRT      <= rom_data(39);
 extS1      <= rom_data(40);
 extS2      <= rom_data(41);
@@ -283,8 +298,8 @@ sel26_30   <= rom_data(52);
 sel31      <= rom_data(53);
 cr_bf2fxm  <= rom_data(54);
 skip_cond  <= rom_data(55);
-skip_zero  <= rom_data(56);  
-loop_addr  <= rom_data(57 to 66);  
+skip_zero  <= rom_data(56);  -- For when XER = 0 & to help with NB coding
+loop_addr  <= rom_data(57 to 66);  -- Note: Could latch loop_begin address instead of keeping in ROM
 loop_init  <= rom_data(67 to 69);
 ep_instr   <= rom_data(70);
 
@@ -323,6 +338,7 @@ fxm <= "10000000" when "000",
        "00000010" when "110",
        "00000001" when others;
 
+-- instr_l2(0:5) & (21:31) never change while processing command
 instr_late_d( 6 to 10)   <= instr_l2( 6 to 10);
 instr_late_d(11 to 20)   <= instr_l2(11 to 20) when cr_bf2fxm = '0' else ('1' & fxm(0 to 7) & '0');
 
@@ -365,14 +381,22 @@ ucode_instruction(31) <= template_code(31)  when '0',
                          instr_l2(31)       when others;
 
 ucode_valid <= data_valid and not flush and not ib_flush and not skip;
-is_ucode <= not ucode_end;       
+is_ucode <= not ucode_end;       -- is_ucode signal must drop for the last instruction
 
 
 ucode_ifar(41 to 61) <= rom_addr_l2(0 to 1) & count_l2 & inLoop_l2 & instr_l2(6 to 10) & rom_addr_l2(2 to 9);
 
 
+-----------------------------------------------------------------------
+-- control, state machines
+-----------------------------------------------------------------------
+-- Assumptions:
+--   No Nested Loops
+--   All Loops must have at least 2 instructions
+--   New ucode instructions will be held off until XU flushes IU (to next instruction) on this thread
+--   If loop_end is skip_c, the instruction before loop_end must also be skip_c
 inLoop_d <= flush_ifar(48)    when uC_flush = '1'
-       else '0'               when flush = '1'     
+       else '0'               when flush = '1'     -- clear for non-uCode flush
        else ib_flush_ifar(48) when ib_flush = '1'
        else (((data_valid and loop_begin) or inLoop_l2) and not ((data_valid and loop_end) and last_loop) and valid_l2 and not bubble_l2);
 
@@ -382,7 +406,7 @@ loopback_part1 <= data_valid and inLoop_l2 and not last_loop;
 loopback <= loopback_part1 and loop_end_rom;
 
 inc_RT <= data_valid and loop_end and not (skip_zero_l2 and count_l2 = "00000") and
-          count_src(0) and not (count_src = "111");   
+          count_src(0) and not (count_src = "111");   -- load/store multiple & string op word loops
 
 
 
@@ -411,9 +435,11 @@ count_init <= "000" & NB_dec(3 to 4)    when "000",
               "00" & loop_init          when others;
 
 
+-- How many cycles is XER bubble?  XER is available in EX6. XER has been latched, moving to 7 bubbles
+-- Dependency is now checking XER dependencies, so we do not need extra delay for xer_type
 count_d <= flush_ifar(43 to 47)                 when flush = '1'
       else ib_flush_ifar(43 to 47)              when ib_flush = '1'
-      else "00000"                              when new_command = '1'  
+      else "00000"                              when new_command = '1'  -- 1 cycle bubble
       else count_init                           when (data_valid and loop_begin and not inLoop_l2) = '1'
       else count_l2 - 1                         when ((data_valid and loop_end) = '1')
       else count_l2;
@@ -423,6 +449,7 @@ skip_zero_d <= '0'              when (flush or ib_flush or (data_valid and loop_
           else skip_zero        when (data_valid and loop_begin) = '1'
           else skip_zero_l2;
 
+-- Now flush is always np1 flush
 skip_to_np1_d <= not restart    when flush = '1'
             else '0'            when data_valid = '1'
             else skip_to_np1_l2;
@@ -436,17 +463,21 @@ skip <= (((skip_zero and loop_begin) or skip_zero_l2) and (count_l2 = "00000") a
         (skip_cond and cond_l2) or
         skip_to_np1_l2;
 
-skip_d <= skip; 
+skip_d <= skip; -- Latch is just for trace bus
 
 wait_d <= ((valid_l2 and ucode_end and data_valid) or
            wait_l2)
-          and not flush and not ib_flush;      
+          and not flush and not ib_flush;      -- Either flushing back to uCode instruction, or XU is flushing to next command
 
 
 hold_thread <= valid_l2 or wait_l2;
 
+-- Debug
 uc_control_dbg_data <= bubble_l2 & valid_l2 & wait_l2 & skip_l2;
 
+-----------------------------------------------------------------------
+-- Latches
+-----------------------------------------------------------------------
 
 xu_iu_spr_xer_latch: tri_rlmreg_p
   generic map (width => xu_iu_spr_xer_l2'length, init => 0, needs_sreset => 0, expand_type => expand_type)
@@ -772,6 +803,9 @@ ep_force_late_latch: tri_rlmlatch_p
             din     => ep_force_late_d,
             dout    => ep_force_late_l2);
 
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv(0 to scan_right) <= sov(1 to scan_right) & scan_in;
 scan_out <= sov(0);
 

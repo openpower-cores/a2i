@@ -8,6 +8,13 @@
 -- license is available.
 
 
+--********************************************************************
+--*
+--* TITLE: IU Branch Decode
+--*
+--* NAME: iuq_bd.vhdl
+--*
+--*********************************************************************
 
 library ieee, ibm, support;
 
@@ -28,6 +35,7 @@ port(
 -- synopsys translate_off
 -- synopsys translate_on
 end iuq_bd;
+----
 architecture iuq_bd of iuq_bd is
 
 signal b                        : std_ulogic;

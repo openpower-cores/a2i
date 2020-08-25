@@ -6,6 +6,13 @@
 -- Specification, will be available at no cost via the OpenPOWER Foundation. 
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
+--********************************************************************
+--*
+--* TITLE: debug event mux
+--*
+--* NAME: iuq_dbg.vhdl
+--*
+--*********************************************************************
 
 
 
@@ -124,6 +131,9 @@ signal debug_mux_ctrls_q                : std_ulogic_vector(0 to 15);
 
 begin
 
+-----------------------------------------------------------------------
+-- Logic
+-----------------------------------------------------------------------
 
 tiup <= '1';
 
@@ -148,31 +158,31 @@ dbg_group5(76 to 87)    <= (others => '0');
 dbg_group6(76 to 87)    <= (others => '0'); 
 dbg_group7(32 to 87)    <= (others => '0'); 
 
-trg_group0              <= ib_dbg_data(0)  & ib_dbg_data( 4 to  5) & 
-                           ib_dbg_data(16) & ib_dbg_data(20 to 21) & 
-                           ib_dbg_data(32) & ib_dbg_data(36 to 37) & 
-                           ib_dbg_data(48) & ib_dbg_data(52 to 53) ; 
+trg_group0              <= ib_dbg_data(0)  & ib_dbg_data( 4 to  5) & --t0: bp_val, rm_val, uc_val
+                           ib_dbg_data(16) & ib_dbg_data(20 to 21) & --t1
+                           ib_dbg_data(32) & ib_dbg_data(36 to 37) & --t2
+                           ib_dbg_data(48) & ib_dbg_data(52 to 53) ; --t3
 
-trg_group1              <= fiss_dbg_data(0 to 7) &      
-                           fiss_dbg_data(44 to 45) &    
-                           bp_dbg_data0(84 to 85);      
+trg_group1              <= fiss_dbg_data(0 to 7) &      --high pri mask(0 to 3), low pri mask (0 to 3)
+                           fiss_dbg_data(44 to 45) &    --is2 instr_val, uc_val
+                           bp_dbg_data0(84 to 85);      --ex6 val, br_update
 
-trg_group2              <= fdep_dbg_data(14) & fdep_dbg_data(36) & fdep_dbg_data(58) & fdep_dbg_data(80) & 
-                           bht_dbg_data(27 to 31) &     
-                           bp_dbg_data1(84 to 86) ;     
+trg_group2              <= fdep_dbg_data(14) & fdep_dbg_data(36) & fdep_dbg_data(58) & fdep_dbg_data(80) & --is1 val
+                           bht_dbg_data(27 to 31) &     --r_act, w_act(0 to 3)
+                           bp_dbg_data1(84 to 86) ;     --ex6 br_taken, bclr, lk
 
-trg_group3              <= axu_dbg_data_t0(10) & 
-                           axu_dbg_data_t1(10) & 
-                           axu_dbg_data_t2(10) & 
-                           axu_dbg_data_t3(10) & 
-                           axu_dbg_data_t0(21) & 
-                           axu_dbg_data_t1(21) & 
-                           axu_dbg_data_t2(21) & 
-                           axu_dbg_data_t3(21) & 
-                           fu_iss_dbg_data(20) & 
-                           fu_iss_dbg_data(21) & 
-                           fu_iss_dbg_data(22) & 
-                           fu_iss_dbg_data(23) ; 
+trg_group3              <= axu_dbg_data_t0(10) & -- 0 is1_to_ucode
+                           axu_dbg_data_t1(10) & -- 1 is1_to_ucode
+                           axu_dbg_data_t2(10) & -- 2 is1_to_ucode
+                           axu_dbg_data_t3(10) & -- 3 is1_to_ucode
+                           axu_dbg_data_t0(21) & -- 4 bubble3_is1_db
+                           axu_dbg_data_t1(21) & -- 5 bubble3_is1_db
+                           axu_dbg_data_t2(21) & -- 6 bubble3_is1_db
+                           axu_dbg_data_t3(21) & -- 7 bubble3_is1_db
+                           fu_iss_dbg_data(20) & -- 8  is2_issue_sel_db(0)
+                           fu_iss_dbg_data(21) & -- 9  is2_issue_sel_db(1)
+                           fu_iss_dbg_data(22) & -- 10  is2_issue_sel_db(2)
+                           fu_iss_dbg_data(23) ; -- 11  is2_issue_sel_db(3)
                            
 
 dbg_mux0: entity clib.c_debug_mux8
@@ -205,6 +215,9 @@ dbg_mux0: entity clib.c_debug_mux8
 trace_triggers_out      <= trigger_data_out_q;
 debug_data_out          <= trace_data_out_q;
 
+-----------------------------------------------------------------------
+-- Latches
+-----------------------------------------------------------------------
 trace_bus_enable_d <= pc_iu_trace_bus_enable;
 debug_mux_ctrls_d  <= pc_iu_debug_mux_ctrls;
 
@@ -280,6 +293,9 @@ trace_data_reg: tri_rlmreg_p
             din     => trace_data_out_d,
             dout    => trace_data_out_q);
 
+-------------------------------------------------
+-- pervasive
+-------------------------------------------------
 
 perv_2to1_reg: tri_plat
   generic map (width => 2, expand_type => expand_type)
@@ -312,8 +328,12 @@ perv_lcbor: tri_lcbor
             forcee => forcee,
             thold_b     => pc_iu_func_slp_sl_thold_0_b);
 
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv(0 to scan_right) <= sov(1 to scan_right) & scan_in;
 scan_out <= sov(0);
 
 
 end iuq_dbg;
+

@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- a2x par/ser scom master
+--
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -42,6 +44,7 @@ end a2x_scom;
 architecture a2x_scom of a2x_scom is
 
 
+-- FFs
 	
 signal scom_seq_d, scom_seq_q     : std_logic_vector(0 to 3);
 
@@ -60,6 +63,7 @@ signal dch_in_d, dch_in_q         : std_logic;
 signal dch_out_d, dch_out_q       : std_logic; 	
 signal scom_err_d, scom_err_q     : std_logic; 	
    
+-- misc
 signal cch_start                  : std_logic; 	
 signal cch_end                    : std_logic; 	
 signal scom_reset                 : std_logic; 	
@@ -109,31 +113,70 @@ end if;
 end process FF;
 
 
+------------------------------------------------------------------------------------------------------------
+-- SCOM
+------------------------------------------------------------------------------------------------------------
 
+-- request
 req_v_d <= req_valid;
 req_sat_d <= req_id;
 req_addr_d <= req_addr;
 req_rw_d <= (req_rw and req_valid) or (req_rw_q and not req_valid);
 req_wr_data_d <= req_wr_data;
 
+-- send command; when header is received back, look for data/rsp
 
 
 
+--tbl ScomSeq
+--
+--n scom_seq_q                                                      scom_seq
+--n |    scom_reset                                                 |    load_serializer
+--n |    |req_v_q                                                   |    |check_deserializer
+--n |    || header_sent                                             |    ||                         scom_seq_err
+--n |    || |header_rcvd                                            |    ||                         |
+--n |    || ||header_ok                                             |    ||                         |
+--n |    || ||| req_read                                            |    ||                         |
+--n |    || ||| |req_write_done                                     |    ||                         |
+--n |    || ||| ||                                                  |    ||                         |
+--b 0123 || ||| ||                                                  0123 ||                         |
+--t iiii ii iii ii                                                  oooo oo                         o
+--*-------------------------------------------------------------------------------------------------------------------
+--* Idle -------------------------------------------------------------------------------------------------------------
+--s 1111 1- --- --                                                  1111 00                         0      *
+--s 1111 00 --- --                                                  1111 00                         0      *
+--s 1111 01 --- --                                                  0001 10                         0      *
+--* Start Send -------------------------------------------------------------------------------------------------------
+--s 0001 1- --- --                                                  1111 01                         0      *
+--s 0001 0- 0-- --                                                  0001 01                         0      *
+--s 0001 0- 1-- --                                                  0010 01                         0      *
+--* Receive Header----------------------------------------------------------------------------------------------------
+--s 0010 1- --- --                                                  1111 01                         0      *
+--s 0010 0- -0- --                                                  0010 01                         0      *
+--s 0010 0- -1- 1-                                                  0011 01                         0      *
+--s 0010 0- -1- 00                                                  1000 01                         0      *
+--* Receive Read Data ------------------------------------------------------------------------------------------------
+--s 0011 1- --- --                                                  1111 00                         0      *
+--* Send Write Data --------------------------------------------------------------------------------------------------
+--s 1000 1- --- --                                                  1111 00                         0      *
+--* Receive Write Response -------------------------------------------------------------------------------------------
+--s 1001 1- --- --                                                  1111 00                         0      *
+--* Error ------------------------------------------------------------------------------------------------------------
+--s 0000 -- --- --                                                  0000 00                         1      *
+--*-------------------------------------------------------------------------------------------------------------------
+--
+--tbl ScomSeq
 
 
-
-                   
-
-
-
-
-
-
-
-
-
-
-
+-- serial interfaces
+--
+-- 0. receive parallel request
+-- 1. load serializer, initiate send
+-- 2. deserializer compares until command matched
+-- 3. deserializer processes response
+--    read data/ack
+--    write ack
+-- 4. return result to parallel out
 
 
 cch_out_d <= cch_in;
@@ -145,9 +188,9 @@ dch_out <= dch_out_q;
 err <= '0';
 
                       
+------------------------------------------------------------------------------------------------------------
 
 
 
 
 end a2x_scom;
-

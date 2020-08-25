@@ -9,6 +9,13 @@
 
 			
 
+--********************************************************************
+--*
+--* TITLE: Instruction Fetch RLM
+--*
+--* NAME: iuq_ifetch.vhdl
+--*
+--*********************************************************************
 library ieee;
 use ieee.std_logic_1164.all;
 library support;
@@ -784,6 +791,7 @@ signal pc_mm_ary_nsl_thold_3      : std_ulogic;
 signal pc_mm_ary_slp_nsl_thold_3  : std_ulogic;
 signal pc_mm_sg_3                 : std_ulogic_vector(0 to 1);
 signal pc_mm_fce_3                : std_ulogic;
+-- IC_BP
 signal ic_bp_iu1_val            : std_ulogic;
 signal ic_bp_iu1_tid            : std_ulogic_vector(0 to 3);
 signal ic_bp_iu1_ifar           : std_ulogic_vector(52 to 59);
@@ -798,6 +806,7 @@ signal ic_bp_iu3_1_instr        : std_ulogic_vector(0 to 35);
 signal ic_bp_iu3_2_instr        : std_ulogic_vector(0 to 35);
 signal ic_bp_iu3_3_instr        : std_ulogic_vector(0 to 35);
 signal ic_bp_iu3_flush          : std_ulogic;
+-- BP
 signal iu3_0_bh_rd_data         : std_ulogic_vector(0 to 1);
 signal iu3_1_bh_rd_data         : std_ulogic_vector(0 to 1);
 signal iu3_2_bh_rd_data         : std_ulogic_vector(0 to 1);
@@ -811,8 +820,10 @@ signal int_bp_ib_iu4_ifar       : EFF_IFAR;
 signal bp_ic_iu5_hold_tid       : std_ulogic_vector(0 to 3);
 signal bp_ic_iu5_redirect_tid   : std_ulogic_vector(0 to 3);
 signal bp_ic_iu5_redirect_ifar  : EFF_IFAR;
+-- UC
 signal int_uc_flush_tid         : std_ulogic_vector(0 to 3);
 signal uc_ic_hold_thread        : std_ulogic_vector(0 to 3);
+-- SPR
 signal spr_ic_icbi_ack_en       : std_ulogic;
 signal spr_ic_cls               : std_ulogic;
 signal spr_ic_clockgate_dis     : std_ulogic_vector(0 to 1);
@@ -860,22 +871,27 @@ signal iuq_bp_scan_in           : std_ulogic_vector(0 to 1);
 signal int_iuq_bp_scan_out      : std_ulogic_vector(0 to 1);
 signal iuq_uc_scan_in           : std_ulogic;
 signal iuq_uc_scan_out          : std_ulogic;
+--repower
 signal iu_func_scan_in          : std_ulogic_vector(0 to 8);
 signal int_iu_func_scan_in_q    : std_ulogic_vector(0 to 8);
 signal int_iu_func_scan_out     : std_ulogic_vector(0 to 9);
 signal iu_func_scan_out_q       : std_ulogic_vector(0 to 9);
 signal bcfg_scan_in_q           : std_ulogic;
 signal spare_func_scan_in_q     : std_ulogic_vector(0 to 3);
+--perf
 signal ic_perf_event_t0         : std_ulogic_vector(0 to 6);
 signal ic_perf_event_t1         : std_ulogic_vector(0 to 6);
 signal ic_perf_event_t2         : std_ulogic_vector(0 to 6);
 signal ic_perf_event_t3         : std_ulogic_vector(0 to 6);
 signal ic_perf_event            : std_ulogic_vector(0 to 1);
+--debug groups (misc)
 signal bp_dbg_data0             : std_ulogic_vector(0 to 87);
 signal bp_dbg_data1             : std_ulogic_vector(0 to 87);
+--debug groups (ic)
 signal uc_dbg_data              : std_ulogic_vector(0 to 87);
 signal dbg_debug_data_out       : std_ulogic_vector(0 to 87);
 signal dbg_trace_triggers_out   : std_ulogic_vector(0 to 11);
+-- fanout
 signal bp_ib_iu3_0_instr        : std_ulogic_vector(0 to 31);
 signal bp_ib_iu4_0_instr        : std_ulogic_vector(32 to 43);
 signal bp_ib_iu4_1_instr        : std_ulogic_vector(0 to 43);
@@ -888,6 +904,7 @@ signal rm_ib_iu4_instr          : std_ulogic_vector(0 to 35);
 signal spr_dec_mask             : std_ulogic_vector(0 to 31);
 signal spr_dec_match            : std_ulogic_vector(0 to 31);
 signal spr_fdep_ll_hold         : std_ulogic;
+-- Special Buffering for PSRO Sensor
 signal ac_an_psro_ringsig_i1_b  : std_ulogic;
 signal ac_an_psro_ringsig_i2    : std_ulogic;
 signal ac_an_psro_ringsig_i3_b  : std_ulogic;
@@ -896,6 +913,7 @@ signal ac_an_psro_ringsig_i5_b  : std_ulogic;
 -- synopsys translate_off
 -- synopsys translate_on
 begin
+------------------------------------------
 pc_iu_sg_2(0 to 2) <= int_pc_iu_sg_2(1 to 3);
 pc_iu_sg_2(3)      <= int_pc_iu_sg_2(3);
 pc_iu_func_sl_thold_2(0 to 2) <= int_pc_iu_func_sl_thold_2(1 to 3);
@@ -909,6 +927,7 @@ mpw1_b(5 to 14)          <= int_mpw1_b(5 to 14);
 uc_flush_tid            <= int_uc_flush_tid;
 iuq_bp_scan_out         <= int_iuq_bp_scan_out(0);
 ac_an_power_managed_q   <= ac_an_power_managed_q_int;
+-- fanout
 bp_ib_iu4_ifar_t0          <= int_bp_ib_iu4_ifar;
 bp_ib_iu3_0_instr_t0       <= bp_ib_iu3_0_instr;
 bp_ib_iu4_0_instr_t0       <= bp_ib_iu4_0_instr;
@@ -1781,6 +1800,7 @@ port map(
      func_scan_out              => rp_func_scan_out,
      gptr_scan_out              => rp_gptr_scan_out
 );
+-- Pass thru signals
 bg_pc_bo_unload_oiu                <= bg_pc_bo_unload_iiu;
 bg_pc_bo_load_oiu                  <= bg_pc_bo_load_iiu;
 bg_pc_bo_repair_oiu                <= bg_pc_bo_repair_iiu;
@@ -1872,10 +1892,16 @@ an_ac_back_inv_oif              <= an_ac_back_inv;
 an_ac_back_inv_target_oif(1)    <= an_ac_back_inv_target_iiu_a(1);
 an_ac_sync_ack_oif              <= an_ac_sync_ack;
 mm_iu_barrier_done_oif          <= mm_iu_barrier_done;
+---------------------------------------
+-- scan chains
+---------------------------------------
+--1130
 iuq_ic_scan_in(0)       <= func_scan_in(0);
 func_scan_out(0)        <= iuq_ic_scan_out(0);
+--1046
 iuq_ic_scan_in(1)       <= func_scan_in(1);
 func_scan_out(1)        <= iuq_ic_scan_out(1);
+--1240
 iuq_ic_scan_in(2)       <= func_scan_in(2);
 func_scan_out(2)        <= iuq_ic_scan_out(2);
 iu_func_scan_in(0)      <= func_scan_in(3);
@@ -1883,6 +1909,7 @@ iuq_bp_scan_in(1)       <= int_iu_func_scan_in_q(0);
 int_iu_func_scan_out(0) <= int_iuq_bp_scan_out(1);
 int_iu_func_scan_out(1 to 8) <= iu_func_scan_out;
 func_scan_out(3 to 11)  <= iu_func_scan_out_q(0 to 8);
+--1167
 iu_func_scan_in(1)      <= func_scan_in(4);
 iuq_bp_scan_in(0)       <= int_iu_func_scan_in_q(1);
 iu_func_scan_in(2)      <= func_scan_in(5);
@@ -1895,6 +1922,7 @@ iu_func_scan_in(5 to 8) <= func_scan_in(8 to 11);
 iu_func_scan_in_q(1 to 4) <= int_iu_func_scan_in_q(5 to 8);
 iuq_ic_scan_in(3)       <= func_scan_in(12);
 func_scan_out(12)       <= iuq_ic_scan_out(3);
+-- 1035
 iuq_ic_scan_in(4)       <= func_scan_in(13);
 iuq_uc_scan_in          <= iuq_ic_scan_out(4);
 int_iu_func_scan_out(9) <= iuq_uc_scan_out;
@@ -1917,4 +1945,5 @@ bcfg_scan_out           <= iuq_mi_bcfg_scan_out;
 iuq_mi_dcfg_scan_in     <= dcfg_scan_in;
 dcfg_scan_out           <= iuq_mi_dcfg_scan_out;
 end iuq_ifetch;
+
 

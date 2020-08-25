@@ -9,6 +9,13 @@
 
 			
 
+--********************************************************************
+--*
+--* TITLE: Instruction Unit
+--*
+--* NAME: iuq.vhdl
+--*
+--*********************************************************************
 library ieee;
 use ieee.std_logic_1164.all;
 library support;
@@ -689,6 +696,7 @@ signal delay_lclkr              : std_ulogic_vector(5 to 14);
 signal mpw1_b                   : std_ulogic_vector(5 to 14);
 signal pc_iu_sg_2               : std_ulogic_vector(0 to 3);
 signal pc_iu_func_sl_thold_2    : std_ulogic_vector(0 to 3);
+-- BP
 signal bp_ib_iu4_t0_val         : std_ulogic_vector(0 to 3);
 signal bp_ib_iu4_t1_val         : std_ulogic_vector(0 to 3);
 signal bp_ib_iu4_t2_val         : std_ulogic_vector(0 to 3);
@@ -717,6 +725,7 @@ signal bp_ib_iu4_0_instr_t3     : std_ulogic_vector(32 to 43);
 signal bp_ib_iu4_1_instr_t3     : std_ulogic_vector(0 to 43);
 signal bp_ib_iu4_2_instr_t3     : std_ulogic_vector(0 to 43);
 signal bp_ib_iu4_3_instr_t3     : std_ulogic_vector(0 to 43);
+-- UC
 signal uc_ib_iu4_val            : std_ulogic_vector(0 to 3);
 signal uc_ib_iu4_ifar_t0        : std_ulogic_vector(62-uc_ifar to 61);
 signal uc_ib_iu4_instr_t0       : std_ulogic_vector(0 to 36);
@@ -727,6 +736,7 @@ signal uc_ib_iu4_instr_t2       : std_ulogic_vector(0 to 36);
 signal uc_ib_iu4_ifar_t3        : std_ulogic_vector(62-uc_ifar to 61);
 signal uc_ib_iu4_instr_t3       : std_ulogic_vector(0 to 36);
 signal uc_flush_tid             : std_ulogic_vector(0 to 3);
+-- RAM
 signal rm_ib_iu4_val            : std_ulogic_vector(0 to 3);
 signal rm_ib_iu4_force_ram_t0   : std_ulogic;
 signal rm_ib_iu4_instr_t0       : std_ulogic_vector(0 to 35);
@@ -736,6 +746,7 @@ signal rm_ib_iu4_force_ram_t2   : std_ulogic;
 signal rm_ib_iu4_instr_t2       : std_ulogic_vector(0 to 35);
 signal rm_ib_iu4_force_ram_t3   : std_ulogic;
 signal rm_ib_iu4_instr_t3       : std_ulogic_vector(0 to 35);
+-- IB
 signal iu_au_ib1_instr_vld_t0   : std_ulogic;
 signal iu_au_ib1_ifar_t0        : EFF_IFAR;
 signal iu_au_ib1_data_t0        : std_ulogic_vector(0 to 49);
@@ -751,6 +762,7 @@ signal iu_au_ib1_data_t3        : std_ulogic_vector(0 to 49);
 signal ib_ic_empty              : std_ulogic_vector(0 to 3);
 signal ib_ic_below_water        : std_ulogic_vector(0 to 3);
 signal ib_ic_iu5_redirect_tid   : std_ulogic_vector(0 to 3);
+-- SPR
 signal iu_au_config_iucr_t0     : std_ulogic_vector(0 to 7);
 signal iu_au_config_iucr_t1     : std_ulogic_vector(0 to 7);
 signal iu_au_config_iucr_t2     : std_ulogic_vector(0 to 7);
@@ -782,6 +794,7 @@ signal spr_dec_match_t2         : std_ulogic_vector(0 to 31);
 signal spr_dec_match_t3         : std_ulogic_vector(0 to 31);
 signal ic_fdep_load_quiesce     : std_ulogic_vector(0 to 3);
 signal ic_fdep_icbi_ack         : std_ulogic_vector(0 to 3);
+-- FXU Issue
 signal iu_xu_is2_vld_internal                   : std_ulogic;
 signal iu_xu_is2_tid_internal                   : std_ulogic_vector(0 to 3);
 signal iu_xu_is2_instr_internal                 : std_ulogic_vector(0 to 31);
@@ -817,6 +830,7 @@ signal iuq_fi_scan_in           : std_ulogic;
 signal iuq_fi_scan_out          : std_ulogic;
 signal iuq_ai_scan_in           : std_ulogic;
 signal iuq_ai_scan_out          : std_ulogic;
+--perf
 signal ib_perf_event_t0         : std_ulogic_vector(0 to 1);
 signal ib_perf_event_t1         : std_ulogic_vector(0 to 1);
 signal ib_perf_event_t2         : std_ulogic_vector(0 to 1);
@@ -837,6 +851,7 @@ signal fdec_ibuf_stall_t0       : std_ulogic;
 signal fdec_ibuf_stall_t1       : std_ulogic;
 signal fdec_ibuf_stall_t2       : std_ulogic;
 signal fdec_ibuf_stall_t3       : std_ulogic;
+--debug groups (misc)
 signal fiss_dbg_data            : std_ulogic_vector(0 to 87);
 signal fdep_dbg_data_pt_in      : std_ulogic_vector(0 to 87);
 signal fdep_dbg_data_pt_out     : std_ulogic_vector(0 to 87);
@@ -846,22 +861,29 @@ signal axu_dbg_data_t0          : std_ulogic_vector(0 to 37);
 signal axu_dbg_data_t1          : std_ulogic_vector(0 to 37);
 signal axu_dbg_data_t2          : std_ulogic_vector(0 to 37);
 signal axu_dbg_data_t3          : std_ulogic_vector(0 to 37);
+-- IU pass thru signals
 signal an_ac_scan_dis_dc_b_oif  : std_ulogic_vector(0 to 3);
 signal an_ac_back_inv_oif       : std_ulogic;
 signal an_ac_back_inv_target_oif: std_ulogic_vector(1 to 1);
 signal an_ac_sync_ack_oif       : std_ulogic_vector(0 to 3);
 signal mm_iu_barrier_done_oif   : std_ulogic_vector(0 to 3);
+-- IU repower
 signal iu_func_scan_in_q        : std_ulogic_vector(0 to 4);
 signal iu_func_scan_out         : std_ulogic_vector(0 to 7);
 signal unused                   : std_ulogic_vector(6 to 14);
 -- synopsys translate_off
 -- synopsys translate_on
 begin
+------------------------------------------
+--tie off unused signals
+------------------------------------------
 unused(6 to 8)  <= pc_iu_abist_waddr_0(0 to 2);
 unused(9 to 10) <= pc_iu_abist_raddr_0(0 to 1);
 unused(11)      <= xu_iu_ex5_loadmiss_target(0);
 unused(12 to 13)<= xu_iu_ex5_loadmiss_target(7 to 8);
 unused(14)      <= xu_iu_ex5_loadmiss_target_type(1);
+------------------------------------------
+------------------------------------------
 iuq_ifetch0 : entity work.iuq_ifetch
 generic map(expand_type         => expand_type,
             a2mode              => a2mode,
@@ -1817,6 +1839,9 @@ iu_xu_is2_pred_taken_cnt(0 to 1)<= iu_xu_is2_pred_taken_cnt_internal(0 to 1);
 fiss_uc_is2_instr(0 to 31)      <= iu_xu_is2_instr_internal(0 to 31);
 fiss_uc_is2_tid(0 to 3)         <= iu_xu_is2_tid_internal(0 to 3);
 iu_xu_is2_ucode_vld             <= fiss_uc_is2_ucode_vld;
+---------------------------------------
+-- scan chains
+---------------------------------------
 iuq_b0_scan_in          <= iuq_bp_scan_out;
 iu_func_scan_out(0)     <= iuq_b0_scan_out;
 iuq_b1_scan_in          <= iuq_mi_scan_out(0);
@@ -1836,4 +1861,3 @@ iu_func_scan_out(6)     <= iuq_s2_scan_out;
 iuq_s3_scan_in          <= iu_func_scan_in_q(4);
 iu_func_scan_out(7)     <= iuq_s3_scan_out;
 end iuq;
-

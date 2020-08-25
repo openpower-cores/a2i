@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_aoi22_nlats.vhdl
+-- *! DESCRIPTION : n-bit scannable m/s latch, for bit stacking, with aoi22 gate in front
+-- *!
+-- *!****************************************************************
 
 library ieee;    use ieee.std_logic_1164.all;
                  use ieee.numeric_std.all;
@@ -25,8 +30,8 @@ entity tri_aoi22_nlats is
             init               : std_ulogic_vector         := "0" ; 
             synthclonedlatch   : string                    := "" ;
             btr                : string                    := "NLL0001_X2_A12TH" ;
-            needs_sreset : integer := 1 ; 
-            expand_type : integer := 1 ); 
+            needs_sreset : integer := 1 ; -- for inferred latches
+            expand_type : integer := 1 ); -- 1 = non-ibm, 2 = ibm (MPG)
   port (
         vd       : inout power_logic;
         gd       : inout power_logic;
@@ -76,7 +81,7 @@ begin
 
     vsreset <= (0 to width-1 => sreset);
     vsreset_b <= (0 to width-1 => not sreset);
-    din   <= (A1 and A2) or (B1 and B2) ;       
+    din   <= (A1 and A2) or (B1 and B2) ;       -- Output is inverted, so just AND-OR here
     int_din <= (vsreset_b and din) or
                (vsreset and init_v(0 to width-1));
 
@@ -100,4 +105,3 @@ begin
   end generate a;
 
 end tri_aoi22_nlats;
-

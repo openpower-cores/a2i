@@ -7,6 +7,10 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_nlat_scan.vhdl
+-- *! DESCRIPTION : Basic n-bit latch
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
@@ -24,8 +28,8 @@ entity tri_nlat_scan is
             init               : std_ulogic_vector         := "0" ;
             reset_inverts_scan : boolean                   := true;
             synthclonedlatch   : string                    := "" ;
-            needs_sreset : integer := 1 ; 
-            expand_type : integer := 1 ); 
+            needs_sreset : integer := 1 ; -- for inferred latches
+            expand_type : integer := 1 ); -- 1 = non-ibm, 2 = ibm (MPG)
   port (
         vd       : inout power_logic;
         gd       : inout power_logic;
@@ -95,4 +99,3 @@ begin
   end generate a;
 
 end tri_nlat_scan;
-

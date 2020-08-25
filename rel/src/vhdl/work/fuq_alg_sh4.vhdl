@@ -21,8 +21,9 @@ library ieee,ibm,support,tri,work;
 
  
 entity fuq_alg_sh4 is
-generic(       expand_type               : integer := 2  ); 
+generic(       expand_type               : integer := 2  ); -- 0 - ibm tech, 1 - other );
 port(
+      ----------- SHIFT CONTROLS -----------------
       ex1_lvl1_shdcd000_b      :in   std_ulogic;
       ex1_lvl1_shdcd001_b      :in   std_ulogic;
       ex1_lvl1_shdcd002_b      :in   std_ulogic;
@@ -33,16 +34,18 @@ port(
       ex1_lvl2_shdcd012        :in   std_ulogic;
       ex1_sel_special          :in   std_ulogic;
 
+      ----------- SHIFT DATA -----------------
       ex1_b_sign               :in   std_ulogic;
       ex1_b_expo               :in   std_ulogic_vector(3 to 13) ;
       ex1_b_frac               :in   std_ulogic_vector(0 to 52) ;
 
+      ---------- SHIFT OUTPUT ---------------
       ex1_sh_lvl2              :out std_ulogic_vector(0 to 67)  
 );
 
 
 
-end fuq_alg_sh4; 
+end fuq_alg_sh4; -- ENTITY
 
 architecture fuq_alg_sh4 of fuq_alg_sh4 is
 
@@ -130,27 +133,21 @@ architecture fuq_alg_sh4 of fuq_alg_sh4 is
 
 
 
-
-
-
-
-
  
-
-
-
-
-
-
-
-
 
 
 
 begin
 
+  --#-------------------------------------------------
+  --# adjust B for fcfid specials
+  --#-------------------------------------------------
+     -- if implicit bit is off: exponent should be 0 instead of x001, x381 (1/897)
+     -- frac(0) is the implicit bit.
+     -- 0_0000_0000_0001    1
+     -- 0_0011_1000_0001  897
 
-    ex1_special_fcfid(0)        <= ex1_b_sign     ;  
+    ex1_special_fcfid(0)        <= ex1_b_sign     ;  -- fcfid integer
     ex1_special_fcfid(1)        <= ex1_b_expo( 3) ;
     ex1_special_fcfid(2)        <= ex1_b_expo( 4) and ex1_b_frac(0) ;
     ex1_special_fcfid(3)        <= ex1_b_expo( 5) and ex1_b_frac(0) ;
@@ -162,89 +159,95 @@ begin
     ex1_special_fcfid(9)        <= ex1_b_expo(11) ;
     ex1_special_fcfid(10)       <= ex1_b_expo(12) ;
     ex1_special_fcfid(11)       <= ex1_b_expo(13) and ex1_b_frac(0) ;
-    ex1_special_fcfid(12 to 63) <= ex1_b_frac(1 to 52); 
+    ex1_special_fcfid(12 to 63) <= ex1_b_frac(1 to 52); -- fcfid integer
 
 
-
+--#---------------------------------------
+--# repower the selects for sh 0/1/2/3
+--#---------------------------------------
 
  s1v2d0c1:  sh1v2dcd0_cp1   <= not ex1_lvl1_shdcd000_b;
  s1v3d0c1:  sh1v3dcd0_cp1_b <= not sh1v2dcd0_cp1 ;
  s1v3d0c2:  sh1v3dcd0_cp2_b <= not sh1v2dcd0_cp1 ;
- s1v4d0c1:  sh1v4dcd0_cp1   <= not sh1v3dcd0_cp1_b; 
- s1v4d0c2:  sh1v4dcd0_cp2   <= not sh1v3dcd0_cp1_b; 
- s1v4d0c3:  sh1v4dcd0_cp3   <= not sh1v3dcd0_cp2_b; 
- s1v4d0c4:  sh1v4dcd0_cp4   <= not sh1v3dcd0_cp2_b; 
+ s1v4d0c1:  sh1v4dcd0_cp1   <= not sh1v3dcd0_cp1_b; --drive 0:13
+ s1v4d0c2:  sh1v4dcd0_cp2   <= not sh1v3dcd0_cp1_b; --drive 14:27
+ s1v4d0c3:  sh1v4dcd0_cp3   <= not sh1v3dcd0_cp2_b; --drive 28:41
+ s1v4d0c4:  sh1v4dcd0_cp4   <= not sh1v3dcd0_cp2_b; --drive 42:55
 
  s1v2d1c1:  sh1v2dcd1_cp1   <= not ex1_lvl1_shdcd001_b;
  s1v3d1c1:  sh1v3dcd1_cp1_b <= not sh1v2dcd1_cp1 ;
  s1v3d1c2:  sh1v3dcd1_cp2_b <= not sh1v2dcd1_cp1 ;
- s1v4d1c1:  sh1v4dcd1_cp1   <= not sh1v3dcd1_cp1_b; 
- s1v4d1c2:  sh1v4dcd1_cp2   <= not sh1v3dcd1_cp1_b; 
- s1v4d1c3:  sh1v4dcd1_cp3   <= not sh1v3dcd1_cp2_b; 
- s1v4d1c4:  sh1v4dcd1_cp4   <= not sh1v3dcd1_cp2_b; 
+ s1v4d1c1:  sh1v4dcd1_cp1   <= not sh1v3dcd1_cp1_b; --drive 0:13
+ s1v4d1c2:  sh1v4dcd1_cp2   <= not sh1v3dcd1_cp1_b; --drive 14:27
+ s1v4d1c3:  sh1v4dcd1_cp3   <= not sh1v3dcd1_cp2_b; --drive 28:41
+ s1v4d1c4:  sh1v4dcd1_cp4   <= not sh1v3dcd1_cp2_b; --drive 42:55
 
  s1v2d2c1:  sh1v2dcd2_cp1   <= not ex1_lvl1_shdcd002_b;
  s1v3d2c1:  sh1v3dcd2_cp1_b <= not sh1v2dcd2_cp1 ;
  s1v3d2c2:  sh1v3dcd2_cp2_b <= not sh1v2dcd2_cp1 ;
- s1v4d2c1:  sh1v4dcd2_cp1   <= not sh1v3dcd2_cp1_b; 
- s1v4d2c2:  sh1v4dcd2_cp2   <= not sh1v3dcd2_cp1_b; 
- s1v4d2c3:  sh1v4dcd2_cp3   <= not sh1v3dcd2_cp2_b; 
- s1v4d2c4:  sh1v4dcd2_cp4   <= not sh1v3dcd2_cp2_b; 
+ s1v4d2c1:  sh1v4dcd2_cp1   <= not sh1v3dcd2_cp1_b; --drive 0:13
+ s1v4d2c2:  sh1v4dcd2_cp2   <= not sh1v3dcd2_cp1_b; --drive 14:27
+ s1v4d2c3:  sh1v4dcd2_cp3   <= not sh1v3dcd2_cp2_b; --drive 28:41
+ s1v4d2c4:  sh1v4dcd2_cp4   <= not sh1v3dcd2_cp2_b; --drive 42:55
 
  s1v2d3c1:  sh1v2dcd3_cp1   <= not ex1_lvl1_shdcd003_b;
  s1v3d3c1:  sh1v3dcd3_cp1_b <= not sh1v2dcd3_cp1 ;
  s1v3d3c2:  sh1v3dcd3_cp2_b <= not sh1v2dcd3_cp1 ;
- s1v4d3c1:  sh1v4dcd3_cp1   <= not sh1v3dcd3_cp1_b; 
- s1v4d3c2:  sh1v4dcd3_cp2   <= not sh1v3dcd3_cp1_b; 
- s1v4d3c3:  sh1v4dcd3_cp3   <= not sh1v3dcd3_cp2_b; 
- s1v4d3c4:  sh1v4dcd3_cp4   <= not sh1v3dcd3_cp2_b; 
+ s1v4d3c1:  sh1v4dcd3_cp1   <= not sh1v3dcd3_cp1_b; --drive 0:13
+ s1v4d3c2:  sh1v4dcd3_cp2   <= not sh1v3dcd3_cp1_b; --drive 14:27
+ s1v4d3c3:  sh1v4dcd3_cp3   <= not sh1v3dcd3_cp2_b; --drive 28:41
+ s1v4d3c4:  sh1v4dcd3_cp4   <= not sh1v3dcd3_cp2_b; --drive 42:55
 
+--#---------------------------------------
+--# repower the selects for sh 0/4/8/12
+--#---------------------------------------
 
  s2v1d00c1:  sh2v1dcd00_cp1_b <= not ex1_lvl2_shdcd000;
  s2v2d00c1:  sh2v2dcd00_cp1   <= not sh2v1dcd00_cp1_b ;
  s2v3d00c1:  sh2v3dcd00_cp1_b <= not sh2v2dcd00_cp1 ;
  s2v3d00c2:  sh2v3dcd00_cp2_b <= not sh2v2dcd00_cp1 ;
- s2v4d00c1:  sh2v4dcd00_cp1   <= not sh2v3dcd00_cp1_b; 
- s2v4d00c2:  sh2v4dcd00_cp2   <= not sh2v3dcd00_cp1_b; 
- s2v4d00c3:  sh2v4dcd00_cp3   <= not sh2v3dcd00_cp2_b; 
- s2v4d00c4:  sh2v4dcd00_cp4   <= not sh2v3dcd00_cp2_b; 
+ s2v4d00c1:  sh2v4dcd00_cp1   <= not sh2v3dcd00_cp1_b; --drive 0:16
+ s2v4d00c2:  sh2v4dcd00_cp2   <= not sh2v3dcd00_cp1_b; --drive 17:33
+ s2v4d00c3:  sh2v4dcd00_cp3   <= not sh2v3dcd00_cp2_b; --drive 34:50
+ s2v4d00c4:  sh2v4dcd00_cp4   <= not sh2v3dcd00_cp2_b; --drive 57:67
 
  s2v1d04c1:  sh2v1dcd04_cp1_b <= not ex1_lvl2_shdcd004;
  s2v2d04c1:  sh2v2dcd04_cp1   <= not sh2v1dcd04_cp1_b ;
  s2v3d04c1:  sh2v3dcd04_cp1_b <= not sh2v2dcd04_cp1 ;
  s2v3d04c2:  sh2v3dcd04_cp2_b <= not sh2v2dcd04_cp1 ;
- s2v4d04c1:  sh2v4dcd04_cp1   <= not sh2v3dcd04_cp1_b; 
- s2v4d04c2:  sh2v4dcd04_cp2   <= not sh2v3dcd04_cp1_b; 
- s2v4d04c3:  sh2v4dcd04_cp3   <= not sh2v3dcd04_cp2_b; 
- s2v4d04c4:  sh2v4dcd04_cp4   <= not sh2v3dcd04_cp2_b; 
+ s2v4d04c1:  sh2v4dcd04_cp1   <= not sh2v3dcd04_cp1_b; --drive 0:16
+ s2v4d04c2:  sh2v4dcd04_cp2   <= not sh2v3dcd04_cp1_b; --drive 17:33
+ s2v4d04c3:  sh2v4dcd04_cp3   <= not sh2v3dcd04_cp2_b; --drive 34:50
+ s2v4d04c4:  sh2v4dcd04_cp4   <= not sh2v3dcd04_cp2_b; --drive 57:67
 
  s2v1d08c1:  sh2v1dcd08_cp1_b <= not ex1_lvl2_shdcd008;
  s2v2d08c1:  sh2v2dcd08_cp1   <= not sh2v1dcd08_cp1_b ;
  s2v3d08c1:  sh2v3dcd08_cp1_b <= not sh2v2dcd08_cp1 ;
  s2v3d08c2:  sh2v3dcd08_cp2_b <= not sh2v2dcd08_cp1 ;
- s2v4d08c1:  sh2v4dcd08_cp1   <= not sh2v3dcd08_cp1_b; 
- s2v4d08c2:  sh2v4dcd08_cp2   <= not sh2v3dcd08_cp1_b; 
- s2v4d08c3:  sh2v4dcd08_cp3   <= not sh2v3dcd08_cp2_b; 
- s2v4d08c4:  sh2v4dcd08_cp4   <= not sh2v3dcd08_cp2_b; 
+ s2v4d08c1:  sh2v4dcd08_cp1   <= not sh2v3dcd08_cp1_b; --drive 0:16
+ s2v4d08c2:  sh2v4dcd08_cp2   <= not sh2v3dcd08_cp1_b; --drive 17:33
+ s2v4d08c3:  sh2v4dcd08_cp3   <= not sh2v3dcd08_cp2_b; --drive 34:50
+ s2v4d08c4:  sh2v4dcd08_cp4   <= not sh2v3dcd08_cp2_b; --drive 57:67
 
  s2v1d12c1:  sh2v1dcd12_cp1_b <= not ex1_lvl2_shdcd012;
  s2v2d12c1:  sh2v2dcd12_cp1   <= not sh2v1dcd12_cp1_b ;
  s2v3d12c1:  sh2v3dcd12_cp1_b <= not sh2v2dcd12_cp1 ;
  s2v3d12c2:  sh2v3dcd12_cp2_b <= not sh2v2dcd12_cp1 ;
- s2v4d12c1:  sh2v4dcd12_cp1   <= not sh2v3dcd12_cp1_b; 
- s2v4d12c2:  sh2v4dcd12_cp2   <= not sh2v3dcd12_cp1_b; 
- s2v4d12c3:  sh2v4dcd12_cp3   <= not sh2v3dcd12_cp2_b; 
- s2v4d12c4:  sh2v4dcd12_cp4   <= not sh2v3dcd12_cp2_b; 
+ s2v4d12c1:  sh2v4dcd12_cp1   <= not sh2v3dcd12_cp1_b; --drive 0:16
+ s2v4d12c2:  sh2v4dcd12_cp2   <= not sh2v3dcd12_cp1_b; --drive 17:33
+ s2v4d12c3:  sh2v4dcd12_cp3   <= not sh2v3dcd12_cp2_b; --drive 34:50
+ s2v4d12c4:  sh2v4dcd12_cp4   <= not sh2v3dcd12_cp2_b; --drive 57:67
 
  s2v1dppc1:  sh2v1dcdpp_cp1_b <= not ex1_sel_special ;
  s2v2dppc1:  sh2v2dcdpp_cp1   <= not sh2v1dcdpp_cp1_b ;
  s2v3dppc1:  sh2v3dcdpp_cp1_b <= not sh2v2dcdpp_cp1 ;
  s2v3dppc2:  sh2v3dcdpp_cp2_b <= not sh2v2dcdpp_cp1 ;
- s2v4dppc1:  sh2v4dcdpp_cp1   <= not sh2v3dcdpp_cp1_b; 
- s2v4dppc2:  sh2v4dcdpp_cp2   <= not sh2v3dcdpp_cp1_b; 
- s2v4dppc3:  sh2v4dcdpp_cp3   <= not sh2v3dcdpp_cp2_b; 
- s2v4dppc4:  sh2v4dcdpp_cp4   <= not sh2v3dcdpp_cp2_b; 
+ s2v4dppc1:  sh2v4dcdpp_cp1   <= not sh2v3dcdpp_cp1_b; --drive 0:16
+ s2v4dppc2:  sh2v4dcdpp_cp2   <= not sh2v3dcdpp_cp1_b; --drive 17:33
+ s2v4dppc3:  sh2v4dcdpp_cp3   <= not sh2v3dcdpp_cp2_b; --drive 34:50
+ s2v4dppc4:  sh2v4dcdpp_cp4   <= not sh2v3dcdpp_cp2_b; --drive 57:67
 
+---------------------------------------
 
 
   lv1x_00: ex1_sh_lv1x_b(0)  <= not(  sh1v4dcd0_cp1 and ex1_b_frac(0)  ) ;
@@ -416,6 +419,7 @@ begin
   lv1_54: ex1_sh_lv1(54) <= not(                        ex1_sh_lv1y_b(54) );
   lv1_55: ex1_sh_lv1(55) <= not(                        ex1_sh_lv1y_b(55) );
 
+----------------------------------------------------------------------------------------------
 
 
   lv2x_00: ex1_sh_lv2x_b(0)  <= not(  sh2v4dcd00_cp1 and ex1_sh_lv1(0)                                            );
@@ -681,9 +685,4 @@ begin
 
 
 
-end; 
-                
-
-
-
-
+end; -- fuq_alg_sh4 ARCHITECTURE

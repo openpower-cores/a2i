@@ -42,12 +42,6 @@ ARCHITECTURE xuq_agen_glbloc_lsb  OF xuq_agen_glbloc_lsb  IS
  signal g08_b :std_ulogic;
 
 
-
-
-
-
-
-
 BEGIN
 
   u_g01_0: g01(0)   <= not( x_b(0) or  y_b(0) );
@@ -85,8 +79,7 @@ BEGIN
   u_t04_0: t04(0)   <= not (                t02_b(0) or  t02_b(1) ) ;
   
   u_g08_y: g08_b    <= not ( g04(0) or  ( t04(0) and g04(1) ) ) ;
-  u_g08_x: g08      <= not ( g08_b  ) ; 
+  u_g08_x: g08      <= not ( g08_b  ) ; -- output
 
 
-END; 
-
+END; -- ARCH xuq_agen_glbloc_lsb

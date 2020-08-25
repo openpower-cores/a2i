@@ -29,11 +29,12 @@ use work.iuq_pkg.all;
 entity iuq_spr is
 generic(regmode     : integer := 6;
         a2mode      : integer := 1;
-        expand_type : integer := 2 ); 
+        expand_type : integer := 2 ); -- 0 = ibm umbra, 1 = xilinx, 2 = ibm mpg
 port(
      vdd                                        : inout power_logic;
      gnd                                        : inout power_logic;
 
+     -- inputs from mm
      slowspr_val_in             : in std_ulogic;
      slowspr_rw_in              : in std_ulogic;
      slowspr_etid_in            : in std_ulogic_vector(0 to 1);
@@ -41,6 +42,7 @@ port(
      slowspr_data_in            : in std_ulogic_vector(64-(2**regmode) to 63);
      slowspr_done_in            : in std_ulogic;
 
+     -- outputs to pervasive
      slowspr_val_out            : out std_ulogic;
      slowspr_rw_out             : out std_ulogic;
      slowspr_etid_out           : out std_ulogic_vector(0 to 1);
@@ -62,20 +64,25 @@ port(
      spr_ic_cls                 : out std_ulogic;
      spr_ic_clockgate_dis       : out std_ulogic_vector(0 to 1);
 
+     -- Signals for branch prediction enable
      spr_ic_bp_config           : out std_ulogic_vector(0 to 3);
      spr_bp_config              : out std_ulogic_vector(0 to 3);
      spr_bp_gshare_mask         : out std_ulogic_vector(0 to 3);
 
+     -- decoder match/mask
      spr_dec_mask               : out std_ulogic_vector(0 to 31);
      spr_dec_match              : out std_ulogic_vector(0 to 31);
 
+     --axu config
      iu_au_config_iucr_t0       : out std_ulogic_vector(0 to 7);
      iu_au_config_iucr_t1       : out std_ulogic_vector(0 to 7);
      iu_au_config_iucr_t2       : out std_ulogic_vector(0 to 7);
      iu_au_config_iucr_t3       : out std_ulogic_vector(0 to 7);
 
 
+     -- Need to add in all erat signals
 
+     -- XU issue priority
      spr_issue_high_mask        : out std_ulogic_vector(0 to 3);
      spr_issue_med_mask         : out std_ulogic_vector(0 to 3);
      spr_fiss_count0_max        : out std_ulogic_vector(0 to 5);
@@ -103,6 +110,7 @@ port(
      xu_iu_msr_gs               : in std_ulogic_vector(0 to 3);
      xu_iu_msr_pr               : in std_ulogic_vector(0 to 3);
 
+     --pervasive
      nclk                       : in  clk_logic;
      pc_iu_sg_2                 : in  std_ulogic;
      pc_iu_func_sl_thold_2      : in  std_ulogic;
@@ -130,10 +138,14 @@ port(
 -- synopsys translate_on
 
 end iuq_spr;
+----
 architecture iuq_spr of iuq_spr is
 
+----------------------------
+-- constants
+----------------------------
 
-
+--scan chain
 constant ll_trig_rnd_offset             : natural := 0;
 constant ll_trig_cnt_offset             : natural := ll_trig_rnd_offset + 14;
 constant ll_hold_cnt_offset             : natural := ll_trig_cnt_offset + 18;
@@ -198,6 +210,9 @@ constant IUCR2_MASK                     : std_ulogic_vector(32 to 63) := "111111
 constant PPR32_MASK                     : std_ulogic_vector(32 to 63) := "00000000000111000000000000000000";
 
 
+----------------------------
+-- signals
+----------------------------
 signal spare_l2                 : std_ulogic_vector(0 to 3);
 signal ccfg_spare_l2            : std_ulogic_vector(0 to 7);
 
@@ -428,6 +443,7 @@ signal ll_trig          : std_ulogic;
 signal ll_hold          : std_ulogic;
 
 
+-- pervasive signals
 signal tiup                     : std_ulogic;
 
 signal pc_iu_cfg_sl_thold_1     : std_ulogic;
@@ -455,6 +471,9 @@ begin
 tiup    <= '1';
 
 
+-------------------------------------------------
+-- latches
+-------------------------------------------------
 
 ll_trig_rnd_reg: tri_rlmreg_p
   generic map (width => ll_trig_rnd_l2'length, init => 0, expand_type => expand_type) 
@@ -1015,7 +1034,7 @@ spare_latch: tri_rlmreg_p
             dout    => spare_l2);
 
 
-iullcr_reg: tri_ser_rlmreg_p 
+iullcr_reg: tri_ser_rlmreg_p --init 0x00020040
   generic map (width => iullcr_l2'length, init => 131136, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1033,7 +1052,7 @@ iullcr_reg: tri_ser_rlmreg_p
             din         => iullcr_d,
             dout        => iullcr_l2);
 
-iucr0_reg: tri_ser_rlmreg_p 
+iucr0_reg: tri_ser_rlmreg_p --init 0x000010FA
   generic map (width => iucr0_l2'length, init => 4346, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1051,7 +1070,7 @@ iucr0_reg: tri_ser_rlmreg_p
             din         => iucr0_d,
             dout        => iucr0_l2);
 
-iucr1_t0_reg: tri_ser_rlmreg_p 
+iucr1_t0_reg: tri_ser_rlmreg_p --init 0x00001000
   generic map (width => iucr1_t0_l2'length, init => 4096, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1069,7 +1088,7 @@ iucr1_t0_reg: tri_ser_rlmreg_p
             din         => iucr1_t0_d,
             dout        => iucr1_t0_l2);
 
-iucr1_t1_reg: tri_ser_rlmreg_p 
+iucr1_t1_reg: tri_ser_rlmreg_p --init 0x00001000
   generic map (width => iucr1_t1_l2'length, init => 4096, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1087,7 +1106,7 @@ iucr1_t1_reg: tri_ser_rlmreg_p
             din         => iucr1_t1_d,
             dout        => iucr1_t1_l2);
 
-iucr1_t2_reg: tri_ser_rlmreg_p 
+iucr1_t2_reg: tri_ser_rlmreg_p --init 0x00001000
   generic map (width => iucr1_t2_l2'length, init => 4096, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1105,7 +1124,7 @@ iucr1_t2_reg: tri_ser_rlmreg_p
             din         => iucr1_t2_d,
             dout        => iucr1_t2_l2);
 
-iucr1_t3_reg: tri_ser_rlmreg_p 
+iucr1_t3_reg: tri_ser_rlmreg_p --init 0x00001000
   generic map (width => iucr1_t3_l2'length, init => 4096, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1123,7 +1142,7 @@ iucr1_t3_reg: tri_ser_rlmreg_p
             din         => iucr1_t3_d,
             dout        => iucr1_t3_l2);
 
-iucr2_t0_reg: tri_ser_rlmreg_p 
+iucr2_t0_reg: tri_ser_rlmreg_p --init 0x00000000
   generic map (width => iucr2_t0_l2'length, init => 0, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1141,7 +1160,7 @@ iucr2_t0_reg: tri_ser_rlmreg_p
             din         => iucr2_t0_d,
             dout        => iucr2_t0_l2);
 
-iucr2_t1_reg: tri_ser_rlmreg_p 
+iucr2_t1_reg: tri_ser_rlmreg_p --init 0x00000000
   generic map (width => iucr2_t1_l2'length, init => 0, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1159,7 +1178,7 @@ iucr2_t1_reg: tri_ser_rlmreg_p
             din         => iucr2_t1_d,
             dout        => iucr2_t1_l2);
 
-iucr2_t2_reg: tri_ser_rlmreg_p 
+iucr2_t2_reg: tri_ser_rlmreg_p --init 0x00000000
   generic map (width => iucr2_t2_l2'length, init => 0, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1177,7 +1196,7 @@ iucr2_t2_reg: tri_ser_rlmreg_p
             din         => iucr2_t2_d,
             dout        => iucr2_t2_l2);
 
-iucr2_t3_reg: tri_ser_rlmreg_p 
+iucr2_t3_reg: tri_ser_rlmreg_p --init 0x00000000
   generic map (width => iucr2_t3_l2'length, init => 0, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1195,7 +1214,7 @@ iucr2_t3_reg: tri_ser_rlmreg_p
             din         => iucr2_t3_d,
             dout        => iucr2_t3_l2);
 
-ppr32_t0_reg: tri_ser_rlmreg_p 
+ppr32_t0_reg: tri_ser_rlmreg_p --init 0x000c0000
   generic map (width => ppr32_t0_l2'length, init => 3, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1213,7 +1232,7 @@ ppr32_t0_reg: tri_ser_rlmreg_p
             din         => ppr32_t0_d,
             dout        => ppr32_t0_l2);
 
-ppr32_t1_reg: tri_ser_rlmreg_p 
+ppr32_t1_reg: tri_ser_rlmreg_p --init 0x000c0000
   generic map (width => ppr32_t1_l2'length, init => 3, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1231,7 +1250,7 @@ ppr32_t1_reg: tri_ser_rlmreg_p
             din         => ppr32_t1_d,
             dout        => ppr32_t1_l2);
 
-ppr32_t2_reg: tri_ser_rlmreg_p 
+ppr32_t2_reg: tri_ser_rlmreg_p --init 0x000c0000
   generic map (width => ppr32_t2_l2'length, init => 3, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1249,7 +1268,7 @@ ppr32_t2_reg: tri_ser_rlmreg_p
             din         => ppr32_t2_d,
             dout        => ppr32_t2_l2);
 
-ppr32_t3_reg: tri_ser_rlmreg_p 
+ppr32_t3_reg: tri_ser_rlmreg_p --init 0x000c0000
   generic map (width => ppr32_t3_l2'length, init => 3, expand_type => expand_type) 
   port map (vd      => vdd,
             gd      => gnd,
@@ -1286,6 +1305,9 @@ ccfg_spare_latch: tri_rlmreg_p
             dout    => ccfg_spare_l2);
 
 
+-------------------------------------------------
+-- inputs
+-------------------------------------------------
 xu_iu_run_thread_d      <= xu_iu_run_thread;
 xu_iu_ex6_pri_d         <= xu_iu_ex6_pri;
 xu_iu_ex6_pri_val_d     <= xu_iu_ex6_pri_val;
@@ -1300,6 +1322,9 @@ slowspr_addr_d          <= slowspr_addr_in;
 slowspr_data_d          <= slowspr_data_in;
 slowspr_done_d          <= slowspr_done_in;
 
+-------------------------------------------------
+-- outputs
+-------------------------------------------------
 iu_slowspr_val_d        <= slowspr_val_l2;
 iu_slowspr_rw_d         <= slowspr_rw_l2;
 iu_slowspr_etid_d       <= slowspr_etid_l2;
@@ -1362,6 +1387,9 @@ spr_ic_idir_read        <= iudbg0_exec_l2;
 spr_ic_idir_way         <= iudbg0_l2(50 to 51);
 spr_ic_idir_row         <= iudbg0_l2(52 to 57);
 
+-------------------------------------------------
+-- livelock hold
+-------------------------------------------------
 iull_en                 <= iullcr_l2(63);
 
 ll_trig_dly(0 to 3)     <= "0001" when iullcr_l2(46 to 49) = "0000" else iullcr_l2(46 to 49);
@@ -1387,27 +1415,30 @@ ll_hold                 <= iull_en and or_reduce(ll_hold_cnt_l2(0 to 9));
 
 spr_fdep_ll_hold        <= ll_hold;
 
+-------------------------------------------------
+-- register select
+-------------------------------------------------
 
-immr0_sel       <= slowspr_val_l2 and slowspr_addr_l2 = "1101110001";      
-imr0_sel        <= slowspr_val_l2 and slowspr_addr_l2 = "1101110000";      
-iulfsr_sel      <= slowspr_val_l2 and slowspr_addr_l2 = "1101111011";      
-iudbg0_sel      <= slowspr_val_l2 and slowspr_addr_l2 = "1101111000";      
-iudbg1_sel      <= slowspr_val_l2 and slowspr_addr_l2 = "1101111001";      
-iudbg2_sel      <= slowspr_val_l2 and slowspr_addr_l2 = "1101111010";      
-iullcr_sel      <= slowspr_val_l2 and slowspr_addr_l2 = "1101111100";      
-iucr0_sel       <= slowspr_val_l2 and slowspr_addr_l2 = "1111110011";      
-iucr1_t0_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110011" and slowspr_etid_l2 = "00";      
-iucr1_t1_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110011" and slowspr_etid_l2 = "01";      
-iucr1_t2_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110011" and slowspr_etid_l2 = "10";      
-iucr1_t3_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110011" and slowspr_etid_l2 = "11";      
-iucr2_t0_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110100" and slowspr_etid_l2 = "00";      
-iucr2_t1_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110100" and slowspr_etid_l2 = "01";      
-iucr2_t2_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110100" and slowspr_etid_l2 = "10";      
-iucr2_t3_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110100" and slowspr_etid_l2 = "11";      
-ppr32_t0_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110000010" and slowspr_etid_l2 = "00";      
-ppr32_t1_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110000010" and slowspr_etid_l2 = "01";      
-ppr32_t2_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110000010" and slowspr_etid_l2 = "10";      
-ppr32_t3_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110000010" and slowspr_etid_l2 = "11";      
+immr0_sel       <= slowspr_val_l2 and slowspr_addr_l2 = "1101110001";      --881
+imr0_sel        <= slowspr_val_l2 and slowspr_addr_l2 = "1101110000";      --880
+iulfsr_sel      <= slowspr_val_l2 and slowspr_addr_l2 = "1101111011";      --891
+iudbg0_sel      <= slowspr_val_l2 and slowspr_addr_l2 = "1101111000";      --888
+iudbg1_sel      <= slowspr_val_l2 and slowspr_addr_l2 = "1101111001";      --889
+iudbg2_sel      <= slowspr_val_l2 and slowspr_addr_l2 = "1101111010";      --890
+iullcr_sel      <= slowspr_val_l2 and slowspr_addr_l2 = "1101111100";      --892
+iucr0_sel       <= slowspr_val_l2 and slowspr_addr_l2 = "1111110011";      --1011
+iucr1_t0_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110011" and slowspr_etid_l2 = "00";      --883,t0
+iucr1_t1_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110011" and slowspr_etid_l2 = "01";      --883,t1
+iucr1_t2_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110011" and slowspr_etid_l2 = "10";      --883,t2
+iucr1_t3_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110011" and slowspr_etid_l2 = "11";      --883,t3
+iucr2_t0_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110100" and slowspr_etid_l2 = "00";      --884,t0
+iucr2_t1_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110100" and slowspr_etid_l2 = "01";      --884,t1
+iucr2_t2_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110100" and slowspr_etid_l2 = "10";      --884,t2
+iucr2_t3_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1101110100" and slowspr_etid_l2 = "11";      --884,t3
+ppr32_t0_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110000010" and slowspr_etid_l2 = "00";      --898,t0
+ppr32_t1_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110000010" and slowspr_etid_l2 = "01";      --898,t1
+ppr32_t2_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110000010" and slowspr_etid_l2 = "10";      --898,t2
+ppr32_t3_sel    <= slowspr_val_l2 and slowspr_addr_l2 = "1110000010" and slowspr_etid_l2 = "11";      --898,t3
 
 iu_slowspr_done         <= immr0_sel or imr0_sel or iulfsr_sel or iullcr_sel or iucr0_sel or
                            iudbg0_sel or iudbg1_sel or iudbg2_sel or
@@ -1416,6 +1447,9 @@ iu_slowspr_done         <= immr0_sel or imr0_sel or iulfsr_sel or iullcr_sel or 
                            ppr32_t0_sel or ppr32_t1_sel or ppr32_t2_sel or ppr32_t3_sel; 
 
 
+-------------------------------------------------
+-- set priority levels
+-------------------------------------------------
 
 priv_mode(0 to 3)       <= not xu_iu_msr_pr_l2(0 to 3);
 hypv_mode(0 to 3)       <= not xu_iu_msr_pr_l2(0 to 3) and not xu_iu_msr_gs_l2(0 to 3);
@@ -1466,6 +1500,9 @@ hi_pri(3)       <=(ppr32_t3_l2(43 to 45) = "100" and  hi_pri_level_t3(0 to 1)  =
 
 
 
+-------------------------------------------------
+-- register write
+-------------------------------------------------
 
 iudbg0_exec_wren <=  iudbg0_wren or iudbg0_exec_L2;
 iudbg0_done_wren <=  iudbg0_wren or ic_spr_idir_done;
@@ -1569,8 +1606,9 @@ ppr32_t2_d      <= PPR32_MASK(43 to 45) and xu_iu_ex6_pri_l2(0 to 2)    when  xu
 ppr32_t3_d      <= PPR32_MASK(43 to 45) and xu_iu_ex6_pri_l2(0 to 2)    when  xu_iu_ex6_pri_val_l2(3)             = '1' else
                    PPR32_MASK(43 to 45) and slowspr_data_l2(43 to 45);
 
-
-
+-------------------------------------------------
+-- register read
+-------------------------------------------------
 
 immr0_rden      <= immr0_sel    and slowspr_rw_l2 = '1';
 imr0_rden       <= imr0_sel     and slowspr_rw_l2 = '1';
@@ -1644,6 +1682,9 @@ ppr32_t3(32 to 63)              <= PPR32_MASK(32 to 42) & ppr32_t3_L2(43 to 45) 
 
                  
 
+-------------------------------------------------
+-- pervasive
+-------------------------------------------------
 
 perv_2to1_reg: tri_plat
   generic map (width => 3, expand_type => expand_type)
@@ -1690,6 +1731,9 @@ cfg_perv_lcbor: tri_lcbor
             thold_b     => pc_iu_cfg_sl_thold_0_b);
 
 
+-------------------------------------------------
+-- dummy latches for unused scan chains
+-------------------------------------------------
 
 slat_lcb: tri_lcbs
   generic map (expand_type => expand_type)
@@ -1719,6 +1763,9 @@ repower_latch: tri_slat_scan
 
 
 
+-------------------------------------------------
+-- scan
+-------------------------------------------------
 
 siv(0 to scan_right)    <= scan_in & sov(0 to scan_right-1);
 scan_out                <= sov(scan_right);

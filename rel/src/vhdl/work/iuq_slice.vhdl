@@ -9,6 +9,13 @@
 
 			
 
+--********************************************************************
+--*
+--* TITLE: Instruction Unit
+--*
+--* NAME: iuq_slice.vhdl
+--*
+--*********************************************************************
 library ieee;
 use ieee.std_logic_1164.all;
 library ibm;
@@ -162,6 +169,7 @@ axu_dbg_data                       : out std_ulogic_vector(00 to 37)
 end iuq_slice;
 architecture iuq_slice of iuq_slice is
 constant ibuff_data_width               : integer := 42;
+-- scan chain 0
 constant scan_dec                       : natural := 0;
 constant scan_dep                       : natural := 1;
 constant scan_axu_dec                   : natural := 2;
@@ -169,10 +177,12 @@ constant scan_axu_dep                   : natural := 3;
 constant scan_right                     : natural := 3;
 signal au_iu_is0_to_ucode               : std_ulogic;
 signal au_iu_is0_ucode_only             : std_ulogic;
+-- flush
 signal ib1_flush                        : std_ulogic;
 signal is1_flush                        : std_ulogic;
 signal is2_flush                        : std_ulogic;
 signal rf0_flush                        : std_ulogic;
+-- ib signals
 signal iu_au_ib1_instr0                 : std_ulogic_vector(0 to 31);
 signal iu_au_ib1_instr0_pred_vld        : std_ulogic;
 signal iu_au_ib1_instr0_ucode_ext       : std_ulogic_vector(0 to 3);
@@ -183,9 +193,11 @@ signal iu_au_ib1_instr0_2ucode          : std_ulogic;
 signal iu_au_ib1_instr0_2ucode_type     : std_ulogic;
 signal iu_au_ib1_instr0_force_ram       : std_ulogic;
 signal iu_au_ib1_instr0_gshare          : std_ulogic_vector(0 to 3);
+-- is signals
 signal iu_au_is1_cr_user_v              : std_ulogic;
 signal iu_au_is0_cr_setter              : std_ulogic;
 signal i_afd_is1_cr_setter              : std_ulogic;
+-- fdec signals
 signal fdec_fdep_is1_vld                : std_ulogic;
 signal fdec_fdep_is1_instr              : std_ulogic_vector(0 to 31);
 signal fdec_fdep_is1_ta_vld             : std_ulogic;
@@ -237,9 +249,11 @@ signal fdec_fdep_is1_2ucode_type              : std_ulogic;
 signal fdec_fdep_is1_force_ram              : std_ulogic;
 signal iu_au_is2_stall                  : std_ulogic;
 signal iu_au_is1_stall_int              : std_ulogic;
+-- This is a barrier operation that will stop axu issue
 signal iu_au_is1_hold                   : std_ulogic;
 signal fdep_fdec_buff_stall             : std_ulogic;
 signal fdep_fdec_weak_stall             : std_ulogic;
+-- axu dec signals
 signal au_iu_ib1_store                  : std_ulogic;
 signal au_iu_ib1_ldst_size              : std_ulogic_vector(0 to 5);
 signal au_iu_ib1_ldst_tag               : std_ulogic_vector(0 to 8);
@@ -286,6 +300,7 @@ signal i_afd_is1_frt_buf                : std_ulogic_vector(1 to 6);
 signal i_afd_is1_divsqrt                : std_ulogic;
 signal i_afd_is1_stall_rep              : std_ulogic;
 signal i_afd_is1_instr_sto_v            : std_ulogic;
+-- axu dep signals
 signal au_iu_is1_dep_hit                : std_ulogic;
 signal au_iu_is1_dep_hit_b                : std_ulogic;
 signal au_iu_is2_axubusy                : std_ulogic;
@@ -296,6 +311,7 @@ signal pc_au_ram_mode                   : std_ulogic;
 signal pc_au_ram_thread_v               : std_ulogic;
 signal fu_dec_debug :  std_ulogic_vector(0 to 13);
 signal fu_dep_debug :  std_ulogic_vector(0 to 23);
+-- scan signals
 signal siv                              : std_ulogic_vector(0 to scan_right);
 signal sov                              : std_ulogic_vector(0 to scan_right);
 signal pc_iu_func_sl_thold_1    : std_ulogic;
@@ -311,7 +327,11 @@ begin
 act_dis <= '0';
 d_mode  <= '0';
 mpw2_b  <= '1';
+--pass through
 iu_au_config_iucr_pt(2 to 4) <= iu_au_config_iucr(2 to 3) & iu_au_config_iucr(5);
+----------------------------------------
+-- ibuff instruction source muxing
+----------------------------------------
 iu_au_ib1_instr0(0 to 31)               <= iu_au_ib1_data(0 to 31);
 iu_au_ib1_instr0_ucode_ext(0 to 3)      <= iu_au_ib1_data(32 to 35);
 iu_au_ib1_instr0_pred_taken_cnt(0 to 1) <= iu_au_ib1_data(36 to 37);
@@ -763,7 +783,13 @@ port map (
          i_afd_config_iucr              => i_afd_config_iucr,
          fu_dep_debug                   => fu_dep_debug  
        );
+-------------------------------------------------
+-- debug bus
+-------------------------------------------------
 axu_dbg_data(0 to 37) <= fu_dec_debug(0 to 13) & fu_dep_debug(0 to 23);
+-------------------------------------------------
+-- pervasive
+-------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 2, expand_type => expand_type)
   port map (vd          => vdd,
@@ -795,4 +821,3 @@ perv_lcbor: tri_lcbor
 siv <= scan_in & sov(0 to scan_right-1);
 scan_out <= sov(scan_right) and an_ac_scan_dis_dc_b;
 end iuq_slice;
-

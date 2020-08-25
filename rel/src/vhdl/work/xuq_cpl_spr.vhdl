@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU SPR - Wrapper
+--
 library ieee,ibm,support,work,tri;
 use ieee.std_logic_1164.all;
 use support.power_logic_pkg.all;
@@ -41,6 +43,7 @@ port(
    dcfg_scan_in                     : in  std_ulogic;
    dcfg_scan_out                    : out std_ulogic;
 
+   -- Decode
    spr_bit_act                      : in  std_ulogic;
    exx_act                          : in  std_ulogic_vector(1 to 4);
    ex1_instr                        : in  std_ulogic_vector(11 to 20);
@@ -50,22 +53,27 @@ port(
    ex4_lr_update                    : in  std_ulogic;
    ex4_ctr_dec_update               : in  std_ulogic;
 
+   -- IFAR
    ex2_ifar                         : in  std_ulogic_vector(0 to eff_ifar*threads-1);
 
+   -- Write Interface
    ex5_val                          : in  std_ulogic_vector(0 to threads-1);
    ex5_spr_wd                       : in  std_ulogic_vector(64-regsize to 63);
    ex5_cia_p1                       : in  std_ulogic_vector(62-eff_ifar to 61);
 
    ex2_mtiar                        : out std_ulogic;
 
+   -- Read Data
    cpl_byp_ex3_spr_rt               : out std_ulogic_vector(64-regsize to 63);
    
 
+   -- IAC Compare
    ex3_iac1_cmpr                    : out std_ulogic_vector(0 to threads-1);
    ex3_iac2_cmpr                    : out std_ulogic_vector(0 to threads-1);
    ex3_iac3_cmpr                    : out std_ulogic_vector(0 to threads-1);
    ex3_iac4_cmpr                    : out std_ulogic_vector(0 to threads-1);
 
+   -- SPRs
    spr_cpl_iac1_en                  : in  std_ulogic_vector(0 to threads-1);
    spr_cpl_iac2_en                  : in  std_ulogic_vector(0 to threads-1);
    spr_cpl_iac3_en                  : in  std_ulogic_vector(0 to threads-1);
@@ -93,6 +101,7 @@ port(
 	spr_ctr                          : out std_ulogic_vector(0 to (regsize)*threads-1);
 	spr_lr                           : out std_ulogic_vector(0 to (regsize)*threads-1);
 
+   -- Power
    vdd                              : inout power_logic;
    gnd                              : inout power_logic
 );
@@ -138,25 +147,32 @@ port map(
    scan_out                         => sov(threads),
    dcfg_scan_in                     => dcfg_scan_in,
    dcfg_scan_out                    => dcfg_scan_out,
+   -- Decode
    spr_bit_act                      => spr_bit_act,
    exx_act                          => exx_act,
    ex1_instr                        => ex1_instr,
    ex2_tid                          => ex2_tid,
    ex1_is_mfspr                     => ex1_is_mfspr,
    ex1_is_mtspr                     => ex1_is_mtspr,
+   -- IFAR
    ex2_ifar                         => ex2_ifar,
+   -- Write Interface
    ex5_valid                        => ex5_val,
    ex5_spr_wd                       => ex5_spr_wd,
    ex2_mtiar                        => ex2_mtiar,
+   -- SPRT Interface
    cspr_tspr_ex5_is_mtspr           => cspr_tspr_ex5_is_mtspr,
    cspr_tspr_ex5_instr              => cspr_tspr_ex5_instr,
    cspr_tspr_ex2_instr              => cspr_tspr_ex2_instr,
+   -- Read Data
    tspr_cspr_ex2_tspr_rt            => tspr_cspr_ex2_tspr_rt,
    cpl_byp_ex3_spr_rt               => cpl_byp_ex3_spr_rt,
+   -- IAC Compare
    ex3_iac1_cmpr                    => ex3_iac1_cmpr,
    ex3_iac2_cmpr                    => ex3_iac2_cmpr,
    ex3_iac3_cmpr                    => ex3_iac3_cmpr,
    ex3_iac4_cmpr                    => ex3_iac4_cmpr,
+   -- SPRs
    spr_cpl_iac1_en                  => spr_cpl_iac1_en,
    spr_cpl_iac2_en                  => spr_cpl_iac2_en,
    spr_cpl_iac3_en                  => spr_cpl_iac3_en,
@@ -180,6 +196,7 @@ port map(
 	spr_xucr4_div_bar_dis            => spr_xucr4_div_bar_dis,
 	spr_xucr4_lsu_bar_dis            => spr_xucr4_lsu_bar_dis,
 	spr_xucr4_barr_dly               => spr_xucr4_barr_dly,
+   -- Power
    vdd                              => vdd,
    gnd                              => gnd
 );
@@ -205,16 +222,20 @@ port map(
    scan_out                         => sov(t),
    cspr_tspr_ex2_instr              => cspr_tspr_ex2_instr,
    tspr_cspr_ex2_tspr_rt            => tspr_cspr_ex2_tspr_rt(regsize*t to regsize*(t+1)-1),
+   -- Write Interface
    ex5_val                          => ex5_val(t),
    cspr_tspr_ex5_is_mtspr           => cspr_tspr_ex5_is_mtspr,
    cspr_tspr_ex5_instr              => cspr_tspr_ex5_instr,
    ex5_spr_wd                       => ex5_spr_wd,
    ex5_cia_p1                       => ex5_cia_p1,
+   -- Decode Signals
    ex4_lr_update                    => ex4_lr_update,
    ex4_ctr_dec_update               => ex4_ctr_dec_update,
+   -- SPRs
    spr_iar                          => spr_iar(eff_ifar*t to eff_ifar*(t+1)-1),
 	spr_ctr                          => spr_ctr((regsize)*t to (regsize)*(t+1)-1),
 	spr_lr                           => spr_lr((regsize)*t to (regsize)*(t+1)-1),
+   -- Power
    vdd                              => vdd,
    gnd                              => gnd
 );

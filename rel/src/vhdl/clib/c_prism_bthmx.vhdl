@@ -19,12 +19,12 @@ ENTITY c_prism_bthmx IS
     GENERIC ( btr : string := "BTHMX_X1_A12TH"  );
     PORT(
      X      : IN  STD_ULOGIC;
-     SNEG   : IN  STD_ULOGIC; 
-     SX     : IN  STD_ULOGIC; 
-     SX2    : IN  STD_ULOGIC; 
-     RIGHT  : IN  STD_ULOGIC; 
-     LEFT   : OUT STD_ULOGIC; 
-     Q      : OUT STD_ULOGIC; 
+     SNEG   : IN  STD_ULOGIC; -- DO NOT FLIP THE INPUT (ADD)
+     SX     : IN  STD_ULOGIC; -- SHIFT BY 1
+     SX2    : IN  STD_ULOGIC; -- SHIFT BY 2
+     RIGHT  : IN  STD_ULOGIC; -- BIT FROM THE RIGHT (LSB)
+     LEFT   : OUT STD_ULOGIC; -- BIT FROM THE LEFT
+     Q      : OUT STD_ULOGIC; -- FINAL OUTPUT
      vd     : inout power_logic;
      gd     : inout power_logic
   );
@@ -32,6 +32,7 @@ ENTITY c_prism_bthmx IS
 -- synopsys translate_off
 
 
+    -- The following will be used by synthesis for unrolling the vector:
     ATTRIBUTE PIN_BIT_INFORMATION of c_prism_bthmx : entity is
       (
         1 => ("   ","X       ","SAME","PIN_BIT_SCALAR"),
@@ -63,7 +64,7 @@ BEGIN
    CENTER <= NOT( ( XN AND SPOS ) OR 
                   ( X  AND SNEG )   );
 
-   LEFT <= CENTER; 
+   LEFT <= CENTER; -- OUTPUT
 
 
    Q <= ( CENTER AND  SX  ) OR 
@@ -71,8 +72,3 @@ BEGIN
 
 
 END;
-
-
-
-
-

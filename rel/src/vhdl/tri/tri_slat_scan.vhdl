@@ -7,6 +7,10 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_slat_scan.vhdl
+-- *! DESCRIPTION : n-bit scan-only latch without scan_connect
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
@@ -21,7 +25,7 @@ entity tri_slat_scan is
             synthclonedlatch   : string                    := "" ;
             btr                : string                    := "c_slat_scan" ;
             reset_inverts_scan : boolean                   := true;
-            expand_type : integer := 1 ); 
+            expand_type : integer := 1 ); -- 1 = non-ibm, 2 = ibm (MPG)
   port (
         vd       : inout power_logic;
         gd       : inout power_logic;
@@ -58,4 +62,3 @@ begin
   end generate a;
 
 end tri_slat_scan;
-

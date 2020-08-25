@@ -26,12 +26,14 @@ use tri.tri_latches_pkg.all;
 
 
 entity tri_bht is
-generic(expand_type : integer := 1 ); 
+generic(expand_type : integer := 1 ); -- 0 = ibm umbra, 1 = xilinx, 2 = ibm mpg
 port(
+     -- power pins
      gnd                        : inout power_logic;
      vdd                        : inout power_logic;
      vcs                        : inout power_logic;
 
+     -- clock and clockcontrol ports
      nclk                       : in  clk_logic; 
      pc_iu_func_sl_thold_2      : in  std_ulogic;
      pc_iu_sg_2                 : in  std_ulogic;
@@ -76,15 +78,17 @@ port(
      pc_iu_abist_raw_dc_b       : in  std_ulogic;
      pc_iu_abist_g8t_dcomp      : in  std_ulogic_vector(0 to 3);
 
-     pc_iu_bo_enable_2          : in  std_ulogic; 
-     pc_iu_bo_reset             : in  std_ulogic; 
-     pc_iu_bo_unload            : in  std_ulogic; 
-     pc_iu_bo_repair            : in  std_ulogic; 
-     pc_iu_bo_shdata            : in  std_ulogic; 
-     pc_iu_bo_select            : in  std_ulogic; 
-     iu_pc_bo_fail              : out std_ulogic; 
+     -- BOLT-ON
+     pc_iu_bo_enable_2          : in  std_ulogic; -- general bolt-on enable
+     pc_iu_bo_reset             : in  std_ulogic; -- reset
+     pc_iu_bo_unload            : in  std_ulogic; -- unload sticky bits
+     pc_iu_bo_repair            : in  std_ulogic; -- execute sticky bit decode
+     pc_iu_bo_shdata            : in  std_ulogic; -- shift data for timing write and diag loop
+     pc_iu_bo_select            : in  std_ulogic; -- select for mask and hier writes
+     iu_pc_bo_fail              : out std_ulogic; -- fail/no-fix reg
      iu_pc_bo_diagout           : out std_ulogic;
 
+     -- ports
      r_act                      : in  std_ulogic;
      w_act                      : in  std_ulogic_vector(0 to 3);
      r_addr                     : in  std_ulogic_vector(0 to 7);
@@ -105,6 +109,9 @@ port(
 end tri_bht;
 architecture tri_bht of tri_bht is
 
+----------------------------
+-- constants
+----------------------------
 
 constant data_in_offset                 : natural := 0;
 constant w_act_offset                   : natural := data_in_offset     + 2;
@@ -117,6 +124,9 @@ constant scan_right                     : natural := array_offset       + 1 - 1;
 
 constant INIT_MASK                      : std_ulogic_vector(0 to 1) := "10";
 
+----------------------------
+-- signals
+----------------------------
 
 signal pc_iu_func_sl_thold_1    : std_ulogic;
 signal pc_iu_func_sl_thold_0    : std_ulogic;
@@ -216,6 +226,7 @@ ary_r_addr(0 to 6)      <= r_addr(1 to 7);
 data_out(0 to 7)        <= gate(ary_r_data(0 to 7)  xor (INIT_MASK(0 to 1) & INIT_MASK(0 to 1) & INIT_MASK(0 to 1) & INIT_MASK(0 to 1)), r_addr_q(0) = '0') or
                            gate(ary_r_data(8 to 15) xor (INIT_MASK(0 to 1) & INIT_MASK(0 to 1) & INIT_MASK(0 to 1) & INIT_MASK(0 to 1)), r_addr_q(0) = '1') ;
 
+--write through support
 
 data_in_d(0 to 1)       <= data_in(0 to 1);
 w_act_d(0 to 3)         <= w_act(0 to 3);
@@ -234,6 +245,9 @@ data_out_d(4 to 5)      <= data_in_q(0 to 1) when write_thru(2) = '1' else
 data_out_d(6 to 7)      <= data_in_q(0 to 1) when write_thru(3) = '1' else
                            data_out(6 to 7);
 
+-------------------------------------------------
+-- array
+-------------------------------------------------
 
 bht0: entity tri.tri_128x16_1r1w_1
   generic map ( expand_type => expand_type )
@@ -308,6 +322,9 @@ bht0: entity tri.tri_128x16_1r1w_1
 
 
 
+-------------------------------------------------
+-- latches
+-------------------------------------------------
 
 data_in_reg: tri_rlmreg_p
 generic map (width => data_in_q'length, init => 0, expand_type => expand_type)
@@ -419,6 +436,9 @@ port map (vd          => vdd,
           dout        => data_out_q);
 
 
+-------------------------------------------------
+-- pervasive
+-------------------------------------------------
 
 perv_2to1_reg: tri_plat
   generic map (width => 7, expand_type => expand_type)
@@ -474,6 +494,9 @@ perv_lcbor: tri_lcbor
             thold_b     => pc_iu_func_sl_thold_0_b);
 
 
+-------------------------------------------------
+-- scan
+-------------------------------------------------
 
 siv(0 to scan_right)    <= func_scan_in & sov(0 to scan_right-1);
 func_scan_out           <= sov(scan_right);

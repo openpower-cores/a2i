@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Bypass Unit
+--
 library ieee,ibm,support,tri;
 use ieee.std_logic_1164.all;
 use ibm.std_ulogic_support.all;
@@ -44,14 +46,17 @@ port (
    pc_xu_trace_bus_enable              : in  std_ulogic;
    trace_bus_enable                    : out std_ulogic;
 
+   --<<FIX>>
    dec_rf1_tid                         : in  std_ulogic_vector(0 to threads-1);
    dec_ex2_tid                         : in  std_ulogic_vector(0 to threads-1);
    dec_byp_rf0_act                     : in  std_ulogic;
 
+   -- Bypass Selects
    dec_byp_rf1_rs0_sel                 : in  std_ulogic_vector(1 to 9);
    dec_byp_rf1_rs1_sel                 : in  std_ulogic_vector(1 to 10);
    dec_byp_rf1_rs2_sel                 : in  std_ulogic_vector(1 to 9);
 
+   -- Result Selects
    dec_alu_rf1_sel                     : in  std_ulogic_vector(2 to 2);
    fxa_fxb_rf0_is_mfocrf               : in  std_ulogic;
    dec_byp_ex1_spr_sel                 : in  std_ulogic;
@@ -62,46 +67,52 @@ port (
    spr_byp_ex4_is_mfxer                : in  std_ulogic_vector(0 to 3);
    lsu_xu_ex5_wren                     : in  std_ulogic;
 
+   -- Slow SPR Bus
    slowspr_val_in                      : in  std_ulogic;
    slowspr_rw_in                       : in  std_ulogic;
    slowspr_addr_in                     : in  std_ulogic_vector(0 to 9);
    slowspr_etid_in                     : in  std_ulogic_vector(0 to 1);
    slowspr_done_in                     : in  std_ulogic;
    
+   -- DCR Bus
    dec_byp_ex4_dcr_ack                 : in  std_ulogic;
    an_ac_dcr_act                       : in  std_ulogic;
    an_ac_dcr_read                      : in  std_ulogic;
    an_ac_dcr_etid                      : in  std_ulogic_vector(0 to 1);
    an_ac_dcr_done                      : in  std_ulogic;
 
+   -- SPR/DCR Done
    xu_iu_slowspr_done                  : out std_ulogic_vector(0 to 3);
    mux_cpl_slowspr_done                : out std_ulogic_vector(0 to 3);
    mux_cpl_slowspr_flush               : out std_ulogic_vector(0 to threads-1);
    
 
+   -- Source Data
    dec_byp_rf1_imm                     : in  std_ulogic_vector(64-regsize to 63);
    fxa_fxb_rf1_do0                     : in  std_ulogic_vector(64-regsize to 63);
    fxa_fxb_rf1_do1                     : in  std_ulogic_vector(64-regsize to 63);
    fxa_fxb_rf1_do2                     : in  std_ulogic_vector(64-regsize to 63);
 
-   alu_byp_ex1_log_rt                  : in  std_ulogic_vector(64-regsize to 63);     
-   alu_byp_ex2_rt                      : in  std_ulogic_vector(64-regsize to 63);     
-   alu_byp_ex3_div_rt                  : in  std_ulogic_vector(64-regsize to 63);     
-   cpl_byp_ex3_spr_rt                  : in  std_ulogic_vector(64-regsize to 63);     
-   spr_byp_ex3_spr_rt                  : in  std_ulogic_vector(64-regsize to 63);     
-   fspr_byp_ex3_spr_rt                 : in  std_ulogic_vector(64-regsize to 63);     
-   lsu_xu_ex4_tlb_data                 : in  std_ulogic_vector(64-regsize to 63);     
-   iu_xu_ex4_tlb_data                  : in  std_ulogic_vector(64-regsize to 63);     
-   alu_byp_ex5_mul_rt                  : in  std_ulogic_vector(64-regsize to 63);     
-   lsu_xu_rot_ex6_data_b               : in  std_ulogic_vector(64-regsize to 63);     
-   lsu_xu_rot_rel_data                 : in  std_ulogic_vector(64-regsize to 63);     
-   slowspr_data_in                     : in  std_ulogic_vector(64-regsize to 63);     
-   an_ac_dcr_data                      : in  std_ulogic_vector(64-regsize to 63);     
+   -- Result Busses
+   alu_byp_ex1_log_rt                  : in  std_ulogic_vector(64-regsize to 63);     -- ALU Logicals
+   alu_byp_ex2_rt                      : in  std_ulogic_vector(64-regsize to 63);     -- ALU
+   alu_byp_ex3_div_rt                  : in  std_ulogic_vector(64-regsize to 63);     -- Divide
+   cpl_byp_ex3_spr_rt                  : in  std_ulogic_vector(64-regsize to 63);     -- CPL SPR
+   spr_byp_ex3_spr_rt                  : in  std_ulogic_vector(64-regsize to 63);     -- SPR
+   fspr_byp_ex3_spr_rt                 : in  std_ulogic_vector(64-regsize to 63);     -- FXU SPR
+   lsu_xu_ex4_tlb_data                 : in  std_ulogic_vector(64-regsize to 63);     -- D-ERAT
+   iu_xu_ex4_tlb_data                  : in  std_ulogic_vector(64-regsize to 63);     -- I-ERAT
+   alu_byp_ex5_mul_rt                  : in  std_ulogic_vector(64-regsize to 63);     -- Multiply
+   lsu_xu_rot_ex6_data_b               : in  std_ulogic_vector(64-regsize to 63);     -- Load/Store Hit
+   lsu_xu_rot_rel_data                 : in  std_ulogic_vector(64-regsize to 63);     -- Load/Store Miss
+   slowspr_data_in                     : in  std_ulogic_vector(64-regsize to 63);     -- Slow SPR
+   an_ac_dcr_data                      : in  std_ulogic_vector(64-regsize to 63);     -- DCR
 
    byp_ex5_cr_rt                       : in  std_ulogic_vector(32 to 63);
    byp_ex5_xer_rt                      : in  std_ulogic_vector(54 to 63);
    ex1_mfocrf_rt                       : in  std_ulogic_vector(64-regsize to 63);
 
+   -- Target Data
    byp_alu_ex1_rs0                     : out std_ulogic_vector(64-regsize to 63);
    byp_alu_ex1_rs1                     : out std_ulogic_vector(64-regsize to 63);
    byp_alu_ex1_mulsrc_0                : out std_ulogic_vector(64-regsize to 63);
@@ -111,16 +122,19 @@ port (
    xu_lsu_ex1_add_src0                 : out std_ulogic_vector(64-regsize to 63);
    xu_lsu_ex1_add_src1                 : out std_ulogic_vector(64-regsize to 63);
 
+   -- Other Outputs
    xu_ex1_rs_is                        : out std_ulogic_vector(0 to 8);
    xu_ex1_ra_entry                     : out std_ulogic_vector(7 to 11);
    xu_ex1_rb                           : out std_ulogic_vector(64-regsize to 51);
-   xu_ex4_rs_data                      : out std_ulogic_vector(64-regsize to 63);     
-   xu_mm_derat_epn                     : out std_ulogic_vector(62-eff_ifar to 51);    
-   xu_pc_ram_data                      : out std_ulogic_vector(64-regsize to 63);     
-   mux_spr_ex6_rt                      : out std_ulogic_vector(64-regsize to 63);     
+   xu_ex4_rs_data                      : out std_ulogic_vector(64-regsize to 63);     -- TLB Write Data
+   xu_mm_derat_epn                     : out std_ulogic_vector(62-eff_ifar to 51);    -- DERAT EPN
+   xu_pc_ram_data                      : out std_ulogic_vector(64-regsize to 63);     -- RAM Result Capture
+   mux_spr_ex6_rt                      : out std_ulogic_vector(64-regsize to 63);     -- SPR Write Data
 
+   -- SPR Inputs
    spr_msr_cm                          : in  std_ulogic_vector(0 to threads-1);
 
+   -- GPR Bypass
    mux_cpl_ex4_rt                      : out std_ulogic_vector(64-regsize to 63);
    byp_ex5_mtcrxer                     : out std_ulogic_vector(32 to 63);
    byp_ex5_tlb_rt                      : out std_ulogic_vector(51 to 51);
@@ -144,72 +158,74 @@ port (
 end xuq_byp_gpr;
 architecture xuq_byp_gpr of xuq_byp_gpr is
 
-signal exx_act_q,          exx_act_d               : std_ulogic_vector(0 to 6);              
-signal rf1_act_q                                   : std_ulogic;                             
-signal rf1_is_mfocrf_q                             : std_ulogic;                             
-signal ex1_rs0_u_b_q,      rf1_rs0_u               : std_ulogic_vector(64-regsize to 63);    
-signal ex1_rs0_l_b_q,      rf1_rs0_l               : std_ulogic_vector(64-regsize to 63);    
-signal ex1_rs1_u_b_q,      rf1_rs1_u               : std_ulogic_vector(64-regsize to 63);    
-signal ex1_rs1_l_b_q,      rf1_rs1_l               : std_ulogic_vector(64-regsize to 63);    
-signal ex1_rs1_nimm_b_q,   rf1_rs1_nimm            : std_ulogic_vector(59 to 63);            
-signal ex1_rs2_q,          rf1_rs2                 : std_ulogic_vector(64-regsize to 63);    
-signal ex1_do2_q                                   : std_ulogic_vector(64-regsize to 63);    
-signal ex1_rs2_gpr_sel_q,  ex1_rs2_gpr_sel_d       : std_ulogic_vector(0 to regsize/8-1);    
-signal ex1_rs2_rot_sel_q,  ex1_rs2_rot_sel_d       : std_ulogic_vector(0 to regsize/8-1);    
-signal ex1_log_sel_q                               : std_ulogic;                             
-signal ex1_msr_cm_q,       rf1_msr_cm              : std_ulogic_vector(0 to 3);              
-signal ex2_rt_sel_q,       ex1_rt_sel              : std_ulogic_vector(0 to regsize/8-1);    
-signal ex2_rt_q,           ex1_rt                  : std_ulogic_vector(64-regsize to 63);    
-signal ex3_rt_q,           ex2_rt                  : std_ulogic_vector(64-regsize to 63);    
-signal ex4_rt_q,           ex3_rt                  : std_ulogic_vector(64-regsize to 63);    
-signal ex5_rt_q,           ex4_rt                  : std_ulogic_vector(64-regsize to 63);    
-signal ex6_rt_q,           ex5_rt                  : std_ulogic_vector(64-regsize to 63);    
-signal ex7_rt_q, ex7_rt_q_b,  ex6_rt               : std_ulogic_vector(64-regsize to 63);    
-signal ex7_rot_rt_q,       ex6_rot_rtu_b           : std_ulogic_vector(64-regsize to 63);    
-signal ex1_is_mfocrf_q,    ex1_is_mfocrf_d         : std_ulogic_vector(0 to regsize/8-1);    
-signal ex2_spr_sel_q                               : std_ulogic;                             
-signal ex3_spr_sel_q                               : std_ulogic;                             
-signal ex3_div_done_q,     ex3_div_done_d          : std_ulogic_vector(0 to regsize/8-1);    
-signal ex4_spr_sel_q,      ex4_spr_sel_d           : std_ulogic_vector(0 to regsize/8-1);    
-signal ex4_spr_rt_q,       ex4_spr_rt_d            : std_ulogic_vector(64-regsize to 63);    
-signal ex4_tlb_sel_q                               : std_ulogic_vector(0 to 1);              
-signal ex5_is_mfxer_q,     ex5_is_mfxer_d          : std_ulogic_vector(0 to regsize/8-1);    
-signal ex5_is_mfcr_q,      ex5_is_mfcr_d           : std_ulogic_vector(0 to regsize/8-1);    
-signal ex5_mul_done_q,     ex5_mul_done_d          : std_ulogic_vector(0 to regsize/8-1);    
-signal ex5_dtlb_sel_q,     ex5_dtlb_sel_d          : std_ulogic_vector(0 to regsize/8-1);    
-signal ex5_itlb_sel_q,     ex5_itlb_sel_d          : std_ulogic_vector(0 to regsize/8-1);    
-signal ex5_tlb_data_iu_q                           : std_ulogic_vector(64-regsize to 63);    
-signal ex5_tlb_data_lsu_q                          : std_ulogic_vector(64-regsize to 63);    
-signal ex5_slowspr_sel_q,  ex5_slowspr_sel_d       : std_ulogic_vector(0 to regsize/8-1);    
-signal ex5_ones_sel_q,     ex5_ones_sel_d          : std_ulogic_vector(0 to regsize/8-1);    
-signal ex5_slowspr_val_q                           : std_ulogic;                             
-signal ex5_slowspr_data_q                          : std_ulogic_vector(64-regsize to 63);    
-signal ex5_slowspr_tid_q,  ex5_slowspr_tid_d       : std_ulogic_vector(0 to 3);              
-signal ex5_slowspr_addr_q                          : std_ulogic_vector(0 to 9);              
-signal ex5_slowspr_wr_val_q,ex5_slowspr_wr_val_d   : std_ulogic;                             
-signal ex6_slowspr_flush_q,ex6_slowspr_flush_d     : std_ulogic_vector(0 to threads-1);      
-signal ex4_dcr_act_q                               : std_ulogic;                             
-signal ex5_dcr_sel_q,      ex5_dcr_sel_d           : std_ulogic_vector(0 to regsize/8-1);    
-signal ex5_dcr_ack_q                               : std_ulogic;                             
-signal ex5_dcr_data_q                              : std_ulogic_vector(64-regsize to 63);    
-signal ex5_dcr_tid_q,      ex5_dcr_tid_d           : std_ulogic_vector(0 to 3);              
-signal ex6_lsu_wren_q,     ex6_lsu_wren_d          : std_ulogic_vector(0 to regsize/8);      
-signal ex3_derat_epn_q,    ex3_derat_epn_d         : std_ulogic_vector(62-eff_ifar to 51);   
-signal spr_msr_cm_q                                : std_ulogic_vector(0 to threads-1);      
-signal trace_bus_enable_q                          : std_ulogic;                             
-signal ex4_instr_trace_val_q                       : std_ulogic;                        
-signal ex5_instr_trace_val_q                       : std_ulogic;                        
-signal ex4_instr_trace_gate_q                      : std_ulogic;                          
-signal ex5_instr_trace_gate_q, ex5_instr_trace_gate_d : std_ulogic_vector(0 to 3);        
-signal ex1_rs0_sel_dbg_q                           : std_ulogic_vector(1 to 9);              
-signal ex1_rs1_sel_dbg_q                           : std_ulogic_vector(1 to 10);             
-signal ex1_rs2_sel_dbg_q                           : std_ulogic_vector(1 to 9);              
-signal spare_0_q,                 spare_0_d        : std_ulogic_vector(0 to 15);               
-signal spare_1_q,                 spare_1_d        : std_ulogic_vector(0 to 15);               
-signal spare_2_q,                 spare_2_d        : std_ulogic_vector(0 to 15);               
-signal spare_3_q,                 spare_3_d        : std_ulogic_vector(0 to 15);               
-signal spare_4_q,                 spare_4_d        : std_ulogic_vector(0 to 15);               
+-- Latches                                                                                             Placed latches must have unique acts
+signal exx_act_q,          exx_act_d               : std_ulogic_vector(0 to 6);              --                               act=>tiup
+signal rf1_act_q                                   : std_ulogic;                             -- input=>dec_byp_rf0_act        act=>tiup,        sleep=>Y
+signal rf1_is_mfocrf_q                             : std_ulogic;                             -- input=> fxa_fxb_rf0_is_mfocrf, act => tiup
+signal ex1_rs0_u_b_q,      rf1_rs0_u               : std_ulogic_vector(64-regsize to 63);    --                               act=>rf1_act_q
+signal ex1_rs0_l_b_q,      rf1_rs0_l               : std_ulogic_vector(64-regsize to 63);    --                               act=>rf1_act_q
+signal ex1_rs1_u_b_q,      rf1_rs1_u               : std_ulogic_vector(64-regsize to 63);    --                               act=>rf1_act_q
+signal ex1_rs1_l_b_q,      rf1_rs1_l               : std_ulogic_vector(64-regsize to 63);    --                               act=>rf1_act_q
+signal ex1_rs1_nimm_b_q,   rf1_rs1_nimm            : std_ulogic_vector(59 to 63);            --                               act=>exx_act(0)
+signal ex1_rs2_q,          rf1_rs2                 : std_ulogic_vector(64-regsize to 63);    --                               act=>exx_act(0)
+signal ex1_do2_q                                   : std_ulogic_vector(64-regsize to 63);    -- input=>fxa_fxb_rf1_do2,       act=>exx_act(0)
+signal ex1_rs2_gpr_sel_q,  ex1_rs2_gpr_sel_d       : std_ulogic_vector(0 to regsize/8-1);    --                               act=>exx_act(0)
+signal ex1_rs2_rot_sel_q,  ex1_rs2_rot_sel_d       : std_ulogic_vector(0 to regsize/8-1);    --                               act=>exx_act(0)
+signal ex1_log_sel_q                               : std_ulogic;                             -- input=>dec_alu_rf1_sel(2),    act=>exx_act(0)
+signal ex1_msr_cm_q,       rf1_msr_cm              : std_ulogic_vector(0 to 3);              -- input=>rf1_msr_cm,            act=>exx_act(0)
+signal ex2_rt_sel_q,       ex1_rt_sel              : std_ulogic_vector(0 to regsize/8-1);    --                               act=>exx_act(1),   scan=>N
+signal ex2_rt_q,           ex1_rt                  : std_ulogic_vector(64-regsize to 63);    --                               act=>exx_act(1),   scan=>N
+signal ex3_rt_q,           ex2_rt                  : std_ulogic_vector(64-regsize to 63);    --                               act=>exx_act(2)
+signal ex4_rt_q,           ex3_rt                  : std_ulogic_vector(64-regsize to 63);    --                               act=>exx_act(3),   scan=>N
+signal ex5_rt_q,           ex4_rt                  : std_ulogic_vector(64-regsize to 63);    --                               act=>exx_act(4)
+signal ex6_rt_q,           ex5_rt                  : std_ulogic_vector(64-regsize to 63);    --                               act=>exx_act(5),   scan=>N
+signal ex7_rt_q, ex7_rt_q_b,  ex6_rt               : std_ulogic_vector(64-regsize to 63);    --                               act=>exx_act(6)
+signal ex7_rot_rt_q,       ex6_rot_rtu_b           : std_ulogic_vector(64-regsize to 63);    --                               act=>exx_act(6)
+signal ex1_is_mfocrf_q,    ex1_is_mfocrf_d         : std_ulogic_vector(0 to regsize/8-1);    --                               act=>exx_act(0)
+signal ex2_spr_sel_q                               : std_ulogic;                             -- input=>dec_byp_ex1_spr_sel,   act=>exx_act(1)
+signal ex3_spr_sel_q                               : std_ulogic;                             -- input=>ex2_spr_sel_q,         act=>exx_act(2)
+signal ex3_div_done_q,     ex3_div_done_d          : std_ulogic_vector(0 to regsize/8-1);    --                               act=>exx_act(2)
+signal ex4_spr_sel_q,      ex4_spr_sel_d           : std_ulogic_vector(0 to regsize/8-1);    --                               act=>exx_act(3),   scan=>N
+signal ex4_spr_rt_q,       ex4_spr_rt_d            : std_ulogic_vector(64-regsize to 63);    --                               act=>exx_act(3),   scan=>N
+signal ex4_tlb_sel_q                               : std_ulogic_vector(0 to 1);              -- input=>dec_byp_ex3_tlb_sel    act=>exx_act(3),   scan=>N
+signal ex5_is_mfxer_q,     ex5_is_mfxer_d          : std_ulogic_vector(0 to regsize/8-1);    --                               act=>exx_act(4)
+signal ex5_is_mfcr_q,      ex5_is_mfcr_d           : std_ulogic_vector(0 to regsize/8-1);    --                               act=>exx_act(4)
+signal ex5_mul_done_q,     ex5_mul_done_d          : std_ulogic_vector(0 to regsize/8-1);    --                               act=>exx_act(4)
+signal ex5_dtlb_sel_q,     ex5_dtlb_sel_d          : std_ulogic_vector(0 to regsize/8-1);    --                               act=>exx_act(4)
+signal ex5_itlb_sel_q,     ex5_itlb_sel_d          : std_ulogic_vector(0 to regsize/8-1);    --                               act=>exx_act(4)
+signal ex5_tlb_data_iu_q                           : std_ulogic_vector(64-regsize to 63);    -- input=>iu_xu_ex4_tlb_data     act=>exx_act(4)
+signal ex5_tlb_data_lsu_q                          : std_ulogic_vector(64-regsize to 63);    -- input=>lsu_xu_ex4_tlb_data    act=>exx_act(4)
+signal ex5_slowspr_sel_q,  ex5_slowspr_sel_d       : std_ulogic_vector(0 to regsize/8-1);    --                               act=>ex4_slowspr_act
+signal ex5_ones_sel_q,     ex5_ones_sel_d          : std_ulogic_vector(0 to regsize/8-1);    --                               act=>ex4_slowspr_act
+signal ex5_slowspr_val_q                           : std_ulogic;                             -- input=>slowspr_val_in         act=>tiup
+signal ex5_slowspr_data_q                          : std_ulogic_vector(64-regsize to 63);    -- input=>slowspr_data_in        act=>ex4_slowspr_act
+signal ex5_slowspr_tid_q,  ex5_slowspr_tid_d       : std_ulogic_vector(0 to 3);              --                               act=>ex4_slowspr_act
+signal ex5_slowspr_addr_q                          : std_ulogic_vector(0 to 9);              -- input=>slowspr_addr_in,       act=>ex4_slowspr_act
+signal ex5_slowspr_wr_val_q,ex5_slowspr_wr_val_d   : std_ulogic;                             --                               act=>tiup
+signal ex6_slowspr_flush_q,ex6_slowspr_flush_d     : std_ulogic_vector(0 to threads-1);      --                               act=>tiup
+signal ex4_dcr_act_q                               : std_ulogic;                             -- input=>an_ac_dcr_act,         act=>tiup
+signal ex5_dcr_sel_q,      ex5_dcr_sel_d           : std_ulogic_vector(0 to regsize/8-1);    --                               act=>exx_act(4)
+signal ex5_dcr_ack_q                               : std_ulogic;                             -- input=>dec_byp_ex4_dcr_ack             act=>tiup
+signal ex5_dcr_data_q                              : std_ulogic_vector(64-regsize to 63);    -- input=>an_ac_dcr_data,        act=>ex4_dcr_act_q
+signal ex5_dcr_tid_q,      ex5_dcr_tid_d           : std_ulogic_vector(0 to 3);              --                               act=>ex4_dcr_act_q
+signal ex6_lsu_wren_q,     ex6_lsu_wren_d          : std_ulogic_vector(0 to regsize/8);      --                               act=>exx_act(5),   scan=>N
+signal ex3_derat_epn_q,    ex3_derat_epn_d         : std_ulogic_vector(62-eff_ifar to 51);   --                               act=>exx_act(2)
+signal spr_msr_cm_q                                : std_ulogic_vector(0 to threads-1);      -- input=>spr_msr_cm             act=>tiup
+signal trace_bus_enable_q                          : std_ulogic;                             -- input=>pc_xu_trace_bus_enable,                              sleep=>Y,   needs_sreset=>0
+signal ex4_instr_trace_val_q                       : std_ulogic;                        -- input=>dec_byp_ex3_instr_trace_val,act=>trace_bus_enable_q,      sleep=>Y,   needs_sreset=>0
+signal ex5_instr_trace_val_q                       : std_ulogic;                        -- input=>ex4_instr_trace_val_q,      act=>trace_bus_enable_q,      sleep=>Y,   needs_sreset=>0
+signal ex4_instr_trace_gate_q                      : std_ulogic;                          -- input=>dec_byp_ex3_instr_trace_gate,act=>trace_bus_enable_q,      sleep=>Y,   needs_sreset=>0
+signal ex5_instr_trace_gate_q, ex5_instr_trace_gate_d : std_ulogic_vector(0 to 3);        -- input=>ex5_instr_trace_gate_d,        act=>trace_bus_enable_q,      sleep=>Y,   needs_sreset=>0
+signal ex1_rs0_sel_dbg_q                           : std_ulogic_vector(1 to 9);              -- input=>dec_byp_rf1_rs0_sel,   act=>trace_bus_enable_q,      sleep=>Y,   needs_sreset=>0
+signal ex1_rs1_sel_dbg_q                           : std_ulogic_vector(1 to 10);             -- input=>dec_byp_rf1_rs1_sel,   act=>trace_bus_enable_q,      sleep=>Y,   needs_sreset=>0
+signal ex1_rs2_sel_dbg_q                           : std_ulogic_vector(1 to 9);              -- input=>dec_byp_rf1_rs2_sel,   act=>trace_bus_enable_q,      sleep=>Y,   needs_sreset=>0
+signal spare_0_q,                 spare_0_d        : std_ulogic_vector(0 to 15);               -- input=>spare_0_d,             act=>tiup,
+signal spare_1_q,                 spare_1_d        : std_ulogic_vector(0 to 15);               -- input=>spare_1_d,             act=>tiup,
+signal spare_2_q,                 spare_2_d        : std_ulogic_vector(0 to 15);               -- input=>spare_2_d,             act=>tiup,
+signal spare_3_q,                 spare_3_d        : std_ulogic_vector(0 to 15);               -- input=>spare_3_d,             act=>tiup,
+signal spare_4_q,                 spare_4_d        : std_ulogic_vector(0 to 15);               -- input=>spare_4_d,             act=>tiup,
 
+-- Scanchains
 constant exx_act_offset                            : integer := 0;
 constant rf1_act_offset                            : integer := exx_act_offset                 + exx_act_q'length;
 constant rf1_is_mfocrf_offset                      : integer := rf1_act_offset                 + 1;
@@ -271,6 +287,7 @@ constant scan_right                                : integer := spare_4_offset  
 
 signal siv                                         : std_ulogic_vector(0 to scan_right-1);
 signal sov                                         : std_ulogic_vector(0 to scan_right-1);
+-- Signals
 signal tiup                                        : std_ulogic;
 signal tidn                                        : std_ulogic_vector(0 to 63);
 signal spare_0_lclk                                : clk_logic;
@@ -330,8 +347,6 @@ signal ex5_slowspr_csync                           : std_ulogic;
 signal ex5_rt_gated                                : std_ulogic_vector(64-regsize to 63);
 
 
-
-
 begin
 
 
@@ -350,6 +365,9 @@ exx_act(6)     <= exx_act_q(6);
 
 ex4_slowspr_act <= '1'; 
 
+---------------------------------------------------------------------
+-- Result Muxing
+---------------------------------------------------------------------
 
 ex5_cr                     <= tidn(0 to regsize-32) & byp_ex5_cr_rt;
 ex5_xer                    <= tidn(0 to regsize-32) & byp_ex5_xer_rt(54 to 56) & tidn(35 to 56) & byp_ex5_xer_rt(57 to 63);
@@ -401,6 +419,10 @@ ex6_xu_rt_b                <= not ex6_xu_rt;
 
 u_ex6_rt:  ex6_rt          <= (ex6_rot_rtu_b or ex6_lsu_wren_b) nand ex6_xu_rt_b;
 
+---------------------------------------------------------------------
+-- Result Outputs
+---------------------------------------------------------------------
+-- CPL needs SPR read data included for rfi's
 mux_cpl_ex4_rt             <= ex4_rt;
 byp_ex5_mtcrxer            <= ex5_rt_q(32 to 63);
 byp_ex5_tlb_rt             <= ex5_tlb_rt(51 to 51);
@@ -417,6 +439,9 @@ ex3_derat_epn_d(32 to 51)            <=      ex2_rt(32 to 51);
 xu_mm_derat_epn            <= ex3_derat_epn_q;
 
 
+---------------------------------------------------------------------
+-- Slow SPR
+---------------------------------------------------------------------
 with slowspr_etid_in select
    ex5_slowspr_tid_d       <= "1000" when "00",
                               "0100" when "01",
@@ -440,9 +465,9 @@ ex5_slowop_done            <=(ex5_slowspr_tid_q and (0 to 3=> ex5_slowspr_val_q)
                              
 ex5_slowspr_wr_val_d       <= slowspr_val_in and not slowspr_rw_in  and slowspr_done_in;
                              
-ex5_slowspr_csync          <=(ex5_slowspr_addr_q(0 to 9) = "1111111101") or 
-                             (ex5_slowspr_addr_q(0 to 9) = "0000110000") or 
-                             (ex5_slowspr_addr_q(0 to 9) = "0101010010");   
+ex5_slowspr_csync          <=(ex5_slowspr_addr_q(0 to 9) = "1111111101") or -- 1021 MMUCR1
+                             (ex5_slowspr_addr_q(0 to 9) = "0000110000") or --   48 PID
+                             (ex5_slowspr_addr_q(0 to 9) = "0101010010");   --  338 LPIDR
                              
 ex6_slowspr_flush_d        <= gate(ex5_slowspr_tid_q,(ex5_slowspr_wr_val_q and ex5_slowspr_csync));
 
@@ -450,6 +475,9 @@ xu_iu_slowspr_done         <= ex5_slowop_done;
 mux_cpl_slowspr_done       <= ex5_slowop_done;
 mux_cpl_slowspr_flush      <= ex6_slowspr_flush_q;
 
+---------------------------------------------------------------------
+-- Mux Select Fanout
+---------------------------------------------------------------------
 ex1_is_mfocrf_d            <= (others=>rf1_is_mfocrf_q);
 ex4_spr_sel_d              <= (others=>ex3_spr_sel_q);
 ex3_div_done_d             <= (others=>alu_ex2_div_done);
@@ -467,7 +495,22 @@ ex5_instr_trace_gate_d     <= (others=>ex4_instr_trace_gate_q);
 ex1_rs2_gpr_sel_d          <= (others=>dec_byp_rf1_rs2_sel(9));
 ex1_rs2_rot_sel_d          <= (others=>(ex6_lsu_wren_q(8) and dec_byp_rf1_rs2_sel(6)));
 
+-- rf1_rsX_byp_pri:
+-- (0) Zeros
+-- (1) EX1
+-- (2) EX2
+-- (3) EX3
+-- (4) EX4
+-- (5) EX5
+-- (6) EX6
+-- (7) EX7
+-- (8) Rel
+-- (.) GPR/Imm
+-- (.) GPR
 
+---------------------------------------------------------------------
+-- Source 0
+---------------------------------------------------------------------
 rf1_oth_rs0             <= gate(ex1_rt,               dec_byp_rf1_rs0_sel(1)) or
                            gate(ex2_rt,               dec_byp_rf1_rs0_sel(2)) or
                            gate(ex3_rt,               dec_byp_rf1_rs0_sel(3)) or
@@ -491,6 +534,9 @@ u_rf1_nlsu_rs0_b:  rf1_nlsu_rs0_b   <= not(rf1_nlsu_rs0);
 u_rf1_rs0_u_sel:   rf1_rs0_u        <= (ex6_rot_rtu_b or rf1_rot_rs0_sel_b) nand rf1_nlsu_rs0_b;
 u_rf1_rs0_l_sel:   rf1_rs0_l        <= (ex6_rot_rtl_b or rf1_rot_rs0_sel_b) nand rf1_nlsu_rs0_b;
 
+---------------------------------------------------------------------
+-- Source 1
+---------------------------------------------------------------------
 rf1_oth_rs1             <= gate(ex1_rt,               dec_byp_rf1_rs1_sel(1)) or
                            gate(ex2_rt,               dec_byp_rf1_rs1_sel(2)) or
                            gate(ex3_rt,               dec_byp_rf1_rs1_sel(3)) or
@@ -522,8 +568,12 @@ u_rf1_nlsu_rs1_b:  rf1_nlsu_rs1_b   <= not(rf1_nlsu_rs1);
 u_rf1_rs1_u_sel: rf1_rs1_u   <= (ex6_rot_rtu_b or rf1_rot_rs1_sel_b) nand rf1_nlsu_rs1_b;
 u_rf1_rs1_l_sel: rf1_rs1_l   <= (ex6_rot_rtl_b or rf1_rot_rs1_sel_b) nand rf1_nlsu_rs1_b;
 
+-- RA Entry Garbage.  For eratwe, I want RS to go down the pipe, but still need RA to go to the erats.
 u_rf1_rs1_nimm: rf1_rs1_nimm <= (ex6_rot_rtu_b(59 to 63) or rf1_rot_nimm_rs1_sel_b(59 to 63)) nand rf1_nimm_rs1_b(59 to 63);
 
+---------------------------------------------------------------------
+-- Source 2
+---------------------------------------------------------------------
 rf1_rs2                 <= gate(ex1_rt,               dec_byp_rf1_rs2_sel(1)) or
                            gate(ex2_rt,               dec_byp_rf1_rs2_sel(2)) or
                            gate(ex3_rt,               dec_byp_rf1_rs2_sel(3)) or
@@ -537,6 +587,9 @@ ex1_rs2                 <= (ex1_do2_q     and fanout(ex1_rs2_gpr_sel_q,regsize))
                            (ex7_rot_rt_q  and fanout(ex1_rs2_rot_sel_q,regsize)) or
                             ex1_rs2_q;
 
+---------------------------------------------------------------------
+-- Assign output
+---------------------------------------------------------------------
 xu_ex1_rs_is            <= ex1_rs2(55 to 63);
 xu_lsu_ex1_store_data   <= ex1_rs2;
 fxu_spr_ex1_rs2         <= ex1_rs2(42 to 55);
@@ -569,6 +622,9 @@ u_lsu_src1_i2:    ex1_lsu_src1_i1_b           <= not ex1_lsu_src1_i1;
                   byp_alu_ex1_divsrc_1        <= not ex1_lsu_src1_i1_b;           
                   fxu_spr_ex1_rs1             <= not ex1_lsu_src1_i1_b(54 to 63);
                   
+---------------------------------------------------------------------
+-- Debug
+---------------------------------------------------------------------
 byp_rs0_debug        <= not ex1_rs0_u_b_q;
 byp_rs1_debug        <= not ex1_rs1_u_b_q;
 byp_rs2_debug        <= ex1_rs2;
@@ -598,20 +654,26 @@ dec_ex2_tid_int(3)      <= dec_ex2_tid(3) or ex5_instr_trace_val_q;
 ex5_rt_gated(0 to 31)   <= ex5_rt_q(0 to 31) and not fanout(ex5_instr_trace_gate_q,regsize/2);
 ex5_rt_gated(32 to 63)  <= ex5_rt_q(32 to 63);
 
+--                      0:63          64:67
 byp_grp0_debug    <= ex3_rt_q     & dec_ex2_tid     & byp_gpr_sel_debug;
 byp_grp1_debug    <= ex5_rt_gated & dec_ex2_tid_int & byp_gpr_sel_debug;
 byp_grp2_debug    <= ex7_rt_q     & dec_ex2_tid     & byp_gpr_sel_debug;
-byp_grp3_debug    <= ex1_rs0_sel_dbg_q & byp_rs0_debug;  
-byp_grp4_debug    <= ex1_rs1_sel_dbg_q & byp_rs1_debug;  
-byp_grp5_debug    <= ex1_rs2_sel_dbg_q & byp_rs2_debug;  
+--                       [14]15:22          23:87
+byp_grp3_debug    <= ex1_rs0_sel_dbg_q & byp_rs0_debug;  -- ex1_s1_q & ex1_ta_q(0 to 5) & ex1_gpr_we_q
+byp_grp4_debug    <= ex1_rs1_sel_dbg_q & byp_rs1_debug;  -- ex1_s2_q & ex1_ta_q(0 to 5)
+byp_grp5_debug    <= ex1_rs2_sel_dbg_q & byp_rs2_debug;  -- ex1_s3_q & ex1_ta_q(0 to 5) & ex1_gpr_we_q
 
 trace_bus_enable  <= trace_bus_enable_q;
 
+-- Misc
 mark_unused(ex5_cr(64-regsize));
 mark_unused(ex5_xer(64-regsize));
 mark_unused(ex1_mfocrf_rt(64-regsize));
 mark_unused(tidn(0 to 63));
 
+---------------------------------------------------------------------
+-- Latch Instances
+---------------------------------------------------------------------
 exx_act_latch : tri_rlmreg_p
   generic map (width => exx_act_q'length, init => 0, expand_type => expand_type, needs_sreset => 1)
   port map (nclk    => nclk, vd => vdd, gd => gnd,
@@ -1511,69 +1573,71 @@ siv(0 to siv'right)  <= sov(1 to siv'right) & scan_in;
 scan_out             <= sov(0);
 
 
+-- ###############################################################
+-- ## LCBs
+-- ###############################################################
 
     ex1x_lcb: tri_lcbnd generic map (expand_type => expand_type) port map (
-        delay_lclkr =>  delay_lclkr_dc     ,
-        mpw1_b      =>  mpw1_dc_b          ,
-        mpw2_b      =>  mpw2_dc_b          ,
-        forcee =>  func_sl_force      ,
-        nclk        =>  nclk               ,
-        vd          =>  vdd                ,
-        gd          =>  gnd                ,
-        act         =>  rf1_act_q          ,
-        sg          =>  sg_0               ,
-        thold_b     =>  func_sl_thold_0_b  ,
-        d1clk       =>  ex1x_d1clk         ,
-        d2clk       =>  ex1x_d2clk         ,
-        lclk        =>  ex1x_lclk         );
+        delay_lclkr =>  delay_lclkr_dc     ,--in -- tidn ,
+        mpw1_b      =>  mpw1_dc_b          ,--in -- tidn ,
+        mpw2_b      =>  mpw2_dc_b          ,--in -- tidn ,
+        forcee =>  func_sl_force      ,--in -- tidn ,
+        nclk        =>  nclk               ,--in
+        vd          =>  vdd                ,--inout
+        gd          =>  gnd                ,--inout
+        act         =>  rf1_act_q          ,--in
+        sg          =>  sg_0               ,--in
+        thold_b     =>  func_sl_thold_0_b  ,--in
+        d1clk       =>  ex1x_d1clk         ,--out
+        d2clk       =>  ex1x_d2clk         ,--out
+        lclk        =>  ex1x_lclk         );--out
 
 
     ex1_lcb: tri_lcbnd generic map (expand_type => expand_type) port map ( 
-        delay_lclkr =>  delay_lclkr_dc     ,
-        mpw1_b      =>  mpw1_dc_b          ,
-        mpw2_b      =>  mpw2_dc_b          ,
-        forcee =>  func_sl_force      ,
-        nclk        =>  nclk               ,
-        vd          =>  vdd                ,
-        gd          =>  gnd                ,
-        act         =>  rf1_act_q          ,
-        sg          =>  sg_0               ,
-        thold_b     =>  func_sl_thold_0_b  ,
-        d1clk       =>  ex1_d1clk          ,
-        d2clk       =>  ex1_d2clk          ,
-        lclk        =>  ex1_lclk          );
+        delay_lclkr =>  delay_lclkr_dc     ,--in -- tidn ,
+        mpw1_b      =>  mpw1_dc_b          ,--in -- tidn ,
+        mpw2_b      =>  mpw2_dc_b          ,--in -- tidn ,
+        forcee =>  func_sl_force      ,--in -- tidn ,
+        nclk        =>  nclk               ,--in
+        vd          =>  vdd                ,--inout
+        gd          =>  gnd                ,--inout
+        act         =>  rf1_act_q          ,--in
+        sg          =>  sg_0               ,--in
+        thold_b     =>  func_sl_thold_0_b  ,--in
+        d1clk       =>  ex1_d1clk          ,--out
+        d2clk       =>  ex1_d2clk          ,--out
+        lclk        =>  ex1_lclk          );--out
 
     ex1_slp_lcb: tri_lcbnd generic map (expand_type => expand_type) port map ( 
-        delay_lclkr =>  delay_lclkr_dc     ,
-        mpw1_b      =>  mpw1_dc_b          ,
-        mpw2_b      =>  mpw2_dc_b          ,
-        forcee =>  func_slp_sl_force  ,
-        nclk        =>  nclk               ,
-        vd          =>  vdd                ,
-        gd          =>  gnd                ,
-        act         =>  rf1_act_q          ,
-        sg          =>  sg_0               ,
-        thold_b     =>  func_slp_sl_thold_0_b,
-        d1clk       =>  ex1_slp_d1clk      ,
-        d2clk       =>  ex1_slp_d2clk      ,
-        lclk        =>  ex1_slp_lclk      );
+        delay_lclkr =>  delay_lclkr_dc     ,--in -- tidn ,
+        mpw1_b      =>  mpw1_dc_b          ,--in -- tidn ,
+        mpw2_b      =>  mpw2_dc_b          ,--in -- tidn ,
+        forcee =>  func_slp_sl_force  ,--in -- tidn ,
+        nclk        =>  nclk               ,--in
+        vd          =>  vdd                ,--inout
+        gd          =>  gnd                ,--inout
+        act         =>  rf1_act_q          ,--in
+        sg          =>  sg_0               ,--in
+        thold_b     =>  func_slp_sl_thold_0_b,--in
+        d1clk       =>  ex1_slp_d1clk      ,--out
+        d2clk       =>  ex1_slp_d2clk      ,--out
+        lclk        =>  ex1_slp_lclk      );--out
 
 
     ex7_lcb: tri_lcbnd generic map (expand_type => expand_type) port map ( 
-        delay_lclkr =>  delay_lclkr_dc     ,
-        mpw1_b      =>  mpw1_dc_b          ,
-        mpw2_b      =>  mpw2_dc_b          ,
-        forcee =>  func_sl_force      ,
-        nclk        =>  nclk               ,
-        vd          =>  vdd                ,
-        gd          =>  gnd                ,
-        act         =>  exx_act(6)         ,
-        sg          =>  sg_0               ,
-        thold_b     =>  func_sl_thold_0_b  ,
-        d1clk       =>  ex7_d1clk          ,
-        d2clk       =>  ex7_d2clk          ,
-        lclk        =>  ex7_lclk          );
+        delay_lclkr =>  delay_lclkr_dc     ,--in -- tidn ,
+        mpw1_b      =>  mpw1_dc_b          ,--in -- tidn ,
+        mpw2_b      =>  mpw2_dc_b          ,--in -- tidn ,
+        forcee =>  func_sl_force      ,--in -- tidn ,
+        nclk        =>  nclk               ,--in
+        vd          =>  vdd                ,--inout
+        gd          =>  gnd                ,--inout
+        act         =>  exx_act(6)         ,--in
+        sg          =>  sg_0               ,--in
+        thold_b     =>  func_sl_thold_0_b  ,--in
+        d1clk       =>  ex7_d1clk          ,--out
+        d2clk       =>  ex7_d2clk          ,--out
+        lclk        =>  ex7_lclk          );--out
 
 
 end architecture xuq_byp_gpr;
-

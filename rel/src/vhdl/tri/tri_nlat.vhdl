@@ -7,6 +7,10 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_nlat.vhdl
+-- *! DESCRIPTION : Basic n-bit latch w/ internal scan
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
@@ -14,8 +18,6 @@ library ieee; use ieee.std_logic_1164.all;
 library support; 
                  use support.power_logic_pkg.all;
 library tri; use tri.tri_latches_pkg.all;
--- pragma translate_off
--- pragma translate_on
 
 entity tri_nlat is
 
@@ -25,8 +27,8 @@ entity tri_nlat is
             width              : positive range 1 to 65536 := 1 ;
             init               : std_ulogic_vector         := "0" ;
             synthclonedlatch   : string                    := "" ;
-            needs_sreset : integer := 1 ; 
-            expand_type : integer := 1 ); 
+            needs_sreset : integer := 1 ; -- for inferred latches
+            expand_type : integer := 1 ); -- 1 = non-ibm, 2 = ibm (MPG)
   port (
         vd       : inout power_logic;
         gd       : inout power_logic;
@@ -39,10 +41,6 @@ entity tri_nlat is
         q_b      : out   std_ulogic_vector(offset to offset+width-1);
         scan_out : out   std_ulogic
        );
-
-  -- synopsys translate_off
-
-  -- synopsys translate_on
 
 end entity tri_nlat;
 
@@ -96,4 +94,3 @@ begin
   end generate a;
 
 end tri_nlat;
-

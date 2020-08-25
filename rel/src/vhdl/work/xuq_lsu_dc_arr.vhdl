@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU LSU L1 Data Cache Array
+--
 
 library ibm, ieee, work, tri, support;
 use ibm.std_ulogic_support.all;
@@ -17,40 +19,54 @@ use ieee.numeric_std.all;
 use tri.tri_latches_pkg.all;
 use support.power_logic_pkg.all;
 
+-- ##########################################################################################
+-- VHDL Contents
+-- 1) L1 D-Cache Array
+-- 2) Load Data Way Select Mux
+-- 3) Reload/Store Data select
+-- ##########################################################################################
 
 entity xuq_lsu_dc_arr is
-generic(expand_type     : integer := 2;                 
-        dc_size         : natural := 14);               
+generic(expand_type     : integer := 2;                 -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
+        dc_size         : natural := 14);               -- 2^14 = 16384 Bytes L1 D$
 port(
 
+     -- Acts to latches
      ex3_stg_act                :in  std_ulogic;
      ex4_stg_act                :in  std_ulogic;
      rel3_stg_act               :in  std_ulogic;
      rel4_stg_act               :in  std_ulogic;
 
-     ex3_p_addr                 :in  std_ulogic_vector(64-(dc_size-3) to 58);       
-     ex3_byte_en                :in  std_ulogic_vector(0 to 31);        
-     ex4_256st_data             :in  std_ulogic_vector(0 to 255);       
-     ex4_parity_gen             :in  std_ulogic_vector(0 to 31);        
-     ex4_load_hit               :in  std_ulogic;                        
-     ex5_stg_flush              :in  std_ulogic;                        
+     -- XUOP Signals
+     ex3_p_addr                 :in  std_ulogic_vector(64-(dc_size-3) to 58);       -- EX3 L1 D$ Array Address
+     ex3_byte_en                :in  std_ulogic_vector(0 to 31);        -- EX3 Store Byte Enables
+     ex4_256st_data             :in  std_ulogic_vector(0 to 255);       -- EX4 Store Data that will be stored in L1 D$ Array
+     ex4_parity_gen             :in  std_ulogic_vector(0 to 31);        -- EX4 Parity Bits for XU/AXU store data
+     ex4_load_hit               :in  std_ulogic;                        -- EX4 Instruction is a load hit
+     ex5_stg_flush              :in  std_ulogic;                        -- EX5 Stage Flush
 
-     inj_dcache_parity          :in  std_ulogic;                        
+     -- Parity Error Inject
+     inj_dcache_parity          :in  std_ulogic;                        -- Parity Error Inject
 
+     -- Reload Signals
      ldq_rel_data_val           :in  std_ulogic;
-     ldq_rel_addr               :in  std_ulogic_vector(64-(dc_size-3) to 58);       
+     ldq_rel_addr               :in  std_ulogic_vector(64-(dc_size-3) to 58);       -- Reload Array Address
 
-     dcarr_rd_data              :in  std_ulogic_vector(0 to 287);       
+     -- D$ Array Inputs
+     dcarr_rd_data              :in  std_ulogic_vector(0 to 287);       -- D$ Array Read Data
 
-     dcarr_bw                   :out std_ulogic_vector(0 to 287);       
-     dcarr_addr                 :out std_ulogic_vector(64-(dc_size-3) to 58);       
-     dcarr_wr_data              :out std_ulogic_vector(0 to 287);       
+     -- D$ Array Outputs
+     dcarr_bw                   :out std_ulogic_vector(0 to 287);       -- D$ Array Bit Enables
+     dcarr_addr                 :out std_ulogic_vector(64-(dc_size-3) to 58);       -- D$ Array Address
+     dcarr_wr_data              :out std_ulogic_vector(0 to 287);       -- D$ Array Write Data
      dcarr_bw_dly               :out std_ulogic_vector(0 to 31);
 
-     ex5_ld_data                :out std_ulogic_vector(0 to 255);       
-     ex5_ld_data_par            :out std_ulogic_vector(0 to 31);        
-     ex6_par_chk_val            :out std_ulogic;                        
+     -- Execution Pipe
+     ex5_ld_data                :out std_ulogic_vector(0 to 255);       -- EX5 Load Data Coming out of L1 D$ Array
+     ex5_ld_data_par            :out std_ulogic_vector(0 to 31);        -- EX5 Load Data Parity Bits
+     ex6_par_chk_val            :out std_ulogic;                        -- EX6 Parity Error Check is Valid
 
+     --pervasive
      vdd                        :inout power_logic;
      gnd                        :inout power_logic;
      nclk                       :in  clk_logic;
@@ -69,15 +85,25 @@ port(
 -- synopsys translate_off
 -- synopsys translate_on
 end xuq_lsu_dc_arr;
+----
 architecture xuq_lsu_dc_arr of xuq_lsu_dc_arr is
 
+----------------------------
+-- components
+----------------------------
 
+----------------------------
+-- constants
+----------------------------
 constant ex6_par_err_val_offset :natural := 0;
 constant ex5_load_op_hit_offset :natural := ex6_par_err_val_offset + 1;
 constant arr_addr_offset        :natural := ex5_load_op_hit_offset + 1;
 constant arr_bw_offset          :natural := arr_addr_offset + 58-(64-(dc_size-3))+1;
 constant scan_right             :natural := arr_bw_offset + 32 - 1;
 
+----------------------------
+-- signals
+----------------------------
 
 signal xuop_addr                :std_ulogic_vector(64-(dc_size-3) to 58);
 signal st_byte_en               :std_ulogic_vector(0 to 31);
@@ -110,10 +136,16 @@ signal siv                      :std_ulogic_vector(0 to scan_right);
 signal sov                      :std_ulogic_vector(0 to scan_right);
 begin
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Act Signals going to all Latches
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 rel3_ex3_stg_act <= rel3_stg_act or ex3_stg_act;
 rel4_ex4_stg_act <= rel4_stg_act or ex4_stg_act;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Inputs
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 tiup <= '1';
 
 xuop_addr    <= ex3_p_addr;
@@ -127,6 +159,9 @@ arr_st_data         <= ex4_256st_data;
 ex5_load_op_hit_d   <= ex4_load_hit;
 inj_dcache_parity_b <= not inj_dcache_parity;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Select between different Operations
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 with rel_val_data select
     arr_addr_d <= xuop_addr when '0',
@@ -138,22 +173,38 @@ with rel_val_data select
 
 arr_bw_dly_d <= arr_bw_q;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Array Data Fix Up
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 arr_wr_data <= arr_st_data(0 to 127)   & arr_parity(0 to 15) &
                arr_st_data(128 to 255) & arr_parity(16 to 31);
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Inject Data Cache Error
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- Sticking bit64 of the array when Data Cache Parity Error Inject is on
+-- Bit64 will be stuck to 1
+-- Bit64 refers to bit2 of byte0
 arr_rd_data64_b <= not arr_rd_data(64);
 stickBit64      <= not (arr_rd_data64_b and inj_dcache_parity_b);
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Array Data  Select
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 arr_ld_data   <= arr_rd_data(0 to 63) & stickBit64 & arr_rd_data(65 to 127) & arr_rd_data(144 to 271);
 
+-- Array Parity
 ld_arr_parity <= arr_rd_data(128 to 143) & arr_rd_data(272 to 287);
 
+-- Parity Check is Valid
 ex6_par_err_val_d <= ex5_load_op_hit_q and not ex5_stg_flush;
 
-
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Outputs
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 bw_gen : for bi in 0 to 31 generate begin
       dcarr_bw(bi+0)                 <= arr_bw_q(bi);
@@ -164,6 +215,7 @@ bw_gen : for bi in 0 to 31 generate begin
       dcarr_bw(bi+176)               <= arr_bw_q(bi);
       dcarr_bw(bi+208)               <= arr_bw_q(bi);
       dcarr_bw(bi+240)               <= arr_bw_q(bi);
+      -- Parity Bits
       dcarr_bw(bi+128+(128*(bi/16))) <= arr_bw_q(bi);
 end generate bw_gen;
 
@@ -175,6 +227,9 @@ ex5_ld_data     <= arr_ld_data;
 ex5_ld_data_par <= ld_arr_parity;
 ex6_par_chk_val <= ex6_par_err_val_q;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Registers
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ex6_par_err_val_reg: tri_rlmlatch_p
 generic map (init => 0, expand_type => expand_type, needs_sreset => 1)
 port map (vd      => vdd,
@@ -266,4 +321,3 @@ siv(0 to scan_right) <= sov(1 to scan_right) & scan_in;
 scan_out <= sov(0);
 
 end xuq_lsu_dc_arr;
-

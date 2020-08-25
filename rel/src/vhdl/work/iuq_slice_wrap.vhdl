@@ -9,6 +9,14 @@
 
 			
 
+--********************************************************************
+--*
+--* TITLE: Instruction slice wrapper
+--*
+--* NAME: iuq_slice_wrap.vhdl
+--*
+--*********************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library support;
@@ -212,6 +220,7 @@ port(
 );
 end iuq_slice_wrap;
 architecture iuq_slice_wrap of iuq_slice_wrap is
+-- FXU Issue
 signal fiss_fdep_is2_take0                      : std_ulogic;
 signal fdep_fiss_t0_is2_instr                   : std_ulogic_vector(0 to 31);
 signal fdep_fiss_t0_is2_ta_vld                  : std_ulogic;
@@ -356,6 +365,7 @@ signal fdep_fiss_t3_is1_xu_dep_hit_b            : std_ulogic;
 signal fdep_fiss_t3_is2_hole_delay              : std_ulogic_vector(0 to 2);
 signal fdep_fiss_t3_is2_to_ucode                : std_ulogic;
 signal fdep_fiss_t3_is2_is_ucode                : std_ulogic;
+-- AXU Issue
 signal i_afi_is2_take_t                         : std_ulogic_vector(0 to 3);
 signal i_axu_is1_dep_hit_t0_b                   : std_ulogic;
 signal i_axu_is2_instr_match_t0                 : std_ulogic;
@@ -1294,4 +1304,3 @@ port map(
     fu_iss_debug                        => fu_iss_dbg_data	 
 );
 end iuq_slice_wrap;
-

@@ -7,6 +7,10 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_rlmlatch_p.vhdl
+-- *! DESCRIPTION : 1-bit latch, LCB included
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
@@ -20,28 +24,29 @@ library tri; use tri.tri_latches_pkg.all;
 entity tri_rlmlatch_p is
 
   generic (
-    init        : integer := 0;  
-    ibuf        : boolean := false;       
-    dualscan    : string  := ""; 
-    needs_sreset: integer := 1 ; 
-    expand_type : integer := 1 );
+    init        : integer := 0;  -- will be converted to the least signficant
+                                 -- 31 bits of init_v
+    ibuf        : boolean := false;       --inverted latch IOs, if set to true.
+    dualscan    : string  := ""; -- if "S", marks data ports as scan for Moebius
+    needs_sreset: integer := 1 ; -- for inferred latches
+    expand_type : integer := 1 );-- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
 
   port (
     vd      : inout power_logic;
     gd      : inout power_logic;
     nclk    : in  clk_logic;
-    act     : in  std_ulogic := '1'; 
-    forcee   : in  std_ulogic := '0'; 
-    thold_b : in  std_ulogic := '1'; 
-    d_mode  : in  std_ulogic := '0'; 
-    sg      : in  std_ulogic := '0'; 
-    delay_lclkr : in  std_ulogic := '0'; 
-    mpw1_b  : in  std_ulogic := '1'; 
-    mpw2_b  : in  std_ulogic := '1'; 
-    scin    : in  std_ulogic := '0'; 
-    din     : in  std_ulogic;        
-    scout   : out std_ulogic;        
-    dout    : out std_ulogic);       
+    act     : in  std_ulogic := '1'; -- 1: functional, 0: no clock
+    forcee   : in  std_ulogic := '0'; -- 1: force LCB active
+    thold_b : in  std_ulogic := '1'; -- 1: functional, 0: no clock
+    d_mode  : in  std_ulogic := '0'; -- 1: disable pulse mode, 0: pulse mode
+    sg      : in  std_ulogic := '0'; -- 0: functional, 1: scan
+    delay_lclkr : in  std_ulogic := '0'; -- 0: functional
+    mpw1_b  : in  std_ulogic := '1'; -- pulse width control bit
+    mpw2_b  : in  std_ulogic := '1'; -- pulse width control bit
+    scin    : in  std_ulogic := '0'; -- scan in
+    din     : in  std_ulogic;        -- data in
+    scout   : out std_ulogic;        -- scan out
+    dout    : out std_ulogic);       -- data out
 
   -- synopsys translate_off
 
@@ -56,24 +61,24 @@ architecture tri_rlmlatch_p of tri_rlmlatch_p is
   constant init_v : std_ulogic_vector(0 to width-1) := std_ulogic_vector( to_unsigned( init, width ) );
   constant zeros : std_ulogic_vector(0 to width-1) := (0 to width-1 => '0');
 
-begin  
+begin  -- tri_rlmlatch_p
 
   -- synopsys translate_off
   um: if expand_type = 0 generate
     component c_rlmreg_p
-      generic ( width    : positive  := 4 ;          
-            init     : std_ulogic_vector := "0"; 
-            dualscan : string := ""              
+      generic ( width    : positive  := 4 ;          --bit width value
+            init     : std_ulogic_vector := "0"; --latch initialization
+            dualscan : string := ""              -- if "S", marks data ports as scan for Moebius
           );
     port (
-         nclk        : in  std_ulogic;        
-         act         : in  std_ulogic;        
-         thold_b     : in  std_ulogic;        
-         sg          : in  std_ulogic;        
-         scin        : in  std_ulogic_vector(0 to width-1);  
-         din         : in  std_ulogic_vector(0 to width-1);  
-         dout        : out std_ulogic_vector(0 to width-1);  
-         scout       : out std_ulogic_vector(0 to width-1)   
+         nclk        : in  std_ulogic;        -- chip global clock signal
+         act         : in  std_ulogic;        -- 1: functional, 0: no clock
+         thold_b     : in  std_ulogic;        -- 1: functional, 0: stop the clock.
+         sg          : in  std_ulogic;        -- 0: functional, 1: scan
+         scin        : in  std_ulogic_vector(0 to width-1);  -- scan in
+         din         : in  std_ulogic_vector(0 to width-1);  -- data in
+         dout        : out std_ulogic_vector(0 to width-1);  -- data out
+         scout       : out std_ulogic_vector(0 to width-1)   -- scan out
        );
     end component;
     signal scanin_inv : std_ulogic;
@@ -84,12 +89,12 @@ begin
   begin
     act_or_force <= act or forcee;
 
-    cib: 
+    cib: --insert inverters at latch IO if ibuf=true
     if ibuf = true generate
       din_buf  <= not din;
       dout     <= not dout_buf;
     end generate cib;
-    cnib: 
+    cnib: -- no inverters at latch IO if ibuf=false (default)
     if ibuf = false generate
       din_buf  <= din;
       dout     <= dout_buf;
@@ -158,4 +163,3 @@ begin
   end generate a;
 
 end tri_rlmlatch_p;
-

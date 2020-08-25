@@ -7,6 +7,7 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU LSU L1 Data Directory and L2 Command Queue Wrapper
 library ibm, ieee, work, tri, support;
 use ibm.std_ulogic_support.all;
 use ibm.std_ulogic_function_support.all;
@@ -17,18 +18,29 @@ use tri.tri_latches_pkg.all;
 use support.power_logic_pkg.all;
 use work.xuq_pkg.mark_unused;
 
+-- ##########################################################################################
+-- VHDL Contents
+-- 1) L2 Command Queue
+-- 2) Valid Register Array
+-- 3) LRU Register Array
+-- 4) Data Cache Control
+-- 5) Flush Generation
+-- 6) 8 way tag compare
+-- 7) Parity Check
+-- 8) Reload Update
+-- ##########################################################################################
 entity xuq_lsu_cmd is
 generic(expand_type      : integer := 2;
         lmq_entries      : integer := 8;
         l_endian_m       : integer := 1;         
         regmode          : integer := 6;
-        dc_size          : natural := 14;       
-        cl_size          : natural := 6;        
+        dc_size          : natural := 14;       -- 2^14 = 16384 Bytes L1 D$
+        cl_size          : natural := 6;        -- 2^6 = 64 Bytes CacheLines
 	real_data_add	 : integer := 42;
         a2mode           : integer := 1;
         load_credits     : integer := 4;
         store_credits    : integer := 20;
-        st_data_32B_mode : integer := 1;       
+        st_data_32B_mode : integer := 1;       -- 0 = 16B store data to L2, 1 = 32B data
         bcfg_epn_0to15     : integer := 0;
         bcfg_epn_16to31    : integer := 0;
         bcfg_epn_32to47    : integer := (2**16)-1;  
@@ -41,7 +53,7 @@ port(
      xu_lsu_rf1_cmd_act         :in  std_ulogic;
      xu_lsu_rf1_axu_op_val      :in  std_ulogic;                        
      xu_lsu_rf1_axu_ldst_falign :in  std_ulogic;
-     xu_lsu_rf1_axu_ldst_fexcpt :in  std_ulogic;                        
+     xu_lsu_rf1_axu_ldst_fexcpt :in  std_ulogic;                        -- AXU force alignment exception on misaligned access
      xu_lsu_rf1_cache_acc       :in  std_ulogic;                        
      xu_lsu_rf1_thrd_id         :in  std_ulogic_vector(0 to 3);         
      xu_lsu_rf1_optype1         :in  std_ulogic;                        
@@ -51,7 +63,7 @@ port(
      xu_lsu_rf1_optype16        :in  std_ulogic;                        
      xu_lsu_rf1_optype32        :in  std_ulogic;                        
      xu_lsu_rf1_target_gpr      :in  std_ulogic_vector(0 to 8);
-     xu_lsu_rf1_mtspr_trace     :in  std_ulogic;                        
+     xu_lsu_rf1_mtspr_trace     :in  std_ulogic;                        -- Operation is a mtspr trace instruction
      xu_lsu_rf1_load_instr      :in  std_ulogic;                        
      xu_lsu_rf1_store_instr     :in  std_ulogic;                        
      xu_lsu_rf1_dcbf_instr      :in  std_ulogic;                        
@@ -78,11 +90,11 @@ port(
      xu_lsu_rf1_wclr_instr      :in  std_ulogic;
      xu_lsu_rf1_wchk_instr      :in  std_ulogic;
      xu_lsu_rf1_lock_instr      :in  std_ulogic;
-     xu_lsu_rf1_mutex_hint      :in  std_ulogic;                        
+     xu_lsu_rf1_mutex_hint      :in  std_ulogic;                        -- Mutex Hint For larx instructions
      xu_lsu_rf1_mbar_instr      :in  std_ulogic;
      xu_lsu_rf1_is_msgsnd       :in  std_ulogic;
-     xu_lsu_rf1_dci_instr       :in  std_ulogic;                        
-     xu_lsu_rf1_ici_instr       :in  std_ulogic;                        
+     xu_lsu_rf1_dci_instr       :in  std_ulogic;                        -- DCI instruction is valid
+     xu_lsu_rf1_ici_instr       :in  std_ulogic;                        -- ICI instruction is valid
      xu_lsu_rf1_algebraic       :in  std_ulogic;                        
      xu_lsu_rf1_byte_rev        :in  std_ulogic;                        
      xu_lsu_rf1_src_gpr         :in  std_ulogic;                        
@@ -91,7 +103,7 @@ port(
      xu_lsu_rf1_targ_gpr        :in  std_ulogic;                        
      xu_lsu_rf1_targ_axu        :in  std_ulogic;                        
      xu_lsu_rf1_targ_dp         :in  std_ulogic;
-     xu_lsu_ex4_val             :in  std_ulogic_vector(0 to 3);         
+     xu_lsu_ex4_val             :in  std_ulogic_vector(0 to 3);         -- There is a valid Instruction in EX4
      xu_lsu_ex1_add_src0        :in  std_ulogic_vector(64-(2**REGMODE) to 63);
      xu_lsu_ex1_add_src1        :in  std_ulogic_vector(64-(2**REGMODE) to 63);
      xu_lsu_ex2_instr_trace_val :in  std_ulogic;
@@ -103,6 +115,7 @@ port(
      xu_lsu_rf1_targ_vld        :in  std_ulogic;                        
      xu_lsu_rf1_targ_reg        :in  std_ulogic_vector(0 to 7);         
 
+     -- Error Inject
      pc_xu_inj_dcachedir_parity :in  std_ulogic;
      pc_xu_inj_dcachedir_multihit :in  std_ulogic;
 
@@ -124,39 +137,40 @@ port(
      xu_lsu_spr_xucr0_cred      :in  std_ulogic;
      xu_lsu_spr_xucr0_rel       :in  std_ulogic;
      xu_lsu_spr_xucr0_mbar_ack  :in  std_ulogic;
-     xu_lsu_spr_xucr0_tlbsync   :in  std_ulogic;                        
-     xu_lsu_spr_xucr0_cls       :in  std_ulogic;                        
+     xu_lsu_spr_xucr0_tlbsync   :in  std_ulogic;                        -- use sync_ack from L2 for tlbsync when 1
+     xu_lsu_spr_xucr0_cls       :in  std_ulogic;                        -- Cacheline Size = 1 => 128Byte size, 0 => 64Byte size
      xu_lsu_spr_ccr2_dfrat      :in  std_ulogic;
      xu_lsu_spr_ccr2_dfratsc    :in  std_ulogic_vector(0 to 8);
 
-     an_ac_flh2l2_gate          :in  std_ulogic;                        
+     an_ac_flh2l2_gate          :in  std_ulogic;                        -- Gate L1 Hit forwarding SPR config bit
 
      xu_lsu_dci                 :in  std_ulogic;
 
-     xu_lsu_rf0_derat_val       :in  std_ulogic_vector(0 to 3);         
-     xu_lsu_rf1_derat_act       :in  std_ulogic;                        
-     xu_lsu_rf1_derat_ra_eq_ea  :in  std_ulogic;                        
-     xu_lsu_rf1_derat_is_load   :in  std_ulogic;                        
-     xu_lsu_rf1_derat_is_store  :in  std_ulogic;                        
-     xu_lsu_rf0_derat_is_extload  :in  std_ulogic;                      
-     xu_lsu_rf0_derat_is_extstore :in  std_ulogic;                      
-     xu_lsu_rf1_is_eratre       :in  std_ulogic;                        
-     xu_lsu_rf1_is_eratwe       :in  std_ulogic;                        
-     xu_lsu_rf1_is_eratsx       :in  std_ulogic;                        
-     xu_lsu_rf1_is_eratilx      :in  std_ulogic;                        
-     xu_lsu_ex1_is_isync        :in  std_ulogic;                        
-     xu_lsu_ex1_is_csync        :in  std_ulogic;                        
-     xu_lsu_rf1_is_touch        :in  std_ulogic;                        
-     xu_lsu_rf1_ws              :in  std_ulogic_vector(0 to 1);         
-     xu_lsu_rf1_t               :in  std_ulogic_vector(0 to 2);         
-     xu_lsu_ex1_rs_is           :in  std_ulogic_vector(0 to 8);         
-     xu_lsu_ex1_ra_entry        :in  std_ulogic_vector(0 to 4);         
-     xu_lsu_ex4_rs_data         :in  std_ulogic_vector(64-(2**REGMODE) to 63);        
-     xu_lsu_msr_gs              :in  std_ulogic_vector(0 to 3);         
-     xu_lsu_msr_pr              :in  std_ulogic_vector(0 to 3);         
-     xu_lsu_msr_ds              :in  std_ulogic_vector(0 to 3);         
-     xu_lsu_msr_cm              :in  std_ulogic_vector(0 to 3);         
-     xu_lsu_hid_mmu_mode        :in  std_ulogic;                        
+     -- ERAT Operations
+     xu_lsu_rf0_derat_val       :in  std_ulogic_vector(0 to 3);         -- TLB Valid Operation
+     xu_lsu_rf1_derat_act       :in  std_ulogic;                        -- Derat Operation is Valid
+     xu_lsu_rf1_derat_ra_eq_ea  :in  std_ulogic;                        -- Bypass Erats on specific operations
+     xu_lsu_rf1_derat_is_load   :in  std_ulogic;                        -- Cache access should be treated as a load
+     xu_lsu_rf1_derat_is_store  :in  std_ulogic;                        -- Cache access should be treated as a store
+     xu_lsu_rf0_derat_is_extload  :in  std_ulogic;                      -- Cache access should be treated as an external load
+     xu_lsu_rf0_derat_is_extstore :in  std_ulogic;                      -- Cache access should be treated as an external store
+     xu_lsu_rf1_is_eratre       :in  std_ulogic;                        -- erat Read Operation
+     xu_lsu_rf1_is_eratwe       :in  std_ulogic;                        -- erat Write Operation
+     xu_lsu_rf1_is_eratsx       :in  std_ulogic;                        -- erat Search Operation
+     xu_lsu_rf1_is_eratilx      :in  std_ulogic;                        -- erat Invalidate Local Operation
+     xu_lsu_ex1_is_isync        :in  std_ulogic;                        -- instr. synch decode
+     xu_lsu_ex1_is_csync        :in  std_ulogic;                        -- context synch decode
+     xu_lsu_rf1_is_touch        :in  std_ulogic;                        -- Instruction is a Touch operation
+     xu_lsu_rf1_ws              :in  std_ulogic_vector(0 to 1);         -- ERAT WS Field
+     xu_lsu_rf1_t               :in  std_ulogic_vector(0 to 2);         -- ERAT T Field
+     xu_lsu_ex1_rs_is           :in  std_ulogic_vector(0 to 8);         -- ERAT invalidate select
+     xu_lsu_ex1_ra_entry        :in  std_ulogic_vector(0 to 4);         -- ERAT Entry Number
+     xu_lsu_ex4_rs_data         :in  std_ulogic_vector(64-(2**REGMODE) to 63);        -- ERAT Update Data
+     xu_lsu_msr_gs              :in  std_ulogic_vector(0 to 3);         -- (MSR.HV)
+     xu_lsu_msr_pr              :in  std_ulogic_vector(0 to 3);         -- Problem State (MSR.PR)
+     xu_lsu_msr_ds              :in  std_ulogic_vector(0 to 3);         -- Addr Space (MSR.DS)
+     xu_lsu_msr_cm              :in  std_ulogic_vector(0 to 3);         -- Comput Mode
+     xu_lsu_hid_mmu_mode        :in  std_ulogic;                        -- MMU mode
      ex6_ld_par_err             :in  std_ulogic;                        
 
      xu_lsu_rf0_flush           :in  std_ulogic_vector(0 to 3);
@@ -176,10 +190,10 @@ port(
      xu_mm_derat_ttype          :out std_ulogic_vector(0 to 1);
      mm_xu_derat_rel_val        :in  std_ulogic_vector(0 to 4);
      mm_xu_derat_rel_data       :in  std_ulogic_vector(0 to 131);
-     mm_xu_derat_pid0           :in  std_ulogic_vector(0 to 13);         
-     mm_xu_derat_pid1           :in  std_ulogic_vector(0 to 13);         
-     mm_xu_derat_pid2           :in  std_ulogic_vector(0 to 13);         
-     mm_xu_derat_pid3           :in  std_ulogic_vector(0 to 13);         
+     mm_xu_derat_pid0           :in  std_ulogic_vector(0 to 13);         -- Thread0 PID Number
+     mm_xu_derat_pid1           :in  std_ulogic_vector(0 to 13);         -- Thread1 PID Number
+     mm_xu_derat_pid2           :in  std_ulogic_vector(0 to 13);         -- Thread2 PID Number
+     mm_xu_derat_pid3           :in  std_ulogic_vector(0 to 13);         -- Thread3 PID Number
      mm_xu_derat_mmucr0_0       :in  std_ulogic_vector(0 to 19);
      mm_xu_derat_mmucr0_1       :in  std_ulogic_vector(0 to 19);
      mm_xu_derat_mmucr0_2       :in  std_ulogic_vector(0 to 19);
@@ -223,7 +237,7 @@ port(
      lsu_xu_ex3_align           :out std_ulogic_vector(0 to 3);         
      lsu_xu_ex3_dsi             :out std_ulogic_vector(0 to 3);         
      lsu_xu_ex3_inval_align_2ucode :out std_ulogic;                        
-     lsu_xu_ex3_attr            :out std_ulogic_vector(0 to 8);        
+     lsu_xu_ex3_attr            :out std_ulogic_vector(0 to 8);        -- Page Attribute Bits
      lsu_xu_ex3_derat_vf        :out std_ulogic;
 
      lsu_xu_ex3_n_flush_req     :out std_ulogic;
@@ -233,12 +247,12 @@ port(
      lsu_xu_ex3_ldq_hit_flush   :out std_ulogic;
      lsu_xu_ex3_dep_flush       :out std_ulogic;
      lsu_xu_ex3_l2_uc_ecc_err   :out std_ulogic_vector(0 to 3);
-     lsu_xu_ex3_derat_par_err   :out std_ulogic_vector(0 to 3);         
-     lsu_xu_ex3_derat_multihit_err :out std_ulogic_vector(0 to 3);      
-     lsu_xu_ex4_derat_par_err   :out std_ulogic_vector(0 to 3);         
-     derat_xu_ex3_miss          :out std_ulogic_vector(0 to 3);         
-     derat_xu_ex3_dsi           :out std_ulogic_vector(0 to 3);         
-     derat_xu_ex3_n_flush_req   :out std_ulogic_vector(0 to 3);         
+     lsu_xu_ex3_derat_par_err   :out std_ulogic_vector(0 to 3);         -- D-ERAT had a Parity Error
+     lsu_xu_ex3_derat_multihit_err :out std_ulogic_vector(0 to 3);      -- D-ERAT had multiple hits
+     lsu_xu_ex4_derat_par_err   :out std_ulogic_vector(0 to 3);         -- D-ERAT had a Parity Error
+     derat_xu_ex3_miss          :out std_ulogic_vector(0 to 3);         -- D-ERAT detected an erat miss
+     derat_xu_ex3_dsi           :out std_ulogic_vector(0 to 3);         -- D-ERAT detected a data storage interrupt
+     derat_xu_ex3_n_flush_req   :out std_ulogic_vector(0 to 3);         -- D-ERAT needs an ex3 flush request
 
      ex3_algebraic              :out std_ulogic;
      ex3_data_swap              :out std_ulogic;
@@ -248,9 +262,11 @@ port(
      lsu_xu_ex3_ddir_par_err    :out std_ulogic;
      lsu_xu_ex4_n_lsu_ddmh_flush :out std_ulogic_vector(0 to 3);
 
+     -- back invalidate
      lsu_xu_is2_back_inv        :out std_ulogic;
      lsu_xu_is2_back_inv_addr   :out std_ulogic_vector(64-real_data_add to 63-cl_size);
 
+     -- Update Data Array Valid
      rel_upd_dcarr_val          :out std_ulogic;
                         
      lsu_xu_ex4_cr_upd          :out std_ulogic;
@@ -263,15 +279,18 @@ port(
      xu_fu_ex5_load_val         :out std_ulogic_vector(0 to 3);
      xu_fu_ex5_load_tag         :out std_ulogic_vector(0 to 8);
 
+     -- Data Array Controls
      dcarr_up_way_addr          :out std_ulogic_vector(0 to 2);
 
-     lsu_xu_spr_xucr0_cslc_xuop :out std_ulogic;                        
-     lsu_xu_spr_xucr0_cslc_binv :out std_ulogic;                        
-     lsu_xu_spr_xucr0_clo       :out std_ulogic;                        
-     lsu_xu_spr_xucr0_cul       :out std_ulogic;                        
+     -- SPR status
+     lsu_xu_spr_xucr0_cslc_xuop :out std_ulogic;                        -- Invalidate type instruction invalidated lock
+     lsu_xu_spr_xucr0_cslc_binv :out std_ulogic;                        -- Back-Invalidate invalidated lock
+     lsu_xu_spr_xucr0_clo       :out std_ulogic;                        -- Cache Lock instruction caused an overlock
+     lsu_xu_spr_xucr0_cul       :out std_ulogic;                        -- Cache Lock unable to lock
      lsu_xu_spr_epsc_epr        :out std_ulogic_vector(0 to 3);
      lsu_xu_spr_epsc_egs        :out std_ulogic_vector(0 to 3);
 
+     -- Debug Data Compare
      ex4_load_op_hit            :out std_ulogic;
      ex4_store_hit              :out std_ulogic;
      ex4_axu_op_val             :out std_ulogic;
@@ -280,10 +299,11 @@ port(
      spr_dvc1_dbg               :out std_ulogic_vector(64-(2**regmode) to 63);
      spr_dvc2_dbg               :out std_ulogic_vector(64-(2**regmode) to 63);
 
+     -- Inputs from L2
      an_ac_req_ld_pop           :in  std_ulogic;
      an_ac_req_st_pop           :in  std_ulogic;
      an_ac_req_st_gather        :in  std_ulogic;
-     an_ac_req_st_pop_thrd      :in  std_ulogic_vector(0 to 2);   
+     an_ac_req_st_pop_thrd      :in  std_ulogic_vector(0 to 2);   -- decrement outbox credit count
 
      an_ac_reld_data_val        :in  std_ulogic;
      an_ac_reld_core_tag        :in  std_ulogic_vector(0 to 4);
@@ -310,22 +330,25 @@ port(
      xu_iu_reld_data_vld_clone     :out     std_ulogic;
      xu_iu_reld_ditc_clone         :out     std_ulogic;
 
-     lsu_reld_data_vld        :out    std_ulogic;                      
-     lsu_reld_core_tag        :out    std_ulogic_vector(3 to 4);       
-     lsu_reld_qw              :out    std_ulogic_vector(58 to 59);     
-     lsu_reld_ecc_err         :out    std_ulogic;                      
-     lsu_reld_ditc            :out    std_ulogic;                      
-     lsu_reld_data            :out    std_ulogic_vector(0 to 127);     
+-- redrive to boxes logic
+     lsu_reld_data_vld        :out    std_ulogic;                      -- reload data is coming in 2 cycles
+     lsu_reld_core_tag        :out    std_ulogic_vector(3 to 4);       -- reload data destinatoin tag (thread)
+     lsu_reld_qw              :out    std_ulogic_vector(58 to 59);     -- reload data destinatoin tag (thread)
+     lsu_reld_ecc_err         :out    std_ulogic;                      -- reload data has ecc error
+     lsu_reld_ditc            :out    std_ulogic;                      -- reload data is for ditc (inbox)
+     lsu_reld_data            :out    std_ulogic_vector(0 to 127);     -- reload data
 
-     lsu_req_st_pop           :out    std_ulogic;                  
-     lsu_req_st_pop_thrd      :out    std_ulogic_vector(0 to 2);   
+     lsu_req_st_pop           :out    std_ulogic;                  -- decrement outbox credit count
+     lsu_req_st_pop_thrd      :out    std_ulogic_vector(0 to 2);   -- decrement outbox credit count
 
+     -- Instruction Fetches
      i_x_ra                     :in  std_ulogic_vector(64-real_data_add to 59);
      i_x_request                :in  std_ulogic;
      i_x_wimge                  :in  std_ulogic_vector(0 to 4);
      i_x_thread                 :in  std_ulogic_vector(0 to 3);
      i_x_userdef                :in  std_ulogic_vector(0 to 3);
 
+     -- MMU instruction interface
      mm_xu_lsu_req              :in  std_ulogic_vector(0 to 3);
      mm_xu_lsu_ttype            :in  std_ulogic_vector(0 to 1);
      mm_xu_lsu_wimge            :in  std_ulogic_vector(0 to 4);
@@ -335,23 +358,25 @@ port(
      mm_xu_lsu_lpidr            :in  std_ulogic_vector(0 to 7); 
      mm_xu_lsu_gs               :in  std_ulogic;
      mm_xu_lsu_ind              :in  std_ulogic;
-     mm_xu_lsu_lbit             :in  std_ulogic;                   
+     mm_xu_lsu_lbit             :in  std_ulogic;                   -- "L" bit, for large vs. small
      xu_mm_lsu_token            :out std_ulogic;
      lsu_xu_ldq_barr_done       :out std_ulogic_vector(0 to 3);
      lsu_xu_barr_done           :out std_ulogic_vector(0 to 3);
 
+     -- Boxes interface
      bx_lsu_ob_pwr_tok          :in     std_ulogic;
-     bx_lsu_ob_req_val          :in     std_ulogic;                  
-     bx_lsu_ob_ditc_val         :in     std_ulogic;                  
-     bx_lsu_ob_thrd             :in     std_ulogic_vector(0 to 1);   
-     bx_lsu_ob_qw               :in     std_ulogic_vector(58 to 59); 
-     bx_lsu_ob_dest             :in     std_ulogic_vector(0 to 14);  
-     bx_lsu_ob_data             :in     std_ulogic_vector(0 to 127); 
-     bx_lsu_ob_addr             :in     std_ulogic_vector(64-real_data_add to 57); 
+     bx_lsu_ob_req_val          :in     std_ulogic;                  -- message buffer data is ready to send
+     bx_lsu_ob_ditc_val         :in     std_ulogic;                  -- send dtic command
+     bx_lsu_ob_thrd             :in     std_ulogic_vector(0 to 1);   -- source thread
+     bx_lsu_ob_qw               :in     std_ulogic_vector(58 to 59); -- QW address
+     bx_lsu_ob_dest             :in     std_ulogic_vector(0 to 14);  -- destination for the packet
+     bx_lsu_ob_data             :in     std_ulogic_vector(0 to 127); -- 16B of data from the outbox
+     bx_lsu_ob_addr             :in     std_ulogic_vector(64-real_data_add to 57); -- address for boxes message
      lsu_bx_cmd_avail           :out    std_ulogic;
      lsu_bx_cmd_sent            :out    std_ulogic;
      lsu_bx_cmd_stall           :out    std_ulogic;
 
+     -- *** Reload operation Outputs ***
      ldq_rel_data_val_early     :out std_ulogic;
      ldq_rel_op_size            :out std_ulogic_vector(0 to 5);
      ldq_rel_addr               :out std_ulogic_vector(64-(dc_size-3) to 58);
@@ -381,6 +406,7 @@ port(
      xu_iu_complete_tid         :out std_ulogic_vector(0 to 3);
      xu_iu_complete_target_type :out std_ulogic_vector(0 to 1);
 
+     -- ICBI Interface
      xu_iu_ex6_icbi_val         :out std_ulogic_vector(0 to 3);
      xu_iu_ex6_icbi_addr        :out std_ulogic_vector(64-real_data_add to 57);     
 
@@ -417,6 +443,7 @@ port(
      bx_ib_empty_int            : in  std_ulogic_vector(0 to 3);
      bx_ib_empty_q              : out std_ulogic_vector(0 to 3);
     
+     --pervasive
      xu_pc_err_dcachedir_parity :out std_ulogic;
      xu_pc_err_dcachedir_multihit :out std_ulogic;
      xu_pc_err_l2intrf_ecc      :out std_ulogic;
@@ -425,12 +452,14 @@ port(
      xu_pc_err_l2credit_overrun :out std_ulogic;
      pc_xu_init_reset           :in  std_ulogic;
 
+     -- Performance Counters
      pc_xu_event_bus_enable     :in  std_ulogic;
      pc_xu_event_count_mode     :in  std_ulogic_vector(0 to 2);
      pc_xu_lsu_event_mux_ctrls  :in  std_ulogic_vector(0 to 47);
      pc_xu_cache_par_err_event  :in  std_ulogic;
      xu_pc_lsu_event_data       :out std_ulogic_vector(0 to 7);
 
+     -- Debug Trace Bus
      pc_xu_trace_bus_enable     :in  std_ulogic;
      lsu_debug_mux_ctrls        :in  std_ulogic_vector(0 to 15);
      trigger_data_in            :in  std_ulogic_vector(0 to 11);
@@ -439,6 +468,7 @@ port(
      debug_data_out             :out std_ulogic_vector(0 to 87);
      lsu_xu_cmd_debug           :out std_ulogic_vector(0 to 175);
 
+     -- G8T ABIST Control
      an_ac_lbist_ary_wrt_thru_dc :in  std_ulogic;
      pc_xu_abist_g8t_wenb       :in  std_ulogic;
      pc_xu_abist_g8t1p_renb_0   :in  std_ulogic;
@@ -520,6 +550,7 @@ port(
 -- synopsys translate_off
 -- synopsys translate_on
 end xuq_lsu_cmd;
+----
 architecture xuq_lsu_cmd of xuq_lsu_cmd is
 
 constant uprTagBit              :natural := 64-real_data_add;
@@ -679,7 +710,7 @@ signal xu_derat_epsc3_eas       :std_ulogic;
 signal xu_derat_epsc3_egs       :std_ulogic;
 signal xu_derat_epsc3_elpid     :std_ulogic_vector(40 to 47);
 signal xu_derat_epsc3_epid      :std_ulogic_vector(50 to 63);
-signal derat_xu_ex2_rpn         :std_ulogic_vector(22 to 51); 
+signal derat_xu_ex2_rpn         :std_ulogic_vector(22 to 51); -- derat 32x143 update to 42b RA
 signal derat_xu_ex2_wimge       :std_ulogic_vector(0 to 4);
 signal derat_xu_ex2_u           :std_ulogic_vector(0 to 3);
 signal derat_xu_ex2_wlc         :std_ulogic_vector(0 to 1);
@@ -839,28 +870,28 @@ signal ex3_way_cmp_e            :std_ulogic;
 signal ex3_way_cmp_f            :std_ulogic;
 signal ex3_way_cmp_g            :std_ulogic;
 signal ex3_way_cmp_h            :std_ulogic;
-signal cmp_lmq_entry_act        :std_ulogic; 
-signal cmp_ldq_comp_val         :std_ulogic_vector(0 to 7); 
-signal cmp_ldq_match            :std_ulogic_vector(0 to 7); 
-signal cmp_l_q_wrt_en           :std_ulogic_vector(0 to 7);   
+signal cmp_lmq_entry_act        :std_ulogic; -- act for lmq entries
+signal cmp_ldq_comp_val         :std_ulogic_vector(0 to 7); -- enable compares against lmq
+signal cmp_ldq_match            :std_ulogic_vector(0 to 7); -- compare result (without enable)
+signal cmp_l_q_wrt_en           :std_ulogic_vector(0 to 7);   -- load entry, (hold when not loading)
 signal cmp_ld_ex7_recov         :std_ulogic;
 signal cmp_ex3_p_addr_o         :std_ulogic_vector(22 to 57);
 signal cmp_ex7_ld_recov_addr    :std_ulogic_vector(64-real_data_add to 57); 
-signal cmp_ex4_loadmiss_qentry  :std_ulogic_vector(0 to 7);   
-signal cmp_ex4_ld_addr          :std_ulogic_vector(64-real_data_add to 57); 
-signal cmp_l_q_rd_en            :std_ulogic_vector(0 to 7);   
-signal cmp_l_miss_entry_addr    :std_ulogic_vector(64-real_data_add to 57); 
-signal cmp_rel_tag_1hot         :std_ulogic_vector(0 to 7);   
-signal cmp_rel_addr             :std_ulogic_vector(64-real_data_add to 57); 
-signal cmp_back_inv_addr        :std_ulogic_vector(64-real_data_add to 57); 
-signal cmp_back_inv_cmp_val     :std_ulogic_vector(0 to 7);   
-signal cmp_back_inv_addr_hit    :std_ulogic_vector(0 to 7);   
-signal cmp_s_m_queue0_addr      :std_ulogic_vector(64-real_data_add to 57); 
-signal cmp_st_entry0_val        :std_ulogic                 ; 
-signal cmp_ex3addr_hit_stq      :std_ulogic                 ; 
-signal cmp_ex4_st_entry_addr    :std_ulogic_vector(64-real_data_add to 57); 
-signal cmp_ex4_st_val           :std_ulogic                 ; 
-signal cmp_ex3addr_hit_ex4st    :std_ulogic                 ; 
+signal cmp_ex4_loadmiss_qentry  :std_ulogic_vector(0 to 7);   -- mux 3 select
+signal cmp_ex4_ld_addr          :std_ulogic_vector(64-real_data_add to 57); -- mux 3
+signal cmp_l_q_rd_en            :std_ulogic_vector(0 to 7);   -- mux 2 select
+signal cmp_l_miss_entry_addr    :std_ulogic_vector(64-real_data_add to 57); -- mux 2
+signal cmp_rel_tag_1hot         :std_ulogic_vector(0 to 7);   -- mux 1 select
+signal cmp_rel_addr             :std_ulogic_vector(64-real_data_add to 57); -- mux 1
+signal cmp_back_inv_addr        :std_ulogic_vector(64-real_data_add to 57); -- compare to each ldq entry
+signal cmp_back_inv_cmp_val     :std_ulogic_vector(0 to 7);   --
+signal cmp_back_inv_addr_hit    :std_ulogic_vector(0 to 7);   --
+signal cmp_s_m_queue0_addr      :std_ulogic_vector(64-real_data_add to 57); --
+signal cmp_st_entry0_val        :std_ulogic                 ; --
+signal cmp_ex3addr_hit_stq      :std_ulogic                 ; --
+signal cmp_ex4_st_entry_addr    :std_ulogic_vector(64-real_data_add to 57); --
+signal cmp_ex4_st_val           :std_ulogic                 ; --
+signal cmp_ex3addr_hit_ex4st    :std_ulogic                 ; --
 signal dir_rd_stg_act           :std_ulogic;
 signal xu_derat_rf1_binv_val    :std_ulogic;
 signal derat_xu_ex3_rpn         :std_ulogic_vector(64-real_data_add to 51);
@@ -873,14 +904,14 @@ signal derat_xu_ex3_noop_touch  :std_ulogic_vector(0 to 3);
 signal dir_arr_rd_is2_val       :std_ulogic;
 signal dir_arr_rd_congr_cl      :std_ulogic_vector(0 to 4);
 signal is2_back_inv_addr        :std_ulogic_vector(64-real_data_add to 63-cl_size);
-signal ex3_wayA_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); 
-signal ex3_wayB_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); 
-signal ex3_wayC_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); 
-signal ex3_wayD_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); 
-signal ex3_wayE_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); 
-signal ex3_wayF_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); 
-signal ex3_wayG_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); 
-signal ex3_wayH_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); 
+signal ex3_wayA_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); -- Way Tag
+signal ex3_wayB_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); -- Way Tag
+signal ex3_wayC_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); -- Way Tag
+signal ex3_wayD_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); -- Way Tag
+signal ex3_wayE_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); -- Way Tag
+signal ex3_wayF_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); -- Way Tag
+signal ex3_wayG_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); -- Way Tag
+signal ex3_wayH_tag             :std_ulogic_vector(64-real_data_add to 63-(dc_size-3)); -- Way Tag
 signal dc_fgen_dbg_data         :std_ulogic_vector(0 to 1);
 signal dc_cntrl_dbg_data        :std_ulogic_vector(0 to 66);
 signal dc_val_dbg_data          :std_ulogic_vector(0 to 293);
@@ -895,6 +926,14 @@ begin
 
 tidn <= '0';
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- L1 Data ERAT's
+-- Data Erat/uTLB (Memory Management)
+-- 1) Contains a Cam of Memory Management Entries
+-- 2) Includes an MMU mode and a TLB mode
+-- 3) Translates Effective Address to a Real Address
+-- 3) Outputs a Real Address, Memory Attribute Bits, and User Defined Bits
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 lsuderat : entity work.xuq_lsu_derat(xuq_lsu_derat)
 generic map( expand_type        => expand_type,
              rs_data_width      => (2**regmode),
@@ -944,7 +983,7 @@ port map(
      cam_mpw2_dc_b              => cam_mpw2_dc_b,
      
 
-     ac_func_scan_in            => func_scan_in_q(41 to 42),    
+     ac_func_scan_in            => func_scan_in_q(41 to 42),    -- use func_scan_in_q(1) for expansion
      ac_func_scan_out           => derat_scan_out,
      ac_ccfg_scan_in            => ccfg_scan_in,
      ac_ccfg_scan_out           => ccfg_scan_out_int,
@@ -1024,6 +1063,7 @@ port map(
      derat_fir_par_err          => derat_fir_par_err,
      derat_fir_multihit         => derat_fir_multihit,
                                 
+     -- DERAT SlowSPR Regs
      xu_derat_epsc_wr           => xu_derat_epsc_wr,
      xu_derat_eplc_wr           => xu_derat_eplc_wr,
      xu_derat_eplc0_epr         => xu_derat_eplc0_epr,
@@ -1107,6 +1147,9 @@ port map(
 
 lsu_xu_ex4_tlb_data <= derat_xu_ex4_data(64-(2**REGMODE) to 63);
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- L1 Data Directory
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 lsudir : entity work.xuq_lsu_dir(xuq_lsu_dir)
 generic map(expand_type     => expand_type,
             l_endian_m      => l_endian_m,
@@ -1183,6 +1226,7 @@ port map(
      xu_lsu_rf1_targ_vld        => xu_lsu_rf1_targ_vld,
      xu_lsu_rf1_targ_reg        => xu_lsu_rf1_targ_reg,
 
+     -- Error Inject
      pc_xu_inj_dcachedir_parity => pc_xu_inj_dcachedir_parity,
      pc_xu_inj_dcachedir_multihit => pc_xu_inj_dcachedir_multihit,
 
@@ -1405,6 +1449,7 @@ port map(
      ex3_cClass_upd_way_g       => ex3_cClass_upd_way_g,
      ex3_cClass_upd_way_h       => ex3_cClass_upd_way_h,
 
+     -- Directory Read Data
      ex2_wayA_tag               => ex2_wayA_tag,
      ex2_wayB_tag               => ex2_wayB_tag,
      ex2_wayC_tag               => ex2_wayC_tag,
@@ -1414,6 +1459,7 @@ port map(
      ex2_wayG_tag               => ex2_wayG_tag,
      ex2_wayH_tag               => ex2_wayH_tag,
                                 
+     -- Update Data Array Valid
      rel_upd_dcarr_val          => rel_upd_dcarr_val,
 
      lsu_xu_ex4_cr_upd          => lsu_xu_ex4_cr_upd,
@@ -1427,11 +1473,13 @@ port map(
      xu_fu_ex5_load_val         => xu_fu_ex5_load_val,
      xu_fu_ex5_load_tag         => xu_fu_ex5_load_tag,
 
+     -- ICBI Interface
      xu_iu_ex6_icbi_val         => xu_iu_ex6_icbi_val,
      xu_iu_ex6_icbi_addr        => xu_iu_ex6_icbi_addr,
 
      dcarr_up_way_addr          => dcarr_up_way_addr,
 
+     -- DERAT SlowSPR Regs
      xu_derat_epsc_wr           => xu_derat_epsc_wr,
      xu_derat_eplc_wr           => xu_derat_eplc_wr,
      xu_derat_eplc0_epr         => xu_derat_eplc0_epr,
@@ -1475,6 +1523,7 @@ port map(
      xu_derat_epsc3_elpid       => xu_derat_epsc3_elpid,
      xu_derat_epsc3_epid        => xu_derat_epsc3_epid,
 
+     -- ACT signals
      ex1_stg_act                => ex1_stg_act,
      ex2_stg_act                => ex2_stg_act,
      ex3_stg_act                => ex3_stg_act,
@@ -1482,12 +1531,14 @@ port map(
      binv1_stg_act              => binv1_stg_act,
      binv2_stg_act              => binv2_stg_act,
                                 
+     -- SPR status
      lsu_xu_spr_xucr0_cslc_xuop => lsu_xu_spr_xucr0_cslc_xuop,
      lsu_xu_spr_xucr0_cslc_binv => lsu_xu_spr_xucr0_cslc_binv,
      lsu_xu_spr_xucr0_clo       => lsu_xu_spr_xucr0_clo,
      lsu_xu_spr_xucr0_cul       => lsu_xu_spr_xucr0_cul,
      spr_xucr0_cls              => spr_xucr0_cls,
 
+     -- Directory Read interface
      dir_arr_rd_is2_val         => dir_arr_rd_is2_val,
      dir_arr_rd_congr_cl        => dir_arr_rd_congr_cl,
                                 
@@ -1499,6 +1550,7 @@ port map(
      spr_dvc1_dbg               => spr_dvc1_dbg,
      spr_dvc2_dbg               => spr_dvc2_dbg,
 
+     -- Debug Data
      pc_xu_trace_bus_enable     => pc_xu_trace_bus_enable,
      dc_fgen_dbg_data           => dc_fgen_dbg_data,
      dc_cntrl_dbg_data          => dc_cntrl_dbg_data,
@@ -1523,77 +1575,82 @@ port map(
      delay_lclkr_dc             => delay_lclkr_dc(5),
      mpw1_dc_b                  => mpw1_dc_b(5),
      mpw2_dc_b                  => mpw2_dc_b,
-     scan_in                    => func_scan_in_q(43 to 46),       
+     scan_in                    => func_scan_in_q(43 to 46),       -- use func_scan_in_q(4 to 5) for expansion
      scan_out(0 to 1)           => func_scan_out_int(43 to 44),
      scan_out(2 to 3)           => dir_scan_out
 );
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Address Compares
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 binv2_ex2_stg_act <= binv2_stg_act or ex2_stg_act;
 
  lsucmp: entity work.xuq_lsu_cmp(xuq_lsu_cmp)
 generic map(expand_type     => expand_type)	
  port map(               
-       vdd                                   => vdd                            ,
-       gnd                                   => gnd                            ,
-       nclk                                  => nclk                           ,
-       delay_lclkr (0)                       => delay_lclkr_dc(5)              ,
-       delay_lclkr (1)                       => delay_lclkr_dc(5)              ,
-       delay_lclkr (2)                       => delay_lclkr_dc(5)              ,
-       mpw1_b      (0)                       => mpw1_dc_b(5)                   ,
-       mpw1_b      (1)                       => mpw1_dc_b(5)                   ,
-       mpw1_b      (2)                       => mpw1_dc_b(5)                   ,
-       mpw2_b      (0)                       => mpw2_dc_b                      ,
-       mpw2_b      (1)                       => mpw2_dc_b                      ,
-       mpw2_b      (2)                       => mpw2_dc_b                      ,
-       forcee       (0)                       => func_slp_sl_force              ,
-       forcee       (1)                       => func_slp_sl_force              ,
-       forcee       (2)                       => func_sl_force                  ,
-       sg_0        (0)                       => sg_0                           ,
-       sg_0        (1)                       => sg_0                           ,
-       sg_0        (2)                       => sg_0                           ,
-       thold_0_b   (0)                       => func_slp_sl_thold_0_b          ,
-       thold_0_b   (1)                       => func_slp_sl_thold_0_b          ,
-       thold_0_b   (2)                       => func_sl_thold_0_b              ,
-       scan_in     (0)                       => derat_scan_out(0)              ,
-       scan_in     (1)                       => dir_scan_out(1)                ,
-       scan_in     (2)                       => l2cmdq_scan_out                ,
-       scan_out    (0)                       => func_scan_out_int(41)          ,
-       scan_out    (1)                       => cmp_scan_out                   ,
-       scan_out    (2)                       => func_scan_out_int(47)          ,
+       vdd                                   => vdd                            ,--b--@--xuq_lsu_cmp(lsucmp)
+       gnd                                   => gnd                            ,--b--@--xuq_lsu_cmp(lsucmp)
+       nclk                                  => nclk                           ,--i--@--xuq_lsu_cmp(lsucmp)
+       --------- seperate perv for sections located large distance apart ----------------------------------
+       delay_lclkr (0)                       => delay_lclkr_dc(5)              ,--i--@--xuq_lsu_cmp(lsucmp)  for ERAT
+       delay_lclkr (1)                       => delay_lclkr_dc(5)              ,--i--@--xuq_lsu_cmp(lsucmp)  for DIR
+       delay_lclkr (2)                       => delay_lclkr_dc(5)              ,--i--@--xuq_lsu_cmp(lsucmp)  for LoadQ
+       mpw1_b      (0)                       => mpw1_dc_b(5)                   ,--i--@--xuq_lsu_cmp(lsucmp)  for ERAT
+       mpw1_b      (1)                       => mpw1_dc_b(5)                   ,--i--@--xuq_lsu_cmp(lsucmp)  for DIR
+       mpw1_b      (2)                       => mpw1_dc_b(5)                   ,--i--@--xuq_lsu_cmp(lsucmp)  for LoadQ
+       mpw2_b      (0)                       => mpw2_dc_b                      ,--i--@--xuq_lsu_cmp(lsucmp)  for ERAT
+       mpw2_b      (1)                       => mpw2_dc_b                      ,--i--@--xuq_lsu_cmp(lsucmp)  for DIR
+       mpw2_b      (2)                       => mpw2_dc_b                      ,--i--@--xuq_lsu_cmp(lsucmp)  for LoadQ
+       forcee       (0)                       => func_slp_sl_force              ,--i--@--xuq_lsu_cmp(lsucmp)  for ERAT
+       forcee       (1)                       => func_slp_sl_force              ,--i--@--xuq_lsu_cmp(lsucmp)  for DIR
+       forcee       (2)                       => func_sl_force                  ,--i--@--xuq_lsu_cmp(lsucmp)  for LoadQ
+       sg_0        (0)                       => sg_0                           ,--i--@--xuq_lsu_cmp(lsucmp)  for ERAT
+       sg_0        (1)                       => sg_0                           ,--i--@--xuq_lsu_cmp(lsucmp)  for DIR
+       sg_0        (2)                       => sg_0                           ,--i--@--xuq_lsu_cmp(lsucmp)  for LoadQ
+       thold_0_b   (0)                       => func_slp_sl_thold_0_b          ,--i--@--xuq_lsu_cmp(lsucmp)  for ERAT
+       thold_0_b   (1)                       => func_slp_sl_thold_0_b          ,--i--@--xuq_lsu_cmp(lsucmp)  for DIR
+       thold_0_b   (2)                       => func_sl_thold_0_b              ,--i--@--xuq_lsu_cmp(lsucmp)  for LoadQ
+       scan_in     (0)                       => derat_scan_out(0)              ,--i--@--xuq_lsu_cmp(lsucmp)  for ERAT
+       scan_in     (1)                       => dir_scan_out(1)                ,--i--@--xuq_lsu_cmp(lsucmp)  for DIR
+       scan_in     (2)                       => l2cmdq_scan_out                ,--i--@--xuq_lsu_cmp(lsucmp)  for LoadQ
+       scan_out    (0)                       => func_scan_out_int(41)          ,--o--@--xuq_lsu_cmp(lsucmp)  for ERAT  (36) latches
+       scan_out    (1)                       => cmp_scan_out                   ,--o--@--xuq_lsu_cmp(lsucmp)  for DIR   (30 * 8) latches
+       scan_out    (2)                       => func_scan_out_int(47)          ,--o--@--xuq_lsu_cmp(lsucmp)  for LoadQ (36 * 8) latches
+       -------------------------------------------------------------------------
        enable_lsb_lmq_b                      => spr_xucr0_cls,
        enable_lsb_oth_b                      => spr_xucr0_cls,
        enable_lsb_bi_b                       => spr_xucr0_cls,
-       ex2_erat_act                          => binv2_ex2_stg_act              ,
-       binv2_ex2_stg_act                     => binv2_ex2_stg_act              ,
-       lmq_entry_act                         => cmp_lmq_entry_act              ,
-       ex3_p_addr                            => derat_xu_ex3_rpn               ,
-       ex2_p_addr_lwr                        => ex2_p_addr_lwr(52 to 57)       ,
-       ex3_p_addr_o                          => cmp_ex3_p_addr_o(22 to 57)     ,
-       ex2_wayA_tag(22 to 52)                => ex2_wayA_tag(22 to 52)         ,
-       ex2_wayB_tag(22 to 52)                => ex2_wayB_tag(22 to 52)         ,
-       ex2_wayC_tag(22 to 52)                => ex2_wayC_tag(22 to 52)         ,
-       ex2_wayD_tag(22 to 52)                => ex2_wayD_tag(22 to 52)         ,
-       ex2_wayE_tag(22 to 52)                => ex2_wayE_tag(22 to 52)         ,
-       ex2_wayF_tag(22 to 52)                => ex2_wayF_tag(22 to 52)         ,
-       ex2_wayG_tag(22 to 52)                => ex2_wayG_tag(22 to 52)         ,
-       ex2_wayH_tag(22 to 52)                => ex2_wayH_tag(22 to 52)         ,
-       ex3_cClass_upd_way_a                  => ex3_cClass_upd_way_a           ,
-       ex3_cClass_upd_way_b                  => ex3_cClass_upd_way_b           ,
-       ex3_cClass_upd_way_c                  => ex3_cClass_upd_way_c           ,
-       ex3_cClass_upd_way_d                  => ex3_cClass_upd_way_d           ,
-       ex3_cClass_upd_way_e                  => ex3_cClass_upd_way_e           ,
-       ex3_cClass_upd_way_f                  => ex3_cClass_upd_way_f           ,
-       ex3_cClass_upd_way_g                  => ex3_cClass_upd_way_g           ,
-       ex3_cClass_upd_way_h                  => ex3_cClass_upd_way_h           ,
-       ex3_way_cmp_a                         => ex3_way_cmp_a                  ,
-       ex3_way_cmp_b                         => ex3_way_cmp_b                  ,
-       ex3_way_cmp_c                         => ex3_way_cmp_c                  ,
-       ex3_way_cmp_d                         => ex3_way_cmp_d                  ,
-       ex3_way_cmp_e                         => ex3_way_cmp_e                  ,
-       ex3_way_cmp_f                         => ex3_way_cmp_f                  ,
-       ex3_way_cmp_g                         => ex3_way_cmp_g                  ,
-       ex3_way_cmp_h                         => ex3_way_cmp_h                  ,
+       ex2_erat_act                          => binv2_ex2_stg_act              ,--i--@--xuq_lsu_cmp(lsucmp)  for LoadQ (6) latches
+       binv2_ex2_stg_act                     => binv2_ex2_stg_act              ,--i--@--xuq_lsu_cmp(lsucmp)  for LoadQ (36 * 8) latches
+       lmq_entry_act                         => cmp_lmq_entry_act              ,--i--@--xuq_lsu_cmp(lsucmp)  for LoadQ (36 * 8) latches
+       ex3_p_addr                            => derat_xu_ex3_rpn               ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex2_p_addr_lwr                        => ex2_p_addr_lwr(52 to 57)       ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex3_p_addr_o                          => cmp_ex3_p_addr_o(22 to 57)     ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex2_wayA_tag(22 to 52)                => ex2_wayA_tag(22 to 52)         ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex2_wayB_tag(22 to 52)                => ex2_wayB_tag(22 to 52)         ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex2_wayC_tag(22 to 52)                => ex2_wayC_tag(22 to 52)         ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex2_wayD_tag(22 to 52)                => ex2_wayD_tag(22 to 52)         ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex2_wayE_tag(22 to 52)                => ex2_wayE_tag(22 to 52)         ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex2_wayF_tag(22 to 52)                => ex2_wayF_tag(22 to 52)         ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex2_wayG_tag(22 to 52)                => ex2_wayG_tag(22 to 52)         ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex2_wayH_tag(22 to 52)                => ex2_wayH_tag(22 to 52)         ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex3_cClass_upd_way_a                  => ex3_cClass_upd_way_a           ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex3_cClass_upd_way_b                  => ex3_cClass_upd_way_b           ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex3_cClass_upd_way_c                  => ex3_cClass_upd_way_c           ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex3_cClass_upd_way_d                  => ex3_cClass_upd_way_d           ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex3_cClass_upd_way_e                  => ex3_cClass_upd_way_e           ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex3_cClass_upd_way_f                  => ex3_cClass_upd_way_f           ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex3_cClass_upd_way_g                  => ex3_cClass_upd_way_g           ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex3_cClass_upd_way_h                  => ex3_cClass_upd_way_h           ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex3_way_cmp_a                         => ex3_way_cmp_a                  ,--o--@--xuq_lsu_cmp(lsucmp)
+       ex3_way_cmp_b                         => ex3_way_cmp_b                  ,--o--@--xuq_lsu_cmp(lsucmp)
+       ex3_way_cmp_c                         => ex3_way_cmp_c                  ,--o--@--xuq_lsu_cmp(lsucmp)
+       ex3_way_cmp_d                         => ex3_way_cmp_d                  ,--o--@--xuq_lsu_cmp(lsucmp)
+       ex3_way_cmp_e                         => ex3_way_cmp_e                  ,--o--@--xuq_lsu_cmp(lsucmp)
+       ex3_way_cmp_f                         => ex3_way_cmp_f                  ,--o--@--xuq_lsu_cmp(lsucmp)
+       ex3_way_cmp_g                         => ex3_way_cmp_g                  ,--o--@--xuq_lsu_cmp(lsucmp)
+       ex3_way_cmp_h                         => ex3_way_cmp_h                  ,--o--@--xuq_lsu_cmp(lsucmp)
        ex3_wayA_tag                          => ex3_wayA_tag,
        ex3_wayB_tag                          => ex3_wayB_tag,
        ex3_wayC_tag                          => ex3_wayC_tag,
@@ -1603,49 +1660,54 @@ generic map(expand_type     => expand_type)
        ex3_wayG_tag                          => ex3_wayG_tag,
        ex3_wayH_tag                          => ex3_wayH_tag,
 
-       ldq_comp_val(0 to 7)                  => cmp_ldq_comp_val(0 to 7)           ,
-       ldq_match(0 to 7)                     => cmp_ldq_match(0 to 7)              ,
-       ldq_fnd_b                             => cmp_ldq_fnd_b                      ,
-       cmp_flush                             => cmp_flush                      ,
-       dir_eq_v_or_b                         => ex3_cClass_collision_b           ,
-       l_q_wrt_en(0 to 7)                    => cmp_l_q_wrt_en(0 to 7)             ,
+       ldq_comp_val(0 to 7)                  => cmp_ldq_comp_val(0 to 7)           ,--i--@--xuq_lsu_cmp(lsucmp)
+       ldq_match(0 to 7)                     => cmp_ldq_match(0 to 7)              ,--o--@--xuq_lsu_cmp(lsucmp)
+       ldq_fnd_b                             => cmp_ldq_fnd_b                      ,--o--@--xuq_lsu_cmp(lsucmp)
+       cmp_flush                             => cmp_flush                      ,--o--@--xuq_lsu_cmp(lsucmp)
+       dir_eq_v_or_b                         => ex3_cClass_collision_b           ,--o--@--xuq_lsu_cmp(lsucmp)
+       l_q_wrt_en(0 to 7)                    => cmp_l_q_wrt_en(0 to 7)             ,--i--@--xuq_lsu_cmp(lsucmp)
        ld_ex7_recov                          => cmp_ld_ex7_recov       ,
        ex7_ld_recov_addr                     => cmp_ex7_ld_recov_addr  ,
-       ex4_loadmiss_qentry(0 to 7)           => cmp_ex4_loadmiss_qentry(0 to 7)    ,
-       ex4_ld_addr(22 to 57)                 => cmp_ex4_ld_addr(22 to 57)          ,
-       l_q_rd_en(0 to 7)                     => cmp_l_q_rd_en(0 to 7)              ,
-       l_miss_entry_addr(22 to 57)           => cmp_l_miss_entry_addr(22 to 57)    ,
-       rel_tag_1hot(0 to 7)                  => cmp_rel_tag_1hot(0 to 7)           ,
-       rel_addr                              => cmp_rel_addr                       ,
-       back_inv_addr                         => cmp_back_inv_addr                  ,
-       back_inv_cmp_val(0 to 7)              => cmp_back_inv_cmp_val(0 to 7)       ,
-       back_inv_addr_hit(0 to 7)             => cmp_back_inv_addr_hit(0 to 7)      ,
-       s_m_queue0_addr(22 to 57)             => cmp_s_m_queue0_addr(22 to 57)      ,
-       st_entry0_val                         => cmp_st_entry0_val                  ,
-       ex3addr_hit_stq                       => cmp_ex3addr_hit_stq                ,
-       ex4_st_entry_addr(22 to 57)           => cmp_ex4_st_entry_addr(22 to 57)    ,
-       ex4_st_val                            => cmp_ex4_st_val                     ,
-       ex3addr_hit_ex4st                     => cmp_ex3addr_hit_ex4st               
+       ex4_loadmiss_qentry(0 to 7)           => cmp_ex4_loadmiss_qentry(0 to 7)    ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex4_ld_addr(22 to 57)                 => cmp_ex4_ld_addr(22 to 57)          ,--o--@--xuq_lsu_cmp(lsucmp)
+       l_q_rd_en(0 to 7)                     => cmp_l_q_rd_en(0 to 7)              ,--i--@--xuq_lsu_cmp(lsucmp)
+       l_miss_entry_addr(22 to 57)           => cmp_l_miss_entry_addr(22 to 57)    ,--o--@--xuq_lsu_cmp(lsucmp)
+       rel_tag_1hot(0 to 7)                  => cmp_rel_tag_1hot(0 to 7)           ,--i--@--xuq_lsu_cmp(lsucmp)
+       rel_addr                              => cmp_rel_addr                       ,--o--@--xuq_lsu_cmp(lsucmp)
+       back_inv_addr                         => cmp_back_inv_addr                  ,--i--@--xuq_lsu_cmp(lsucmp)
+       back_inv_cmp_val(0 to 7)              => cmp_back_inv_cmp_val(0 to 7)       ,--i--@--xuq_lsu_cmp(lsucmp)
+       back_inv_addr_hit(0 to 7)             => cmp_back_inv_addr_hit(0 to 7)      ,--o--@--xuq_lsu_cmp(lsucmp)
+       s_m_queue0_addr(22 to 57)             => cmp_s_m_queue0_addr(22 to 57)      ,--i--@--xuq_lsu_cmp(lsucmp)
+       st_entry0_val                         => cmp_st_entry0_val                  ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex3addr_hit_stq                       => cmp_ex3addr_hit_stq                ,--o--@--xuq_lsu_cmp(lsucmp)
+       ex4_st_entry_addr(22 to 57)           => cmp_ex4_st_entry_addr(22 to 57)    ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex4_st_val                            => cmp_ex4_st_val                     ,--i--@--xuq_lsu_cmp(lsucmp)
+       ex3addr_hit_ex4st                     => cmp_ex3addr_hit_ex4st               --o--@--xuq_lsu_cmp(lsucmp)
 );
 
 cmp_ldq_fnd          <= not cmp_ldq_fnd_b;
 ex3_cClass_collision <= not ex3_cClass_collision_b;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Data Cache Directory Array
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 dir_rd_stg_act <= ex1_stg_act or binv1_stg_act;
 
 dc16Kdir64B : if (2**dc_size) = 16384 and (2**cl_size) = 64 generate begin
   tridirarr: entity tri.tri_32x35_8w_1r1w(tri_32x35_8w_1r1w)
-    GENERIC MAP (addressable_ports  => 32,                  
-                 addressbus_width   => 5,                   
-                 port_bitwidth      => wayDataSize,         
-                 ways               => 8,                   
-                 expand_type        => expand_type)         
+    GENERIC MAP (addressable_ports  => 32,                  -- number of addressable register in this array
+                 addressbus_width   => 5,                   -- width of the bus to address all ports (2^portadrbus_width >= addressable_ports)
+                 port_bitwidth      => wayDataSize,         -- bitwidth of ports
+                 ways               => 8,                   -- number of ways
+                 expand_type        => expand_type)         -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
     PORT MAP(
+             -- POWER PINS
              vcs                      => vcs,
              vdd                      => vdd,
              gnd                      => gnd,
 
+             -- CLOCK AND CLOCKCONTROL PORTS
              nclk                     => nclk,
              rd0_act                  => dir_rd_stg_act,
              sg_0                     => sg_0,
@@ -1662,6 +1724,7 @@ dc16Kdir64B : if (2**dc_size) = 16384 and (2**cl_size) = 64 generate begin
              mpw2_dc_b                => g8t_mpw2_dc_b,
              delay_lclkr_dc           => g8t_delay_lclkr_dc,
 
+             -- ABIST
              wr_abst_act              => pc_xu_abist_g8t_wenb_q,
              rd0_abst_act             => pc_xu_abist_g8t1p_renb_0_q,
              abist_di                 => pc_xu_abist_di_0_q,
@@ -1675,6 +1738,7 @@ dc16Kdir64B : if (2**dc_size) = 16384 and (2**cl_size) = 64 generate begin
              abist_raw_dc_b           => pc_xu_abist_raw_dc_b,
              obs0_abist_cmp           => pc_xu_abist_g8t_dcomp_q,
 
+             -- SCAN PORTS
              abst_scan_in             => abist_siv(0),
              time_scan_in             => time_scan_in_q,
              repr_scan_in             => repr_scan_in_q,
@@ -1682,6 +1746,7 @@ dc16Kdir64B : if (2**dc_size) = 16384 and (2**cl_size) = 64 generate begin
              time_scan_out            => time_scan_out_int(0),
              repr_scan_out            => repr_scan_out_int,
 
+             -- BOLT-ON
              lcb_bolt_sl_thold_0      => bolt_sl_thold_0,
              pc_bo_enable_2           => bo_enable_2,
              pc_bo_reset              => pc_xu_bo_reset,
@@ -1697,10 +1762,12 @@ dc16Kdir64B : if (2**dc_size) = 16384 and (2**cl_size) = 64 generate begin
              tri_lcb_clkoff_dc_b      => clkoff_dc_b,
              tri_lcb_act_dis_dc       => tidn,
 
+             -- PORTS
              write_enable             => dir_wr_enable,
              way                      => dir_wr_way,
              addr_wr                  => dir_arr_wr_addr,
              data_in                  => dir_arr_wr_data,
+             -- Read Ports
              addr_rd_01               => dir_arr_rd_addr_01,
              addr_rd_23               => dir_arr_rd_addr_23,
              addr_rd_45               => dir_arr_rd_addr_45,
@@ -1711,16 +1778,18 @@ end generate dc16Kdir64B;
 
 dc32Kdir64B : if (2**dc_size) = 32768 and (2**cl_size) = 64 generate begin
   tridirarr: entity tri.tri_32x35_8w_1r1w(tri_32x35_8w_1r1w)
-    GENERIC MAP (addressable_ports  => 64,                  
-                 addressbus_width   => 6,                   
-                 port_bitwidth      => wayDataSize,         
-                 ways               => 8,                   
-                 expand_type        => expand_type)         
+    GENERIC MAP (addressable_ports  => 64,                  -- number of addressable register in this array
+                 addressbus_width   => 6,                   -- width of the bus to address all ports (2^portadrbus_width >= addressable_ports)
+                 port_bitwidth      => wayDataSize,         -- bitwidth of ports
+                 ways               => 8,                   -- number of ways
+                 expand_type        => expand_type)         -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
     PORT MAP(
+             -- POWER PINS
              vcs                      => vcs,
              vdd                      => vdd,
              gnd                      => gnd,
 
+             -- CLOCK AND CLOCKCONTROL PORTS
              nclk                     => nclk,
              rd0_act                  => dir_rd_stg_act,
              sg_0                     => sg_0,
@@ -1737,6 +1806,7 @@ dc32Kdir64B : if (2**dc_size) = 32768 and (2**cl_size) = 64 generate begin
              mpw2_dc_b                => g8t_mpw2_dc_b,
              delay_lclkr_dc           => g8t_delay_lclkr_dc,
 
+             -- ABIST
              wr_abst_act              => pc_xu_abist_g8t_wenb_q,
              rd0_abst_act             => pc_xu_abist_g8t1p_renb_0_q,
              abist_di                 => pc_xu_abist_di_0_q,
@@ -1750,6 +1820,7 @@ dc32Kdir64B : if (2**dc_size) = 32768 and (2**cl_size) = 64 generate begin
              abist_raw_dc_b           => pc_xu_abist_raw_dc_b,
              obs0_abist_cmp           => pc_xu_abist_g8t_dcomp_q,
 
+             -- SCAN PORTS
              abst_scan_in             => abist_siv(0),
              time_scan_in             => time_scan_in_q,
              repr_scan_in             => repr_scan_in_q,
@@ -1757,6 +1828,7 @@ dc32Kdir64B : if (2**dc_size) = 32768 and (2**cl_size) = 64 generate begin
              time_scan_out            => time_scan_out_int(0),
              repr_scan_out            => repr_scan_out_int,
 
+             -- BOLT-ON
              lcb_bolt_sl_thold_0      => bolt_sl_thold_0,
              pc_bo_enable_2           => bo_enable_2,
              pc_bo_reset              => pc_xu_bo_reset,
@@ -1772,10 +1844,12 @@ dc32Kdir64B : if (2**dc_size) = 32768 and (2**cl_size) = 64 generate begin
              tri_lcb_clkoff_dc_b      => clkoff_dc_b,
              tri_lcb_act_dis_dc       => tidn,
 
+             -- PORTS
              write_enable             => dir_wr_enable,
              way                      => dir_wr_way,
              addr_wr                  => dir_arr_wr_addr,
              data_in                  => dir_arr_wr_data,
+             -- Read Ports
              addr_rd_01               => dir_arr_rd_addr_01,
              addr_rd_23               => dir_arr_rd_addr_23,
              addr_rd_45               => dir_arr_rd_addr_45,
@@ -1784,21 +1858,98 @@ dc32Kdir64B : if (2**dc_size) = 32768 and (2**cl_size) = 64 generate begin
    );
 end generate dc32Kdir64B;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Load/Store Q
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- LWARX
+-- 1) Treated as a Load
+-- 2) Should bypass the L1D$ and not load from the L1D$
+-- 3) If hit in the L1 D$, L1 D$ should invalidate locally
+-- 4) Should Reload into the L1D$
+-- 5) Should update GPR when data is returned
 
+-- STWCX
+-- 1) Treated as a Store
+-- 2) STWCX should bypass the L1D$ and not write to the L1D$
+-- 3) If hit in the L1 D$, L1D$ should invalidate locally
 
+-- DCBZ
+-- 1) Treated as a Store
+-- 2) Needs to Invalidate the L1 D$ if hit
+-- 3) L2 will zero out the data in L2 Cache
 
+-- DCBT
+-- 1) Treated as a load
+-- 2) Use the load command type
+-- 3) Should Reload into the L1D$
+-- 4) GPR should not be updated
 
+-- DCBTST
+-- 1) Treated as a load
+-- 2) Acts like DCBT, but L2 behaves differently
+-- 3) Use a DCBTST command type
+-- 4) Should Reload into the L1D$
+-- 5) GPR should not be updated
 
+-- DCBF(l=0,1,2)
+-- 1) If hit in the L1 D$, L1 D$ should invalidate locally
+-- 2) l=0 => global dcbf, sent to the L2, L2 broadcasts to all cores if found in L2
+--    a) Treated as a Store
+--    b) Should not return data
+-- 3) l=1 => local dcbf, FLush Cores L1, send to the L2, L2 does not back-invalidate other cores
+--    a) Treated as a Store
+--    b) Should not return data
+-- 4) l=2 => local dcbf, not sent to the L2
 
+-- DCBST
+-- 1) Treated as a Store
+-- 2) Dont do anything in the L1 D$, just send it down
+-- 3) L2 will not back invalidate any cores
 
+-- ICBI
+-- 1) Treated as a Store
+-- 2) Prism L2 treats it as a noop, Corona L2 will back-invalidate I$
 
+-- PTE Update
+-- 1) Treated as a Store
+-- 2) Comes from the MMU
 
+-- HW_SYNC (SYNC L=0)
+-- 1) Treated as a Store
+-- 2) will come down the pipe, if there is a outstanding load for that thread,
+--    should flush sync hold flush until all the outstanding loads have returned
+-- 3) L2 will send ACK back to IU
 
+-- LW_SYNC (SYNC L=1)
+-- 1) Treated as a Store
+-- 2) will come down the pipe, if there is a outstanding load for that thread,
+--    should flush sync and hold flush until all the outstanding loads have returned
+-- 3) L2 will not send ACK back to IU, LD/STQ will ACK once sent to L2
 
+-- EIEIO
+-- 1) Treated as a Store
+-- 2) will come down the pipe, if there is a outstanding load for that thread,
+--    should flush eieio and hold flush until all the outstanding loads have returned
+-- 3) L2 will not send ACK back to IU, LD/STQ will ACK once sent to L2
 
+-- PTE_SYNC (SYNC L=2)
+-- 1) Treated as a Store
+-- 2) will act like a HW_SYNC
+-- 3) L2 will acknowledge the PTE_SYNC
 
+-- I=1 Load
+-- 1) there can be many oustanding I=1 loads per thread if G=0
+-- 2) need to flush other I=1 G=1 loads for that thread if one is outstanding in the loadmiss queue with I=1 G=1
+-- 3) need to flush any command that hits the loadmiss queue and its an I=1 load
 
+-- Signals that need to be driven
+-- rel_type     | ldq_rel_val | ldq_rel_data_val | ldq_rel_upd_gpr
+-- -------------|-------------|------------------|-----------------
+-- dcbt/dcbtst  |     X       |        X         |
+-- ci_load      |             |                  |        X
+-- ce_load      |     X       |        X         |        X
+-- lwarx        |     X       |        X         |        X
 
 l2cmdq : entity work.xuq_lsu_l2cmdq(xuq_lsu_l2cmdq)
 generic map(expand_type      => expand_type,
@@ -1811,6 +1962,7 @@ generic map(expand_type      => expand_type,
             store_credits    => store_credits,
             st_data_32B_mode => st_data_32B_mode)
 PORT map(
+     -- Load Miss/Store Operation Signals
      ex3_thrd_id                => ex3_req_thrd_id,
      ex3_l_s_q_val              => ex3_l_s_q_val,
      ex3_drop_ld_req            => ex3_drop_ld_req,
@@ -1878,6 +2030,7 @@ PORT map(
 
      xu_lsu_ex5_set_barr         => xu_lsu_ex5_set_barr,
 
+     -- Dependency Checking on loadmisses
      ex1_src0_vld               => ex1_src0_vld,
      ex1_src0_reg               => ex1_src0_reg,
      ex1_src1_vld               => ex1_src1_vld,
@@ -1887,9 +2040,11 @@ PORT map(
      ex1_check_watch            => ex1_check_watch,
      ex2_lm_dep_hit             => ex2_lm_dep_hit,
      
+     -- load cmd in ex6 had a parity error, need to clear load in ex4
      ex6_ld_par_err             => ex6_ld_par_err,
      pe_recov_begin             => pe_recov_begin,
      
+     -- inputs from L2
      an_ac_req_ld_pop           => an_ac_req_ld_pop,
      an_ac_req_st_pop           => an_ac_req_st_pop,
      an_ac_req_st_gather        => an_ac_req_st_gather,
@@ -1928,6 +2083,8 @@ PORT map(
      lsu_req_st_pop             => lsu_req_st_pop,
      lsu_req_st_pop_thrd        => lsu_req_st_pop_thrd,
 
+     -- Instruction Fetches
+     -- Instruction Fetch real address
      i_x_ra                     => i_x_ra,
      i_x_request                => i_x_request,
      i_x_wimge                  => i_x_wimge,
@@ -1996,6 +2153,7 @@ PORT map(
      lsu_bx_cmd_sent            =>  lsu_bx_cmd_sent    ,
      lsu_bx_cmd_stall           =>  lsu_bx_cmd_stall   ,
                                  
+     -- *** Reload operation Outputs ***
      ldq_rel_op_size            => ldq_rel_op_size,
      ldq_rel_thrd_id            => rel_ldq_thrd_id,
      ldq_rel_addr               => rel_ldq_addr,
@@ -2033,9 +2191,11 @@ PORT map(
      l1dump_cslc                => ldq_rel_l1dump_cslc,
      ldq_rel3_l1dump_val        => ldq_rel3_l1dump_val,
 
+     -- Back invalidate signals going to D-Cache
      is2_l2_inv_val             => is2_l2_inv_val,
      is2_l2_inv_p_addr          => is2_l2_inv_p_addr,
      
+     -- Flush Signals and signals going to dependency
      ex3_ld_queue_full          => ex3_ld_queue_full,
      ex3_stq_flush              => ex3_stq_flush,
      ex3_ig_flush               => ex3_ig_flush,
@@ -2112,6 +2272,7 @@ PORT map(
      an_ac_coreid               => an_ac_coreid,
      lsu_xu_perf_events         => lsu_perf_events(38 to 46),
 
+     -- latch and redrive for BXQ
      ac_an_reld_ditc_pop_int    => ac_an_reld_ditc_pop_int,
      ac_an_reld_ditc_pop_q      => ac_an_reld_ditc_pop_q  ,
      bx_ib_empty_int            => bx_ib_empty_int        ,
@@ -2153,25 +2314,33 @@ PORT map(
      scan_out(1 to 2)           => func_scan_out_int(48 to 49)
 );
 
+-- Mux Between Directory Read and Back-Invalidate
 is2_back_inv_addr(64-real_data_add to 52) <= is2_l2_inv_p_addr(64-real_data_add to 52);
 
 with is2_l2_inv_val select
     is2_back_inv_addr(53 to 63-cl_size) <= is2_l2_inv_p_addr(53 to 63-cl_size) when '1',
                                                            dir_arr_rd_congr_cl when others;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Performance Counters
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 lsuperf : entity work.xuq_lsu_perf(xuq_lsu_perf)
 generic map(expand_type      => expand_type)
 PORT map(
 
+     -- LSU Performance Events
      lsu_perf_events            => lsu_perf_events,
 
+     -- PC Control Interface
      pc_xu_event_bus_enable     => pc_xu_event_bus_enable,
      pc_xu_event_count_mode     => pc_xu_event_count_mode,
      pc_xu_lsu_event_mux_ctrls  => pc_xu_lsu_event_mux_ctrls,
      pc_xu_cache_par_err_event  => pc_xu_cache_par_err_event,
 
+     -- Perf Event Output
      xu_pc_lsu_event_data       => xu_pc_lsu_event_data,
 
+     -- SPR Bits
      spr_msr_gs                 => xu_lsu_msr_gs,
      spr_msr_pr                 => xu_lsu_msr_pr,
                             
@@ -2189,18 +2358,24 @@ PORT map(
      scan_out                   => func_scan_out_int(46)
 );
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Debug Trace Bus
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 lsudbg : entity work.xuq_lsu_debug(xuq_lsu_debug)
 generic map(expand_type      => expand_type)
 PORT map(
 
+     -- PC Debug Control
      pc_xu_trace_bus_enable     => pc_xu_trace_bus_enable,
      lsu_debug_mux_ctrls        => lsu_debug_mux_ctrls,
      xu_lsu_ex2_instr_trace_val => xu_lsu_ex2_instr_trace_val,
 
+     -- Pass Thru Debug Trace Bus
      trigger_data_in            => trigger_data_in,
      debug_data_in              => debug_data_in,
 
+     -- Debug Data
      dc_fgen_dbg_data           => dc_fgen_dbg_data,
      dc_cntrl_dbg_data          => dc_cntrl_dbg_data,
      dc_val_dbg_data            => dc_val_dbg_data,
@@ -2223,9 +2398,11 @@ PORT map(
      derat_xu_debug_group0      => derat_xu_debug_group0,
      derat_xu_debug_group1      => derat_xu_debug_group1,
 
+     -- Outputs
      trigger_data_out           => trigger_data_out,
      debug_data_out             => debug_data_out,
 
+     -- Power
      vdd                        => vdd,
      gnd                        => gnd,
      nclk                       => nclk,
@@ -2240,6 +2417,9 @@ PORT map(
      scan_out                   => func_scan_out_int(45)
 );
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- FIR Error Reporting
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 DDPerr: tri_direct_err_rpt
 generic map(width => 1, expand_type => expand_type)
@@ -2287,6 +2467,7 @@ time_scan_out                 <= time_scan_out_q and an_ac_scan_dis_dc_b;
 repr_scan_out                 <= repr_scan_out_q and an_ac_scan_dis_dc_b;
 func_scan_out                 <= gate(func_scan_out_q, an_ac_scan_dis_dc_b);
 regf_scan_out                 <= gate(regf_scan_out_q, an_ac_scan_dis_dc_b);
+-- Not Connected Scan
 dcfg_scan_out_int             <= dcfg_scan_in;
 dcfg_scan_out                 <= dcfg_scan_out_int and an_ac_scan_dis_dc_b;
 
@@ -2294,6 +2475,9 @@ lsu_xu_barr_done              <= derat_iu_barrier_done or lsu_xu_sync_barr_done;
 ldq_rel_data_val              <= rel_data_val;
 ldq_rel_data_val_early        <= rel_data_val_early;
 
+-----------------------------------------------------------------------
+-- abist latches
+-----------------------------------------------------------------------
 abist_reg: tri_rlmreg_p
   generic map (init => 0, expand_type => expand_type, width => 23, needs_sreset => 0)
   port map (vd             => vdd,
@@ -2328,6 +2512,9 @@ abist_reg: tri_rlmreg_p
             dout(18)       => pc_xu_abist_wl32_comp_ena_q,
             dout(19 to 22) => pc_xu_abist_g8t_dcomp_q);
 
+-------------------------------------------------
+-- Pervasive
+-------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 13, expand_type => expand_type)
 port map (vd          => vdd,
@@ -2448,6 +2635,7 @@ port map (clkoff_b    => clkoff_dc_b,
             forcee => func_slp_nsl_force,
             thold_b     => func_slp_nsl_thold_0_b);
 
+-- LCBs for scan only staging latches
 slat_force        <= sg_0;
 abst_slat_thold_b <= NOT abst_slp_sl_thold_0;
 time_slat_thold_b <= NOT time_sl_thold_0;
@@ -2536,6 +2724,7 @@ perv_lcbs_func: tri_lcbs
       dclk        => func_slat_d2clk,
       lclk        => func_slat_lclk );
 
+-- pass through un-connected scan rings
 func_scan_out_int(42) <= derat_scan_out(1);
 
 perv_func_stg: tri_slat_scan  

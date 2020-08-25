@@ -8,6 +8,7 @@
 -- license is available.
 
 
+-- LZE (exponent for leading zeroes anticipater)
 
 library ieee,ibm,support,tri,work;
    use ieee.std_logic_1164.all;
@@ -21,24 +22,24 @@ library ieee,ibm,support,tri,work;
 
 
 entity fuq_lze is
-generic( expand_type: integer := 2  ); 
+generic( expand_type: integer := 2  ); -- 0 - ibm tech, 1 - other );
 port(
        vdd                                       :inout power_logic;
        gnd                                       :inout power_logic;
-       clkoff_b                                  :in   std_ulogic; 
-       act_dis                                   :in   std_ulogic; 
-       flush                                     :in   std_ulogic; 
-       delay_lclkr                               :in   std_ulogic_vector(2 to 3); 
-       mpw1_b                                    :in   std_ulogic_vector(2 to 3); 
-       mpw2_b                                    :in   std_ulogic_vector(0 to 0); 
+       clkoff_b                                  :in   std_ulogic; -- tiup
+       act_dis                                   :in   std_ulogic; -- ??tidn??
+       flush                                     :in   std_ulogic; -- ??tidn??
+       delay_lclkr                               :in   std_ulogic_vector(2 to 3); -- tidn,
+       mpw1_b                                    :in   std_ulogic_vector(2 to 3); -- tidn,
+       mpw2_b                                    :in   std_ulogic_vector(0 to 0); -- tidn,
        sg_1                                      :in   std_ulogic;
        thold_1                                   :in   std_ulogic;
-       fpu_enable                                :in   std_ulogic; 
+       fpu_enable                                :in   std_ulogic; --dc_act
        nclk                                      :in   clk_logic;
 
-       f_lze_si                   :in  std_ulogic; 
-       f_lze_so                   :out std_ulogic; 
-       ex1_act_b                  :in  std_ulogic; 
+       f_lze_si                   :in  std_ulogic; --perv
+       f_lze_so                   :out std_ulogic; --perv
+       ex1_act_b                  :in  std_ulogic; --act
 
        f_eie_ex2_lzo_expo         :in  std_ulogic_vector(1 to 13)  ; 
        f_eie_ex2_b_expo           :in  std_ulogic_vector(1 to 13)  ; 
@@ -66,8 +67,7 @@ port(
 
 
 
-
-end fuq_lze; 
+end fuq_lze; -- ENTITY
 
 architecture fuq_lze of fuq_lze is
 
@@ -135,6 +135,9 @@ begin
 
  unused <= ex2_lzo_dcd_b(0) ;
 
+---=###############################################################
+---= pervasive
+---=###############################################################
 
     
     thold_reg_0:  tri_plat  generic map (expand_type => expand_type) port map (
@@ -163,14 +166,17 @@ begin
         thold_b      => thold_0_b );
 
 
+---=###############################################################
+---= act
+---=###############################################################
 
         ex1_act <= not ex1_act_b;
 
     act_lat:  tri_rlmreg_p generic map (width=> 5, expand_type => expand_type, needs_sreset => 0) port map ( 
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(2)   ,
-        mpw1_b           => mpw1_b(2)        ,
-        mpw2_b           => mpw2_b(0)        ,
+        forcee => forcee,-- tidn,
+        delay_lclkr      => delay_lclkr(2)   ,-- tidn,
+        mpw1_b           => mpw1_b(2)        ,-- tidn,
+        mpw2_b           => mpw2_b(0)        ,-- tidn,
         vd               => vdd,
         gd               => gnd,
         nclk             => nclk,
@@ -179,20 +185,25 @@ begin
         sg               => sg_0, 
         scout            => act_so  ,                      
         scin             => act_si  ,                    
+        -------------------
          din(0)             => spare_unused(0),
          din(1)             => spare_unused(1),
          din(2)             => ex1_act,
          din(3)             => spare_unused(2),
          din(4)             => spare_unused(3),
+        -------------------
         dout(0)             => spare_unused(0),
         dout(1)             => spare_unused(1),
         dout(2)             => ex2_act,
         dout(3)             => spare_unused(2) ,
         dout(4)             => spare_unused(3) );
 
+---=###############################################################
+---= ex2 logic
+---=###############################################################
 
 
-ex2_dp_001_by <= 
+ex2_dp_001_by <= --x001
               not ex2_expo_by(1)  and 
               not ex2_expo_by(2)  and 
               not ex2_expo_by(3)  and 
@@ -207,7 +218,7 @@ ex2_dp_001_by <=
               not ex2_expo_by(12) and 
                   ex2_expo_by(13)   ;
 
-ex2_sp_001_by <=  
+ex2_sp_001_by <=  --x381
               not ex2_expo_by(1)  and
               not ex2_expo_by(2)  and 
               not ex2_expo_by(3)  and 
@@ -224,21 +235,40 @@ ex2_sp_001_by <=
 
 
 
+------------------------------------------------------------------
+-- lzo dcd when B = denorm.
+-- sp denorm in dp_format may need to denormalize.
+-- sp is bypassed at [26] so there is room to do this on the left
+------------------------------------------------------------------
+-- if B is normalized when bypassed, then no need for denorm because it will not shift left ?
+-- for EffSub, b MSB can move right 1 position ... only if BFrac = 0000111111,can't if bypass norm
+-- If B==0 then should NOT bypass ... except for Move instructions.
 
 ex2_expo_by(1 to 13) <=  f_eie_ex2_b_expo(1 to 13);
 
 
 
+    --=#------------------------------------------------
+    --=#-- LZO Decode
+    --=#------------------------------------------------
+      -- the product exponent points at [0] in the dataflow.
+      -- the lzo puts a marker (false edge) at the point where shifting must stop
+      -- so the lza will not create a denormal exponent. (001/897) dp/sp.
+      -- if p_expo==1 then maker @ 0
+      -- if p_expo==2 then maker @ 1
+      -- if p_expo==3 then maker @ 2
+      --
+      -- false edges are also used to control shifting for to-integer, aligner-bypass
 
 
       ex2_addr_dp_by <= not ex2_expo_by(1) and
-                        not ex2_expo_by(2) and  
+                        not ex2_expo_by(2) and  -- x001 (1) in bits above decode 256
                         not ex2_expo_by(3) and 
                         not ex2_expo_by(4) and 
                         not ex2_expo_by(5) ;
 
       ex2_addr_sp_by <= not ex2_expo_by(1) and
-                        not ex2_expo_by(2) and 
+                        not ex2_expo_by(2) and -- x381 (897) in bits above decode 256
                         not ex2_expo_by(3) and 
                             ex2_expo_by(4) and 
                             ex2_expo_by(5) ;  
@@ -248,16 +278,22 @@ ex2_expo_by(1 to 13) <=  f_eie_ex2_b_expo(1 to 13);
 
 
 
+      -- want to avoid shift right for sp op with shOv of sp_den in dp format
+      -- sp is bypassed 26 positions to the left , mark with LZO to create the denorm.
 
       ex2_lzo_en_by   <=  (ex2_en_addr_dp_by or ex2_en_addr_sp_by) and ex2_lzo_cont ;
 
       ex2_expo_neg_dp_by <=
-            (ex2_lzo_en_by and ex2_lzo_dcd_hi_by( 0) and ex2_lzo_dcd_lo_by( 0) ) or 
-            (ex2_expo_by(1)                                                    ) ; 
+            (ex2_lzo_en_by and ex2_lzo_dcd_hi_by( 0) and ex2_lzo_dcd_lo_by( 0) ) or --decode 0
+            (ex2_expo_by(1)                                                    ) ; --negative exponent
 
+              -- dp denorm starts at 0, but sp denorm starts at 896 (x380)
+              -- sp addr 0_0011_xxxx_xxxx covers 0768-1023 <and with decode bits>
+              --         0_000x_xxxx_xxxx covers 0000,0001
+              --         0_00x0_xxxx_xxxx covers 0000,0010
 
     ex2_expo_neg_sp_by <=
-        (    ex2_expo_by(1)) or 
+        (    ex2_expo_by(1)) or -- negative
         (not ex2_expo_by(2) and not ex2_expo_by(3) and not ex2_expo_by(4)                                                ) or  
         (not ex2_expo_by(2) and not ex2_expo_by(3) and                        not ex2_expo_by(5)                         ) or 
         (not ex2_expo_by(2) and not ex2_expo_by(3) and                                               not ex2_expo_by(6)  ) or 
@@ -279,23 +315,34 @@ ex2_expo_by(1 to 13) <=  f_eie_ex2_b_expo(1 to 13);
 
 
 
+    --=#------------------------------------------------
+    --=#-- LZO Decode
+    --=#------------------------------------------------
+      -- the product exponent points at [0] in the dataflow.
+      -- the lzo puts a marker (false edge) at the point where shifting must stop
+      -- so the lza will not create a denormal exponent. (001/897) dp/sp.
+      -- if p_expo==1 then maker @ 0
+      -- if p_expo==2 then maker @ 1
+      -- if p_expo==3 then maker @ 2
+      --
+      -- false edges are also used to control shifting for to-integer, aligner-bypass
 
 
       ex2_expo(1 to 13) <= f_eie_ex2_lzo_expo(1 to 13);
       ex2_addr_dp <= not ex2_expo(1) and
-                     not ex2_expo(2) and  
+                     not ex2_expo(2) and  -- x001 (1) in bits above decode 256
                      not ex2_expo(3) and 
                      not ex2_expo(4) and 
                      not ex2_expo(5) ;
 
       ex2_addr_sp <= not ex2_expo(1) and
-                     not ex2_expo(2) and 
+                     not ex2_expo(2) and -- x381 (897) in bits above decode 256
                      not ex2_expo(3) and 
                          ex2_expo(4) and 
                          ex2_expo(5) ;  
 
       ex2_addr_sp_rap <= not ex2_expo(1) and
-                         not ex2_expo(2) and 
+                         not ex2_expo(2) and -- x381 (897) in bits above decode 256
                              ex2_expo(3) and 
                          not ex2_expo(4) and 
                          not ex2_expo(5) ;  
@@ -311,18 +358,19 @@ ex2_expo_by(1 to 13) <=  f_eie_ex2_b_expo(1 to 13);
 
 
 
+      -- want to avoid shift right for sp op with shOv of sp_den in dp format
+      -- sp is bypassed 26 positions to the left , mark with LZO to create the denorm.
 
       ex2_lzo_en        <=  (ex2_en_addr_dp or ex2_en_addr_sp) and ex2_lzo_cont ;
       ex2_lzo_en_rapsp  <=  (ex2_en_addr_dp or ex2_en_addr_sp_rap) and ex2_lzo_cont ;
 
       ex2_expo_neg_dp <=
-            (ex2_lzo_en and ex2_lzo_dcd_hi( 0) and ex2_lzo_dcd_lo( 0) ) or 
-            (ex2_expo(1)                        ) ; 
-
+            (ex2_lzo_en and ex2_lzo_dcd_hi( 0) and ex2_lzo_dcd_lo( 0) ) or --decode 0
+            (ex2_expo(1)                        ) ; --negative exponent
 
 
     ex2_expo_neg_sp <=
-        (    ex2_expo(1)) or 
+        (    ex2_expo(1)) or -- negative
         (not ex2_expo(2) and not ex2_expo(3) and not ex2_expo(4)                                          ) or  
         (not ex2_expo(2) and not ex2_expo(3) and                     not ex2_expo(5)                      ) or 
         (not ex2_expo(2) and not ex2_expo(3) and                                         not ex2_expo(6)  ) or 
@@ -549,62 +597,62 @@ ex2_lzo_nonbyp_0_b   <= not( ex2_lzo_nonbyp_0  );
 ex2_lzo_forbyp_0_b   <= not( ex2_lzo_forbyp_0  );
 
 
-u_lzo_din_0:   f_lze_ex2_lzo_din(  0) <= not( (  f_alg_ex2_sel_byp   or ex2_lzo_nonbyp_0_b ) and 
+u_lzo_din_0:   f_lze_ex2_lzo_din(  0) <= not( (  f_alg_ex2_sel_byp   or ex2_lzo_nonbyp_0_b ) and -- neg input and/or
                                               (  f_alg_ex2_sel_byp_b or ex2_lzo_forbyp_0_b )    );
-u_lzo_din_1:   f_lze_ex2_lzo_din(  1) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(1)  ); 
-u_lzo_din_2:   f_lze_ex2_lzo_din(  2) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(2)  ); 
-u_lzo_din_3:   f_lze_ex2_lzo_din(  3) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(3)  ); 
-u_lzo_din_4:   f_lze_ex2_lzo_din(  4) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(4)  ); 
-u_lzo_din_5:   f_lze_ex2_lzo_din(  5) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(5)  ); 
-u_lzo_din_6:   f_lze_ex2_lzo_din(  6) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(6)  ); 
-u_lzo_din_7:   f_lze_ex2_lzo_din(  7) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(7)  ); 
-u_lzo_din_8:   f_lze_ex2_lzo_din(  8) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(8)  ); 
-u_lzo_din_9:   f_lze_ex2_lzo_din(  9) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(9)  ); 
-u_lzo_din_10:  f_lze_ex2_lzo_din( 10) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(10) ); 
-u_lzo_din_11:  f_lze_ex2_lzo_din( 11) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(11) ); 
-u_lzo_din_12:  f_lze_ex2_lzo_din( 12) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(12) ); 
-u_lzo_din_13:  f_lze_ex2_lzo_din( 13) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(13) ); 
-u_lzo_din_14:  f_lze_ex2_lzo_din( 14) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(14) ); 
-u_lzo_din_15:  f_lze_ex2_lzo_din( 15) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(15) ); 
-u_lzo_din_16:  f_lze_ex2_lzo_din( 16) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(16) ); 
-u_lzo_din_17:  f_lze_ex2_lzo_din( 17) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(17) ); 
-u_lzo_din_18:  f_lze_ex2_lzo_din( 18) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(18) ); 
-u_lzo_din_19:  f_lze_ex2_lzo_din( 19) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(19) ); 
-u_lzo_din_20:  f_lze_ex2_lzo_din( 20) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(20) ); 
-u_lzo_din_21:  f_lze_ex2_lzo_din( 21) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(21) ); 
-u_lzo_din_22:  f_lze_ex2_lzo_din( 22) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(22) ); 
-u_lzo_din_23:  f_lze_ex2_lzo_din( 23) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(23) ); 
-u_lzo_din_24:  f_lze_ex2_lzo_din( 24) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(24) ); 
-u_lzo_din_25:  f_lze_ex2_lzo_din( 25) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(25) ); 
-u_lzo_din_26:  f_lze_ex2_lzo_din( 26) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(26) ); 
-u_lzo_din_27:  f_lze_ex2_lzo_din( 27) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(27) ); 
-u_lzo_din_28:  f_lze_ex2_lzo_din( 28) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(28) ); 
-u_lzo_din_29:  f_lze_ex2_lzo_din( 29) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(29) ); 
-u_lzo_din_30:  f_lze_ex2_lzo_din( 30) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(30) ); 
-u_lzo_din_31:  f_lze_ex2_lzo_din( 31) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(31) ); 
-u_lzo_din_32:  f_lze_ex2_lzo_din( 32) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(32) ); 
-u_lzo_din_33:  f_lze_ex2_lzo_din( 33) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(33) ); 
-u_lzo_din_34:  f_lze_ex2_lzo_din( 34) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(34) ); 
-u_lzo_din_35:  f_lze_ex2_lzo_din( 35) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(35) ); 
-u_lzo_din_36:  f_lze_ex2_lzo_din( 36) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(36) ); 
-u_lzo_din_37:  f_lze_ex2_lzo_din( 37) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(37) ); 
-u_lzo_din_38:  f_lze_ex2_lzo_din( 38) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(38) ); 
-u_lzo_din_39:  f_lze_ex2_lzo_din( 39) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(39) ); 
-u_lzo_din_40:  f_lze_ex2_lzo_din( 40) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(40) ); 
-u_lzo_din_41:  f_lze_ex2_lzo_din( 41) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(41) ); 
-u_lzo_din_42:  f_lze_ex2_lzo_din( 42) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(42) ); 
-u_lzo_din_43:  f_lze_ex2_lzo_din( 43) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(43) ); 
-u_lzo_din_44:  f_lze_ex2_lzo_din( 44) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(44) ); 
-u_lzo_din_45:  f_lze_ex2_lzo_din( 45) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(45) ); 
-u_lzo_din_46:  f_lze_ex2_lzo_din( 46) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(46) ); 
-u_lzo_din_47:  f_lze_ex2_lzo_din( 47) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(47) ); 
-u_lzo_din_48:  f_lze_ex2_lzo_din( 48) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(48) ); 
-u_lzo_din_49:  f_lze_ex2_lzo_din( 49) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(49) ); 
-u_lzo_din_50:  f_lze_ex2_lzo_din( 50) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(50) ); 
-u_lzo_din_51:  f_lze_ex2_lzo_din( 51) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(51) ); 
-u_lzo_din_52:  f_lze_ex2_lzo_din( 52) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(52) ); 
-u_lzo_din_53:  f_lze_ex2_lzo_din( 53) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(53) ); 
-u_lzo_din_54:  f_lze_ex2_lzo_din( 54) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(54) ); 
+u_lzo_din_1:   f_lze_ex2_lzo_din(  1) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(1)  ); -- neg input and --
+u_lzo_din_2:   f_lze_ex2_lzo_din(  2) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(2)  ); -- neg input and --
+u_lzo_din_3:   f_lze_ex2_lzo_din(  3) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(3)  ); -- neg input and --
+u_lzo_din_4:   f_lze_ex2_lzo_din(  4) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(4)  ); -- neg input and --
+u_lzo_din_5:   f_lze_ex2_lzo_din(  5) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(5)  ); -- neg input and --
+u_lzo_din_6:   f_lze_ex2_lzo_din(  6) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(6)  ); -- neg input and --
+u_lzo_din_7:   f_lze_ex2_lzo_din(  7) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(7)  ); -- neg input and --
+u_lzo_din_8:   f_lze_ex2_lzo_din(  8) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(8)  ); -- neg input and --
+u_lzo_din_9:   f_lze_ex2_lzo_din(  9) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(9)  ); -- neg input and --
+u_lzo_din_10:  f_lze_ex2_lzo_din( 10) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(10) ); -- neg input and --
+u_lzo_din_11:  f_lze_ex2_lzo_din( 11) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(11) ); -- neg input and --
+u_lzo_din_12:  f_lze_ex2_lzo_din( 12) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(12) ); -- neg input and --
+u_lzo_din_13:  f_lze_ex2_lzo_din( 13) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(13) ); -- neg input and --
+u_lzo_din_14:  f_lze_ex2_lzo_din( 14) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(14) ); -- neg input and --
+u_lzo_din_15:  f_lze_ex2_lzo_din( 15) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(15) ); -- neg input and --
+u_lzo_din_16:  f_lze_ex2_lzo_din( 16) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(16) ); -- neg input and --
+u_lzo_din_17:  f_lze_ex2_lzo_din( 17) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(17) ); -- neg input and --
+u_lzo_din_18:  f_lze_ex2_lzo_din( 18) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(18) ); -- neg input and --
+u_lzo_din_19:  f_lze_ex2_lzo_din( 19) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(19) ); -- neg input and --
+u_lzo_din_20:  f_lze_ex2_lzo_din( 20) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(20) ); -- neg input and --
+u_lzo_din_21:  f_lze_ex2_lzo_din( 21) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(21) ); -- neg input and --
+u_lzo_din_22:  f_lze_ex2_lzo_din( 22) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(22) ); -- neg input and --
+u_lzo_din_23:  f_lze_ex2_lzo_din( 23) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(23) ); -- neg input and --
+u_lzo_din_24:  f_lze_ex2_lzo_din( 24) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(24) ); -- neg input and --
+u_lzo_din_25:  f_lze_ex2_lzo_din( 25) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(25) ); -- neg input and --
+u_lzo_din_26:  f_lze_ex2_lzo_din( 26) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(26) ); -- neg input and --
+u_lzo_din_27:  f_lze_ex2_lzo_din( 27) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(27) ); -- neg input and --
+u_lzo_din_28:  f_lze_ex2_lzo_din( 28) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(28) ); -- neg input and --
+u_lzo_din_29:  f_lze_ex2_lzo_din( 29) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(29) ); -- neg input and --
+u_lzo_din_30:  f_lze_ex2_lzo_din( 30) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(30) ); -- neg input and --
+u_lzo_din_31:  f_lze_ex2_lzo_din( 31) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(31) ); -- neg input and --
+u_lzo_din_32:  f_lze_ex2_lzo_din( 32) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(32) ); -- neg input and --
+u_lzo_din_33:  f_lze_ex2_lzo_din( 33) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(33) ); -- neg input and --
+u_lzo_din_34:  f_lze_ex2_lzo_din( 34) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(34) ); -- neg input and --
+u_lzo_din_35:  f_lze_ex2_lzo_din( 35) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(35) ); -- neg input and --
+u_lzo_din_36:  f_lze_ex2_lzo_din( 36) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(36) ); -- neg input and --
+u_lzo_din_37:  f_lze_ex2_lzo_din( 37) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(37) ); -- neg input and --
+u_lzo_din_38:  f_lze_ex2_lzo_din( 38) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(38) ); -- neg input and --
+u_lzo_din_39:  f_lze_ex2_lzo_din( 39) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(39) ); -- neg input and --
+u_lzo_din_40:  f_lze_ex2_lzo_din( 40) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(40) ); -- neg input and --
+u_lzo_din_41:  f_lze_ex2_lzo_din( 41) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(41) ); -- neg input and --
+u_lzo_din_42:  f_lze_ex2_lzo_din( 42) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(42) ); -- neg input and --
+u_lzo_din_43:  f_lze_ex2_lzo_din( 43) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(43) ); -- neg input and --
+u_lzo_din_44:  f_lze_ex2_lzo_din( 44) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(44) ); -- neg input and --
+u_lzo_din_45:  f_lze_ex2_lzo_din( 45) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(45) ); -- neg input and --
+u_lzo_din_46:  f_lze_ex2_lzo_din( 46) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(46) ); -- neg input and --
+u_lzo_din_47:  f_lze_ex2_lzo_din( 47) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(47) ); -- neg input and --
+u_lzo_din_48:  f_lze_ex2_lzo_din( 48) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(48) ); -- neg input and --
+u_lzo_din_49:  f_lze_ex2_lzo_din( 49) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(49) ); -- neg input and --
+u_lzo_din_50:  f_lze_ex2_lzo_din( 50) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(50) ); -- neg input and --
+u_lzo_din_51:  f_lze_ex2_lzo_din( 51) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(51) ); -- neg input and --
+u_lzo_din_52:  f_lze_ex2_lzo_din( 52) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(52) ); -- neg input and --
+u_lzo_din_53:  f_lze_ex2_lzo_din( 53) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(53) ); -- neg input and --
+u_lzo_din_54:  f_lze_ex2_lzo_din( 54) <= not( f_alg_ex2_sel_byp    or ex2_lzo_dcd_b(54) ); -- neg input and --
 u_lzo_din_55:  f_lze_ex2_lzo_din( 55) <= not ex2_lzo_dcd_b(55) ;
 u_lzo_din_56:  f_lze_ex2_lzo_din( 56) <= not ex2_lzo_dcd_b(56) ;
 u_lzo_din_57:  f_lze_ex2_lzo_din( 57) <= not ex2_lzo_dcd_b(57) ;
@@ -720,22 +768,81 @@ u_lzo_din_162: f_lze_ex2_lzo_din(162) <= not ex2_lzo_dcd_b(162) ;
 
    ex2_ins_est <= f_pic_ex2_est_recip or f_pic_ex2_est_rsqrt ;
 
-   ex2_sh_rgt_en_by <= 
+   ex2_sh_rgt_en_by <= -- set LZO[0] so can just OR into result
          (    f_eie_ex2_use_bexp and ex2_expo_neg_sp_by and ex2_lzo_cont_sp and not f_alg_ex2_byp_nonflip and not ex2_ins_est) or 
          (    f_eie_ex2_use_bexp and ex2_expo_neg_dp_by and ex2_lzo_cont_dp and not f_alg_ex2_byp_nonflip and not ex2_ins_est) ;
-   ex2_sh_rgt_en_p <= 
+   ex2_sh_rgt_en_p <= -- set LZO[0] so can just OR into result
          (not f_eie_ex2_use_bexp and ex2_expo_neg_sp    and ex2_lzo_cont_sp and not f_alg_ex2_byp_nonflip) or 
          (not f_eie_ex2_use_bexp and ex2_expo_neg_dp    and ex2_lzo_cont_dp and not f_alg_ex2_byp_nonflip) ;
 
    ex2_sh_rgt_en <= ex2_sh_rgt_en_by or ex2_sh_rgt_en_p;
 
+--//----------------------------------------------------------------------------------------------
+--// you might be thinking that the shift right amount needs a limiter (so that amounts > 64
+--// do not wrap a round and leave bits in the result when the result should be zero).
+--// (1) if the shift amount belongs to the "B" operand, (bypass) and since we only shift right
+--//     when B is a denorm (it has a bit on) then the maximum shift right is (52) because
+--//     the smallest b exponent (expo min) after prenorm is -52.
+--//     there is the possibility that a divide could create an artificially small Bexpo.
+--//     if that is true the shift right amount should be zero (right 64 followed by left 0).
+--// (2) otherwise the right shift amount comes from the product exponent.
+--//     the product exponent could be very small, however for a multiply add if it becomes
+--//     too small then the exponent will come from the addend, so no problem.
+--//     a multiply instruction does not have an addend, and it could have a very small exponent.
+--//     BUT, the lead bit is at [55] and even if the shift right goes right 64 followed by left 64,
+--//     it will not but a bit into the result or guard fields.
+--//-----------------------------------------------------------------------------------------------
+
+    -- calculate shift right amount (DP) ... expo must be correct value to subtract in expo logic
+       -- decode =  0 shift right 1     -(-1) for expo   0_0000_0000_0000 -> 1_1111_1111_1111  -x = !x + 1,   !x = -x - 1
+       -- decode = -1 shift right 2     -(-2) for expo   0_0000_0000_0001 -> 1_1111_1111_1110
+       -- decode = -2 shift right 3     -(-3) for expo   0_0000_0000_0010 -> 1_1111_1111_1101
+       --
+       -- max = -53                                      0_0000_0011_0101 -> 1_1111_1100_1010
+       --                                                                    * **** **dd_dddd
+
+    -- calculate shift right amount (SP)
+       -- decode = x380 shift right 1     -(-1) for expo   0_0011_1000_0000 -> 1_1100_0111_1111  -x = !x + 1,   !x = -x - 1
+       -- decode = x37F shift right 2     -(-2) for expo   0_0011_1000_0001 -> 1_1100_0111_1110
+       -- decode = x37E shift right 3     -(-3) for expo   0_0011_1000_0010 -> 1_1100_0111_1101
+       --                                                                      * **** **dd_dddd
+
+      -- expo = Bexpo - lza
+      --        Bexpo + (!lza)  ... lza is usually sign extended and inverted to make a negative number,
+      --        Bexpo must be added to in denorm cases
+      --        Make lza a negative number, so that when it is flipped it becomes a positive number.
+      --
+      --                              expo_adj
+      -- expo = x380 896 0_0011_1000_0000    1  -( 1)      1111_1111
+      -- expo = x37f 895 0_0011_0111_1111    2  -( 2)      1111_1110
+      -- expo = x37e 894 0_0011_0111_1110    3             1111_1101
+      -- expo = x37d 893 0_0011_0111_1101    4             1111_1100
+      -- expo = x37c 892 0_0011_0111_1100    5
+      -- expo = x37b 891 0_0011_0111_1011    6
+      -- expo = x37a 890 0_0011_0111_1010    7
+      -- expo = x379 889 0_0011_0111_1001    8
+      -- expo = x378 888 0_0011_0111_1000    9
+      -- expo = x377 887 0_0011_0111_0111   10
+      -- expo = x376 886 0_0011_0111_0110   11
+      -- expo = x375 885 0_0011_0111_0101   12
+      -- expo = x374 884 0_0011_0111_0100   13
+      -- expo = x373 883 0_0011_0111_0011   14
+      -- expo = x372 882 0_0011_0111_0010   15
+      -- expo = x371 881 0_0011_0111_0001   16
+      -- expo = x370 880 0_0011_0111_0000   17
+      -- expo = x36f 879 0_0011_0110_1111   18
+      -- expo = x36e 878 0_0011_0110_1110   19
+      -- expo = x36d 877 0_0011_0110_1101   20
+      -- expo = x36c 876 0_0011_0110_1100   21
+      -- expo = x36b 875 0_0011_0110_1011   22
+      -- expo = x36a 874 0_0011_0110_1010   23 -(23)       1110_1001
+      -------------------------------
+      -- expo = x369 873 0_0011_0110_1001   24 -(24)       1110_1000
 
 
 
 
-
-
-
+-- if p_exp an be more neg then -63 , then this needs to be detected and shAmt forced to a const.
 
    ex2_expo_p_sim_p(8 to 13) <=  not ex2_expo(8 to 13);
 
@@ -773,10 +880,10 @@ u_lzo_din_162: f_lze_ex2_lzo_din(162) <= not ex2_lzo_dcd_b(162) ;
 
 
  ex2_lzo_forbyp_0 <= 
-       (    f_pic_ex2_est_recip                ) or 
-       (    f_pic_ex2_est_rsqrt                ) or 
+       (    f_pic_ex2_est_recip                ) or -- could include these in lzo dis
+       (    f_pic_ex2_est_rsqrt                ) or -- could include these in lzo_dis
        (    f_alg_ex2_byp_nonflip  and not f_pic_ex2_prenorm  ) or 
-       (not f_fmt_ex2_pass_msb_dp                and not f_pic_ex2_lzo_dis_prod   ) or   
+       (not f_fmt_ex2_pass_msb_dp                and not f_pic_ex2_lzo_dis_prod   ) or   -- allow norm to decr MSB then renormalize
        (   (ex2_expo_neg_dp_by or ex2_dp_001_by) and ex2_lzo_cont_dp              ) or 
        (   (ex2_expo_neg_sp_by or ex2_sp_001_by) and ex2_lzo_cont_sp              ) ;  
 
@@ -792,8 +899,8 @@ u_lzo_din_162: f_lze_ex2_lzo_din(162) <= not ex2_lzo_dcd_b(162) ;
 
 
             
-    ex2_sh_rgt_amt(0)      <= ex2_sh_rgt_en  ;
-    ex2_sh_rgt_amt(1)      <= ex2_sh_rgt_en  ;
+    ex2_sh_rgt_amt(0)      <= ex2_sh_rgt_en  ;-- huge shift right should give "0"
+    ex2_sh_rgt_amt(1)      <= ex2_sh_rgt_en  ;-- huge shift right should give "0"
     ex2_sh_rgt_amt(2)      <= (ex2_sh_rgt_en_p and  ex2_expo_p_sim( 8)) or (ex2_sh_rgt_en_by and  ex2_expo_sim( 8));
     ex2_sh_rgt_amt(3)      <= (ex2_sh_rgt_en_p and  ex2_expo_p_sim( 9)) or (ex2_sh_rgt_en_by and  ex2_expo_sim( 9));
     ex2_sh_rgt_amt(4)      <= (ex2_sh_rgt_en_p and  ex2_expo_p_sim(10)) or (ex2_sh_rgt_en_by and  ex2_expo_sim(10));
@@ -802,13 +909,44 @@ u_lzo_din_162: f_lze_ex2_lzo_din(162) <= not ex2_lzo_dcd_b(162) ;
     ex2_sh_rgt_amt(7)      <= (ex2_sh_rgt_en_p and  ex2_expo_p_sim(13)) or (ex2_sh_rgt_en_by and  ex2_expo_sim(13));
 
 
+-- bit_to_set   |------ b_expo ----------|
+--  0           897  x381 0_0011_1000_0001  <== all normal SP numbers go here
+--  1           896  x380 0_0011_1000_0000
+--  2           895  x37f 0_0011_0111_1111
+--  3           894  x37e 0_0011_0111_1110
+--  4           893  x37d 0_0011_0111_1101
+--  5           892  x37c 0_0011_0111_1100
+--  6           891  x37b 0_0011_0111_1011
+--  7           890  x37a 0_0011_0111_1010
+--  8           889  x379 0_0011_0111_1001
+--  9           888  x378 0_0011_0111_1000
+-- 10           887  x377 0_0011_0111_0111
+-- 11           886  x376 0_0011_0111_0110
+-- 12           885  x375 0_0011_0111_0101
+-- 13           884  x374 0_0011_0111_0100  expo = (884 +26 -13) = 884 + 13 = 897
+-- 14           883  x373 0_0011_0111_0011
+-- 15           882  x372 0_0011_0111_0010
+-- 16           881  x371 0_0011_0111_0001
+-- 17           880  x370 0_0011_0111_0000
+-- 18           879  x36f 0_0011_0011_1111
+-- 19           878  x36e 0_0011_0011_1110
+-- 20           877  x36d 0_0011_0011_1101
+-- 21           876  x36c 0_0011_0011_1100
+-- 22           875  x36b 0_0011_0011_1011
+-- 23           874  x36a 0_0011_0011_1010
+-- -----------------------------------------
+-- 24           873  x369 0_0011_0011_1001 <=== if this or smaller do nothing (special case sp invalid)
+--
 
+---=###############################################################
+---=## ex3 latches
+---=###############################################################
 
     ex3_shr_lat:  tri_rlmreg_p generic map (width=> 9, expand_type => expand_type, needs_sreset => 0) port map ( 
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(3)   ,
-        mpw1_b           => mpw1_b(3)        ,
-        mpw2_b           => mpw2_b(0)        ,
+        forcee => forcee,-- tidn,
+        delay_lclkr      => delay_lclkr(3)   ,-- tidn,
+        mpw1_b           => mpw1_b(3)        ,-- tidn,
+        mpw2_b           => mpw2_b(0)        ,-- tidn,
         vd               => vdd,
         gd               => gnd,
         nclk             => nclk,
@@ -817,17 +955,22 @@ u_lzo_din_162: f_lze_ex2_lzo_din(162) <= not ex2_lzo_dcd_b(162) ;
         sg               => sg_0, 
         scout            => ex3_shr_so  ,                      
         scin             => ex3_shr_si  ,                    
+        -------------------
         din(0 to 7)      => ex2_sh_rgt_amt(0 to 7),
         din(8)           => ex2_sh_rgt_en ,
+        -------------------
         dout(0 to 7)     => ex3_sh_rgt_amt(0 to 7),
         dout(8)          => ex3_sh_rgt_en  );
 
 
 
-       f_lze_ex3_sh_rgt_amt(0 to 7)  <= ex3_sh_rgt_amt(0 to 7)  ; 
-       f_lze_ex3_sh_rgt_en           <= ex3_sh_rgt_en           ; 
+       f_lze_ex3_sh_rgt_amt(0 to 7)  <= ex3_sh_rgt_amt(0 to 7)  ; --OUTPUT--
+       f_lze_ex3_sh_rgt_en           <= ex3_sh_rgt_en           ; --OUTPUT--
 
 
+---=###############################################################
+---= scan string
+---=###############################################################
 
   ex3_shr_si(0 to 8) <= ex3_shr_so(1 to 8) & f_lze_si ;
   act_si    (0 to 4) <= act_so    (1 to 4) & ex3_shr_so(0);
@@ -835,6 +978,4 @@ u_lzo_din_162: f_lze_ex2_lzo_din(162) <= not ex2_lzo_dcd_b(162) ;
 
 
 
-end; 
-
-
+end; -- fuq_lze ARCHITECTURE

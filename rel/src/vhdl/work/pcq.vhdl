@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--
+--  Description: Pervasive Core Unit
+--
+--*****************************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library ibm,clib;
@@ -19,19 +24,22 @@ use tri.tri_latches_pkg.all;
 
 
 entity pcq is
-generic(expand_type             : integer := 2;     
-        regmode                 : integer := 6      
+generic(expand_type             : integer := 2;     -- 0=ibm (Umbra), 1=non-ibm, 2=ibm (MPG)
+        regmode                 : integer := 6      -- 6=64-bit model, 5=32-bit model
 );         
 port(
      vdd                        : inout power_logic;
      gnd                        : inout power_logic;
      nclk                       : in  clk_logic;
 
+-- SCOM and Register Interfaces
+    --SCOM Satellite
     an_ac_scom_sat_id           : in    std_ulogic_vector(0 to 3);
     an_ac_scom_dch              : in    std_ulogic;
     an_ac_scom_cch              : in    std_ulogic;
     ac_an_scom_dch              : out   std_ulogic;
     ac_an_scom_cch              : out   std_ulogic;
+    --Slow SPR
     slowspr_val_in              : in    std_ulogic;
     slowspr_rw_in               : in    std_ulogic;
     slowspr_etid_in             : in    std_ulogic_vector(0 to 1);
@@ -45,6 +53,7 @@ port(
     slowspr_data_out            : out   std_ulogic_vector(64-(2**regmode) to 63);
     slowspr_done_out            : out   std_ulogic;
 
+-- FIR and Error Signals
     ac_an_special_attn           : out   std_ulogic_vector(0 to 3);
     ac_an_checkstop              : out   std_ulogic_vector(0 to 2);
     ac_an_local_checkstop        : out   std_ulogic_vector(0 to 2);
@@ -106,6 +115,8 @@ port(
     pc_iu_inj_icachedir_multihit : out  std_ulogic;
     pc_xu_inj_dcachedir_multihit : out  std_ulogic;
 
+-- Debug Functions
+    -- RAM Command/Data
     pc_iu_ram_instr             : out   std_ulogic_vector(0 to 31);
     pc_iu_ram_instr_ext         : out   std_ulogic_vector(0 to 3);
     pc_iu_ram_mode              : out   std_ulogic;
@@ -126,6 +137,7 @@ port(
     pc_xu_msrovride_de          : out   std_ulogic;
     pc_iu_ram_force_cmplt       : out   std_ulogic;
     pc_xu_ram_flush_thread      : out   std_ulogic;
+    -- THRCTL + PCCR0 Registers
     xu_pc_running               : in    std_ulogic_vector(0 to 3);  
     xu_pc_stop_dbg_event        : in    std_ulogic_vector(0 to 3);  
     xu_pc_step_done             : in    std_ulogic_vector(0 to 3);  
@@ -138,10 +150,12 @@ port(
     an_ac_debug_stop            : in    std_ulogic;
     pc_xu_dbg_action            : out   std_ulogic_vector(0 to 11); 
 
+-- Trace/Debug Bus
     debug_bus_out               : out   std_ulogic_vector(0 to 87);
     trace_triggers_out          : out   std_ulogic_vector(0 to 11);
     debug_bus_in                : in    std_ulogic_vector(0 to 87);
     trace_triggers_in           : in    std_ulogic_vector(0 to 11);
+    --Debug Select Register outputs to units for debug grouping
     pc_fu_trace_bus_enable      : out   std_ulogic;
     pc_bx_trace_bus_enable      : out   std_ulogic;
     pc_iu_trace_bus_enable      : out   std_ulogic;
@@ -157,11 +171,13 @@ port(
     pc_xu_debug_mux3_ctrls      : out   std_ulogic_vector(0 to 15);
     pc_xu_debug_mux4_ctrls      : out   std_ulogic_vector(0 to 15);
 
+-- Perfmon Event Bus
     ac_an_event_bus             : out   std_ulogic_vector(0 to 7);
     ac_an_fu_bypass_events      : out   std_ulogic_vector(0 to 7);
     ac_an_iu_bypass_events      : out   std_ulogic_vector(0 to 7);
     ac_an_mm_bypass_events      : out   std_ulogic_vector(0 to 7);
     ac_an_lsu_bypass_events     : out   std_ulogic_vector(0 to 7);
+    --Event signals from each unit's Event Mux outputs
     fu_pc_event_data            : in    std_ulogic_vector(0 to 7);
     iu_pc_event_data            : in    std_ulogic_vector(0 to 7);
     mm_pc_event_data            : in    std_ulogic_vector(0 to 7);
@@ -169,6 +185,7 @@ port(
     lsu_pc_event_data           : in    std_ulogic_vector(0 to 7);
     ac_pc_trace_to_perfcntr     : in    std_ulogic_vector(0 to 7);
     pc_xu_cache_par_err_event   : out   std_ulogic;
+    --Core Event Select Register outputs to units for performance grouping
     pc_fu_instr_trace_mode      : out   std_ulogic;
     pc_fu_instr_trace_tid       : out   std_ulogic_vector(0 to 1);
     pc_xu_instr_trace_mode      : out   std_ulogic;
@@ -187,6 +204,7 @@ port(
     pc_rp_event_bus_enable      : out   std_ulogic;
     pc_xu_event_bus_enable      : out   std_ulogic;
 
+-- Reset related
     an_ac_reset_1_complete      : in    std_ulogic;
     an_ac_reset_2_complete      : in    std_ulogic;
     an_ac_reset_3_complete      : in    std_ulogic;
@@ -198,6 +216,7 @@ port(
     pc_xu_init_reset            : out   std_ulogic;  
     pc_iu_init_reset            : out   std_ulogic;  
  
+-- Power Management
     ac_an_pm_thread_running     : out   std_ulogic_vector(0 to 3);
     an_ac_pm_thread_stop        : in    std_ulogic_vector(0 to 3); 
     ac_an_power_managed         : out   std_ulogic;
@@ -205,6 +224,7 @@ port(
     xu_pc_spr_ccr0_pme          : in    std_ulogic_vector(0 to 1);
     xu_pc_spr_ccr0_we           : in    std_ulogic_vector(0 to 3);
 
+-- Clock, Test, and LCB Controls
     an_ac_gsd_test_enable_dc    : in    std_ulogic;
     an_ac_gsd_test_acmode_dc    : in    std_ulogic;
     an_ac_ccflush_dc            : in    std_ulogic;
@@ -218,6 +238,7 @@ port(
     an_ac_scan_dis_dc_b         : in    std_ulogic;
     an_ac_scan_diag_dc_opc      : out   std_ulogic;
     an_ac_scan_dis_dc_b_opc     : out   std_ulogic;
+    --Thold input to clock control macro
     an_ac_rtim_sl_thold_6       : in    std_ulogic;
     an_ac_func_sl_thold_6       : in    std_ulogic;
     an_ac_func_nsl_thold_6      : in    std_ulogic;
@@ -225,6 +246,7 @@ port(
     an_ac_sg_6                  : in    std_ulogic;
     an_ac_fce_6                 : in    std_ulogic;
     an_ac_scan_type_dc          : in    std_ulogic_vector(0 to 8);
+    --Thold outputs to the units
     pc_xu_ccflush_dc            : out   std_ulogic;
     pc_xu_gptr_sl_thold_3       : out   std_ulogic;
     pc_xu_time_sl_thold_3       : out   std_ulogic;
@@ -292,10 +314,13 @@ port(
     pc_fu_sg_3                  : out   std_ulogic_vector(0 to 1);
     pc_fu_fce_3                 : out   std_ulogic;
 
+-- PSRO Sensors
     an_ac_psro_enable_dc           : in    std_ulogic_vector(0 to 2);
     ac_an_psro_ringsig             : out   std_ulogic;
 
+-- ABIST Engine
     ac_an_abist_done_dc            : out   std_ulogic;
+    -- BX ABIST Outputs
     pc_bx_abist_di_0               : Out   std_ulogic_vector(0 to 3);
     pc_bx_abist_ena_dc             : Out   std_ulogic;
     pc_bx_abist_g8t1p_renb_0       : Out   std_ulogic;
@@ -307,6 +332,7 @@ port(
     pc_bx_abist_raw_dc_b           : Out   std_ulogic;
     pc_bx_abist_waddr_0            : Out   std_ulogic_vector(0 to 9);
     pc_bx_abist_wl64_g8t_comp_ena  : Out   std_ulogic;
+    -- FU ABIST Outputs
     pc_fu_abist_di_0               : Out   std_ulogic_vector(0 to 3);
     pc_fu_abist_di_1               : Out   std_ulogic_vector(0 to 3);
     pc_fu_abist_ena_dc             : Out   std_ulogic;
@@ -320,6 +346,7 @@ port(
     pc_fu_abist_waddr_0            : Out   std_ulogic_vector(0 to 9);
     pc_fu_abist_waddr_1            : Out   std_ulogic_vector(0 to 9);
     pc_fu_abist_wl144_comp_ena     : Out   std_ulogic;
+    -- IU ABIST Outputs
     pc_iu_abist_dcomp_g6t_2r       : Out   std_ulogic_vector(0 to 3);
     pc_iu_abist_di_0               : Out   std_ulogic_vector(0 to 3);
     pc_iu_abist_di_g6t_2r          : Out   std_ulogic_vector(0 to 3);
@@ -337,6 +364,7 @@ port(
     pc_iu_abist_wl128_g8t_comp_ena : Out   std_ulogic;
     pc_iu_abist_wl256_comp_ena     : Out   std_ulogic;
     pc_iu_abist_wl64_g8t_comp_ena  : Out   std_ulogic;
+    -- MMU ABIST Outputs
     pc_mm_abist_dcomp_g6t_2r       : Out   std_ulogic_vector(0 to 3);
     pc_mm_abist_di_0               : Out   std_ulogic_vector(0 to 3);
     pc_mm_abist_di_g6t_2r          : Out   std_ulogic_vector(0 to 3);
@@ -351,6 +379,7 @@ port(
     pc_mm_abist_raw_dc_b           : Out   std_ulogic;
     pc_mm_abist_waddr_0            : Out   std_ulogic_vector(0 to 9);
     pc_mm_abist_wl128_g8t_comp_ena : Out   std_ulogic;
+    -- XU ABIST Outputs
     pc_xu_abist_dcomp_g6t_2r       : Out   std_ulogic_vector(0 to 3);
     pc_xu_abist_di_0               : Out   std_ulogic_vector(0 to 3);
     pc_xu_abist_di_1               : Out   std_ulogic_vector(0 to 3);
@@ -376,6 +405,8 @@ port(
     pc_xu_abist_wl32_g8t_comp_ena  : Out   std_ulogic;
     pc_xu_abist_wl512_comp_ena     : Out   std_ulogic;
 
+-- Bolt-On ABIST
+    -- Bolt-On interface
     an_ac_bo_enable             : in  std_ulogic;
     an_ac_bo_go                 : in  std_ulogic;
     an_ac_bo_cntlclk            : in  std_ulogic;
@@ -397,6 +428,7 @@ port(
     ac_an_bo_diagloopout        : out std_ulogic;
     ac_an_bo_waitout            : out std_ulogic;
     ac_an_bo_failout            : out std_ulogic;
+    -- Bolt-On back ends
     pc_bx_bo_enable_3           : out std_ulogic;
     pc_bx_bo_unload             : out std_ulogic;
     pc_bx_bo_repair             : out std_ulogic;
@@ -439,6 +471,7 @@ port(
     xu_pc_bo_fail               : in  std_ulogic_vector(0 to 8);
     xu_pc_bo_diagout            : in  std_ulogic_vector(0 to 8);
 
+-- Scanning
     gptr_scan_in                : in   std_ulogic;
     ccfg_scan_in                : in   std_ulogic;
     bcfg_scan_in                : in   std_ulogic;
@@ -461,9 +494,12 @@ port(
 end pcq;
 
 architecture pcq of pcq is
+-----------------------------------------------------------------------
+-- Basic/Misc Signals
 signal ct_db_func_scan_out              : std_ulogic; 
 signal db_ss_func_scan_out              : std_ulogic;
 signal lcbctrl_gptr_scan_out            : std_ulogic;
+-- Misc Controls
 signal ct_rg_power_managed              : std_ulogic_vector(0 to 3);
 signal ct_ck_pm_raise_tholds            : std_ulogic;
 signal ct_ck_pm_ccflush_disable         : std_ulogic;
@@ -473,6 +509,7 @@ signal rg_ck_fast_xstop                 : std_ulogic;
 signal sp_db_event_mux_ctrls            : std_ulogic_vector(0 to 23);
 signal sp_db_event_bus_enable           : std_ulogic;
 signal ct_rg_hold_during_init           : std_ulogic;
+-- Clock Controls
 signal d_mode_dc                        : std_ulogic;  
 signal clkoff_dc_b                      : std_ulogic;  
 signal act_dis_dc                       : std_ulogic;  
@@ -487,6 +524,7 @@ signal pc_pc_func_slp_sl_thold_0        : std_ulogic;
 signal pc_pc_cfg_sl_thold_0             : std_ulogic;
 signal pc_pc_cfg_slp_sl_thold_0         : std_ulogic;
 signal pc_pc_sg_0                       : std_ulogic;
+-- Trace/Trigger signals
 signal sp_rg_trace_bus_enable           : std_ulogic;
 signal rg_db_trace_bus_enable           : std_ulogic;
 signal rg_db_debug_mux_ctrls            : std_ulogic_vector(0 to 15);
@@ -502,6 +540,7 @@ signal rg_db_dbg_fir2_err               : std_ulogic_vector(0 to 21);
 signal rg_db_dbg_fir_misc               : std_ulogic_vector(0 to 35);
 signal ct_db_dbg_ctrls                  : std_ulogic_vector(0 to 36);
 signal rg_db_dbg_spr                    : std_ulogic_vector(0 to 46);
+-- Bolt-On ABIST signals
 signal pc_bo_unload_out                 : std_ulogic;
 signal pc_bo_load_out                   : std_ulogic;
 signal pc_bo_repair_out                 : std_ulogic;
@@ -530,8 +569,11 @@ signal pc_pc_bo_fcshdata_0              : std_ulogic;
 signal pc_pc_bo_fcreset_0               : std_ulogic;
 signal pc_pc_bolt_sl_thold_6            : std_ulogic;
 signal pc_pc_bolt_sl_thold_0            : std_ulogic;
+-- Unused Signals
 signal unused_signals                   : std_ulogic;
 
+-- ---------------------------------
+-- Special Buffering for PSRO Sensor
 signal pcq_psro_ringsig_out             : std_ulogic; 
 signal pcq_psro_ringsig_i               : std_ulogic; 
 
@@ -543,6 +585,7 @@ begin
 
 unused_signals <= or_reduce(pc_bo_select_out(25 TO 39));
 
+-- Outputs
 an_ac_scan_diag_dc_opc   <=  an_ac_scan_diag_dc;
 an_ac_scan_dis_dc_b_opc  <=  an_ac_scan_dis_dc_b;
 ac_an_abist_done_dc      <=  abist_done_int;
@@ -575,11 +618,13 @@ port map(
     bcfg_scan_out               => bcfg_scan_out,
     dcfg_scan_out               => dcfg_scan_out,
     func_scan_out               => func_scan_out(0),
+    -- SCOM Satellite interface
     an_ac_scom_sat_id           => an_ac_scom_sat_id,        
     an_ac_scom_dch              => an_ac_scom_dch,         
     an_ac_scom_cch              => an_ac_scom_cch,         
     ac_an_scom_dch              => ac_an_scom_dch,        
     ac_an_scom_cch              => ac_an_scom_cch,        
+    -- Error Related
     ac_an_special_attn          => ac_an_special_attn,         
     ac_an_checkstop             => ac_an_checkstop,
     ac_an_local_checkstop       => ac_an_local_checkstop,
@@ -642,6 +687,7 @@ port map(
     pc_iu_inj_icachedir_multihit =>  pc_iu_inj_icachedir_multihit,
     pc_xu_inj_dcachedir_multihit =>  pc_xu_inj_dcachedir_multihit,
     pc_xu_cache_par_err_event   => pc_xu_cache_par_err_event,
+    -- RAMC/RAMD
     pc_iu_ram_instr             => pc_iu_ram_instr,       
     pc_iu_ram_instr_ext         => pc_iu_ram_instr_ext,   
     pc_iu_ram_mode              => pc_iu_ram_mode,        
@@ -662,6 +708,7 @@ port map(
     pc_xu_msrovride_de          => pc_xu_msrovride_de,  
     pc_iu_ram_force_cmplt       => pc_iu_ram_force_cmplt,
     pc_xu_ram_flush_thread      => pc_xu_ram_flush_thread,
+    -- THRCTL + PCCR0 Registers
     xu_pc_running               => xu_pc_running,      
     xu_pc_stop_dbg_event        => xu_pc_stop_dbg_event,  
     xu_pc_step_done             => xu_pc_step_done,  
@@ -678,6 +725,7 @@ port map(
     an_ac_debug_stop            => an_ac_debug_stop,
     pc_xu_dbg_action            => pc_xu_dbg_action,   
     rg_ct_dis_pwr_savings       => rg_ct_dis_pwr_savings,
+    -- Debug Registers
     sp_rg_trace_bus_enable      => sp_rg_trace_bus_enable,
     rg_db_trace_bus_enable      => rg_db_trace_bus_enable,
     pc_fu_trace_bus_enable      => pc_fu_trace_bus_enable,
@@ -695,6 +743,7 @@ port map(
     pc_xu_debug_mux2_ctrls      => pc_xu_debug_mux2_ctrls,
     pc_xu_debug_mux3_ctrls      => pc_xu_debug_mux3_ctrls,
     pc_xu_debug_mux4_ctrls      => pc_xu_debug_mux4_ctrls,
+    -- Trace/Trigger Signals
     dbg_scom_rdata              => rg_db_dbg_scom_rdata,  
     dbg_scom_wdata              => rg_db_dbg_scom_wdata,  
     dbg_scom_decaddr            => rg_db_dbg_scom_decaddr,
@@ -723,6 +772,7 @@ port map(
     pc_pc_sg_0                  => pc_pc_sg_0,
     func_scan_in                => func_scan_in(1),
     func_scan_out               => ct_db_func_scan_out,
+    --Stop/Start/Reset
     an_ac_reset_1_complete      => an_ac_reset_1_complete,     
     an_ac_reset_2_complete      => an_ac_reset_2_complete,        
     an_ac_reset_3_complete      => an_ac_reset_3_complete,      
@@ -734,6 +784,7 @@ port map(
     pc_xu_init_reset            => pc_xu_init_reset,     
     pc_iu_init_reset            => pc_iu_init_reset,     
     ct_rg_hold_during_init      => ct_rg_hold_during_init,
+    --Power Management
     ct_rg_power_managed         => ct_rg_power_managed,       
     ct_rg_pm_thread_stop        => ct_rg_pm_thread_stop,     
     an_ac_pm_thread_stop        => an_ac_pm_thread_stop, 
@@ -744,6 +795,7 @@ port map(
     rg_ct_dis_pwr_savings       => rg_ct_dis_pwr_savings,
     xu_pc_spr_ccr0_pme          => xu_pc_spr_ccr0_pme,
     xu_pc_spr_ccr0_we           => xu_pc_spr_ccr0_we,
+    --Trace/Trigger Signals
     dbg_ctrls                   => ct_db_dbg_ctrls
 );
 
@@ -764,12 +816,14 @@ port map(
     pc_pc_sg_0                  => pc_pc_sg_0,               
     func_scan_in                => ct_db_func_scan_out,
     func_scan_out               => db_ss_func_scan_out,
+    --Trace/Trigger Bus
     debug_bus_out               => debug_bus_out,        
     trace_triggers_out          => trace_triggers_out,   
     debug_bus_in                => debug_bus_in,       
     trace_triggers_in           => trace_triggers_in,
     rg_db_trace_bus_enable      => rg_db_trace_bus_enable,
     rg_db_debug_mux_ctrls       => rg_db_debug_mux_ctrls,
+    --PC Unit internal debug signals
     ck_db_dbg_clks_ctrls        => ck_db_dbg_clks_ctrls,
     rg_db_dbg_scom_rdata        => rg_db_dbg_scom_rdata,  
     rg_db_dbg_scom_wdata        => rg_db_dbg_scom_wdata,  
@@ -782,6 +836,7 @@ port map(
     rg_db_dbg_fir_misc          => rg_db_dbg_fir_misc,     
     ct_db_dbg_ctrls             => ct_db_dbg_ctrls, 
     rg_db_dbg_spr               => rg_db_dbg_spr,
+    --Event Bus
     ac_an_event_bus             => ac_an_event_bus,        
     ac_an_fu_bypass_events      => ac_an_fu_bypass_events,
     ac_an_iu_bypass_events      => ac_an_iu_bypass_events,
@@ -815,6 +870,7 @@ port map(
     pc_pc_sg_0                  => pc_pc_sg_0,               
     func_scan_in                => db_ss_func_scan_out,
     func_scan_out               => func_scan_out(1),
+    -- slowSPR Interface
     slowspr_val_in              => slowspr_val_in,
     slowspr_rw_in               => slowspr_rw_in,
     slowspr_etid_in             => slowspr_etid_in,
@@ -828,6 +884,7 @@ port map(
     slowspr_addr_out            => slowspr_addr_out,
     slowspr_data_out            => slowspr_data_out(64-(2**regmode) to 63),
     slowspr_done_out            => slowspr_done_out,
+    -- register outputs
     sp_rg_trace_bus_enable      => sp_rg_trace_bus_enable,
     pc_fu_instr_trace_mode      => pc_fu_instr_trace_mode,
     pc_fu_instr_trace_tid       => pc_fu_instr_trace_tid,
@@ -874,6 +931,7 @@ port map(
     rg_ck_fast_xstop            => rg_ck_fast_xstop,
     ct_ck_pm_ccflush_disable    => ct_ck_pm_ccflush_disable,
     ct_ck_pm_raise_tholds       => ct_ck_pm_raise_tholds,       
+-- Thold + control from bolton frontend
     bolton_enable_dc            => an_ac_bo_enable,
     bolton_enable_sync          => pc_pc_bo_enable_0,
     bolton_ccflush              => an_ac_bo_ccflush,
@@ -887,6 +945,7 @@ port map(
     bo_pc_time_sl_thold_6       => bo_pc_time_sl_thold_6,
     bo_pc_repr_sl_thold_6       => bo_pc_repr_sl_thold_6,
     bo_pc_sg_6                  => bo_pc_sg_6,
+--  --Thold outputs to the units
     pc_xu_ccflush_dc            =>  pc_xu_ccflush_dc,          
     pc_xu_gptr_sl_thold_3       =>  pc_xu_gptr_sl_thold_3,     
     pc_xu_time_sl_thold_3       =>  pc_xu_time_sl_thold_3,     
@@ -968,6 +1027,9 @@ port map(
 
 
 
+--=====================================================================
+-- ABIST and Bolt-On ABIST Function
+--=====================================================================
 pcq_abist : entity work.pcq_abist
 generic map(expand_type            => expand_type)
 port map(
@@ -989,14 +1051,17 @@ port map(
         abist_sg                   => pc_pc_sg_0,
         abist_scan_in              => abst_scan_in,
         abist_scan_out             => abst_scan_out_int,
+        -- Bolton ABIST Engine access
         bo_enable                  => pc_pc_bo_enable_0,
         bo_abist_eng_si            => abst_eng_si,
+        -- LBIST + ABIST Engine Controls
         abist_done_in_dc           => '1', 
         abist_done_out_dc          => abist_done_int,
         abist_mode_dc              => an_ac_abist_mode_dc_int,   
         abist_start_test           => an_ac_abist_start_test_int,  
         lbist_mode_dc              => an_ac_lbist_en_dc,
         lbist_ac_mode_dc           => an_ac_lbist_ac_mode_dc,  
+        -- BX ABIST Outputs
         pc_bx_abist_di_0               => pc_bx_abist_di_0(0 to 3),
         pc_bx_abist_ena_dc             => pc_bx_abist_ena_dc,       
         pc_bx_abist_g8t1p_renb_0       => pc_bx_abist_g8t1p_renb_0, 
@@ -1008,6 +1073,7 @@ port map(
         pc_bx_abist_raw_dc_b           => pc_bx_abist_raw_dc_b,     
         pc_bx_abist_waddr_0            => pc_bx_abist_waddr_0(0 to 9),
         pc_bx_abist_wl64_g8t_comp_ena  => pc_bx_abist_wl64_g8t_comp_ena,
+        -- FU ABIST Outputs
         pc_fu_abist_di_0               => pc_fu_abist_di_0(0 to 3),
         pc_fu_abist_di_1               => pc_fu_abist_di_1(0 to 3),
         pc_fu_abist_ena_dc             => pc_fu_abist_ena_dc,        
@@ -1021,6 +1087,7 @@ port map(
         pc_fu_abist_waddr_0            => pc_fu_abist_waddr_0(0 to 9),
         pc_fu_abist_waddr_1            => pc_fu_abist_waddr_1(0 to 9),
         pc_fu_abist_wl144_comp_ena     => pc_fu_abist_wl144_comp_ena,
+        -- IU ABIST Outputs
         pc_iu_abist_dcomp_g6t_2r       => pc_iu_abist_dcomp_g6t_2r(0 to 3),
         pc_iu_abist_di_0               => pc_iu_abist_di_0(0 to 3),
         pc_iu_abist_di_g6t_2r          => pc_iu_abist_di_g6t_2r(0 to 3),
@@ -1038,6 +1105,7 @@ port map(
         pc_iu_abist_wl128_g8t_comp_ena => pc_iu_abist_wl128_g8t_comp_ena,
         pc_iu_abist_wl256_comp_ena     => pc_iu_abist_wl256_comp_ena,
         pc_iu_abist_wl64_g8t_comp_ena  => pc_iu_abist_wl64_g8t_comp_ena, 
+        -- MMU ABIST Outputs
         pc_mm_abist_dcomp_g6t_2r       => pc_mm_abist_dcomp_g6t_2r(0 to 3),
         pc_mm_abist_di_0               => pc_mm_abist_di_0(0 to 3),
         pc_mm_abist_di_g6t_2r          => pc_mm_abist_di_g6t_2r(0 to 3),
@@ -1052,6 +1120,7 @@ port map(
         pc_mm_abist_raw_dc_b           => pc_mm_abist_raw_dc_b,      
         pc_mm_abist_waddr_0            => pc_mm_abist_waddr_0(0 to 9),
         pc_mm_abist_wl128_g8t_comp_ena => pc_mm_abist_wl128_g8t_comp_ena,
+        -- XU ABIST Outputs
         pc_xu_abist_dcomp_g6t_2r       => pc_xu_abist_dcomp_g6t_2r(0 to 3),
         pc_xu_abist_di_0               => pc_xu_abist_di_0(0 to 3),
         pc_xu_abist_di_1               => pc_xu_abist_di_1(0 to 3),
@@ -1086,6 +1155,7 @@ port map(
         vdd                       => vdd,
         gnd                       => gnd,
         nclk                      => nclk,
+-- BISTCNTL interface
         bcreset                   => pc_pc_bo_reset_0,
         bcdata                    => an_ac_bo_data,
         bcshcntl                  => an_ac_bo_shcntl,
@@ -1094,6 +1164,7 @@ port map(
         bcsysrepair               => an_ac_bo_sysrepair,
         bo_enable                 => pc_pc_bo_enable_0,
         bo_go                     => pc_pc_bo_go_0,
+-- daisy chain
         donein                    => an_ac_bo_donein,
         sdin                      => an_ac_bo_sdin,
         doneout                   => ac_an_bo_doneout,
@@ -1103,12 +1174,14 @@ port map(
         failin                    => an_ac_bo_failin,
         waitout                   => ac_an_bo_waitout,
         failout                   => ac_an_bo_failout,
+-- abist engine
         abist_done                => abist_done_int,
         abist_si                  => abst_eng_si,
         abist_start_test_int      => an_ac_abist_start_test_int,
         abist_start_test          => an_ac_abist_start_test,
         abist_mode_dc             => an_ac_abist_mode_dc,
         abist_mode_dc_int         => an_ac_abist_mode_dc_int,
+-- back ends
         bo_unload                 => pc_bo_unload_out,
         bo_load                   => pc_bo_load_out,
         bo_repair                 => pc_bo_repair_out,
@@ -1117,6 +1190,7 @@ port map(
         bo_select                 => pc_bo_select_out,
         bo_fail                   => pc_bo_fail_in,
         bo_diagout                => pc_bo_diagout_in,
+-- thold / scan
         lbist_ac_mode_dc          => an_ac_lbist_ac_mode_dc,
         ck_bo_sl_thold_6          => pc_pc_bolt_sl_thold_6,
         ck_bo_sl_thold_0          => pc_pc_bolt_sl_thold_0,
@@ -1128,6 +1202,7 @@ port map(
         lcb_act_dis_dc            => act_dis_dc,
         scan_in                   => abst_scan_out_int,
         scan_out                  => abst_scan_out,
+-- thold / sg outputs
         bo_pc_abst_sl_thold_6     => bo_pc_abst_sl_thold_6,
         bo_pc_pc_abst_sl_thold_6  => bo_pc_pc_abst_sl_thold_6,
         bo_pc_ary_nsl_thold_6     => bo_pc_ary_nsl_thold_6,
@@ -1167,6 +1242,7 @@ port map(
 );
 
 
+-- Split up the bolt-on back end signals into individual unit interfaces:
 pc_bx_bo_unload   <=  pc_bo_unload_out; 
 pc_fu_bo_unload   <=  pc_bo_unload_out;              
 pc_iu_bo_unload   <=  pc_bo_unload_out;  
@@ -1208,6 +1284,9 @@ pc_bo_diagout_in(0 to 39)  <=  bx_pc_bo_diagout(0 to 3)  &  fu_pc_bo_diagout(0 t
                                xu_pc_bo_diagout(0 to 8)  &  x"000" & "000"  ;
 
 
+--=====================================================================
+-- PSRO Sensor
+--=====================================================================
 pcq_psro : entity work.pcq_psro_soft
 port map(
         vdd                  => vdd,
@@ -1220,6 +1299,9 @@ u_pcq_psro_rsig_i:   pcq_psro_ringsig_i  <= not( pcq_psro_ringsig_out );
 u_pcq_psro_rsig_ii:  ac_an_psro_ringsig  <= not( pcq_psro_ringsig_i );
 
 
+--=====================================================================
+-- LCBCNTL Macro
+--=====================================================================
 lcbctrl : entity tri.tri_lcbcntl_mac
   generic map( expand_type => expand_type )
   port map(
@@ -1239,8 +1321,10 @@ lcbctrl : entity tri.tri_lcbcntl_mac
         scan_out       => lcbctrl_gptr_scan_out
        );
 
+-- Forcing act_dis pin on all tri_lcbor components to 0.
+-- Using logic signal connected to LCB ACT pin to control if latch held or updated.
   act_dis_dc <= '0';
 
 
+-----------------------------------------------------------------------
 end pcq;
-

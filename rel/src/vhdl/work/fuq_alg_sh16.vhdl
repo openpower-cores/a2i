@@ -21,8 +21,9 @@ library ieee,ibm,support,tri,work;
 
  
 entity fuq_alg_sh16 is
-generic(       expand_type               : integer := 2  ); 
+generic(       expand_type               : integer := 2  ); -- 0 - ibm tech, 1 - other );
 port(
+      ----------- SHIFT CONTROLS -----------------
       ex2_lvl3_shdcd000        :in   std_ulogic;
       ex2_lvl3_shdcd016        :in   std_ulogic;
       ex2_lvl3_shdcd032        :in   std_ulogic;
@@ -40,8 +41,10 @@ port(
       ex2_lvl3_shdcd240        :in   std_ulogic;
       ex2_sel_special          :in   std_ulogic;
 
+      ----------- SHIFT DATA -----------------
       ex2_sh_lvl2              :in   std_ulogic_vector(0 to 67) ;
 
+      ---------- SHIFT OUTPUT ---------------
       ex2_sh16_162             :out std_ulogic ;
       ex2_sh16_163             :out std_ulogic ;
       ex2_sh_lvl3              :out std_ulogic_vector(0 to 162)  
@@ -49,7 +52,7 @@ port(
 
 
 
-end fuq_alg_sh16; 
+end fuq_alg_sh16; -- ENTITY
 
 architecture fuq_alg_sh16 of fuq_alg_sh16 is
 
@@ -143,15 +146,7 @@ signal ex2_sh16_r1_163_b, ex2_sh16_r2_163_b, ex2_sh16_r3_163_b :std_ulogic;
      
 
 
-
-
-
-
 begin
-
-
-
-
 
      ex2_special(99 to 162) <= ex2_sh_lvl2(0 to 63); 
 
@@ -245,6 +240,7 @@ c5_096: cp5_096 <= not cpx_096_b ;
 
 
 
+---------------------------------------------------------------------
 
 r1_000:   ex2_sh16_r1_b(0)     <= not( (cp1_192    and ex2_sh_lvl2(64)     ) or (cp1_208    and ex2_sh_lvl2(48)     ) );
 r1_001:   ex2_sh16_r1_b(1)     <= not( (cp1_192    and ex2_sh_lvl2(65)     ) or (cp1_208    and ex2_sh_lvl2(49)     ) );
@@ -935,6 +931,9 @@ o_162:    ex2_sh_lvl3(162)     <= not( ex2_sh16_r1_b(162)   and ex2_sh16_r2_b(16
 
 
 
+----------------------------------------
+-- replicated logic for sticky bit
+----------------------------------------
 
 
 rr3_162:   ex2_sh16_r3_162_b    <= not( (ex2_lvl3_shdcd160 and ex2_sh_lvl2(2)      ) or (ex2_sel_special   and ex2_special(162)    ) );
@@ -951,7 +950,4 @@ ro_163:    ex2_sh16_163         <= not( ex2_sh16_r1_163_b  and ex2_sh16_r2_163_b
 
 
 
-end; 
-
-
-
+end; -- fuq_alg_sh16 ARCHITECTURE

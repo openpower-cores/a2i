@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Control and SPR
+--
 library ieee,ibm,support,work,tri,clib;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -27,7 +29,7 @@ generic(
         hvmode                  : integer := 1;
         regmode                 : integer := 6;
         dc_size                 : natural := 14;
-        cl_size                 : natural := 6;             
+        cl_size                 : natural := 6;             -- 2^6 = 64 Bytes CacheLines
         real_data_add           : integer := 42;
         fxu_synth               : integer := 0;
         a2mode                  : integer := 1;
@@ -35,7 +37,7 @@ generic(
         l_endian_m              : integer := 1;         
         load_credits            : integer := 4;
         store_credits           : integer := 20;
-        st_data_32B_mode        : integer := 1;       
+        st_data_32B_mode        : integer := 1;       -- 0 = 16B store data to L2, 1 = 32B data
         bcfg_epn_0to15          : integer := 0;
         bcfg_epn_16to31         : integer := 0;
         bcfg_epn_32to47         : integer := (2**16)-1;  
@@ -45,6 +47,9 @@ generic(
         bcfg_rpn_48to51         : integer := (2**4)-1); 
 port(
 
+        --------------------------------------------------------------------
+        -- Interface with FXU A
+        --------------------------------------------------------------------
         fxa_fxb_rf0_val                         :in  std_ulogic_vector(0 to threads-1);
         fxa_fxb_rf0_issued                      :in  std_ulogic_vector(0 to threads-1);
         fxa_fxb_rf0_ucode_val                   :in  std_ulogic_vector(0 to threads-1);
@@ -106,12 +111,21 @@ port(
         xu_bx_ex2_ipc_ba                        :out std_ulogic_vector(0 to 4);
         xu_bx_ex2_ipc_sz                        :out std_ulogic_vector(0 to 1);
 
+        --------------------------------------------------------------------
+        -- D-ERAT Req Interface
+        --------------------------------------------------------------------
         xu_mm_derat_epn                         :out std_ulogic_vector(62-eff_ifar to 51);
 
+        ------------------------------------------------------------------------
+        -- TLBSX./TLBSRX.
+        ------------------------------------------------------------------------
         xu_mm_rf1_is_tlbsxr                     :out std_ulogic;
         mm_xu_cr0_eq_valid                      :in  std_ulogic_vector(0 to threads-1);
         mm_xu_cr0_eq                            :in  std_ulogic_vector(0 to threads-1);
 
+        --------------------------------------------------------------------
+        -- FU CR Write
+        --------------------------------------------------------------------
         fu_xu_ex4_cr_val                        :in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex4_cr_noflush                    :in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex4_cr0                           :in  std_ulogic_vector(0 to 3);
@@ -123,6 +137,9 @@ port(
         fu_xu_ex4_cr3                           :in  std_ulogic_vector(0 to 3);
         fu_xu_ex4_cr3_bf                        :in  std_ulogic_vector(0 to 2);
 
+        --------------------------------------------------------------------
+        -- RAM
+        --------------------------------------------------------------------
         pc_xu_ram_mode                          :in  std_ulogic;
         pc_xu_ram_thread                        :in  std_ulogic_vector(0 to 1);
         pc_xu_ram_execute                       :in  std_ulogic;
@@ -136,6 +153,9 @@ port(
         pc_xu_msrovride_de                      :in  std_ulogic;  
 
 
+        --------------------------------------------------------------------
+        -- Interface with IU
+        --------------------------------------------------------------------
         xu_iu_ex5_val                           :out std_ulogic;
         xu_iu_ex5_tid                           :out std_ulogic_vector(0 to threads-1);
         xu_iu_ex5_br_update                     :out std_ulogic;
@@ -151,6 +171,9 @@ port(
         xu_iu_ex5_gshare                        :out std_ulogic_vector(0 to 3);
         xu_iu_ex5_getNIA                        :out std_ulogic;
 
+        ------------------------------------------------------------------------
+        -- L2 STCX complete
+        ------------------------------------------------------------------------
         an_ac_stcx_complete                     :in  std_ulogic_vector(0 to threads-1);
         an_ac_stcx_pass                         :in  std_ulogic_vector(0 to threads-1);
         xu_iu_stcx_complete                     : out   std_ulogic_vector(0 to 3);
@@ -159,6 +182,9 @@ port(
         xu_iu_reld_data_vld_clone     :out     std_ulogic;
         xu_iu_reld_ditc_clone         :out     std_ulogic;
 
+        ------------------------------------------------------------------------
+        -- Slow SPR Bus
+        ------------------------------------------------------------------------
         slowspr_val_in                          :in  std_ulogic;
         slowspr_rw_in                           :in  std_ulogic;
         slowspr_etid_in                         :in  std_ulogic_vector(0 to 1);
@@ -172,6 +198,9 @@ port(
         slowspr_data_out                        :out std_ulogic_vector(64-(2**REGMODE) to 63);
         slowspr_done_out                        :out std_ulogic;
 
+        ------------------------------------------------------------------------
+        -- DCR Bus
+        ------------------------------------------------------------------------
         an_ac_dcr_act                           :in  std_ulogic;
         an_ac_dcr_val                           :in  std_ulogic;
         an_ac_dcr_read                          :in  std_ulogic;
@@ -179,15 +208,27 @@ port(
         an_ac_dcr_data                          :in  std_ulogic_vector(64-(2**regmode) to 63);
         an_ac_dcr_done                          :in  std_ulogic;
 
+        ------------------------------------------------------------------------
+        -- MT/MFDCR CR
+        ------------------------------------------------------------------------
         lsu_xu_ex4_mtdp_cr_status               :in  std_ulogic;
         lsu_xu_ex4_mfdp_cr_status               :in  std_ulogic;
         dec_cpl_ex3_mc_dep_chk_val              :in  std_ulogic_vector(0 to threads-1);
 
+        ------------------------------------------------------------------------
+        -- Perf Events
+        ------------------------------------------------------------------------
         xu_pc_event_data                        :out std_ulogic_vector(0 to 7);
 
+        ------------------------------------------------------------------------
+        -- PC Control Interface
+        ------------------------------------------------------------------------
         pc_xu_event_count_mode                  :in  std_ulogic_vector(0 to 2);
         pc_xu_event_mux_ctrls                   :in  std_ulogic_vector(0 to 47);
 
+        ------------------------------------------------------------------------
+        -- Debug Ramp & Controls
+        ------------------------------------------------------------------------
         fxu_debug_mux_ctrls                     :in  std_ulogic_vector(0 to 15);
         cpl_debug_mux_ctrls                     :in  std_ulogic_vector(0 to 15);
         lsu_debug_mux_ctrls                     :in  std_ulogic_vector(0 to 15);
@@ -201,12 +242,18 @@ port(
         lsu_xu_data_debug2                      :in  std_ulogic_vector(0 to 87);
         fxa_cpl_debug                           :in  std_ulogic_vector(0 to 272);
 
+        ------------------------------------------------------------------------
+        -- SPR Bits
+        ------------------------------------------------------------------------
 
+        -- CHIP IO
         ac_tc_debug_trigger                     :out std_ulogic_vector(0 to threads-1);
 
+        -- Valids
         dec_cpl_rf0_act                         :in  std_ulogic;
         dec_cpl_rf0_tid                         :in  std_ulogic_vector(0 to threads-1);
 
+        -- FU Inputs
         fu_xu_rf1_act                           :in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex1_ifar                          :in  std_ulogic_vector(0 to eff_ifar*threads-1);
         fu_xu_ex2_ifar_val                      :in  std_ulogic_vector(0 to threads-1);
@@ -215,6 +262,7 @@ port(
         fu_xu_ex2_instr_match                   :in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex2_is_ucode                      :in  std_ulogic_vector(0 to threads-1);
 
+        -- PC Inputs
         pc_xu_step                              :in  std_ulogic_vector(0 to threads-1);
         pc_xu_stop                              :in  std_ulogic_vector(0 to threads-1);
         pc_xu_dbg_action                        :in  std_ulogic_vector(0 to 3*threads-1);
@@ -222,18 +270,22 @@ port(
         xu_pc_step_done                         :out std_ulogic_vector(0 to threads-1);
         pc_xu_init_reset                        :in  std_ulogic;
 
+        -- Machine Check Interrupts
         mm_xu_local_snoop_reject                :in  std_ulogic_vector(0 to threads-1);
         mm_xu_lru_par_err                       :in  std_ulogic_vector(0 to threads-1);
         mm_xu_tlb_par_err                       :in  std_ulogic_vector(0 to threads-1);
         mm_xu_tlb_multihit_err                  :in  std_ulogic_vector(0 to threads-1);
         an_ac_external_mchk                     :in  std_ulogic_vector(0 to threads-1);
 
+        -- PC Errors
         xu_pc_err_attention_instr               :out std_ulogic_vector(0 to threads-1);
         xu_pc_err_nia_miscmpr                   :out std_ulogic_vector(0 to threads-1);
         xu_pc_err_debug_event                   :out std_ulogic_vector(0 to threads-1);
 
+        -- Run State
         xu_pc_stop_dbg_event                    :out std_ulogic_vector(0 to threads-1);
 
+        -- MMU Flushes
         mm_xu_illeg_instr                       :in  std_ulogic_vector(0 to threads-1);
         mm_xu_tlb_miss                          :in  std_ulogic_vector(0 to threads-1);
         mm_xu_pt_fault                          :in  std_ulogic_vector(0 to threads-1);
@@ -250,6 +302,7 @@ port(
         mm_xu_eratmiss_done                     :in  std_ulogic_vector(0 to threads-1);
         mm_xu_ex3_flush_req                     :in  std_ulogic_vector(0 to threads-1);
 
+        -- AXU Flushes
         fu_xu_ex3_ap_int_req                    :in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex3_trap                          :in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex3_n_flush                       :in  std_ulogic_vector(0 to threads-1);
@@ -257,6 +310,7 @@ port(
         fu_xu_ex3_flush2ucode                   :in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex2_async_block                   :in  std_ulogic_vector(0 to threads-1);
 
+        -- IU Flushes
         xu_iu_ex5_br_taken                      :out std_ulogic;
         xu_iu_ex5_ifar                          :out std_ulogic_vector(62-eff_ifar to 61);
         xu_iu_flush                             :out std_ulogic_vector(0 to threads-1);
@@ -267,6 +321,7 @@ port(
         xu_iu_ucode_restart                     :out std_ulogic_vector(0 to threads-1);
         xu_iu_ex5_ppc_cpl                       :out std_ulogic_vector(0 to threads-1);
 
+        -- Flushes
         xu_n_is2_flush                          :out std_ulogic_vector(0 to threads-1);
         xu_n_rf0_flush                          :out std_ulogic_vector(0 to threads-1);
         xu_n_rf1_flush                          :out std_ulogic_vector(0 to threads-1);
@@ -298,12 +353,15 @@ port(
         xu_mm_ex5_perf_itlb                     :out std_ulogic_vector(0 to threads-1);
         xu_mm_ex5_perf_dtlb                     :out std_ulogic_vector(0 to threads-1);
 
+        -- SPR Bits
         spr_xucr4_div_barr_thres                :out std_ulogic_vector(0 to 7);
 
         iu_xu_ierat_ex2_flush_req               :in  std_ulogic_vector(0 to threads-1);
+        -- Parity
         iu_xu_ierat_ex3_par_err                 :in  std_ulogic_vector(0 to threads-1);
         iu_xu_ierat_ex4_par_err                 :in  std_ulogic_vector(0 to threads-1);
 
+        -- Regfile Parity
         fu_xu_ex3_regfile_err_det               :in  std_ulogic_vector(0 to threads-1);
         xu_fu_regfile_seq_beg                   :out std_ulogic;
         fu_xu_regfile_seq_end                   :in  std_ulogic;
@@ -323,6 +381,7 @@ port(
         xu_pc_err_tlb_parity                    :out std_ulogic;
         xu_pc_err_mchk_disabled                 :out std_ulogic;
 
+        -- Debug
         xu_iu_rf1_val                           :out std_ulogic_vector(0 to threads-1);
         xu_rf1_val                              :out std_ulogic_vector(0 to threads-1);
         xu_rf1_is_tlbre                         :out std_ulogic;
@@ -350,6 +409,7 @@ port(
         xu_lsu_ex1_rotsel_ovrd                  :out std_ulogic_vector(0 to 4);
         xu_lsu_ex1_eff_addr                     :out std_ulogic_vector(64-(dc_size-3) to 63);
 
+        -- Barrier
         cpl_fxa_ex5_set_barr                    :out std_ulogic_vector(0 to threads-1);
         cpl_iu_set_barr_tid                     :out std_ulogic_vector(0 to threads-1);
 
@@ -372,17 +432,19 @@ port(
         pc_xu_instr_trace_tid                   :in std_ulogic_vector(0 to 1);
         iu_xu_ex4_tlb_data                      :in std_ulogic_vector(64-(2**regmode) to 63);
 
+        -- Error Inject
         pc_xu_inj_dcachedir_parity              :in  std_ulogic;
         pc_xu_inj_dcachedir_multihit            :in  std_ulogic;
 
         ex4_256st_data                          :in  std_ulogic_vector(0 to 255);
                                              
-        an_ac_flh2l2_gate                       :in  std_ulogic;                        
+        an_ac_flh2l2_gate                       :in  std_ulogic;                        -- Gate L1 Hit forwarding SPR config bit
                                                                                               
-        xu_lsu_rf0_derat_val                    :in  std_ulogic_vector(0 to 3);         
-        xu_lsu_rf0_derat_is_extload             :in  std_ulogic;                      
-        xu_lsu_rf0_derat_is_extstore            :in  std_ulogic;                      
-        xu_lsu_hid_mmu_mode                     :in  std_ulogic;                        
+        -- ERAT Operations
+        xu_lsu_rf0_derat_val                    :in  std_ulogic_vector(0 to 3);         -- TLB Valid Operation
+        xu_lsu_rf0_derat_is_extload             :in  std_ulogic;                      -- Cache access should be treated as an external load
+        xu_lsu_rf0_derat_is_extstore            :in  std_ulogic;                      -- Cache access should be treated as an external store
+        xu_lsu_hid_mmu_mode                     :in  std_ulogic;                        -- MMU mode
         ex6_ld_par_err                          :in  std_ulogic;                        
                                                
         xu_mm_derat_req                         :out std_ulogic;
@@ -393,10 +455,10 @@ port(
         xu_mm_derat_ttype                       :out std_ulogic_vector(0 to 1);
         mm_xu_derat_rel_val                     :in  std_ulogic_vector(0 to 4);
         mm_xu_derat_rel_data                    :in  std_ulogic_vector(0 to 131);
-        mm_xu_derat_pid0                        :in  std_ulogic_vector(0 to 13);         
-        mm_xu_derat_pid1                        :in  std_ulogic_vector(0 to 13);         
-        mm_xu_derat_pid2                        :in  std_ulogic_vector(0 to 13);         
-        mm_xu_derat_pid3                        :in  std_ulogic_vector(0 to 13);         
+        mm_xu_derat_pid0                        :in  std_ulogic_vector(0 to 13);         -- Thread0 PID Number
+        mm_xu_derat_pid1                        :in  std_ulogic_vector(0 to 13);         -- Thread1 PID Number
+        mm_xu_derat_pid2                        :in  std_ulogic_vector(0 to 13);         -- Thread2 PID Number
+        mm_xu_derat_pid3                        :in  std_ulogic_vector(0 to 13);         -- Thread3 PID Number
         mm_xu_derat_mmucr0_0                    :in  std_ulogic_vector(0 to 19);
         mm_xu_derat_mmucr0_1                    :in  std_ulogic_vector(0 to 19);
         mm_xu_derat_mmucr0_2                    :in  std_ulogic_vector(0 to 19);
@@ -430,14 +492,17 @@ port(
         xu_fu_ex3_eff_addr                      :out std_ulogic_vector(59 to 63);
         xu_lsu_ici                              :out std_ulogic;
 
+        -- Update Data Array Valid
         rel_upd_dcarr_val                       :out std_ulogic;
                                                
         xu_fu_ex5_reload_val                    :out std_ulogic;
         xu_fu_ex5_load_val                      :out std_ulogic_vector(0 to 3);
         xu_fu_ex5_load_tag                      :out std_ulogic_vector(0 to 8);
                                                
+        -- Data Array Controls
         dcarr_up_way_addr                       :out std_ulogic_vector(0 to 2);
                                                                                            
+        -- Debug Data Compare
         ex4_load_op_hit                         :out std_ulogic;
         ex4_store_hit                           :out std_ulogic;
         ex4_axu_op_val                          :out std_ulogic;
@@ -446,10 +511,11 @@ port(
         spr_dvc1_dbg                            :out std_ulogic_vector(64-(2**regmode) to 63);
         spr_dvc2_dbg                            :out std_ulogic_vector(64-(2**regmode) to 63);
                                                
+        -- Inputs from L2
         an_ac_req_ld_pop                        :in  std_ulogic;
         an_ac_req_st_pop                        :in  std_ulogic;
         an_ac_req_st_gather                     :in  std_ulogic;
-        an_ac_req_st_pop_thrd                   :in  std_ulogic_vector(0 to 2);   
+        an_ac_req_st_pop_thrd                   :in  std_ulogic_vector(0 to 2);   -- decrement outbox credit count
                                                
         an_ac_reld_data_vld                     :in  std_ulogic;
         an_ac_reld_core_tag                     :in  std_ulogic_vector(0 to 4);
@@ -471,27 +537,31 @@ port(
         an_ac_req_spare_ctrl_a1                 :in  std_ulogic_vector(0 to 3);
 
 
-        lsu_reld_data_vld                       :out std_ulogic;                      
-        lsu_reld_core_tag                       :out std_ulogic_vector(3 to 4);       
-        lsu_reld_qw                             :out std_ulogic_vector(58 to 59);     
-        lsu_reld_ditc                           :out std_ulogic;                      
-        lsu_reld_ecc_err                        :out std_ulogic;                      
-        lsu_reld_data                           :out std_ulogic_vector(0 to 127);     
+        -- redrive to boxes logic
+        lsu_reld_data_vld                       :out std_ulogic;                      -- reload data is coming in 2 cycles
+        lsu_reld_core_tag                       :out std_ulogic_vector(3 to 4);       -- reload data destinatoin tag (thread)
+        lsu_reld_qw                             :out std_ulogic_vector(58 to 59);     -- reload data destinatoin tag (thread)
+        lsu_reld_ditc                           :out std_ulogic;                      -- reload data is for ditc (inbox)
+        lsu_reld_ecc_err                        :out std_ulogic;                      -- reload data has ecc error
+        lsu_reld_data                           :out std_ulogic_vector(0 to 127);     -- reload data
 
-        lsu_req_st_pop                          :out std_ulogic;                  
-        lsu_req_st_pop_thrd                     :out std_ulogic_vector(0 to 2);   
+        lsu_req_st_pop                          :out std_ulogic;                  -- decrement outbox credit count
+        lsu_req_st_pop_thrd                     :out std_ulogic_vector(0 to 2);   -- decrement outbox credit count
 
+     -- redrive for boxes logic
      ac_an_reld_ditc_pop_int    : in  std_ulogic_vector(0 to 3);
      ac_an_reld_ditc_pop_q      : out std_ulogic_vector(0 to 3);
      bx_ib_empty_int            : in  std_ulogic_vector(0 to 3);
      bx_ib_empty_q              : out std_ulogic_vector(0 to 3);
 
+        -- Instruction Fetches
         iu_xu_ra                                :in  std_ulogic_vector(64-real_data_add to 59);
         iu_xu_request                           :in  std_ulogic;
         iu_xu_wimge                             :in  std_ulogic_vector(0 to 4);
         iu_xu_thread                            :in  std_ulogic_vector(0 to 3);
         iu_xu_userdef                           :in  std_ulogic_vector(0 to 3);
 
+        -- MMU instruction interface
         mm_xu_lsu_req                           :in  std_ulogic_vector(0 to 3);
         mm_xu_lsu_ttype                         :in  std_ulogic_vector(0 to 1);
         mm_xu_lsu_wimge                         :in  std_ulogic_vector(0 to 4);
@@ -501,24 +571,26 @@ port(
         mm_xu_lsu_lpidr                         :in  std_ulogic_vector(0 to 7); 
         mm_xu_lsu_gs                            :in  std_ulogic;
         mm_xu_lsu_ind                           :in  std_ulogic;
-        mm_xu_lsu_lbit                          :in  std_ulogic;                   
+        mm_xu_lsu_lbit                          :in  std_ulogic;                   -- "L" bit, for large vs. small
         xu_mm_lsu_token                         :out std_ulogic;
 
+        -- Boxes interface
         bx_lsu_ob_pwr_tok                       :in  std_ulogic;
-        bx_lsu_ob_req_val                       :in  std_ulogic;                  
-        bx_lsu_ob_ditc_val                      :in  std_ulogic;                  
-        bx_lsu_ob_thrd                          :in  std_ulogic_vector(0 to 1);   
-        bx_lsu_ob_qw                            :in  std_ulogic_vector(58 to 59); 
-        bx_lsu_ob_dest                          :in  std_ulogic_vector(0 to 14);  
-        bx_lsu_ob_data                          :in  std_ulogic_vector(0 to 127); 
-        bx_lsu_ob_addr                          :in  std_ulogic_vector(64-real_data_add to 57); 
+        bx_lsu_ob_req_val                       :in  std_ulogic;                  -- message buff data is ready to send
+        bx_lsu_ob_ditc_val                      :in  std_ulogic;                  -- send dtic command
+        bx_lsu_ob_thrd                          :in  std_ulogic_vector(0 to 1);   -- source thread
+        bx_lsu_ob_qw                            :in  std_ulogic_vector(58 to 59); -- QW address
+        bx_lsu_ob_dest                          :in  std_ulogic_vector(0 to 14);  -- destination for the packet
+        bx_lsu_ob_data                          :in  std_ulogic_vector(0 to 127); -- 16B of data from the outbox
+        bx_lsu_ob_addr                          :in  std_ulogic_vector(64-real_data_add to 57); -- address for boxes message
         lsu_bx_cmd_avail                        :out std_ulogic;
         lsu_bx_cmd_sent                         :out std_ulogic;
         lsu_bx_cmd_stall                        :out std_ulogic;
 
-        lsu_xu_ldq_barr_done                    :out std_ulogic_vector(0 to 3);         
+        lsu_xu_ldq_barr_done                    :out std_ulogic_vector(0 to 3);         -- LWSYNC/mbar internal acknowledgements
         lsu_xu_barr_done                        :out std_ulogic_vector(0 to 3);
 
+        -- *** Reload operation Outputs ***
         ldq_rel_data_val_early                  :out std_ulogic;
         ldq_rel_op_size                         :out std_ulogic_vector(0 to 5);
         ldq_rel_addr                            :out std_ulogic_vector(64-(dc_size-3) to 58);
@@ -534,7 +606,7 @@ port(
         ldq_rel_dvc1_en                         :out std_ulogic;
         ldq_rel_dvc2_en                         :out std_ulogic;
         ldq_rel_beat_crit_qw                    :out std_ulogic;
-        ldq_rel_beat_crit_qw_block              :out std_ulogic;                        
+        ldq_rel_beat_crit_qw_block              :out std_ulogic;                        -- Reload Data had an ecc error
         lsu_xu_rel_wren                         :out std_ulogic;
         lsu_xu_rel_ta_gpr                       :out std_ulogic_vector(0 to 7);
 
@@ -550,6 +622,7 @@ port(
         xu_iu_complete_tid                      :out std_ulogic_vector(0 to 3);
         xu_iu_complete_target_type              :out std_ulogic_vector(0 to 1);
                                                
+        -- ICBI Interface
         xu_iu_ex6_icbi_val                      :out std_ulogic_vector(0 to 3);
         xu_iu_ex6_icbi_addr                     :out std_ulogic_vector(64-real_data_add to 57);     
                                                
@@ -576,6 +649,7 @@ port(
         ac_an_st_data                           :out std_ulogic_vector(0 to 127+(st_data_32B_mode*128));
         ac_an_st_data_pwr_token                 :out std_ulogic;
 
+        --pervasive
         xu_pc_err_dcachedir_parity              :out std_ulogic;
         xu_pc_err_dcachedir_multihit            :out std_ulogic;
         xu_pc_err_l2intrf_ecc                   :out std_ulogic;
@@ -583,15 +657,18 @@ port(
         xu_pc_err_invld_reld                    :out std_ulogic;
         xu_pc_err_l2credit_overrun              :out std_ulogic;
                                                
+        -- Performance Counters
         pc_xu_event_bus_enable                  :in  std_ulogic;
         pc_xu_lsu_event_mux_ctrls               :in  std_ulogic_vector(0 to 47);
         pc_xu_cache_par_err_event               :in  std_ulogic;
         xu_pc_lsu_event_data                    :out std_ulogic_vector(0 to 7);
         fxa_perf_muldiv_in_use                  :in  std_ulogic;
                                                
+        -- Decode
         dec_spr_rf0_tid                         :in  std_ulogic_vector(0 to threads-1);
         dec_spr_rf0_instr                       :in  std_ulogic_vector(0 to 31);
 
+        -- DCR Bus
         ac_an_dcr_act                           :out std_ulogic;
         ac_an_dcr_val                           :out std_ulogic;
         ac_an_dcr_read                          :out std_ulogic;
@@ -600,25 +677,31 @@ port(
         ac_an_dcr_addr                          :out std_ulogic_vector(11 to 20);
         ac_an_dcr_data                          :out std_ulogic_vector(64-regsize to 63);
 
+        -- Run State
         xu_pc_running                           :out std_ulogic_vector(0 to threads-1);
         xu_iu_run_thread                        :out std_ulogic_vector(0 to threads-1);
         xu_iu_single_instr_mode                 :out std_ulogic_vector(0 to threads-1);
         xu_iu_raise_iss_pri                     :out std_ulogic_vector(0 to threads-1);
         xu_pc_spr_ccr0_we                       :out std_ulogic_vector(0 to threads-1);
 
+        -- Quiesce
         iu_xu_quiesce                           :in  std_ulogic_vector(0 to threads-1);
         mm_xu_quiesce                           :in  std_ulogic_vector(0 to threads-1);
         bx_xu_quiesce                           :in  std_ulogic_vector(0 to threads-1);
 
+        -- PCCR0
         pc_xu_extirpts_dis_on_stop              :in  std_ulogic;
         pc_xu_timebase_dis_on_stop              :in  std_ulogic;
         pc_xu_decrem_dis_on_stop                :in  std_ulogic;
 
+        -- MSR Override
         pc_xu_msrovride_pr                      :in  std_ulogic;
 
+        -- LiveLock
         xu_pc_err_llbust_attempt                :out std_ulogic_vector(0 to threads-1);
         xu_pc_err_llbust_failed                 :out std_ulogic_vector(0 to threads-1);   
 
+        -- Resets
         pc_xu_reset_wd_complete                 :in  std_ulogic;
         pc_xu_reset_1_complete                  :in  std_ulogic;
         pc_xu_reset_2_complete                  :in  std_ulogic;
@@ -628,15 +711,18 @@ port(
         ac_tc_reset_3_request                   :out std_ulogic;
         ac_tc_reset_wd_request                  :out std_ulogic;
 
+        -- Err Inject
         pc_xu_inj_llbust_attempt                :in  std_ulogic_vector(0 to threads-1);
         pc_xu_inj_llbust_failed                 :in  std_ulogic_vector(0 to threads-1);
         pc_xu_inj_wdt_reset                     :in  std_ulogic_vector(0 to threads-1);
         xu_pc_err_wdt_reset                     :out std_ulogic_vector(0 to threads-1);
 
+        -- Parity
         pc_xu_inj_sprg_ecc                      :in  std_ulogic_vector(0 to threads-1);
         xu_pc_err_sprg_ecc                      :out std_ulogic_vector(0 to threads-1);
         xu_pc_err_sprg_ue                       :out std_ulogic_vector(0 to threads-1);
 
+        -- SPRs
         spr_msr_is                              :out std_ulogic_vector(0 to threads-1);
         spr_msr_gs                              :out std_ulogic_vector(0 to threads-1);
         spr_msr_pr                              :out std_ulogic_vector(0 to threads-1);
@@ -663,6 +749,9 @@ port(
         cpl_ccr2_ap                             :out std_ulogic_vector(0 to threads-1);
         spr_xucr4_mmu_mchk                      :out std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Pervasive
+        ---------------------------------------------------------------------
         pc_xu_bolt_sl_thold_3                   :in     std_ulogic;
         pc_xu_bo_enable_3                       :in     std_ulogic;
         bolt_sl_thold_2                         :out std_ulogic;
@@ -771,7 +860,6 @@ port(
 );
 
 -- synopsys translate_off
-
 
 -- synopsys translate_on
 end xuq_ctrl_spr;
@@ -981,6 +1069,7 @@ signal lsu_xu_cmd_debug                         :std_ulogic_vector(0 to 175);
 
 begin
 
+-- DEBUG BUS CHAINS
 ctrl_trigger_data_in    <= trigger_data_in;
 ctrl_debug_data_in      <= debug_data_in;
 spr_debug_data_in       <= ctrl_debug_data_out;
@@ -988,6 +1077,7 @@ spr_trigger_data_in     <= ctrl_trigger_data_out;
 debug_data_out          <= spr_debug_data_out;
 trigger_data_out        <= spr_trigger_data_out;
 
+-- SCAN CHAINS
 ctrl_bcfg_scan_in  <= bcfg_scan_in;
 ctrl_ccfg_scan_in  <= ccfg_scan_in;
 ctrl_dcfg_scan_in  <= dcfg_scan_in;
@@ -1044,6 +1134,9 @@ repr_sl_thold_2 <= repr_sl_thold_2_b;
 cfg_sl_thold_2 <= cfg_sl_thold_2_b;
 cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
 
+-- ##########################################################################################
+--                                   CPL/FXUB/CMD
+-- ##########################################################################################
 
 ctrl : entity work.xuq_ctrl(xuq_ctrl)
 generic map(
@@ -1073,6 +1166,9 @@ generic map(
         bcfg_rpn_48to51         => bcfg_rpn_48to51)
 port map(
 
+        ---------------------------------------------------------------------
+        -- Pervasive
+        ---------------------------------------------------------------------
         an_ac_grffence_en_dc                    => an_ac_grffence_en_dc,
         an_ac_scan_dis_dc_b                     => an_ac_scan_dis_dc_b,
         an_ac_lbist_en_dc                       => an_ac_lbist_en_dc,
@@ -1129,6 +1225,9 @@ port map(
         pc_xu_bolt_sl_thold_3                   => pc_xu_bolt_sl_thold_3,
         pc_xu_bo_enable_3                       => pc_xu_bo_enable_3,
 
+        ---------------------------------------------------------------------
+        -- Interface with FXU A
+        ---------------------------------------------------------------------
         fxa_fxb_rf0_val                         => fxa_fxb_rf0_val,
         fxa_fxb_rf0_issued                      => fxa_fxb_rf0_issued,
         fxa_fxb_rf0_ucode_val                   => fxa_fxb_rf0_ucode_val,
@@ -1183,18 +1282,30 @@ port map(
         fxa_fxb_rf1_do1                         => fxa_fxb_rf1_do1,
         fxa_fxb_rf1_do2                         => fxa_fxb_rf1_do2,
 
+        ---------------------------------------------------------------------
+        -- BOXES Req Interface
+        ---------------------------------------------------------------------
         xu_bx_ex1_mtdp_val                      => xu_bx_ex1_mtdp_val,
         xu_bx_ex1_mfdp_val                      => xu_bx_ex1_mfdp_val,
         xu_bx_ex1_ipc_thrd                      => xu_bx_ex1_ipc_thrd,
         xu_bx_ex2_ipc_ba                        => xu_bx_ex2_ipc_ba,
         xu_bx_ex2_ipc_sz                        => xu_bx_ex2_ipc_sz,
 
+        ---------------------------------------------------------------------
+        -- D-ERAT Req Interface
+        ---------------------------------------------------------------------
         xu_mm_derat_epn                         => xu_mm_derat_epn,
 
+        ---------------------------------------------------------------------
+        -- TLBSX./TLBSRX.
+        ---------------------------------------------------------------------
         xu_mm_rf1_is_tlbsxr                     => xu_mm_rf1_is_tlbsxr,
         mm_xu_cr0_eq_valid                      => mm_xu_cr0_eq_valid,
         mm_xu_cr0_eq                            => mm_xu_cr0_eq,
 
+        ---------------------------------------------------------------------
+        -- FU CR Write
+        ---------------------------------------------------------------------
         fu_xu_ex4_cr_val                        => fu_xu_ex4_cr_val,
         fu_xu_ex4_cr_noflush                    => fu_xu_ex4_cr_noflush,
         fu_xu_ex4_cr0                           => fu_xu_ex4_cr0,
@@ -1206,6 +1317,9 @@ port map(
         fu_xu_ex4_cr3                           => fu_xu_ex4_cr3,
         fu_xu_ex4_cr3_bf                        => fu_xu_ex4_cr3_bf,
 
+        ---------------------------------------------------------------------
+        -- RAM
+        ---------------------------------------------------------------------
         pc_xu_ram_mode                          => pc_xu_ram_mode,
         pc_xu_ram_thread                        => pc_xu_ram_thread,
         pc_xu_ram_execute                       => pc_xu_ram_execute,
@@ -1215,6 +1329,9 @@ port map(
         xu_pc_ram_done                          => xu_pc_ram_done,
         xu_pc_ram_data                          => xu_pc_ram_data,
 
+        ---------------------------------------------------------------------
+        -- Interface with IU
+        ---------------------------------------------------------------------
         xu_iu_ex5_val                           => xu_iu_ex5_val,
         xu_iu_ex5_tid                           => xu_iu_ex5_tid,
         xu_iu_ex5_br_update                     => xu_iu_ex5_br_update,
@@ -1231,6 +1348,9 @@ port map(
         xu_iu_ex5_gshare                        => xu_iu_ex5_gshare,
         xu_iu_ex5_getNIA                        => xu_iu_ex5_getNIA,
 
+        ---------------------------------------------------------------------
+        -- L2 STCX complete
+        ---------------------------------------------------------------------
         an_ac_stcx_complete                     => an_ac_stcx_complete,
         an_ac_stcx_pass                         => an_ac_stcx_pass,
         xu_iu_stcx_complete                     => xu_iu_stcx_complete,                   
@@ -1239,6 +1359,9 @@ port map(
         xu_iu_reld_data_vld_clone    => xu_iu_reld_data_vld_clone,
         xu_iu_reld_ditc_clone        => xu_iu_reld_ditc_clone,
 
+        ---------------------------------------------------------------------
+        -- Slow SPR Bus
+        ---------------------------------------------------------------------
         slowspr_val_in                          => slowspr_val_in,
         slowspr_rw_in                           => slowspr_rw_in,
         slowspr_etid_in                         => slowspr_etid_in,
@@ -1246,6 +1369,9 @@ port map(
         slowspr_data_in                         => slowspr_data_in,
         slowspr_done_in                         => slowspr_done_in,
 
+        ---------------------------------------------------------------------
+        -- DCR Bus
+        ---------------------------------------------------------------------
         an_ac_dcr_act                           => an_ac_dcr_act,
         an_ac_dcr_val                           => an_ac_dcr_val,
         an_ac_dcr_read                          => an_ac_dcr_read,
@@ -1253,10 +1379,16 @@ port map(
         an_ac_dcr_data                          => an_ac_dcr_data,
         an_ac_dcr_done                          => an_ac_dcr_done,
         
+        ---------------------------------------------------------------------
+        -- MT/MFDCR CR
+        ---------------------------------------------------------------------
         lsu_xu_ex4_mtdp_cr_status               => lsu_xu_ex4_mtdp_cr_status,
         lsu_xu_ex4_mfdp_cr_status               => lsu_xu_ex4_mfdp_cr_status,
         dec_cpl_ex3_mc_dep_chk_val              => dec_cpl_ex3_mc_dep_chk_val,
 
+        ---------------------------------------------------------------------
+        -- Interface with SPR
+        ---------------------------------------------------------------------
         dec_spr_ex4_val                         => dec_spr_ex4_val,
         dec_spr_ex1_epid_instr                  => dec_spr_ex1_epid_instr,
         mux_spr_ex2_rt                          => mux_spr_ex2_rt,
@@ -1277,13 +1409,22 @@ port map(
         dec_spr_rf1_val                         => dec_spr_rf1_val,
         fxu_spr_ex1_rs2                         => fxu_spr_ex1_rs2,
 
+        ---------------------------------------------------------------------
+        -- Perf Events
+        ---------------------------------------------------------------------
         fxa_perf_muldiv_in_use                  => fxa_perf_muldiv_in_use,
         spr_perf_tx_events                      => spr_perf_tx_events,
         xu_pc_event_data                        => xu_pc_event_data,
 
+        ---------------------------------------------------------------------
+        -- PC Control Interface
+        ---------------------------------------------------------------------
         pc_xu_event_count_mode                  => pc_xu_event_count_mode,
         pc_xu_event_mux_ctrls                   => pc_xu_event_mux_ctrls,
 
+        ---------------------------------------------------------------------
+        -- Debug Ramp & Controls
+        ---------------------------------------------------------------------
         fxu_debug_mux_ctrls                     => fxu_debug_mux_ctrls,
         cpl_debug_mux_ctrls                     => cpl_debug_mux_ctrls,
         lsu_debug_mux_ctrls                     => lsu_debug_mux_ctrls,
@@ -1296,6 +1437,9 @@ port map(
         lsu_xu_data_debug2                      => lsu_xu_data_debug2,
         fxa_cpl_debug                           => fxa_cpl_debug,
 
+        ---------------------------------------------------------------------
+        -- SPR Bits
+        ---------------------------------------------------------------------
         spr_msr_gs                              => spr_msr_gs_int,
         spr_msr_ds                              => spr_msr_ds_int,
         spr_msr_pr                              => spr_msr_pr_int,
@@ -1304,11 +1448,14 @@ port map(
         spr_dbcr0_dac3                          => spr_dbcr0_dac3,
         spr_dbcr0_dac4                          => spr_dbcr0_dac4,
 
+        -- CHIP IO
         ac_tc_debug_trigger                     => ac_tc_debug_trigger,
 
+        -- Valids
         dec_cpl_rf0_act                         => dec_cpl_rf0_act,
         dec_cpl_rf0_tid                         => dec_cpl_rf0_tid,
 
+        -- FU Inputs
         fu_xu_rf1_act                           => fu_xu_rf1_act,
         fu_xu_ex1_ifar                          => fu_xu_ex1_ifar,
         fu_xu_ex2_ifar_val                      => fu_xu_ex2_ifar_val,
@@ -1317,6 +1464,7 @@ port map(
         fu_xu_ex2_instr_match                   => fu_xu_ex2_instr_match,
         fu_xu_ex2_is_ucode                      => fu_xu_ex2_is_ucode,
 
+        -- PC Inputs
         pc_xu_stop                              => pc_xu_stop,
         pc_xu_step                              => pc_xu_step,
         pc_xu_dbg_action                        => pc_xu_dbg_action,
@@ -1324,6 +1472,7 @@ port map(
         xu_pc_step_done                         => xu_pc_step_done,
         pc_xu_init_reset                        => pc_xu_init_reset,
 
+        -- Async Interrupt Req Interface
         spr_cpl_external_mchk                   => spr_cpl_external_mchk,
         spr_cpl_ext_interrupt                   => spr_cpl_ext_interrupt,
         spr_cpl_udec_interrupt                  => spr_cpl_udec_interrupt,
@@ -1343,6 +1492,7 @@ port map(
         cpl_spr_ex5_gcdbell_taken               => cpl_spr_ex5_gcdbell_taken,
         cpl_spr_ex5_gmcdbell_taken              => cpl_spr_ex5_gmcdbell_taken,
 
+        -- Interrupt Interface
         cpl_spr_ex5_act                         => cpl_spr_ex5_act,
         cpl_spr_ex5_int                         => cpl_spr_ex5_int,
         cpl_spr_ex5_gint                        => cpl_spr_ex5_gint,
@@ -1362,11 +1512,13 @@ port map(
         cpl_spr_ex5_dbsr_ide                    => cpl_spr_ex5_dbsr_ide,
         spr_cpl_dbsr_ide                        => spr_cpl_dbsr_ide,
 
+        -- Machine Check Interrupts
         mm_xu_local_snoop_reject                => mm_xu_local_snoop_reject,
         mm_xu_lru_par_err                       => mm_xu_lru_par_err,
         mm_xu_tlb_par_err                       => mm_xu_tlb_par_err,
         mm_xu_tlb_multihit_err                  => mm_xu_tlb_multihit_err,
 
+        -- PC Errors
         xu_pc_err_attention_instr               => xu_pc_err_attention_instr,
         xu_pc_err_nia_miscmpr                   => xu_pc_err_nia_miscmpr,
         xu_pc_err_debug_event                   => xu_pc_err_debug_event,
@@ -1374,11 +1526,14 @@ port map(
         spr_cpl_ex3_ct_le                       => spr_cpl_ex3_ct_le,
         spr_cpl_ex3_ct_be                       => spr_cpl_ex3_ct_be,
 
+        -- Program
         spr_cpl_ex3_spr_illeg                   => spr_cpl_ex3_spr_illeg,
         spr_cpl_ex3_spr_priv                    => spr_cpl_ex3_spr_priv,
 
+        -- Hypv Privledge
         spr_cpl_ex3_spr_hypv                    => spr_cpl_ex3_spr_hypv,
 
+        -- Run State
         cpl_spr_stop                            => cpl_spr_stop,
         cpl_spr_ex5_instr_cpl                   => cpl_spr_ex5_instr_cpl,
         spr_cpl_quiesce                         => spr_cpl_quiesce,
@@ -1386,6 +1541,7 @@ port map(
         spr_cpl_ex2_run_ctl_flush               => spr_cpl_ex2_run_ctl_flush,
         xu_pc_stop_dbg_event                    => xu_pc_stop_dbg_event,
 
+        -- MMU Flushes
         mm_xu_illeg_instr                       => mm_xu_illeg_instr,
         mm_xu_tlb_miss                          => mm_xu_tlb_miss,
         mm_xu_pt_fault                          => mm_xu_pt_fault,
@@ -1402,6 +1558,7 @@ port map(
         mm_xu_eratmiss_done                     => mm_xu_eratmiss_done,
         mm_xu_ex3_flush_req                     => mm_xu_ex3_flush_req,
 
+        -- AXU Flushes
         fu_xu_ex3_ap_int_req                    => fu_xu_ex3_ap_int_req,
         fu_xu_ex3_trap                          => fu_xu_ex3_trap,
         fu_xu_ex3_n_flush                       => fu_xu_ex3_n_flush,
@@ -1409,6 +1566,7 @@ port map(
         fu_xu_ex3_flush2ucode                   => fu_xu_ex3_flush2ucode,
         fu_xu_ex2_async_block                   => fu_xu_ex2_async_block,
 
+        -- IU Flushes
         xu_iu_ex5_br_taken                      => xu_iu_ex5_br_taken,
         xu_iu_ex5_ifar                          => xu_iu_ex5_ifar,
         xu_iu_flush                             => xu_iu_flush,
@@ -1419,6 +1577,7 @@ port map(
         xu_iu_ucode_restart                     => xu_iu_ucode_restart,
         xu_iu_ex5_ppc_cpl                       => xu_iu_ex5_ppc_cpl,
 
+        -- Flushes
         xu_n_is2_flush                          => xu_n_is2_flush,
         xu_n_rf0_flush                          => xu_n_rf0_flush,
         xu_n_rf1_flush                          => xu_n_rf1_flush,
@@ -1447,6 +1606,7 @@ port map(
         xu_mm_ex5_perf_itlb                     => xu_mm_ex5_perf_itlb,
         xu_mm_ex5_perf_dtlb                     => xu_mm_ex5_perf_dtlb,
 
+        -- SPR Bits
         spr_bit_act                             => spr_bit_act,
         spr_cpl_iac1_en                         => spr_cpl_iac1_en,
         spr_cpl_iac2_en                         => spr_cpl_iac2_en,
@@ -1488,12 +1648,14 @@ port map(
         spr_xucr0_clkg_ctl                      => spr_xucr0_clkg_ctl(1 to 3),
         spr_xucr4_mmu_mchk                      => spr_xucr4_mmu_mchk,
 
+        -- Parity
         spr_cpl_ex3_sprg_ce                     => spr_cpl_ex3_sprg_ce,
         spr_cpl_ex3_sprg_ue                     => spr_cpl_ex3_sprg_ue,
         iu_xu_ierat_ex2_flush_req               => iu_xu_ierat_ex2_flush_req,
         iu_xu_ierat_ex3_par_err                 => iu_xu_ierat_ex3_par_err,
         iu_xu_ierat_ex4_par_err                 => iu_xu_ierat_ex4_par_err,
 
+        -- Regfile Parity
         fu_xu_ex3_regfile_err_det               => fu_xu_ex3_regfile_err_det,
         xu_fu_regfile_seq_beg                   => xu_fu_regfile_seq_beg,
         fu_xu_regfile_seq_end                   => fu_xu_regfile_seq_end,
@@ -1514,6 +1676,7 @@ port map(
         xu_pc_err_mchk_disabled                 => xu_pc_err_mchk_disabled,
         xu_pc_err_sprg_ue                       => xu_pc_err_sprg_ue,
 
+        -- Debug
         xu_iu_rf1_val                           => xu_iu_rf1_val,
         xu_rf1_val                              => xu_rf1_val,
         xu_rf1_is_tlbre                         => xu_rf1_is_tlbre,
@@ -1541,6 +1704,7 @@ port map(
         xu_lsu_ex1_rotsel_ovrd                  => xu_lsu_ex1_rotsel_ovrd,
         xu_lsu_ex1_eff_addr                     => xu_lsu_ex1_eff_addr,
 
+        -- Barrier
         cpl_fxa_ex5_set_barr                    => cpl_fxa_ex5_set_barr,
         cpl_iu_set_barr_tid                      => cpl_iu_set_barr_tid,
 
@@ -1563,6 +1727,7 @@ port map(
         pc_xu_instr_trace_tid                   => pc_xu_instr_trace_tid,
         iu_xu_ex4_tlb_data                      => iu_xu_ex4_tlb_data,
 
+        -- Error Inject
         pc_xu_inj_dcachedir_parity              => pc_xu_inj_dcachedir_parity,
         pc_xu_inj_dcachedir_multihit            => pc_xu_inj_dcachedir_multihit,
 
@@ -1586,6 +1751,7 @@ port map(
         
         an_ac_flh2l2_gate                       => an_ac_flh2l2_gate,
         
+        -- ERAT Operations
         xu_lsu_rf0_derat_val                    => xu_lsu_rf0_derat_val,
         xu_lsu_rf0_derat_is_extload             => xu_lsu_rf0_derat_is_extload,
         xu_lsu_rf0_derat_is_extstore            => xu_lsu_rf0_derat_is_extstore,
@@ -1652,14 +1818,17 @@ port map(
         xu_fu_ex3_eff_addr                      => xu_fu_ex3_eff_addr,
         xu_lsu_ici                              => xu_lsu_ici,
         
+        -- Update Data Array Valid
         rel_upd_dcarr_val                       => rel_upd_dcarr_val,
                            
         xu_fu_ex5_reload_val                    => xu_fu_ex5_reload_val,
         xu_fu_ex5_load_val                      => xu_fu_ex5_load_val,
         xu_fu_ex5_load_tag                      => xu_fu_ex5_load_tag,
         
+        -- Data Array Controls
         dcarr_up_way_addr                       => dcarr_up_way_addr,
         
+        -- SPR status
         lsu_xu_spr_xucr0_cslc_xuop              => lsu_xu_spr_xucr0_cslc_xuop,
         lsu_xu_spr_xucr0_cslc_binv              => lsu_xu_spr_xucr0_cslc_binv,
         lsu_xu_spr_xucr0_clo                    => lsu_xu_spr_xucr0_clo,
@@ -1667,6 +1836,7 @@ port map(
         lsu_xu_spr_epsc_epr                     => lsu_xu_spr_epsc_epr,
         lsu_xu_spr_epsc_egs                     => lsu_xu_spr_epsc_egs,
         
+        -- Debug Data Compare
         ex4_load_op_hit                         => ex4_load_op_hit,
         ex4_store_hit                           => ex4_store_hit,
         ex4_axu_op_val                          => ex4_axu_op_val,
@@ -1675,6 +1845,7 @@ port map(
         spr_dvc1_dbg                            => spr_dvc1_dbg,
         spr_dvc2_dbg                            => spr_dvc2_dbg,
         
+        -- Inputs from L2
         an_ac_req_ld_pop                        => an_ac_req_ld_pop,
         an_ac_req_st_pop                        => an_ac_req_st_pop,
         an_ac_req_st_gather                     => an_ac_req_st_gather,
@@ -1696,6 +1867,7 @@ port map(
         an_ac_back_inv_target_bit4              => an_ac_back_inv_target_bit4,
         an_ac_req_spare_ctrl_a1                 => an_ac_req_spare_ctrl_a1,
 
+        -- redrive to boxes logic
         lsu_reld_data_vld                       => lsu_reld_data_vld,
         lsu_reld_core_tag                       => lsu_reld_core_tag,
         lsu_reld_qw                             => lsu_reld_qw,
@@ -1706,17 +1878,20 @@ port map(
         lsu_req_st_pop                          => lsu_req_st_pop,
         lsu_req_st_pop_thrd                     => lsu_req_st_pop_thrd,
 
+        -- latch and redrive for BXQ
         ac_an_reld_ditc_pop_int    => ac_an_reld_ditc_pop_int,
         ac_an_reld_ditc_pop_q      => ac_an_reld_ditc_pop_q  ,
         bx_ib_empty_int            => bx_ib_empty_int        ,
         bx_ib_empty_q              => bx_ib_empty_q          ,
                                                   
+        -- Instruction Fetches
         iu_xu_ra                                => iu_xu_ra,
         iu_xu_request                           => iu_xu_request,
         iu_xu_wimge                             => iu_xu_wimge,
         iu_xu_thread                            => iu_xu_thread,
         iu_xu_userdef                           => iu_xu_userdef,
                                                   
+        -- MMU instruction interface
         mm_xu_lsu_req                           => mm_xu_lsu_req,
         mm_xu_lsu_ttype                         => mm_xu_lsu_ttype,
         mm_xu_lsu_wimge                         => mm_xu_lsu_wimge,
@@ -1729,6 +1904,7 @@ port map(
         mm_xu_lsu_lbit                          => mm_xu_lsu_lbit,
         xu_mm_lsu_token                         => xu_mm_lsu_token,
                                                   
+        -- Boxes interface
         bx_lsu_ob_pwr_tok                       => bx_lsu_ob_pwr_tok,
         bx_lsu_ob_req_val                       => bx_lsu_ob_req_val,
         bx_lsu_ob_ditc_val                      => bx_lsu_ob_ditc_val,
@@ -1744,6 +1920,7 @@ port map(
         lsu_xu_ldq_barr_done                    => lsu_xu_ldq_barr_done,
         lsu_xu_barr_done                        => lsu_xu_barr_done,
                                                   
+        -- *** Reload operation Outputs ***
         ldq_rel_data_val_early                  => ldq_rel_data_val_early,
         ldq_rel_op_size                         => ldq_rel_op_size,
         ldq_rel_addr                            => ldq_rel_addr,
@@ -1774,6 +1951,7 @@ port map(
         xu_iu_complete_tid                      => xu_iu_complete_tid,
         xu_iu_complete_target_type              => xu_iu_complete_target_type,
                                                   
+        -- ICBI Interface
         xu_iu_ex6_icbi_val                      => xu_iu_ex6_icbi_val,
         xu_iu_ex6_icbi_addr                     => xu_iu_ex6_icbi_addr,
 
@@ -1807,6 +1985,7 @@ port map(
         ac_an_st_data                           => ac_an_st_data,
         ac_an_st_data_pwr_token                 => ac_an_st_data_pwr_token,
                                                   
+        --pervasive
         xu_pc_err_dcachedir_parity              => xu_pc_err_dcachedir_parity,
         xu_pc_err_dcachedir_multihit            => xu_pc_err_dcachedir_multihit,
         xu_pc_err_l2intrf_ecc                   => xu_pc_err_l2intrf_ecc,
@@ -1814,13 +1993,16 @@ port map(
         xu_pc_err_invld_reld                    => xu_pc_err_invld_reld,
         xu_pc_err_l2credit_overrun              => xu_pc_err_l2credit_overrun,
                                                   
+        -- Performance Counters
         pc_xu_event_bus_enable                  => pc_xu_event_bus_enable,
         pc_xu_lsu_event_mux_ctrls               => pc_xu_lsu_event_mux_ctrls,
         pc_xu_cache_par_err_event               => pc_xu_cache_par_err_event,
         xu_pc_lsu_event_data                    => xu_pc_lsu_event_data,
                                                   
+        -- Debug Trace Bus
         lsu_xu_cmd_debug                        => lsu_xu_cmd_debug,
                                                  
+        -- G8T ABIST Control
         an_ac_lbist_ary_wrt_thru_dc             => an_ac_lbist_ary_wrt_thru_dc,
         pc_xu_abist_g8t_wenb                    => pc_xu_abist_g8t_wenb,
         pc_xu_abist_g8t1p_renb_0                => pc_xu_abist_g8t1p_renb_0,
@@ -1843,6 +2025,7 @@ port map(
         an_ac_coreid                            => an_ac_coreid(60 to 61),
         an_ac_atpg_en_dc                        => an_ac_atpg_en_dc,
 
+        -- Pervasive
         bcfg_scan_in                            => ctrl_bcfg_scan_in,
         bcfg_scan_out                           => ctrl_bcfg_scan_out,
         dcfg_scan_in                            => ctrl_dcfg_scan_in,
@@ -1863,6 +2046,9 @@ port map(
         repr_scan_out                           => ctrl_repr_scan_out
 );
 
+-- ##########################################################################################
+--                                     SPR
+-- ##########################################################################################
 xu_spr : entity work.xuq_spr(xuq_spr)
 generic map(
         hvmode                          => hvmode,
@@ -1875,6 +2061,7 @@ generic map(
 port map(
         nclk                                    => nclk,
    
+        -- CHIP IO
         an_ac_coreid                            => an_ac_coreid,
         spr_pvr_version_dc                      => spr_pvr_version_dc,
         spr_pvr_revision_dc                     => spr_pvr_revision_dc,
@@ -1928,20 +2115,24 @@ port map(
         gptr_scan_in                            => spr_gptr_scan_in,
         gptr_scan_out                           => spr_gptr_scan_out,
                                                
+        -- Decode
         dec_spr_rf0_tid                         => dec_spr_rf0_tid,
         dec_spr_rf0_instr                       => dec_spr_rf0_instr,
         dec_spr_rf1_val                         => dec_spr_rf1_val,
         dec_spr_ex1_epid_instr                  => dec_spr_ex1_epid_instr,
         dec_spr_ex4_val                         => dec_spr_ex4_val,
                                                 
+        -- Read Data
         spr_byp_ex3_spr_rt                      => spr_byp_ex3_spr_rt,
                                                 
         fxu_spr_ex1_rs2                         => fxu_spr_ex1_rs2,
                                                 
+        -- Write Data
         fxu_spr_ex1_rs0                         => fxu_spr_ex1_rs0,
         fxu_spr_ex1_rs1                         => fxu_spr_ex1_rs1,
         mux_spr_ex2_rt                          => mux_spr_ex2_rt,
                                                 
+        -- Interrupt Interface
         cpl_spr_ex5_act                         => cpl_spr_ex5_act,
         cpl_spr_ex5_int                         => cpl_spr_ex5_int,
         cpl_spr_ex5_gint                        => cpl_spr_ex5_gint,
@@ -1961,6 +2152,7 @@ port map(
         cpl_spr_ex5_dbsr_ide                    => cpl_spr_ex5_dbsr_ide,
         spr_cpl_dbsr_ide                        => spr_cpl_dbsr_ide,
                                                
+        -- Async Interrupt Req Interface
         spr_cpl_external_mchk                   => spr_cpl_external_mchk,
         spr_cpl_ext_interrupt                   => spr_cpl_ext_interrupt,
         spr_cpl_udec_interrupt                  => spr_cpl_udec_interrupt,
@@ -1980,18 +2172,21 @@ port map(
         cpl_spr_ex5_gcdbell_taken               => cpl_spr_ex5_gcdbell_taken,
         cpl_spr_ex5_gmcdbell_taken              => cpl_spr_ex5_gmcdbell_taken,
 
+        -- DBELL Int
         lsu_xu_dbell_val                        => lsu_xu_dbell_val,
         lsu_xu_dbell_type                       => lsu_xu_dbell_type,
         lsu_xu_dbell_brdcast                    => lsu_xu_dbell_brdcast,
         lsu_xu_dbell_lpid_match                 => lsu_xu_dbell_lpid_match,
         lsu_xu_dbell_pirtag                     => lsu_xu_dbell_pirtag,
 
+        -- Slow SPR Bus
         xu_lsu_slowspr_val                      => xu_lsu_slowspr_val,
         xu_lsu_slowspr_rw                       => xu_lsu_slowspr_rw,
         xu_lsu_slowspr_etid                     => xu_lsu_slowspr_etid,
         xu_lsu_slowspr_addr                     => xu_lsu_slowspr_addr,
         xu_lsu_slowspr_data                     => xu_lsu_slowspr_data,
                                                 
+        -- DCR Bus
         ac_an_dcr_act                           => ac_an_dcr_act,
         ac_an_dcr_val                           => ac_an_dcr_val,
         ac_an_dcr_read                          => ac_an_dcr_read,
@@ -2000,9 +2195,11 @@ port map(
         ac_an_dcr_addr                          => ac_an_dcr_addr,
         ac_an_dcr_data                          => ac_an_dcr_data,
 
+        -- Flush
         xu_ex4_flush                            => xu_s_ex4_flush_int,
         xu_ex5_flush                            => xu_s_ex5_flush_int,
 
+        -- Trap
         spr_cpl_fp_precise                      => spr_cpl_fp_precise,
         spr_cpl_ex3_spr_hypv                    => spr_cpl_ex3_spr_hypv,
         spr_cpl_ex3_spr_illeg                   => spr_cpl_ex3_spr_illeg,
@@ -2010,6 +2207,7 @@ port map(
         spr_cpl_ex3_ct_le                       => spr_cpl_ex3_ct_le,
         spr_cpl_ex3_ct_be                       => spr_cpl_ex3_ct_be,
 
+        -- Run State
         cpl_spr_stop                            => cpl_spr_stop,
         xu_pc_running                           => xu_pc_running,
         xu_iu_run_thread                        => xu_iu_run_thread,
@@ -2018,6 +2216,7 @@ port map(
         spr_cpl_ex2_run_ctl_flush               => spr_cpl_ex2_run_ctl_flush,
         xu_pc_spr_ccr0_we                       => spr_ccr0_we,
                                                
+        -- Quiesce
         iu_xu_quiesce                           => iu_xu_quiesce,
         lsu_xu_quiesce                          => lsu_xu_quiesce,
         mm_xu_quiesce                           => mm_xu_quiesce,
@@ -2025,10 +2224,12 @@ port map(
         spr_cpl_quiesce                         => spr_cpl_quiesce,
         cpl_spr_quiesce                         => cpl_spr_quiesce,
                                                
+        -- PCCR0
         pc_xu_extirpts_dis_on_stop              => pc_xu_extirpts_dis_on_stop,
         pc_xu_timebase_dis_on_stop              => pc_xu_timebase_dis_on_stop,
         pc_xu_decrem_dis_on_stop                => pc_xu_decrem_dis_on_stop,
                                                
+        -- MSR Override
         pc_xu_ram_mode                          => pc_xu_ram_mode,
         pc_xu_ram_thread                        => pc_xu_ram_thread,
         pc_xu_msrovride_enab                    => pc_xu_msrovride_enab,
@@ -2036,13 +2237,16 @@ port map(
         pc_xu_msrovride_gs                      => pc_xu_msrovride_gs,
         pc_xu_msrovride_de                      => pc_xu_msrovride_de,
                                                
+        -- LiveLock
         cpl_spr_ex5_instr_cpl                   => cpl_spr_ex5_instr_cpl,
         xu_pc_err_llbust_attempt                => xu_pc_err_llbust_attempt,
         xu_pc_err_llbust_failed                 => xu_pc_err_llbust_failed,
                                                
+        -- XER
         spr_byp_ex4_is_mtxer                    => spr_byp_ex4_is_mtxer,
         spr_byp_ex4_is_mfxer                    => spr_byp_ex4_is_mfxer,
                                                
+        -- Resets
         pc_xu_reset_wd_complete                 => pc_xu_reset_wd_complete,
         pc_xu_reset_1_complete                  => pc_xu_reset_1_complete,
         pc_xu_reset_2_complete                  => pc_xu_reset_2_complete,
@@ -2052,19 +2256,23 @@ port map(
         ac_tc_reset_3_request                   => ac_tc_reset_3_request,
         ac_tc_reset_wd_request                  => ac_tc_reset_wd_request,
                                                
+        -- Err Inject
         pc_xu_inj_llbust_attempt                => pc_xu_inj_llbust_attempt,
         pc_xu_inj_llbust_failed                 => pc_xu_inj_llbust_failed,
         pc_xu_inj_wdt_reset                     => pc_xu_inj_wdt_reset,
         xu_pc_err_wdt_reset                     => xu_pc_err_wdt_reset,
                                                
+        -- Parity
         spr_cpl_ex3_sprg_ce                     => spr_cpl_ex3_sprg_ce,
         spr_cpl_ex3_sprg_ue                     => spr_cpl_ex3_sprg_ue,
         pc_xu_inj_sprg_ecc                      => pc_xu_inj_sprg_ecc,
         xu_pc_err_sprg_ecc                      => xu_pc_err_sprg_ecc,
                                                
+        -- Perf
         spr_perf_tx_events                      => spr_perf_tx_events,
         xu_lsu_mtspr_trace_en                   => xu_lsu_mtspr_trace_en,
 
+        -- SPRs
        spr_bit_act                              => spr_bit_act,
         spr_cpl_iac1_en                         => spr_cpl_iac1_en,
         spr_cpl_iac2_en                         => spr_cpl_iac2_en,
@@ -2138,6 +2346,7 @@ port map(
         spr_msrp_uclep                          => spr_msrp_uclep,
         spr_xucr0_clkg_ctl                      => spr_xucr0_clkg_ctl,
 
+        -- ABIST
         an_ac_lbist_ary_wrt_thru_dc             => an_ac_lbist_ary_wrt_thru_dc,
         pc_xu_abist_ena_dc                      => pc_xu_abist_ena_dc,
         pc_xu_abist_g8t_wenb                    => pc_xu_abist_g8t_wenb,
@@ -2160,6 +2369,7 @@ port map(
         xu_pc_bo_fail                           => xu_pc_bo_fail(0),
         xu_pc_bo_diagout                        => xu_pc_bo_diagout(0),
                                                
+        -- Debug
         lsu_xu_cmd_debug                        => lsu_xu_cmd_debug,
         pc_xu_trace_bus_enable                  => pc_xu_trace_bus_enable,
         spr_debug_mux_ctrls                     => spr_debug_mux_ctrls,
@@ -2168,6 +2378,7 @@ port map(
         spr_trigger_data_in                     => spr_trigger_data_in,
         spr_trigger_data_out                    => spr_trigger_data_out,
                                                
+        -- Power
         vcs                                     => vcs,
         vdd                                     => vdd,
         gnd                                     => gnd
@@ -2187,5 +2398,4 @@ xu_lsu_spr_xucr0_dcdis  <= xu_lsu_spr_xucr0_dcdis_int;
 xu_lsu_spr_xucr0_rel    <= xu_lsu_spr_xucr0_rel_int;
 spr_xucr0_clkg_ctl_b0   <= spr_xucr0_clkg_ctl(0);
 
-end xuq_ctrl_spr;  
-
+end xuq_ctrl_spr;

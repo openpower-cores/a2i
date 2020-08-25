@@ -20,24 +20,24 @@ library ieee,ibm,support,tri,work;
    use ibm.std_ulogic_mux_support.all; 
 
 ENTITY fuq_byp IS
-generic(       expand_type               : integer := 2  ); 
+generic(       expand_type               : integer := 2  ); -- 0 - ibm tech, 1 - other );
 PORT(
        vdd                                       :inout power_logic;
        gnd                                       :inout power_logic;
-       clkoff_b                                  :in   std_ulogic; 
-       act_dis                                   :in   std_ulogic; 
-       flush                                     :in   std_ulogic; 
-       delay_lclkr                               :in   std_ulogic; 
-       mpw1_b                                    :in   std_ulogic; 
-       mpw2_b                                    :in   std_ulogic; 
+       clkoff_b                                  :in   std_ulogic; -- tiup
+       act_dis                                   :in   std_ulogic; -- ??tidn??
+       flush                                     :in   std_ulogic; -- ??tidn??
+       delay_lclkr                               :in   std_ulogic; -- tidn,
+       mpw1_b                                    :in   std_ulogic; -- tidn,
+       mpw2_b                                    :in   std_ulogic; -- tidn,
        sg_1                                      :in   std_ulogic;
        thold_1                                   :in   std_ulogic;
-       fpu_enable                                :in   std_ulogic; 
+       fpu_enable                                :in   std_ulogic; --dc_act
        nclk                                      :in   clk_logic;
 
-       f_byp_si                  :in   std_ulogic; 
-       f_byp_so                  :out  std_ulogic; 
-       rf1_act                   :in   std_ulogic; 
+       f_byp_si                  :in   std_ulogic; --perv
+       f_byp_so                  :out  std_ulogic; --perv
+       rf1_act                   :in   std_ulogic; --act
 
        f_dcd_rf1_bypsel_a_res0   :in   std_ulogic;
        f_dcd_rf1_bypsel_a_res1   :in   std_ulogic;
@@ -83,15 +83,15 @@ PORT(
      
        f_fpr_rf1_a_sign           :in  std_ulogic;
        f_fpr_rf1_a_expo           :in  std_ulogic_vector(1 to 13);
-       f_fpr_rf1_a_frac           :in  std_ulogic_vector(0 to 52); 
+       f_fpr_rf1_a_frac           :in  std_ulogic_vector(0 to 52); --[0] is implicit bit
 
        f_fpr_rf1_c_sign           :in  std_ulogic;
        f_fpr_rf1_c_expo           :in  std_ulogic_vector(1 to 13);
-       f_fpr_rf1_c_frac           :in  std_ulogic_vector(0 to 52); 
+       f_fpr_rf1_c_frac           :in  std_ulogic_vector(0 to 52); --[0] is implicit bit
 
        f_fpr_rf1_b_sign           :in  std_ulogic;
        f_fpr_rf1_b_expo           :in  std_ulogic_vector(1 to 13);
-       f_fpr_rf1_b_frac           :in  std_ulogic_vector(0 to 52); 
+       f_fpr_rf1_b_frac           :in  std_ulogic_vector(0 to 52); --[0] is implicit bit
 
        f_dcd_rf1_aop_valid        :in  std_ulogic;
        f_dcd_rf1_cop_valid        :in  std_ulogic;
@@ -123,24 +123,19 @@ PORT(
        f_byp_fmt_ex1_c_frac       :out std_ulogic_vector(0 to 52);
        f_byp_fmt_ex1_b_frac       :out std_ulogic_vector(0 to 52);
        f_byp_alg_ex1_b_frac       :out std_ulogic_vector(0 to 52);
-       f_byp_mul_ex1_a_frac       :out std_ulogic_vector(0 to 52) ;
-       f_byp_mul_ex1_a_frac_17    :out std_ulogic                 ;
-       f_byp_mul_ex1_a_frac_35    :out std_ulogic                 ;
-       f_byp_mul_ex1_c_frac       :out std_ulogic_vector(0 to 53)  
+       f_byp_mul_ex1_a_frac       :out std_ulogic_vector(0 to 52) ;--mul
+       f_byp_mul_ex1_a_frac_17    :out std_ulogic                 ;--mul
+       f_byp_mul_ex1_a_frac_35    :out std_ulogic                 ;--mul
+       f_byp_mul_ex1_c_frac       :out std_ulogic_vector(0 to 53)  --mul
 
 
 );
 
 -- synopsys translate_off
-
-
-
-
-
 -- synopsys translate_on
 
 
-end fuq_byp; 
+end fuq_byp; -- ENTITY
 
 architecture fuq_byp of fuq_byp is
 
@@ -152,6 +147,17 @@ architecture fuq_byp of fuq_byp is
   constant expo_zero    :std_ulogic_vector(1 to 13) := "0000000000001";
   constant expo_bias    :std_ulogic_vector(1 to 13) := "0001111111111";
   constant expo_bias_m1 :std_ulogic_vector(1 to 13) := "0001111111110";
+      ----------------------------------
+      -- 57-bias is done after Ea+Ec-Eb
+      ----------------------------------
+      -- bias + 162 - 56
+      -- bias + 106        1023+106 = 1129
+      --
+      -- 0_0011_1111_1111
+      --         110 1010 106 =
+      -------------------------------
+      -- 0 0100 0110 1001
+      -------------------------------
 
   signal  rf1_c_k_expo       :std_ulogic_vector(1 to 13);
   signal  rf1_b_k_expo       :std_ulogic_vector(1 to 13);
@@ -342,14 +348,6 @@ architecture fuq_byp of fuq_byp is
 
 
 
-
-
-
-
-
-
-
-
 -- synopsys translate_on
 
  signal ex1_b_frac_alg :std_ulogic_vector(0 to 52);        
@@ -388,6 +386,9 @@ begin
             or_reduce( rf1_b_k_frac(2 to 52) ) ;
 
 
+--#=##############################################################
+--# pervasive
+--#=##############################################################
 
     
     thold_reg_0:  tri_plat  generic map (expand_type => expand_type) port map (
@@ -417,13 +418,16 @@ begin
 
 
 
+--#=##############################################################
+--# act
+--#=##############################################################
 
 
     act_lat:  tri_rlmreg_p generic map (width=> 4, expand_type => expand_type, needs_sreset => 0 ) port map ( 
-        delay_lclkr =>  delay_lclkr ,
-        mpw1_b      =>  mpw1_b      ,
-        mpw2_b      =>  mpw2_b      ,
-        forcee => forcee,
+        delay_lclkr =>  delay_lclkr ,-- tidn ,--in
+        mpw1_b      =>  mpw1_b      ,-- tidn ,--in
+        mpw2_b      =>  mpw2_b      ,-- tidn ,--in
+        forcee => forcee,-- tidn ,--in
 
         vd               => vdd,
         gd               => gnd,
@@ -433,10 +437,12 @@ begin
         sg               => sg_0, 
         scout            => act_so  ,                      
         scin             => act_si  ,                    
+        -------------------
          din(0)             => spare_unused(0),
          din(1)             => spare_unused(1),
          din(2)             => spare_unused(2),
          din(3)             => spare_unused(3),
+        -------------------
         dout(0)             => spare_unused(0),
         dout(1)             => spare_unused(1),
         dout(2)             => spare_unused(2) ,
@@ -444,25 +450,26 @@ begin
 
 
     byp_ex1_lcb : tri_lcbnd generic map (expand_type => expand_type) port map(
-        delay_lclkr =>  delay_lclkr ,
-        mpw1_b      =>  mpw1_b      ,
-        mpw2_b      =>  mpw2_b      ,
-        forcee => forcee,
-        nclk        =>  nclk                 ,
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        act         =>  rf1_act              ,
-        sg          =>  sg_0                 ,
-        thold_b     =>  thold_0_b            ,
-        d1clk       =>  byp_ex1_d1clk        ,
-        d2clk       =>  byp_ex1_d2clk        ,
-        lclk        =>  byp_ex1_lclk        );
+        delay_lclkr =>  delay_lclkr ,-- tidn ,--in
+        mpw1_b      =>  mpw1_b      ,-- tidn ,--in
+        mpw2_b      =>  mpw2_b      ,-- tidn ,--in
+        forcee => forcee,-- tidn ,--in
+        nclk        =>  nclk                 ,--in
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        act         =>  rf1_act              ,--in
+        sg          =>  sg_0                 ,--in
+        thold_b     =>  thold_0_b            ,--in
+        d1clk       =>  byp_ex1_d1clk        ,--out
+        d2clk       =>  byp_ex1_d2clk        ,--out
+        lclk        =>  byp_ex1_lclk        );--out
 
 
 
 
-
-
+--=================================================
+-- Constants for the immediate data
+--=================================================
 
       rf1_a_k_expo(1 to  2) <= tidn & tidn ;
       rf1_a_k_expo(3 to 13) <=
@@ -474,23 +481,23 @@ begin
       rf1_c_k_expo(1 to  3) <= tidn & tidn & tidn ;
       rf1_c_k_expo(4 to 12) <= (4 to 12 => tiup);
       rf1_c_k_expo(13) <=
-            ( not cop_uc_imm          and expo_bias(13)    ) or  
-            ( f_dcd_rf1_uc_fc_1_0     and expo_bias(13)    ) or  
-            ( f_dcd_rf1_uc_fc_0_5     and expo_bias_m1(13) ) or  
-            ( f_dcd_rf1_uc_fc_1_minus and expo_bias_m1(13) ) ;   
-
+            ( not cop_uc_imm          and expo_bias(13)    ) or  -- non divide
+            ( f_dcd_rf1_uc_fc_1_0     and expo_bias(13)    ) or  -- div/sqrt
+            ( f_dcd_rf1_uc_fc_0_5     and expo_bias_m1(13) ) or  -- div/sqrt
+            ( f_dcd_rf1_uc_fc_1_minus and expo_bias_m1(13) ) ;   -- div/sqrt
 
       rf1_b_k_expo(1 to  3) <= tidn & tidn & tidn ;
       rf1_b_k_expo(4 to 13) <=
-            ( (4 to 13=> not bop_uc_imm      ) and expo_zero(4 to 13)    ) or  
-            ( (4 to 13=> f_dcd_rf1_uc_fb_1_0 ) and expo_bias(4 to 13)    ) or  
-            ( (4 to 13=> f_dcd_rf1_uc_fb_0_5 ) and expo_bias_m1(4 to 13) ) or  
-            ( (4 to 13=> f_dcd_rf1_uc_fb_0_75) and expo_bias_m1(4 to 13) ) ;   
+            ( (4 to 13=> not bop_uc_imm      ) and expo_zero(4 to 13)    ) or  -- non divide
+            ( (4 to 13=> f_dcd_rf1_uc_fb_1_0 ) and expo_bias(4 to 13)    ) or  -- div/sqrt
+            ( (4 to 13=> f_dcd_rf1_uc_fb_0_5 ) and expo_bias_m1(4 to 13) ) or  -- div/sqrt
+            ( (4 to 13=> f_dcd_rf1_uc_fb_0_75) and expo_bias_m1(4 to 13) ) ;   -- div/sqrt
 
 
       rf1_a_k_frac(0 to 52) <= tidn & (1 to 52 => tidn);
 
-      rf1_c_k_frac(0)       <= not f_dcd_rf1_div_beg ; 
+      -- c is invalid for divide , a is valid ... but want multiplier output to be zero for divide first step (prenorm)
+      rf1_c_k_frac(0)       <= not f_dcd_rf1_div_beg ; -- tiup ;
       rf1_c_k_frac(1 to 52) <= (1 to 52 => f_dcd_rf1_uc_fc_1_minus);
             
       rf1_b_k_frac(0)       <= bop_uc_imm ;
@@ -498,8 +505,12 @@ begin
       rf1_b_k_frac(2 to 52) <= (2 to 52 => tidn);
 
 
+ --=====================================================================
+ -- selects for operand bypass muxes (also known as: data forwarding )
+ --=====================================================================
 
 
+      -- forcing invalid causes selection of immediate data
 
       cop_uc_imm  <= f_dcd_rf1_uc_fc_0_5 or f_dcd_rf1_uc_fc_1_0 or f_dcd_rf1_uc_fc_1_minus ;
       bop_uc_imm  <= f_dcd_rf1_uc_fb_0_5 or f_dcd_rf1_uc_fb_1_0 or f_dcd_rf1_uc_fb_0_75 ;
@@ -556,6 +567,9 @@ begin
       sel_b_load1 <=     bop_valid_plus and f_dcd_rf1_bypsel_b_load1 ;
 
       
+       --------------------------
+       -- sign bit data forwarding
+       --------------------------
 
                   ex6_sign_res_ear  <=  f_rnd_ex6_res_sign; 
                   ex6_sign_res_dly  <=  f_fpr_ex7_frt_sign;
@@ -574,10 +588,13 @@ fwd_b_sign_pre1:  rf1_b_sign_pre1_b <= not( ( sel_b_res0_s  and  ex6_sign_res_ea
 fwd_b_sign_pre2:  rf1_b_sign_pre2_b <= not( ( sel_b_load0_s and  ex6_sign_lod_ear  ) or ( sel_b_load1_s and  ex6_sign_lod_dly  ) );
 fwd_b_sign_pre:   rf1_b_sign_pre    <= not( rf1_b_sign_pre1_b and rf1_b_sign_pre2_b );
 
-                  rf1_a_sign_prebyp <= rf1_a_sign_pre ; 
-                  rf1_c_sign_prebyp <= rf1_c_sign_pre ; 
-                  rf1_b_sign_prebyp <= rf1_b_sign_pre ; 
+                  rf1_a_sign_prebyp <= rf1_a_sign_pre ; -- may need to manually rebuffer
+                  rf1_c_sign_prebyp <= rf1_c_sign_pre ; -- may need to manually rebuffer
+                  rf1_b_sign_prebyp <= rf1_b_sign_pre ; -- may need to manually rebuffer
 
+       --------------------------
+       -- exponent data forwarding
+       --------------------------
 
        ex6_load_expo(1 to 13)    <= tidn & tidn & f_fpr_ex6_load_expo(3 to 13) ; 
        ex6_expo_res_ear(1 to 13) <= f_rnd_ex6_res_expo(1 to 13);
@@ -760,10 +777,13 @@ fwd_b_expo_pre_12: rf1_b_expo_pre(12) <= not( rf1_b_expo_pre1_b(12) and rf1_b_ex
 fwd_b_expo_pre_13: rf1_b_expo_pre(13) <= not( rf1_b_expo_pre1_b(13) and rf1_b_expo_pre2_b(13) and rf1_b_expo_pre3_b(13) );
 
 
-                    rf1_a_expo_prebyp(1 to 13) <= rf1_a_expo_pre(1 to 13); 
-                    rf1_c_expo_prebyp(1 to 13) <= rf1_c_expo_pre(1 to 13); 
-                    rf1_b_expo_prebyp(1 to 13) <= rf1_b_expo_pre(1 to 13); 
+                    rf1_a_expo_prebyp(1 to 13) <= rf1_a_expo_pre(1 to 13); -- may need to manually repower
+                    rf1_c_expo_prebyp(1 to 13) <= rf1_c_expo_pre(1 to 13); -- may need to manually repower
+                    rf1_b_expo_prebyp(1 to 13) <= rf1_b_expo_pre(1 to 13); -- may need to manually repower
 
+       --------------------------
+       -- fraction
+       --------------------------
 
        ex6_frac_res_ear(0 to 52) <=  f_rnd_ex6_res_frac(0 to 52);
        ex6_frac_res_dly(0 to 52) <=  f_fpr_ex7_frt_frac(0 to 52); 
@@ -1336,12 +1356,12 @@ fwd_b_frac_pre_52:  rf1_b_frac_pre(52) <= not( rf1_b_frac_pre1_b(52) and rf1_b_f
 
        
 
-       rf1_a_frac_prebyp(0 to 52) <= rf1_a_frac_pre(0 to 52);
+       rf1_a_frac_prebyp(0 to 52) <= rf1_a_frac_pre(0 to 52);-- may need to manually repower
        rf1_c_frac_prebyp(0 to 52) <= rf1_c_frac_pre(0 to 52);
        rf1_b_frac_prebyp(0 to 52) <= rf1_b_frac_pre(0 to 52);
        rf1_c_frac_prebyp_hulp     <= rf1_c_frac_pre_hulp ;
 
- rf1_a_sign_fpr <= f_fpr_rf1_a_sign ; 
+ rf1_a_sign_fpr <= f_fpr_rf1_a_sign ; -- later on we may map in some inverters
  rf1_c_sign_fpr <= f_fpr_rf1_c_sign ;
  rf1_b_sign_fpr <= f_fpr_rf1_b_sign ;
  rf1_a_expo_fpr(1 to 13) <= f_fpr_rf1_a_expo(1 to 13) ;
@@ -1351,6 +1371,10 @@ fwd_b_frac_pre_52:  rf1_b_frac_pre(52) <= not( rf1_b_frac_pre1_b(52) and rf1_b_f
  rf1_c_frac_fpr(0 to 52) <= f_fpr_rf1_c_frac(0 to 52) ;
  rf1_b_frac_fpr(0 to 52) <= f_fpr_rf1_b_frac(0 to 52) ;
 
+-----------------------------------------------------------------------------------------
+-- for the last level, need a seperate copy for each latch for the pass gate rules
+--   (fpr is the late path ... so the mux is hierarchical to speed up that path)
+-----------------------------------------------------------------------------------------
 
 fwd_a_sign_fmt:    rf1_a_sign_fmt_b           <= not( (              sel_a_no_byp_s    and rf1_a_sign_fpr           ) or   rf1_a_sign_prebyp             );
 fwd_a_sign_pic:    rf1_a_sign_pic_b           <= not( (              sel_a_no_byp_s    and rf1_a_sign_fpr           ) or   rf1_a_sign_prebyp             );
@@ -1394,53 +1418,57 @@ fwd_b_frac_alg_24: rf1_b_frac_alg_b(24 to 52) <= not( ( (24 to 52 => sel_b_no_by
 
 
 
+--====================================================================
+--== ex1 operand latches
+--====================================================================
 
+  ------------------ FRACTION ---------------------------------------
 
 
 
 
 
     ex1_frac_b_alg_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 53, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  ex1_b_frac_si              ,
-        SCANOUT      =>  ex1_b_frac_so              ,
-        D            =>  rf1_b_frac_alg_b(0 to 52)  ,
-        QB           =>  ex1_b_frac_alg  (0 to 52) );
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  ex1_b_frac_si              ,--in
+        SCANOUT      =>  ex1_b_frac_so              ,--in
+        D            =>  rf1_b_frac_alg_b(0 to 52)  ,--in
+        QB           =>  ex1_b_frac_alg  (0 to 52) );--out
 
     ex1_frac_a_fmt_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 53, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  ex1_frac_a_fmt_si          ,
-        SCANOUT      =>  ex1_frac_a_fmt_so          ,
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  ex1_frac_a_fmt_si          ,--in
+        SCANOUT      =>  ex1_frac_a_fmt_so          ,--in
         D(0 to 52)   =>  rf1_a_frac_fmt_b(0 to 52)  ,
         QB(0 to 52)  =>  ex1_a_frac_fmt  (0 to 52) );
 
     ex1_frac_c_fmt_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 53, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  ex1_frac_c_fmt_si          ,
-        SCANOUT      =>  ex1_frac_c_fmt_so          ,
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  ex1_frac_c_fmt_si          ,--in
+        SCANOUT      =>  ex1_frac_c_fmt_so          ,--in
         D(0 to 52)   =>  rf1_c_frac_fmt_b(0 to 52)  ,
         QB(0 to 52)  =>  ex1_c_frac_fmt  (0 to 52) );
 
     ex1_frac_b_fmt_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 53, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  ex1_frac_b_fmt_si          ,
-        SCANOUT      =>  ex1_frac_b_fmt_so          ,
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  ex1_frac_b_fmt_si          ,--in
+        SCANOUT      =>  ex1_frac_b_fmt_so          ,--in
         D(0 to 52)   =>  rf1_b_frac_fmt_b(0 to 52)  ,
         QB(0 to 52)  =>  ex1_b_frac_fmt  (0 to 52) );
 
@@ -1457,25 +1485,25 @@ fwd_b_frac_alg_24: rf1_b_frac_alg_b(24 to 52) <= not( ( (24 to 52 => sel_b_no_by
 
 
     ex1_frac_c_mul_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 54, btr => "NLI0001_X4_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  frac_mul_c_si              ,
-        SCANOUT      =>  frac_mul_c_so              ,
-        D(0 to 52)   => temp_rf1_c_frac_mul(0 to 52)   ,
-        D(53)        => temp_rf1_c_frac_mul(53)        ,
-        QB           => ex1_c_frac_mul_b(0 to 53)  );
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  frac_mul_c_si              ,--in
+        SCANOUT      =>  frac_mul_c_so              ,--in
+        D(0 to 52)   => temp_rf1_c_frac_mul(0 to 52)   ,--in
+        D(53)        => temp_rf1_c_frac_mul(53)        ,--in  -- f_dcd_rf1_uc_fc_hulp,
+        QB           => ex1_c_frac_mul_b(0 to 53)  );--out
 
     ex1_frac_a_mul_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 55, btr => "NLI0001_X4_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  frac_mul_a_si              ,
-        SCANOUT      =>  frac_mul_a_so              ,
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in  --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  frac_mul_a_si              ,--in
+        SCANOUT      =>  frac_mul_a_so              ,--in
         D( 0)            => temp_rf1_a_frac_mul(0)  ,
         D( 1)            => temp_rf1_a_frac_mul(17) ,
         D( 2)            => temp_rf1_a_frac_mul(35) ,
@@ -1527,13 +1555,14 @@ fwd_b_frac_alg_24: rf1_b_frac_alg_b(24 to 52) <= not( ( (24 to 52 => sel_b_no_by
         D(48)            => temp_rf1_a_frac_mul(16) ,
         D(49)            => temp_rf1_a_frac_mul(33) ,
         D(50)            => temp_rf1_a_frac_mul(51) ,
-        D(51)            => temp_rf1_a_frac_mul_17  , 
+        D(51)            => temp_rf1_a_frac_mul_17  , -- copy of 17 for bit stacking
         D(52)            => temp_rf1_a_frac_mul(34) ,
         D(53)            => temp_rf1_a_frac_mul(52) ,
-        D(54)            => temp_rf1_a_frac_mul_35  , 
+        D(54)            => temp_rf1_a_frac_mul_35  , -- copy of 35 for bit stacking
+        ------------------------------------------
         QB( 0)          => ex1_a_frac_mul_b(0)  ,
-        QB( 1)          => ex1_a_frac_mul_b(17) , 
-        QB( 2)          => ex1_a_frac_mul_b(35) , 
+        QB( 1)          => ex1_a_frac_mul_b(17) , -- real copy of bit 17
+        QB( 2)          => ex1_a_frac_mul_b(35) , -- real copy of bit 35
         QB( 3)          => ex1_a_frac_mul_b(1)  ,
         QB( 4)          => ex1_a_frac_mul_b(18) ,
         QB( 5)          => ex1_a_frac_mul_b(36) ,
@@ -1582,10 +1611,10 @@ fwd_b_frac_alg_24: rf1_b_frac_alg_b(24 to 52) <= not( ( (24 to 52 => sel_b_no_by
         QB(48)          => ex1_a_frac_mul_b(16) ,
         QB(49)          => ex1_a_frac_mul_b(33) ,
         QB(50)          => ex1_a_frac_mul_b(51) ,
-        QB(51)          => ex1_a_frac_mul_17_b  , 
+        QB(51)          => ex1_a_frac_mul_17_b  , -- copy of 17 for bit stacking
         QB(52)          => ex1_a_frac_mul_b(34) ,
         QB(53)          => ex1_a_frac_mul_b(52) ,
-        QB(54)          => ex1_a_frac_mul_35_b ); 
+        QB(54)          => ex1_a_frac_mul_35_b ); -- copy of 35 for bit stacking
 
 
   bfa_oinv:   f_byp_alg_ex1_b_frac(0 to 52) <= not ex1_b_frac_alg_b(0 to 52) ;
@@ -1598,116 +1627,117 @@ fwd_b_frac_alg_24: rf1_b_frac_alg_b(24 to 52) <= not( ( (24 to 52 => sel_b_no_by
  cfm_oinv:    f_byp_mul_ex1_c_frac(0 to 53) <= not ex1_c_frac_mul_b(0 to 53) ;
 
 
+  ------------------ EXPONENT SIGN ----------------------------------
 
     ex1_expo_b_alg_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 14, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  ex1_expo_b_alg_si          ,
-        SCANOUT      =>  ex1_expo_b_alg_so          ,
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  ex1_expo_b_alg_si          ,--in
+        SCANOUT      =>  ex1_expo_b_alg_so          ,--in
         D(0)         =>  rf1_b_sign_alg_b           ,
         D(1 to 13)   =>  rf1_b_expo_alg_b(1 to 13)  ,
         QB(0)        =>  ex1_b_sign_alg             ,
         QB(1 to 13)  =>  ex1_b_expo_alg  (1 to 13) );
 
     ex1_expo_c_alg_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 13, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  ex1_expo_c_alg_si          ,
-        SCANOUT      =>  ex1_expo_c_alg_so          ,
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  ex1_expo_c_alg_si          ,--in
+        SCANOUT      =>  ex1_expo_c_alg_so          ,--in
         D            =>  rf1_c_expo_alg_b(1 to 13)  ,
         QB           =>  ex1_c_expo_alg  (1 to 13) );
 
     ex1_expo_a_alg_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 13, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  ex1_expo_a_alg_si          ,
-        SCANOUT      =>  ex1_expo_a_alg_so          ,
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  ex1_expo_a_alg_si          ,--in
+        SCANOUT      =>  ex1_expo_a_alg_so          ,--in
         D            =>  rf1_a_expo_alg_b(1 to 13)  ,
         QB           =>  ex1_a_expo_alg  (1 to 13) );
 
 
     ex1_expo_b_fmt_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 14, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  ex1_expo_b_fmt_si          ,
-        SCANOUT      =>  ex1_expo_b_fmt_so          ,
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  ex1_expo_b_fmt_si          ,--in
+        SCANOUT      =>  ex1_expo_b_fmt_so          ,--in
         D(0)         =>  rf1_b_sign_fmt_b           ,
         D(1 to 13)   =>  rf1_b_expo_fmt_b(1 to 13)  ,
         QB(0)        =>  ex1_b_sign_fmt             ,
         QB(1 to 13)  =>  ex1_b_expo_fmt  (1 to 13) );
 
     ex1_expo_a_fmt_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 14, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  ex1_expo_a_fmt_si          ,
-        SCANOUT      =>  ex1_expo_a_fmt_so          ,
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  ex1_expo_a_fmt_si          ,--in
+        SCANOUT      =>  ex1_expo_a_fmt_so          ,--in
         D(0)         =>  rf1_a_sign_fmt_b           ,
         D(1 to 13)   =>  rf1_a_expo_fmt_b(1 to 13)  ,
         QB(0)        =>  ex1_a_sign_fmt             ,
         QB(1 to 13)  =>  ex1_a_expo_fmt  (1 to 13) );
 
     ex1_expo_c_fmt_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 14, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  ex1_expo_c_fmt_si          ,
-        SCANOUT      =>  ex1_expo_c_fmt_so          ,
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  ex1_expo_c_fmt_si          ,--in
+        SCANOUT      =>  ex1_expo_c_fmt_so          ,--in
         D(0)         =>  rf1_c_sign_fmt_b           ,
         D(1 to 13)   =>  rf1_c_expo_fmt_b(1 to 13)  ,
         QB(0)        =>  ex1_c_sign_fmt             ,
         QB(1 to 13)  =>  ex1_c_expo_fmt  (1 to 13) );
 
     ex1_expo_b_eie_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 14, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  ex1_expo_b_eie_si          ,
-        SCANOUT      =>  ex1_expo_b_eie_so          ,
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  ex1_expo_b_eie_si          ,--in
+        SCANOUT      =>  ex1_expo_b_eie_so          ,--in
         D(0)         =>  rf1_b_sign_pic_b           ,
         D(1 to 13)   =>  rf1_b_expo_eie_b(1 to 13)  ,
         QB(0)        =>  ex1_b_sign_pic             ,
         QB(1 to 13)  =>  ex1_b_expo_eie  (1 to 13) );
 
     ex1_expo_a_eie_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 14, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  ex1_expo_a_eie_si          ,
-        SCANOUT      =>  ex1_expo_a_eie_so          ,
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  ex1_expo_a_eie_si          ,--in
+        SCANOUT      =>  ex1_expo_a_eie_so          ,--in
         D(0)         =>  rf1_a_sign_pic_b           ,
         D(1 to 13)   =>  rf1_a_expo_eie_b(1 to 13)  ,
         QB(0)        =>  ex1_a_sign_pic             ,
         QB(1 to 13)  =>  ex1_a_expo_eie  (1 to 13) );
 
     ex1_expo_c_eie_lat:   entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 14, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0   ) port map ( 
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        LCLK         =>  byp_ex1_lclk               ,
-        D1CLK        =>  byp_ex1_d1clk              ,
-        D2CLK        =>  byp_ex1_d2clk              ,
-        SCANIN       =>  ex1_expo_c_eie_si          ,
-        SCANOUT      =>  ex1_expo_c_eie_so          ,
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        LCLK         =>  byp_ex1_lclk               ,--in      --lclk.clk
+        D1CLK        =>  byp_ex1_d1clk              ,--in
+        D2CLK        =>  byp_ex1_d2clk              ,--in
+        SCANIN       =>  ex1_expo_c_eie_si          ,--in
+        SCANOUT      =>  ex1_expo_c_eie_so          ,--in
         D(0)         =>  rf1_c_sign_pic_b           ,
         D(1 to 13)   =>  rf1_c_expo_eie_b(1 to 13)  ,
         QB(0)        =>  ex1_c_sign_pic             ,
@@ -1757,6 +1787,9 @@ fwd_b_frac_alg_24: rf1_b_frac_alg_b(24 to 52) <= not( ( (24 to 52 => sel_b_no_by
   
 
 
+--====================================================================
+--== scan chain
+--====================================================================
 
    act_si(0 to 3)              <= act_so(1 to 3)             & f_byp_si            ;
    ex1_b_frac_si(0 to 52)      <= ex1_b_frac_so(1 to 52)     & act_so(0)           ;
@@ -1778,11 +1811,4 @@ fwd_b_frac_alg_24: rf1_b_frac_alg_b(24 to 52) <= not( ( (24 to 52 => sel_b_no_by
 
 
 
-end; 
-
-
-
-   
-   
-
-
+end; -- fuq_byp ARCHITECTURE

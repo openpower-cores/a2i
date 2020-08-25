@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU SPR - per thread register slice
+--
 library ieee,ibm,support,work,tri; 
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -26,6 +28,7 @@ generic(
 port(
    nclk                             : in  clk_logic;
    
+   -- CHIP IO
    an_ac_ext_interrupt              : in  std_ulogic;
    an_ac_crit_interrupt             : in  std_ulogic;
    an_ac_perf_interrupt             : in  std_ulogic;
@@ -58,10 +61,12 @@ port(
    
    cspr_tspr_rf1_act                : in  std_ulogic;
 
+   -- Read Interface
    cspr_tspr_ex1_instr              : in  std_ulogic_vector(0 to 31);
    cspr_tspr_ex2_tid                : in  std_ulogic;
    tspr_cspr_ex3_tspr_rt            : out std_ulogic_vector(64-regsize to 63);
 
+   -- Write Interface
    dec_spr_ex4_val                  : in  std_ulogic;
    cspr_tspr_ex5_is_mtmsr           : in  std_ulogic;
    cspr_tspr_ex5_is_mtspr           : in  std_ulogic;
@@ -77,11 +82,13 @@ port(
    spr_cpl_ex3_ct_be                : out std_ulogic;
    spr_cpl_ex3_ct_le                : out std_ulogic;
    
+   -- Illegal SPR
    tspr_cspr_illeg_mtspr_b          : out std_ulogic;
    tspr_cspr_illeg_mfspr_b          : out std_ulogic;
    tspr_cspr_hypv_mtspr             : out std_ulogic;
    tspr_cspr_hypv_mfspr             : out std_ulogic;
 
+   -- Interrupt Interface
    cpl_spr_ex5_act                  : in  std_ulogic;
    cpl_spr_ex5_int                  : in  std_ulogic;
    cpl_spr_ex5_gint                 : in  std_ulogic;
@@ -101,6 +108,7 @@ port(
    cpl_spr_ex5_dbsr_ide             : in  std_ulogic;
    spr_cpl_dbsr_ide                 : out std_ulogic;
    
+   -- Async Interrupt Req Interface
    spr_cpl_external_mchk            : out std_ulogic;
    spr_cpl_ext_interrupt            : out std_ulogic;
    spr_cpl_dec_interrupt            : out std_ulogic;
@@ -121,24 +129,29 @@ port(
    tspr_cspr_pm_wake_up             : out std_ulogic;
    tspr_cspr_async_int              : out std_ulogic_vector(0 to 2);
 
+   -- DBELL Int
    cspr_tspr_dbell_pirtag           : in  std_ulogic_vector(50 to 63);
    tspr_cspr_gpir_match             : out std_ulogic;
 
    cspr_tspr_timebase_taps          : in  std_ulogic_vector(0 to 9);
    timer_update                     : in  std_ulogic;
    
+   -- Debug
    spr_cpl_iac1_en                  : out std_ulogic;
    spr_cpl_iac2_en                  : out std_ulogic;
    spr_cpl_iac3_en                  : out std_ulogic;
    spr_cpl_iac4_en                  : out std_ulogic;
    tspr_cspr_freeze_timers          : out std_ulogic;
 
+   -- Flush
    xu_ex4_flush                     : in  std_ulogic;
    xu_ex5_flush                     : in  std_ulogic;
 
+   -- Run State
    xu_iu_single_instr_mode          : out std_ulogic;
    xu_iu_raise_iss_pri              : out std_ulogic;
     
+   -- LiveLock
    cpl_spr_ex5_instr_cpl            : in  std_ulogic;
    cspr_tspr_llen                   : in  std_ulogic;
    cspr_tspr_llpri                  : in  std_ulogic;
@@ -149,6 +162,7 @@ port(
    pc_xu_inj_llbust_attempt         : in  std_ulogic;
    pc_xu_inj_llbust_failed          : in  std_ulogic;
 
+   -- Resets
    pc_xu_inj_wdt_reset              : in  std_ulogic;
    reset_wd_complete                : in  std_ulogic;
    reset_1_complete                 : in  std_ulogic;
@@ -160,15 +174,18 @@ port(
    reset_wd_request                 : out std_ulogic;
    xu_pc_err_wdt_reset              : out std_ulogic;
    
+   -- XER
    spr_byp_ex4_is_mtxer             : out std_ulogic;
    spr_byp_ex4_is_mfxer             : out std_ulogic;   
 
+   -- MSR Override
    cspr_tspr_ram_mode               : in  std_ulogic;
    cspr_tspr_msrovride_en           : in  std_ulogic;
    pc_xu_msrovride_pr               : in  std_ulogic;
    pc_xu_msrovride_gs               : in  std_ulogic;  
    pc_xu_msrovride_de               : in  std_ulogic;  
 
+   -- SPRs
    cpl_spr_dbcr0_edm                : in  std_ulogic;
    lsu_xu_spr_epsc_egs              : in  std_ulogic;
    lsu_xu_spr_epsc_epr              : in  std_ulogic;
@@ -210,6 +227,7 @@ port(
 
    tspr_debug                       : out std_ulogic_vector(0 to 11);
 
+   -- Power
    vdd                              : inout power_logic;
    gnd                              : inout power_logic
 );
@@ -227,11 +245,13 @@ constant DEX5                          : natural := 0;
 constant DEX6                          : natural := 0;
 constant DWR                           : natural := 0;
 constant DX                            : natural := 0;
+-- Types
 subtype s2                            is std_ulogic_vector(0 to 1);
 subtype s3                            is std_ulogic_vector(0 to 2);
 subtype s4                            is std_ulogic_vector(0 to 3);
 subtype s5                            is std_ulogic_vector(0 to 4);
 subtype DO                            is std_ulogic_vector(65-regsize to 64);
+-- SPR Bit Constants
 constant MSR_CM                        : natural := 50;
 constant MSR_GS                        : natural := 51;
 constant MSR_UCLE                      : natural := 52;
@@ -248,6 +268,7 @@ constant MSR_IS                        : natural := 62;
 constant MSR_DS                        : natural := 63;
 constant MSRP_UCLEP                    : natural := 62;
 constant MSRP_DEP                      : natural := 63;
+-- SPR Registers
 signal acop_d         , acop_q         : std_ulogic_vector(32 to 63);
 signal ccr3_d         , ccr3_q         : std_ulogic_vector(62 to 63);
 signal csrr0_d        , csrr0_q        : std_ulogic_vector(64-(eff_ifar) to 63);
@@ -277,6 +298,7 @@ signal tcr_d          , tcr_q          : std_ulogic_vector(52 to 63);
 signal tsr_d          , tsr_q          : std_ulogic_vector(59 to 63);
 signal udec_d         , udec_q         : std_ulogic_vector(32 to 63);
 signal xucr1_d        , xucr1_q        : std_ulogic_vector(59 to 63);
+-- FUNC Scanchain
 constant acop_offset                   : natural := 0;
 constant csrr0_offset                  : natural := acop_offset     + acop_q'length*a2mode;
 constant csrr1_offset                  : natural := csrr0_offset    + csrr0_q'length*a2mode;
@@ -303,117 +325,122 @@ constant tcr_offset                    : natural := srr1_offset     + srr1_q'len
 constant tsr_offset                    : natural := tcr_offset      + tcr_q'length*a2mode;
 constant udec_offset                   : natural := tsr_offset      + tsr_q'length*a2mode;
 constant last_reg_offset               : natural := udec_offset     + udec_q'length*a2mode;
+-- BCFG Scanchain
 constant last_reg_offset_bcfg          : natural := 1;
+-- CCFG Scanchain
 constant ccr3_offset_ccfg              : natural := 0;
 constant msr_offset_ccfg               : natural := ccr3_offset_ccfg + ccr3_q'length;
 constant xucr1_offset_ccfg             : natural := msr_offset_ccfg + msr_q'length;
 constant last_reg_offset_ccfg          : natural := xucr1_offset_ccfg + xucr1_q'length;
+-- DCFG Scanchain
 constant dbcr0_offset_dcfg             : natural := 0;
 constant last_reg_offset_dcfg          : natural := dbcr0_offset_dcfg + dbcr0_q'length;
-signal exx_act_q,             exx_act_d               : std_ulogic_vector(1 to 5);              
-signal ex2_is_mfspr_q,        ex1_is_mfspr            : std_ulogic;                             
-signal ex2_is_mtspr_q,        ex1_is_mtspr            : std_ulogic;                             
-signal ex2_is_mfmsr_q,        ex1_is_mfmsr            : std_ulogic;                             
-signal ex2_instr_q,           ex2_instr_d             : std_ulogic_vector(11 to 20);            
-signal ex3_is_mtxer_q,        ex3_is_mtxer_d          : std_ulogic;                             
-signal ex3_is_mfxer_q,        ex3_is_mfxer_d          : std_ulogic;                             
-signal ex2_rfi_q,             ex2_rfi_d               : std_ulogic;                             
-signal ex2_rfgi_q,            ex2_rfgi_d              : std_ulogic;                             
-signal ex2_rfci_q,            ex1_is_rfci             : std_ulogic;                             
-signal ex2_rfmci_q,           ex1_is_rfmci            : std_ulogic;                             
-signal ex3_rfi_q                                      : std_ulogic;                             
-signal ex3_rfgi_q                                     : std_ulogic;                             
-signal ex3_rfci_q                                     : std_ulogic;                             
-signal ex3_rfmci_q                                    : std_ulogic;                             
-signal ex4_is_mfxer_q                                 : std_ulogic;                             
-signal ex4_is_mtxer_q                                 : std_ulogic;                             
-signal ex4_rfi_q                                      : std_ulogic;                             
-signal ex4_rfgi_q                                     : std_ulogic;                             
-signal ex4_rfci_q                                     : std_ulogic;                             
-signal ex4_rfmci_q                                    : std_ulogic;                             
-signal ex5_val_q,               ex4_val               : std_ulogic;                             
-signal ex5_rfi_q                                      : std_ulogic;                             
-signal ex5_rfgi_q                                     : std_ulogic;                             
-signal ex5_rfci_q                                     : std_ulogic;                             
-signal ex5_rfmci_q                                    : std_ulogic;                             
-signal ex6_val_q,               ex5_val               : std_ulogic;                             
-signal ex6_rfi_q                                      : std_ulogic;                             
-signal ex6_rfgi_q                                     : std_ulogic;                             
-signal ex6_rfci_q                                     : std_ulogic;                             
-signal ex6_rfmci_q                                    : std_ulogic;                             
-signal ex6_wrtee_q                                    : std_ulogic;                             
-signal ex6_wrteei_q                                   : std_ulogic;                             
-signal ex6_is_mtmsr_q                                 : std_ulogic;                             
-signal ex6_is_mtspr_q                                 : std_ulogic;                             
-signal ex6_instr_q                                    : std_ulogic_vector(11 to 20);            
-signal ex6_int_q                                      : std_ulogic;                             
-signal ex6_gint_q                                     : std_ulogic;                             
-signal ex6_cint_q                                     : std_ulogic;                             
-signal ex6_mcint_q                                    : std_ulogic;                             
-signal ex6_nia_q                                      : std_ulogic_vector(62-eff_ifar to 61);   
-signal ex6_esr_q                                      : std_ulogic_vector(0 to 16);             
-signal ex6_mcsr_q                                     : std_ulogic_vector(0 to 14);             
-signal ex6_dbsr_q                                     : std_ulogic_vector(0 to 18);             
-signal ex6_dear_save_q                                : std_ulogic;                             
-signal ex6_dear_update_q                              : std_ulogic;                             
-signal ex6_dear_update_saved_q                        : std_ulogic;                           
-signal ex6_dbsr_update_q                              : std_ulogic;                             
-signal ex6_esr_update_q                               : std_ulogic;                             
-signal ex6_srr0_dec_q                                 : std_ulogic;                             
-signal ex6_force_gsrr_q                               : std_ulogic;                             
-signal ex6_dbsr_ide_q                                 : std_ulogic;                             
-signal ex6_spr_wd_q                                   : std_ulogic_vector(64-regsize to 63);    
-signal fit_tb_tap_q,          fit_tb_tap_d            : std_ulogic;                             
-signal wdog_tb_tap_q,         wdog_tb_tap_d           : std_ulogic;                             
-signal hang_pulse_q,          hang_pulse_d            : std_ulogic_vector(0 to 3);              
-signal lltap_q,               lltap_d                 : std_ulogic;                             
-signal llcnt_q,               llcnt_d                 : std_ulogic_vector(0 to 1);              
-signal msrovride_pr_q                                 : std_ulogic;                             
-signal msrovride_gs_q                                 : std_ulogic;                             
-signal msrovride_de_q                                 : std_ulogic;                             
-signal an_ac_ext_interrupt_q                          : std_ulogic;                             
-signal an_ac_crit_interrupt_q                         : std_ulogic;                             
-signal an_ac_perf_interrupt_q                         : std_ulogic;                             
-signal dear_tmp_q,            dear_tmp_d              : std_ulogic_vector(dear_q'range);        
-signal mux_msr_gs_q,          mux_msr_gs_d            : std_ulogic_vector(0 to 3);              
-signal mux_msr_pr_q,          mux_msr_pr_d            : std_ulogic_vector(0 to 0);              
-signal ex3_tspr_rt_q,         ex3_tspr_rt_d           : std_ulogic_vector(64-regsize to 63);    
-signal err_llbust_attempt_q,  err_llbust_attempt_d    : std_ulogic;                             
-signal err_llbust_failed_q,   err_llbust_failed_d     : std_ulogic;                             
-signal inj_llbust_attempt_q                           : std_ulogic;                             
-signal inj_llbust_failed_q                            : std_ulogic;                             
-signal ex2_rs2_q                                      : std_ulogic_vector(42 to 55);            
-signal ex3_ct_q,              ex3_ct_d                : std_ulogic_vector(0 to 1);              
-signal an_ac_external_mchk_q                          : std_ulogic;                             
-signal mchk_int_q,            mchk_int                : std_ulogic;                             
-signal mchk_interrupt_q,      mchk_interrupt          : std_ulogic;                             
-signal crit_interrupt_q,      crit_interrupt          : std_ulogic;                             
-signal wdog_interrupt_q,      wdog_interrupt          : std_ulogic;                             
-signal dec_interrupt_q,       dec_interrupt           : std_ulogic;                             
-signal udec_interrupt_q,      udec_interrupt          : std_ulogic;                             
-signal perf_interrupt_q,      perf_interrupt          : std_ulogic;                             
-signal fit_interrupt_q,       fit_interrupt           : std_ulogic;                             
-signal ext_interrupt_q,       ext_interrupt           : std_ulogic;                             
-signal single_instr_mode_q,   single_instr_mode_d     : std_ulogic;                             
-signal single_instr_mode_2_q                          : std_ulogic;                             
-signal machine_check_q,       machine_check_d         : std_ulogic;                             
-signal raise_iss_pri_q,       raise_iss_pri_d         : std_ulogic;                             
-signal raise_iss_pri_2_q                              : std_ulogic;                             
-signal epsc_egs_q                                     : std_ulogic;                             
-signal epsc_epr_q                                     : std_ulogic;                             
-signal ex2_epid_instr_q                               : std_ulogic;                             
-signal pc_xu_inj_wdt_reset_q                          : std_ulogic;                             
-signal err_wdt_reset_q,       err_wdt_reset_d         : std_ulogic;                             
-signal ex3_tid_rpwr_q,        ex3_tid_rpwr_d          : std_ulogic_vector(0 to regsize/8-1);    
-signal ram_mode_q                                     : std_ulogic;                             
-signal timebase_taps_q                                : std_ulogic_vector(cspr_tspr_timebase_taps'range);
-signal dbsr_mrr_q,            dbsr_mrr_d              : std_ulogic_vector(0 to 1);              
-signal tsr_wrs_q,             tsr_wrs_d               : std_ulogic_vector(0 to 1);              
-signal iac1_en_q,             iac1_en_d               : std_ulogic;                             
-signal iac2_en_q,             iac2_en_d               : std_ulogic;                             
-signal iac3_en_q,             iac3_en_d               : std_ulogic;                             
-signal iac4_en_q,             iac4_en_d               : std_ulogic;                             
-signal spare_0_q,             spare_0_d               : std_ulogic_vector(0 to 13);             
+-- Latches
+signal exx_act_q,             exx_act_d               : std_ulogic_vector(1 to 5);              -- input=>exx_act_d                  , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex2_is_mfspr_q,        ex1_is_mfspr            : std_ulogic;                             -- input=>ex1_is_mfspr               , act=>exx_act(1)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex2_is_mtspr_q,        ex1_is_mtspr            : std_ulogic;                             -- input=>ex1_is_mtspr               , act=>exx_act(1)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex2_is_mfmsr_q,        ex1_is_mfmsr            : std_ulogic;                             -- input=>ex1_is_mfmsr               , act=>exx_act(1)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex2_instr_q,           ex2_instr_d             : std_ulogic_vector(11 to 20);            -- input=>ex2_instr_d                , act=>exx_act(1)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex3_is_mtxer_q,        ex3_is_mtxer_d          : std_ulogic;                             -- input=>ex3_is_mtxer_d             , act=>exx_act(2)     , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex3_is_mfxer_q,        ex3_is_mfxer_d          : std_ulogic;                             -- input=>ex3_is_mfxer_d             , act=>exx_act(2)     , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex2_rfi_q,             ex2_rfi_d               : std_ulogic;                             -- input=>ex2_rfi_d                  , act=>exx_act(1)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex2_rfgi_q,            ex2_rfgi_d              : std_ulogic;                             -- input=>ex2_rfgi_d                 , act=>exx_act(1)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex2_rfci_q,            ex1_is_rfci             : std_ulogic;                             -- input=>ex1_is_rfci                , act=>exx_act(1)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex2_rfmci_q,           ex1_is_rfmci            : std_ulogic;                             -- input=>ex1_is_rfmci               , act=>exx_act(1)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex3_rfi_q                                      : std_ulogic;                             -- input=>ex2_rfi_q                  , act=>exx_act(2)     , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex3_rfgi_q                                     : std_ulogic;                             -- input=>ex2_rfgi_q                 , act=>exx_act(2)     , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex3_rfci_q                                     : std_ulogic;                             -- input=>ex2_rfci_q                 , act=>exx_act(2)     , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex3_rfmci_q                                    : std_ulogic;                             -- input=>ex2_rfmci_q                , act=>exx_act(2)     , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex4_is_mfxer_q                                 : std_ulogic;                             -- input=>ex3_is_mfxer_q             , act=>exx_act(3)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex4_is_mtxer_q                                 : std_ulogic;                             -- input=>ex3_is_mtxer_q             , act=>exx_act(3)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex4_rfi_q                                      : std_ulogic;                             -- input=>ex3_rfi_q                  , act=>exx_act(3)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex4_rfgi_q                                     : std_ulogic;                             -- input=>ex3_rfgi_q                 , act=>exx_act(3)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex4_rfci_q                                     : std_ulogic;                             -- input=>ex3_rfci_q                 , act=>exx_act(3)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex4_rfmci_q                                    : std_ulogic;                             -- input=>ex3_rfmci_q                , act=>exx_act(3)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex5_val_q,               ex4_val               : std_ulogic;                             -- input=>ex4_val                    , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex5_rfi_q                                      : std_ulogic;                             -- input=>ex4_rfi_q                  , act=>exx_act(4)     , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex5_rfgi_q                                     : std_ulogic;                             -- input=>ex4_rfgi_q                 , act=>exx_act(4)     , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex5_rfci_q                                     : std_ulogic;                             -- input=>ex4_rfci_q                 , act=>exx_act(4)     , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex5_rfmci_q                                    : std_ulogic;                             -- input=>ex4_rfmci_q                , act=>exx_act(4)     , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex6_val_q,               ex5_val               : std_ulogic;                             -- input=>ex5_val                    , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex6_rfi_q                                      : std_ulogic;                             -- input=>ex5_rfi_q                  , act=>exx_act(5)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex6_rfgi_q                                     : std_ulogic;                             -- input=>ex5_rfgi_q                 , act=>exx_act(5)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex6_rfci_q                                     : std_ulogic;                             -- input=>ex5_rfci_q                 , act=>exx_act(5)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex6_rfmci_q                                    : std_ulogic;                             -- input=>ex5_rfmci_q                , act=>exx_act(5)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex6_wrtee_q                                    : std_ulogic;                             -- input=>cspr_tspr_ex5_is_wrtee     , act=>exx_act(5)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex6_wrteei_q                                   : std_ulogic;                             -- input=>cspr_tspr_ex5_is_wrteei    , act=>exx_act(5)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex6_is_mtmsr_q                                 : std_ulogic;                             -- input=>cspr_tspr_ex5_is_mtmsr     , act=>exx_act(5)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex6_is_mtspr_q                                 : std_ulogic;                             -- input=>cspr_tspr_ex5_is_mtspr     , act=>exx_act(5)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex6_instr_q                                    : std_ulogic_vector(11 to 20);            -- input=>cspr_tspr_ex5_instr        , act=>exx_act(5)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex6_int_q                                      : std_ulogic;                             -- input=>cpl_spr_ex5_int            , act=>ex5_int_act    , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_gint_q                                     : std_ulogic;                             -- input=>cpl_spr_ex5_gint           , act=>ex5_int_act    , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_cint_q                                     : std_ulogic;                             -- input=>cpl_spr_ex5_cint           , act=>ex5_int_act    , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_mcint_q                                    : std_ulogic;                             -- input=>cpl_spr_ex5_mcint          , act=>ex5_int_act    , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_nia_q                                      : std_ulogic_vector(62-eff_ifar to 61);   -- input=>cpl_spr_ex5_nia            , act=>ex5_int_act    , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_esr_q                                      : std_ulogic_vector(0 to 16);             -- input=>cpl_spr_ex5_esr   , act=>cpl_spr_ex5_esr_update  , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_mcsr_q                                     : std_ulogic_vector(0 to 14);             -- input=>cpl_spr_ex5_mcsr           , act=>ex5_int_act    , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_dbsr_q                                     : std_ulogic_vector(0 to 18);             -- input=>cpl_spr_ex5_dbsr  , act=>cpl_spr_ex5_dbsr_update , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_dear_save_q                                : std_ulogic;                             -- input=>cpl_spr_ex5_dear_save      , act=>tiup           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_dear_update_q                              : std_ulogic;                             -- input=>cpl_spr_ex5_dear_update    , act=>tiup           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_dear_update_saved_q                        : std_ulogic;                           -- input=>cpl_spr_ex5_dear_update_saved, act=>tiup           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_dbsr_update_q                              : std_ulogic;                             -- input=>cpl_spr_ex5_dbsr_update    , act=>tiup           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_esr_update_q                               : std_ulogic;                             -- input=>cpl_spr_ex5_esr_update     , act=>tiup           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_srr0_dec_q                                 : std_ulogic;                             -- input=>cpl_spr_ex5_srr0_dec       , act=>tiup           , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_force_gsrr_q                               : std_ulogic;                             -- input=>cpl_spr_ex5_force_gsrr     , act=>ex5_int_act    , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_dbsr_ide_q                                 : std_ulogic;                             -- input=>cpl_spr_ex5_dbsr_ide       , act=>ex5_int_act    , scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal ex6_spr_wd_q                                   : std_ulogic_vector(64-regsize to 63);    -- input=>ex5_spr_wd                 , act=>exx_act_data(5), scan=>N, sleep=>N, ring=>func, needs_sreset=>1
+signal fit_tb_tap_q,          fit_tb_tap_d            : std_ulogic;                             -- input=>fit_tb_tap_d               , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal wdog_tb_tap_q,         wdog_tb_tap_d           : std_ulogic;                             -- input=>wdog_tb_tap_d              , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal hang_pulse_q,          hang_pulse_d            : std_ulogic_vector(0 to 3);              -- input=>hang_pulse_d               , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal lltap_q,               lltap_d                 : std_ulogic;                             -- input=>lltap_d                    , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal llcnt_q,               llcnt_d                 : std_ulogic_vector(0 to 1);              -- input=>llcnt_d                    , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal msrovride_pr_q                                 : std_ulogic;                             -- input=>pc_xu_msrovride_pr         , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal msrovride_gs_q                                 : std_ulogic;                             -- input=>pc_xu_msrovride_gs         , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal msrovride_de_q                                 : std_ulogic;                             -- input=>pc_xu_msrovride_de         , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal an_ac_ext_interrupt_q                          : std_ulogic;                             -- input=>an_ac_ext_interrupt        , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal an_ac_crit_interrupt_q                         : std_ulogic;                             -- input=>an_ac_crit_interrupt       , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal an_ac_perf_interrupt_q                         : std_ulogic;                             -- input=>an_ac_perf_interrupt       , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal dear_tmp_q,            dear_tmp_d              : std_ulogic_vector(dear_q'range);        -- input=>dear_tmp_d                 , act=>ex6_dear_save_q, scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal mux_msr_gs_q,          mux_msr_gs_d            : std_ulogic_vector(0 to 3);              -- input=>mux_msr_gs_d               , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>0
+signal mux_msr_pr_q,          mux_msr_pr_d            : std_ulogic_vector(0 to 0);              -- input=>mux_msr_pr_d               , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>0
+signal ex3_tspr_rt_q,         ex3_tspr_rt_d           : std_ulogic_vector(64-regsize to 63);    -- input=>ex3_tspr_rt_d              , act=>exx_act_data(2), scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal err_llbust_attempt_q,  err_llbust_attempt_d    : std_ulogic;                             -- input=>err_llbust_attempt_d       , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal err_llbust_failed_q,   err_llbust_failed_d     : std_ulogic;                             -- input=>err_llbust_failed_d        , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal inj_llbust_attempt_q                           : std_ulogic;                             -- input=>pc_xu_inj_llbust_attempt   , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal inj_llbust_failed_q                            : std_ulogic;                             -- input=>pc_xu_inj_llbust_failed    , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex2_rs2_q                                      : std_ulogic_vector(42 to 55);            -- input=>fxu_spr_ex1_rs2            , act=>exx_act(1)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal ex3_ct_q,              ex3_ct_d                : std_ulogic_vector(0 to 1);              -- input=>ex3_ct_d                   , act=>exx_act(2)     , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal an_ac_external_mchk_q                          : std_ulogic;                             -- input=>an_ac_external_mchk        , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal mchk_int_q,            mchk_int                : std_ulogic;                             -- input=>mchk_int                   , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal mchk_interrupt_q,      mchk_interrupt          : std_ulogic;                             -- input=>mchk_interrupt             , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal crit_interrupt_q,      crit_interrupt          : std_ulogic;                             -- input=>crit_interrupt             , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal wdog_interrupt_q,      wdog_interrupt          : std_ulogic;                             -- input=>wdog_interrupt             , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal dec_interrupt_q,       dec_interrupt           : std_ulogic;                             -- input=>dec_interrupt              , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal udec_interrupt_q,      udec_interrupt          : std_ulogic;                             -- input=>udec_interrupt             , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal perf_interrupt_q,      perf_interrupt          : std_ulogic;                             -- input=>perf_interrupt             , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal fit_interrupt_q,       fit_interrupt           : std_ulogic;                             -- input=>fit_interrupt              , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal ext_interrupt_q,       ext_interrupt           : std_ulogic;                             -- input=>ext_interrupt              , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal single_instr_mode_q,   single_instr_mode_d     : std_ulogic;                             -- input=>single_instr_mode_d        , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal single_instr_mode_2_q                          : std_ulogic;                             -- input=>single_instr_mode_q        , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal machine_check_q,       machine_check_d         : std_ulogic;                             -- input=>machine_check_d            , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal raise_iss_pri_q,       raise_iss_pri_d         : std_ulogic;                             -- input=>raise_iss_pri_d            , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal raise_iss_pri_2_q                              : std_ulogic;                             -- input=>raise_iss_pri_q            , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal epsc_egs_q                                     : std_ulogic;                             -- input=>lsu_xu_spr_epsc_egs        , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal epsc_epr_q                                     : std_ulogic;                             -- input=>lsu_xu_spr_epsc_epr        , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ex2_epid_instr_q                               : std_ulogic;                             -- input=>dec_spr_ex1_epid_instr     , act=>exx_act(1)     , scan=>N, sleep=>N, ring=>func, needs_sreset=>0
+signal pc_xu_inj_wdt_reset_q                          : std_ulogic;                             -- input=>pc_xu_inj_wdt_reset        , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal err_wdt_reset_q,       err_wdt_reset_d         : std_ulogic;                             -- input=>err_wdt_reset_d            , act=>tiup           , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>1
+signal ex3_tid_rpwr_q,        ex3_tid_rpwr_d          : std_ulogic_vector(0 to regsize/8-1);    -- input=>ex3_tid_rpwr_d             , act=>exx_act(2)     , scan=>Y, sleep=>N, ring=>func, needs_sreset=>0
+signal ram_mode_q                                     : std_ulogic;                             -- input=>cspr_tspr_ram_mode         , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal timebase_taps_q                                : std_ulogic_vector(cspr_tspr_timebase_taps'range);-- input=>cspr_tspr_timebase_taps , act=>tiup     , scan=>Y, sleep=>Y, ring=>func, needs_sreset=>0
+signal dbsr_mrr_q,            dbsr_mrr_d              : std_ulogic_vector(0 to 1);              -- input=>dbsr_mrr_d                 , act=>dbsr_mrr_act   , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal tsr_wrs_q,             tsr_wrs_d               : std_ulogic_vector(0 to 1);              -- input=>tsr_wrs_d                  , act=>tsr_wrs_act    , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal iac1_en_q,             iac1_en_d               : std_ulogic;                             -- input=>iac1_en_d                  , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal iac2_en_q,             iac2_en_d               : std_ulogic;                             -- input=>iac2_en_d                  , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal iac3_en_q,             iac3_en_d               : std_ulogic;                             -- input=>iac3_en_d                  , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal iac4_en_q,             iac4_en_d               : std_ulogic;                             -- input=>iac4_en_d                  , act=>tiup           , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal spare_0_q,             spare_0_d               : std_ulogic_vector(0 to 13);             -- input=>spare_0_d,             act=>tiup,
+-- Scanchain
 constant exx_act_offset                            : integer := last_reg_offset;
 constant ex3_is_mtxer_offset                       : integer := exx_act_offset                 + exx_act_q'length;
 constant ex3_is_mfxer_offset                       : integer := ex3_is_mtxer_offset            + 1;
@@ -485,6 +512,7 @@ signal sov_ccfg                        : std_ulogic_vector(0 to scan_right_ccfg-
 constant scan_right_dcfg               : integer := last_reg_offset_dcfg;
 signal siv_dcfg                        : std_ulogic_vector(0 to scan_right_dcfg-1);
 signal sov_dcfg                        : std_ulogic_vector(0 to scan_right_dcfg-1);
+-- Signals
 signal tiup                            : std_ulogic;
 signal tidn                            : std_ulogic_vector(00 to 63);
 signal spare_0_lclk                    : clk_logic;
@@ -555,6 +583,7 @@ signal ex6_gint_nia_sel                : std_ulogic;
 signal fp_precise                      : std_ulogic;
 signal dbsr_di                         : std_ulogic_vector(dbsr_q'range);
 
+-- Data
 signal spr_acop_ct                     : std_ulogic_vector(0 to 31);
 signal spr_ccr3_en_eepri               : std_ulogic;
 signal spr_ccr3_si                     : std_ulogic;
@@ -741,16 +770,17 @@ exx_act_data(5)   <= exx_act(5);
 
 ex5_int_act    <= cpl_spr_ex5_act or cspr_xucr0_clkg_ctl(4);
 
+-- Decode
 ex1_opcode_is_31        <= cspr_tspr_ex1_instr(0 to 5) = "011111";
 ex1_opcode_is_19        <= cspr_tspr_ex1_instr(0 to 5) = "010011";
-ex1_is_mfspr            <= '1' when ex1_opcode_is_31 and cspr_tspr_ex1_instr(21 to 30) = "0101010011" else '0'; 
-ex1_is_mtspr            <= '1' when ex1_opcode_is_31 and cspr_tspr_ex1_instr(21 to 30) = "0111010011" else '0'; 
-ex1_is_mfmsr            <= '1' when ex1_opcode_is_31 and cspr_tspr_ex1_instr(21 to 30) = "0001010011" else '0'; 
-ex1_is_rfi              <= '1' when ex1_opcode_is_19 and cspr_tspr_ex1_instr(21 to 30) = "0000110010" else '0'; 
-ex1_is_rfgi             <= '1' when ex1_opcode_is_19 and cspr_tspr_ex1_instr(21 to 30) = "0001100110" else '0'; 
-ex1_is_rfci             <= '1' when ex1_opcode_is_19 and cspr_tspr_ex1_instr(21 to 30) = "0000110011" else '0'; 
-ex1_is_rfmci            <= '1' when ex1_opcode_is_19 and cspr_tspr_ex1_instr(21 to 30) = "0000100110" else '0'; 
-ex1_is_wrteei           <= '1' when ex1_opcode_is_31 and cspr_tspr_ex1_instr(21 to 30) = "0010100011" else '0'; 
+ex1_is_mfspr            <= '1' when ex1_opcode_is_31 and cspr_tspr_ex1_instr(21 to 30) = "0101010011" else '0'; -- 31/339
+ex1_is_mtspr            <= '1' when ex1_opcode_is_31 and cspr_tspr_ex1_instr(21 to 30) = "0111010011" else '0'; -- 31/467
+ex1_is_mfmsr            <= '1' when ex1_opcode_is_31 and cspr_tspr_ex1_instr(21 to 30) = "0001010011" else '0'; -- 31/083
+ex1_is_rfi              <= '1' when ex1_opcode_is_19 and cspr_tspr_ex1_instr(21 to 30) = "0000110010" else '0'; -- 19/050
+ex1_is_rfgi             <= '1' when ex1_opcode_is_19 and cspr_tspr_ex1_instr(21 to 30) = "0001100110" else '0'; -- 19/102
+ex1_is_rfci             <= '1' when ex1_opcode_is_19 and cspr_tspr_ex1_instr(21 to 30) = "0000110011" else '0'; -- 19/051
+ex1_is_rfmci            <= '1' when ex1_opcode_is_19 and cspr_tspr_ex1_instr(21 to 30) = "0000100110" else '0'; -- 19/038
+ex1_is_wrteei           <= '1' when ex1_opcode_is_31 and cspr_tspr_ex1_instr(21 to 30) = "0010100011" else '0'; -- 31/163
 
 ex2_instr_d    <= gate(cspr_tspr_ex1_instr(11 to 20),(ex1_is_mfspr or ex1_is_mtspr or ex1_is_wrteei));
 
@@ -782,18 +812,23 @@ ex3_tid_rpwr_d <= (others=>cspr_tspr_ex2_tid);
 tb_tap_edge    <= cspr_tspr_timebase_taps and not timebase_taps_q;
 
 
+-- SPR Input Control
+-- ACOP
 acop_act      <= ex6_acop_we;
 acop_d        <= ex6_acop_di;
 
+-- CCR3
 ccr3_act       <= ex6_ccr3_we;
 ccr3_d         <= ex6_ccr3_di;
 
+-- CSRR0
 csrr0_act      <= ex6_csrr0_we or ex6_cint_q;
 
 with ex6_cint_q select
    csrr0_d     <= ex6_nia_srr0               when '1',
                   ex6_csrr0_di               when others;
 
+-- CSRR1
 csrr1_act      <= ex6_csrr1_we or ex6_cint_q;
 
 csrr1_gen_64 : if regsize = 64 generate
@@ -808,12 +843,15 @@ with ex6_cint_q select
    csrr1_d     <= msr_q                      when '1',     
                   ex6_csrr1_d                when others;
 
+-- DBCR0
 dbcr0_act      <= ex6_dbcr0_we;
 dbcr0_d        <= ex6_dbcr0_di;
 
+-- DBCR1
 dbcr1_act      <= ex6_dbcr1_we;
 dbcr1_d        <= ex6_dbcr1_di;
 
+-- DBSR
 reset_complete_act <= or_reduce(reset_complete);
 
 dbsr_mrr_act   <= reset_complete_act or ex6_dbsr_we or ex6_dbsrwr_we;
@@ -824,6 +862,7 @@ dbsr_mrr_d     <= reset_complete                               when reset_comple
 
 dbsr_act       <= ex6_dbsr_we or ex6_dbsrwr_we or ex6_dbsr_update_q;
 
+-- BRT and ICMP event can never set IDE.
 set_dbsr_ide   <= ((ex6_dbsr_q(0) or or_reduce(ex6_dbsr_q(3 to 18))) and not msr_q(60)) or ex6_dbsr_ide_q;
 set_dbsr       <= set_dbsr_ide & ex6_dbsr_q(0 to 18);
 
@@ -832,6 +871,7 @@ dbsr_di        <= ex6_dbsr_di                   when ex6_dbsrwr_we     ='1' else
                   (dbsr_q and not ex6_dbsr_di)  when ex6_dbsr_we       ='1' else
                    dbsr_q;
 
+-- DEAR
 dear_act       <= ex6_dear_we  or (ex6_dear_update_q and not ex6_gint_q);
 
 dear_tmp_d(32 to 63) <= ex6_dear_di(32 to 63);
@@ -845,10 +885,12 @@ with ex6_dear_update_saved_q select
    dear_d      <= dear_tmp_q        when '1',
                   dear_di           when others;
 
+-- GDEAR
 gdear_act      <= ex6_gdear_we or (ex6_dear_update_q and     ex6_gint_q);
 
 gdear_d        <= dear_d;
 
+-- DEC
 dec_running    <= timer_update and not (not spr_tcr_are and ex6_dec_zero) and not cspr_tspr_dec_dbg_dis and not dbcr0_freeze_timers;
 
 dec_act        <= ex6_dec_we or dec_running;
@@ -857,6 +899,7 @@ dec_d          <= ex6_dec_di     when ex6_dec_we                        ='1' els
                   decar_q        when (ex6_set_tsr_dis and spr_tcr_are) ='1' else
                   std_ulogic_vector(unsigned(dec_q) - 1);
 
+-- UDEC
 udec_running   <= timer_update and not ex6_udec_zero and not cspr_tspr_dec_dbg_dis and not dbcr0_freeze_timers;
 
 udec_act       <= ex6_udec_we or udec_running;
@@ -864,42 +907,51 @@ udec_act       <= ex6_udec_we or udec_running;
 udec_d         <= ex6_udec_di     when ex6_udec_we                     ='1' else
                   std_ulogic_vector(unsigned(udec_q) - 1);
                   
+-- DECAR
 decar_act      <= ex6_decar_we;
 decar_d        <= ex6_decar_di;
 
+-- EPCR
 epcr_act       <= ex6_epcr_we;
 epcr_d         <= ex6_epcr_di;
 
+-- ESR
 esr_act        <= ex6_esr_we or (ex6_esr_update_q and ex6_int_q);
 
 esr_d          <= ex6_esr_q   when ex6_esr_update_q         ='1' else
                   ex6_esr_di        when ex6_esr_we                     ='1' else
                   esr_q;
 
+-- GESR
 gesr_act       <= ex6_gesr_we or (ex6_esr_update_q and ex6_gint_q);
 
 gesr_d         <= ex6_esr_q   when ex6_esr_update_q         ='1' else
                   ex6_gesr_di       when ex6_gesr_we                    ='1' else
                   gesr_q;
 
+-- GPIR
 gpir_act       <= ex6_gpir_we;
 gpir_d         <= ex6_gpir_di;
 
+-- HACOP
 hacop_act      <= ex6_hacop_we;
 hacop_d        <= ex6_hacop_di;
 
+-- MCSR
 mcsr_act       <= ex6_mcsr_we or ex6_mcint_q;
 
 mcsr_d         <= ex6_mcsr_q  when ex6_mcint_q              ='1' else
                   ex6_mcsr_di       when ex6_mcsr_we                    ='1' else
                   mcsr_q;
 
+-- MCSRR0
 mcsrr0_act     <= ex6_mcsrr0_we or ex6_mcint_q;
 
 with ex6_mcint_q select
    mcsrr0_d       <= ex6_nia_srr0            when '1',
                      ex6_mcsrr0_di           when others;
 
+-- MCSRR1
 mcsrr1_act     <= ex6_mcsrr1_we or ex6_mcint_q;
 
 mcsrr1_gen_64 : if regsize = 64 generate
@@ -914,11 +966,15 @@ with ex6_mcint_q select
    mcsrr1_d       <= msr_q                   when '1',
                      ex6_mcsrr1_d            when others;
 
+-- MSR
 msr_act        <= cspr_xucr0_clkg_ctl(4) or 
                   ex6_any_int or ex6_msr_we or
                   ex6_wrteei_q or ex6_wrtee_q or
                   ex6_rfi_q or ex6_rfgi_q or ex6_rfci_q or ex6_rfmci_q;
 
+-- CM GS UCLE SPV CE EE PR FP ME FE0 DE FE1 IS DS
+-- 50 51 52   53  54 55 56 57 58 59  60 61  62 63
+--       X                           X             MSRP
 
 with (msrp_q(MSRP_UCLEP) and msr_q(MSR_GS)) select
    ex6_msr_di2(MSR_UCLE)            <= msr_q(MSR_UCLE)         when '1',
@@ -934,17 +990,19 @@ ex6_msr_di2(MSR_SPV to MSR_FE0)     <= ex6_msr_di(MSR_SPV to MSR_FE0);
 ex6_msr_di2(MSR_FE1 to MSR_DS)      <= ex6_msr_di(MSR_FE1 to MSR_DS);
 
 
-ex6_msr_mask(MSR_CM)             <= '0';                                                     
-ex6_msr_mask(MSR_GS)             <= ex6_any_hint;                                            
-ex6_msr_mask(MSR_UCLE)           <= ex6_any_hint or (ex6_gint_q and not msrp_q(MSRP_UCLEP)); 
-ex6_msr_mask(MSR_SPV)            <= ex6_any_int;                                             
-ex6_msr_mask(MSR_CE)             <= ex6_mcint_q or ex6_cint_q;                               
-ex6_msr_mask(MSR_EE)             <= ex6_any_int;                                             
-ex6_msr_mask(MSR_PR to MSR_FP)   <= (others=>ex6_any_int);                                   
-ex6_msr_mask(MSR_ME)             <= ex6_mcint_q;                                             
-ex6_msr_mask(MSR_FE0)            <= ex6_any_int;                                             
-ex6_msr_mask(MSR_DE)             <= ex6_mcint_q or ex6_cint_q;                               
-ex6_msr_mask(MSR_FE1 to MSR_DS)  <= (others=>ex6_any_int);                                   
+-- 0 leave unchanged
+-- 1 clear
+ex6_msr_mask(MSR_CM)             <= '0';                                                     -- CM
+ex6_msr_mask(MSR_GS)             <= ex6_any_hint;                                            -- GS
+ex6_msr_mask(MSR_UCLE)           <= ex6_any_hint or (ex6_gint_q and not msrp_q(MSRP_UCLEP)); -- UCLE
+ex6_msr_mask(MSR_SPV)            <= ex6_any_int;                                             -- SPV
+ex6_msr_mask(MSR_CE)             <= ex6_mcint_q or ex6_cint_q;                               -- CE
+ex6_msr_mask(MSR_EE)             <= ex6_any_int;                                             -- EE
+ex6_msr_mask(MSR_PR to MSR_FP)   <= (others=>ex6_any_int);                                   -- PR,FP
+ex6_msr_mask(MSR_ME)             <= ex6_mcint_q;                                             -- ME
+ex6_msr_mask(MSR_FE0)            <= ex6_any_int;                                             -- FE0
+ex6_msr_mask(MSR_DE)             <= ex6_mcint_q or ex6_cint_q;                               -- DE
+ex6_msr_mask(MSR_FE1 to MSR_DS)  <= (others=>ex6_any_int);                                   -- FE1,IS,DS
                      
 with s5'(ex6_rfi & ex6_rfgi & ex6_rfci & ex6_rfmci & ex6_msr_we) select
    ex6_msr_mux    <= srr1_q                  when "10000",
@@ -958,9 +1016,9 @@ ex6_msr_in(51 to 54) <= ex6_msr_mux(51 to 54);
 ex6_msr_in(56 to 63) <= ex6_msr_mux(56 to 63);
 
 with s2'(ex6_any_hint & ex6_gint_q) select
-   ex6_msr_in(MSR_CM)   <= spr_epcr_icm            when "10",     
-                           spr_epcr_gicm           when "01",     
-                           ex6_msr_mux(MSR_CM)     when others;   
+   ex6_msr_in(MSR_CM)   <= spr_epcr_icm            when "10",     --  ICM
+                           spr_epcr_gicm           when "01",     -- GICM
+                           ex6_msr_mux(MSR_CM)     when others;   --   CM
 
 with s2'(ex6_wrteei & ex6_wrtee) select
    ex6_msr_in(MSR_EE)   <= ex6_instr_q(16)         when "10",
@@ -975,6 +1033,7 @@ msr_gen_32 : if regsize = 32 generate
    msr_d(MSR_GS to MSR_DS) <= ex6_msr_in(MSR_GS to MSR_DS) and not ex6_msr_mask(MSR_GS to MSR_DS);
 end generate;
 
+-- rfgi msr
 ex6_rfgi_msr(MSR_CM)                <= gsrr1_q(MSR_CM);
 ex6_rfgi_msr(MSR_SPV to MSR_FE0)    <= gsrr1_q(MSR_SPV to MSR_FE0);
 ex6_rfgi_msr(MSR_FE1 to MSR_DS)     <= gsrr1_q(MSR_FE1 to MSR_DS);
@@ -991,11 +1050,14 @@ with (msrp_q(MSRP_DEP)   and msr_q(MSR_GS)) select
    ex6_rfgi_msr(MSR_DE)                <= msr_q(MSR_DE)        when '1',
                                           gsrr1_q(MSR_DE)      when others;
 
+-- MSRP
 msrp_act       <= ex6_msrp_we;
 msrp_d         <= ex6_msrp_di;
 
+-- SRR0
 srr0_act       <= ex6_srr0_we or (ex6_int_q and not ex6_force_gsrr_q);
 
+-- Subtract one for enabled program interrupts
 ex6_nia_srr0_dec <= (ex6_nia_q'left to 60=>'0') & ex6_srr0_dec_q;
 ex6_nia_srr0      <= std_ulogic_vector(unsigned(ex6_nia_q) - unsigned(ex6_nia_srr0_dec));
 
@@ -1003,6 +1065,7 @@ with ex6_int_q select
    srr0_d      <= ex6_nia_srr0               when '1',
                   ex6_srr0_di                when others;
 
+-- SRR1
 srr1_act       <= ex6_srr1_we or (ex6_int_q and not ex6_force_gsrr_q);
 
 srr1_gen_64 : if regsize = 64 generate
@@ -1018,6 +1081,7 @@ with ex6_int_q select
                   ex6_srr1_d                 when others;
 
 
+-- GSRR0
 ex6_gint_nia_sel               <= ex6_gint_q or (ex6_int_q and ex6_force_gsrr_q);
 
 gsrr0_act      <= ex6_gsrr0_we or ex6_gint_nia_sel;
@@ -1027,6 +1091,7 @@ with ex6_gint_nia_sel select
    gsrr0_d     <= ex6_nia_srr0               when '1',
                   ex6_gsrr0_di               when others;
 
+-- GSRR1
 gsrr1_act      <= ex6_gsrr1_we or ex6_gint_nia_sel;
 
 gsrr1_gen_64 : if regsize = 64 generate
@@ -1041,9 +1106,11 @@ with ex6_gint_nia_sel select
    gsrr1_d     <= msr_q                      when '1',     
                   ex6_gsrr1_d                when others;
 
+-- TCR
 tcr_act        <= ex6_tcr_we;
 tcr_d          <= ex6_tcr_di;
 
+-- TSR
 tsr_wrs_act    <= (reset_wd_complete and reset_complete_act) or ex6_tsr_we;
 
 tsr_wrs_d      <= reset_complete                when (reset_wd_complete and reset_complete_act) ='1' else
@@ -1053,9 +1120,11 @@ tsr_act        <= cspr_xucr0_clkg_ctl(4) or ex6_tsr_we or or_reduce(ex6_set_tsr)
 
 tsr_d          <= ex6_set_tsr or (tsr_q and not (ex6_tsr_di and (tsr_q'range=>ex6_tsr_we)));
 
+-- XUCR1
 xucr1_act         <= ex6_xucr1_we;
 xucr1_d           <= ex6_xucr1_di;
 
+-- LiveLock Buster!
 with spr_xucr1_ll_tb_sel select
    lltbtap        <= tb_tap_edge(8)                when "000",
                      tb_tap_edge(5)                when "001",
@@ -1074,9 +1143,9 @@ with spr_xucr1_ll_sel select
    lltap_d        <= hang_pulse                    when '1',
                      lltbtap                       when others;
 
-llpulse           <= not llcnt_q(0) and               
-                     cspr_tspr_llen and               
-                     spr_xucr1_ll_en and              
+llpulse           <= not llcnt_q(0) and               -- Stop if counter == "10"
+                     cspr_tspr_llen and               -- Don't pulse if stopped
+                     spr_xucr1_ll_en and              -- Gate off if disabled
                      lltap_q;
                      
 llreset           <= (cpl_spr_ex5_instr_cpl and not ((inj_llbust_attempt_q and not llcnt_q(0)) or inj_llbust_failed_q)) or not cspr_tspr_llen;
@@ -1093,6 +1162,8 @@ tspr_cspr_llpulse <= llpulse;
 llstate(0)        <= llcnt_q(0);
 llstate(1)        <= llcnt_q(1) or (llcnt_q(0) and not cspr_tspr_llpri);
 
+-- Raise the priority for threads that are in livelock
+-- Raise the priroity for threads with EE=0
 raise_iss_pri_d            <= (not spr_msr_ee   and spr_ccr3_en_eepri) or 
                               (llcnt_q(0)       and spr_xucr1_ll_en);
 xu_iu_raise_iss_pri        <= raise_iss_pri_2_q;
@@ -1108,6 +1179,7 @@ port map (  vd => vdd, gd => gnd,
             err_out(0)  => xu_pc_err_llbust_attempt,
             err_out(1)  => xu_pc_err_llbust_failed);
 
+-- Decrementer Logic
 ex6_dec_upper_zero   <= not or_reduce(dec_q(32 to 62));
 ex6_set_tsr_dis      <=  dec_running and ex6_dec_upper_zero and     dec_q(63);
 ex6_dec_zero         <=                  ex6_dec_upper_zero and not dec_q(63);
@@ -1116,6 +1188,7 @@ ex6_udec_upper_zero  <= not or_reduce(udec_q(32 to 62));
 ex6_set_tsr_udis     <= udec_running and ex6_udec_upper_zero and     udec_q(63);
 ex6_udec_zero        <=                  ex6_udec_upper_zero and not udec_q(63);
 
+-- Fixed Interval Timer logic
 with spr_tcr_fp select
    fit_tb_tap_d   <= tb_tap_edge(5)                when "00",
                      tb_tap_edge(4)                when "01",
@@ -1124,6 +1197,7 @@ with spr_tcr_fp select
 
 ex6_set_tsr_fis   <= fit_tb_tap_q;
 
+-- Watchdog Timer Logic
 with spr_tcr_wp select
    wdog_tb_tap_d  <= tb_tap_edge(3)                when "00",
                      tb_tap_edge(2)                when "01",
@@ -1142,6 +1216,7 @@ ex6_set_tsr       <= ex6_set_tsr_enw &
                      ex6_set_tsr_udis;
 
 
+-- Resets
 reset_complete    <= "11" when reset_3_complete='1' else
                      "10" when reset_2_complete='1' else
                      "01" when reset_1_complete='1' else
@@ -1163,21 +1238,25 @@ port map (vd => vdd, gd => gnd,
           err_in(0)     => err_wdt_reset_q,
           err_out(0)    => xu_pc_err_wdt_reset);
 
+-- DBCR0[FT] Freeze timers
 dbcr0_freeze_timers     <= spr_dbcr0_ft and (spr_dbsr_ide or dbsr_event);
 tspr_cspr_freeze_timers <= dbcr0_freeze_timers;
 
 
+-- ICSWX
 ex2_icswx_gs   <= epsc_egs_q when ex2_epid_instr_q='1' else spr_msr_gs;
 ex2_icswx_pr   <= epsc_epr_q when ex2_epid_instr_q='1' else spr_msr_pr;
    
+-- Only Check ACOP in problem state (PR=1)
 ex2_acop_ct    <= gate_or(not ex2_icswx_pr,spr_acop_ct);
 
 ex2_cop_ct     <= spr_hacop_ct and ex2_acop_ct;
 
-ex3_ct_d(0)    <= ex2_ct(0) or (not ex2_icswx_pr and not ex2_icswx_gs); 
-ex3_ct_d(1)    <= ex2_ct(1) or (not ex2_icswx_pr and not ex2_icswx_gs); 
+-- Only Check ACOP/HACOP if not in Hypervisor
+ex3_ct_d(0)    <= ex2_ct(0) or (not ex2_icswx_pr and not ex2_icswx_gs); -- Big Endian
+ex3_ct_d(1)    <= ex2_ct(1) or (not ex2_icswx_pr and not ex2_icswx_gs); -- Little Endian
  
-with ex2_rs2_q(42 to 47) select 
+with ex2_rs2_q(42 to 47) select -- Big Endian
    ex2_ct(0)<= ex2_cop_ct(32)    when "100000",
                ex2_cop_ct(33)    when "100001",
                ex2_cop_ct(34)    when "100010",
@@ -1212,7 +1291,7 @@ with ex2_rs2_q(42 to 47) select
                ex2_cop_ct(63)    when "111111",
                '0'               when others;
 
-with ex2_rs2_q(50 to 55) select 
+with ex2_rs2_q(50 to 55) select -- Little Endian
    ex2_ct(1)<= ex2_cop_ct(32)    when "100000",
                ex2_cop_ct(33)    when "100001",
                ex2_cop_ct(34)    when "100010",
@@ -1250,6 +1329,7 @@ with ex2_rs2_q(50 to 55) select
 spr_cpl_ex3_ct_be          <= ex3_ct_q(0);
 spr_cpl_ex3_ct_le          <= ex3_ct_q(1);
 
+-- Debug Enables
 
 iac_us_en(1)         <= (not spr_dbcr1_iac1us(0) and not spr_dbcr1_iac1us(1)) or
                         (    spr_dbcr1_iac1us(0) and    (spr_dbcr1_iac1us(1) xnor spr_msr_pr));
@@ -1284,6 +1364,7 @@ spr_cpl_iac2_en      <= iac2_en_q;
 spr_cpl_iac3_en      <= iac3_en_q;
 spr_cpl_iac4_en      <= iac4_en_q;
 
+-- Async Interrupts
 spr_cpl_crit_interrupt    <= crit_interrupt_q;
 spr_cpl_wdog_interrupt    <= wdog_interrupt_q;
 spr_cpl_dec_interrupt     <= dec_interrupt_q;
@@ -1293,6 +1374,8 @@ spr_cpl_fit_interrupt     <= fit_interrupt_q;
 spr_cpl_ext_interrupt     <= ext_interrupt_q;
 spr_cpl_external_mchk     <= mchk_interrupt_q;
 
+-- Ungated version for CPL
+-- Gating for gs|me done at ex5_ivo_sel, which also gates mcsr write.
 mchk_int          <= cspr_tspr_crit_mask and an_ac_external_mchk_q;  
 
 mchk_interrupt    <= cspr_tspr_crit_mask and an_ac_external_mchk_q   and (spr_msr_gs or spr_msr_me);
@@ -1318,6 +1401,7 @@ tspr_cspr_async_int     <= an_ac_ext_interrupt_q & an_ac_crit_interrupt_q & an_a
                            
 tspr_cspr_gpir_match <= '1' when cspr_tspr_dbell_pirtag = gpir_do(51 to 64) else '0';
 
+-- MSR Override
 with cspr_tspr_msrovride_en select
    mux_msr_pr    <= msrovride_pr_q     when '1',
                     spr_msr_pr         when others;
@@ -1336,9 +1420,11 @@ mux_msr_pr_d      <= (others=>mux_msr_pr);
 
 udec_en           <= ram_mode_q or spr_tcr_ud;
                
+-- FP Precise Mode
 tspr_fp_precise            <= fp_precise;
 fp_precise                 <= (spr_msr_fe0 or spr_msr_fe1);
 
+-- IO signal assignments
 tspr_msr_de                <= mux_msr_de;
 tspr_msr_cm                <= spr_msr_cm;
 tspr_msr_is                <= spr_msr_is;
@@ -1355,6 +1441,7 @@ xu_iu_single_instr_mode    <= single_instr_mode_2_q;
 machine_check_d            <= or_reduce(mcsr_q);
 ac_tc_machine_check        <= machine_check_q;
 
+-- Debug
 tspr_debug                 <= ex6_int_q               &
                               ex6_gint_q              &
                               ex6_cint_q              &
@@ -1474,42 +1561,42 @@ end generate;
 
 tspr_cspr_ex3_tspr_rt   <= ex3_tspr_rt_q and fanout(ex3_tid_rpwr_q,regsize);
 
-ex2_pir_rdec      <= (ex2_instr(11 to 20) = "1111001000");   
-ex2_acop_rdec     <= (ex2_instr(11 to 20) = "1111100000");   
-ex2_ccr3_rdec     <= (ex2_instr(11 to 20) = "1010111111");   
-ex2_csrr0_rdec    <= (ex2_instr(11 to 20) = "1101000001");   
-ex2_csrr1_rdec    <= (ex2_instr(11 to 20) = "1101100001");   
-ex2_ctr_rdec      <= (ex2_instr(11 to 20) = "0100100000");   
-ex2_dbcr0_rdec    <= (ex2_instr(11 to 20) = "1010001001");   
-ex2_dbcr1_rdec    <= (ex2_instr(11 to 20) = "1010101001");   
-ex2_dbcr2_rdec    <= (ex2_instr(11 to 20) = "1011001001");   
-ex2_dbcr3_rdec    <= (ex2_instr(11 to 20) = "1000011010");   
-ex2_dbsr_rdec     <= (ex2_instr(11 to 20) = "1000001001");   
-ex2_dear_rdec     <= (ex2_instr(11 to 20) = "1110100001");   
-ex2_dec_rdec      <= (ex2_instr(11 to 20) = "1011000000");   
-ex2_decar_rdec    <= (ex2_instr(11 to 20) = "1011000001");   
-ex2_epcr_rdec     <= (ex2_instr(11 to 20) = "1001101001");   
-ex2_esr_rdec      <= (ex2_instr(11 to 20) = "1111000001");   
-ex2_gdear_rdec    <= (ex2_instr(11 to 20) = "1110101011");   
-ex2_gesr_rdec     <= (ex2_instr(11 to 20) = "1111101011");   
-ex2_gpir_rdec     <= (ex2_instr(11 to 20) = "1111001011");   
-ex2_gsrr0_rdec    <= (ex2_instr(11 to 20) = "1101001011");   
-ex2_gsrr1_rdec    <= (ex2_instr(11 to 20) = "1101101011");   
-ex2_hacop_rdec    <= (ex2_instr(11 to 20) = "1111101010");   
-ex2_iar_rdec      <= (ex2_instr(11 to 20) = "1001011011");   
-ex2_lr_rdec       <= (ex2_instr(11 to 20) = "0100000000");   
-ex2_mcsr_rdec     <= (ex2_instr(11 to 20) = "1110010001");   
-ex2_mcsrr0_rdec   <= (ex2_instr(11 to 20) = "1101010001");   
-ex2_mcsrr1_rdec   <= (ex2_instr(11 to 20) = "1101110001");   
-ex2_msrp_rdec     <= (ex2_instr(11 to 20) = "1011101001");   
-ex2_srr0_rdec     <= (ex2_instr(11 to 20) = "1101000000");   
-ex2_srr1_rdec     <= (ex2_instr(11 to 20) = "1101100000");   
-ex2_tcr_rdec      <= (ex2_instr(11 to 20) = "1010001010");   
-ex2_tsr_rdec      <= (ex2_instr(11 to 20) = "1000001010");   
+ex2_pir_rdec      <= (ex2_instr(11 to 20) = "1111001000");   --  286
+ex2_acop_rdec     <= (ex2_instr(11 to 20) = "1111100000");   --   31
+ex2_ccr3_rdec     <= (ex2_instr(11 to 20) = "1010111111");   -- 1013
+ex2_csrr0_rdec    <= (ex2_instr(11 to 20) = "1101000001");   --   58
+ex2_csrr1_rdec    <= (ex2_instr(11 to 20) = "1101100001");   --   59
+ex2_ctr_rdec      <= (ex2_instr(11 to 20) = "0100100000");   --    9
+ex2_dbcr0_rdec    <= (ex2_instr(11 to 20) = "1010001001");   --  308
+ex2_dbcr1_rdec    <= (ex2_instr(11 to 20) = "1010101001");   --  309
+ex2_dbcr2_rdec    <= (ex2_instr(11 to 20) = "1011001001");   --  310
+ex2_dbcr3_rdec    <= (ex2_instr(11 to 20) = "1000011010");   --  848
+ex2_dbsr_rdec     <= (ex2_instr(11 to 20) = "1000001001");   --  304
+ex2_dear_rdec     <= (ex2_instr(11 to 20) = "1110100001");   --   61
+ex2_dec_rdec      <= (ex2_instr(11 to 20) = "1011000000");   --   22
+ex2_decar_rdec    <= (ex2_instr(11 to 20) = "1011000001");   --   54
+ex2_epcr_rdec     <= (ex2_instr(11 to 20) = "1001101001");   --  307
+ex2_esr_rdec      <= (ex2_instr(11 to 20) = "1111000001");   --   62
+ex2_gdear_rdec    <= (ex2_instr(11 to 20) = "1110101011");   --  381
+ex2_gesr_rdec     <= (ex2_instr(11 to 20) = "1111101011");   --  383
+ex2_gpir_rdec     <= (ex2_instr(11 to 20) = "1111001011");   --  382
+ex2_gsrr0_rdec    <= (ex2_instr(11 to 20) = "1101001011");   --  378
+ex2_gsrr1_rdec    <= (ex2_instr(11 to 20) = "1101101011");   --  379
+ex2_hacop_rdec    <= (ex2_instr(11 to 20) = "1111101010");   --  351
+ex2_iar_rdec      <= (ex2_instr(11 to 20) = "1001011011");   --  882
+ex2_lr_rdec       <= (ex2_instr(11 to 20) = "0100000000");   --    8
+ex2_mcsr_rdec     <= (ex2_instr(11 to 20) = "1110010001");   --  572
+ex2_mcsrr0_rdec   <= (ex2_instr(11 to 20) = "1101010001");   --  570
+ex2_mcsrr1_rdec   <= (ex2_instr(11 to 20) = "1101110001");   --  571
+ex2_msrp_rdec     <= (ex2_instr(11 to 20) = "1011101001");   --  311
+ex2_srr0_rdec     <= (ex2_instr(11 to 20) = "1101000000");   --   26
+ex2_srr1_rdec     <= (ex2_instr(11 to 20) = "1101100000");   --   27
+ex2_tcr_rdec      <= (ex2_instr(11 to 20) = "1010001010");   --  340
+ex2_tsr_rdec      <= (ex2_instr(11 to 20) = "1000001010");   --  336
 ex2_udec_rdec     <= udec_en and
-                     (ex2_instr(11 to 20) = "0011010001");   
-ex2_xer_rdec      <= (ex2_instr(11 to 20) = "0000100000");   
-ex2_xucr1_rdec    <= (ex2_instr(11 to 20) = "1001111010");   
+                     (ex2_instr(11 to 20) = "0011010001");   --  550
+ex2_xer_rdec      <= (ex2_instr(11 to 20) = "0000100000");   --    1
+ex2_xucr1_rdec    <= (ex2_instr(11 to 20) = "1001111010");   --  851
 ex2_acop_re       <=  ex2_acop_rdec;
 ex2_ccr3_re       <=  ex2_ccr3_rdec;
 ex2_csrr0_re      <=  ex2_csrr0_rdec;
@@ -1555,7 +1642,7 @@ ex2_dbcr1_wdec    <= ex2_dbcr1_rdec;
 ex2_dbcr2_wdec    <= ex2_dbcr2_rdec;
 ex2_dbcr3_wdec    <= ex2_dbcr3_rdec;
 ex2_dbsr_wdec     <= ex2_dbsr_rdec;
-ex2_dbsrwr_wdec   <= (ex2_instr(11 to 20) = "1001001001");   
+ex2_dbsrwr_wdec   <= (ex2_instr(11 to 20) = "1001001001");   --  306
 ex2_dear_wdec     <= ex2_dear_rdec;
 ex2_dec_wdec      <= ex2_dec_rdec;
 ex2_decar_wdec    <= ex2_decar_rdec;
@@ -1563,10 +1650,10 @@ ex2_epcr_wdec     <= ex2_epcr_rdec;
 ex2_esr_wdec      <= ex2_esr_rdec;
 ex2_gdear_wdec    <= ex2_gdear_rdec;
 ex2_gesr_wdec     <= ex2_gesr_rdec;
-ex2_gpir_wdec     <= (ex2_instr(11 to 20) = "1111001011");   
+ex2_gpir_wdec     <= (ex2_instr(11 to 20) = "1111001011");   --  382
 ex2_gsrr0_wdec    <= ex2_gsrr0_rdec;
 ex2_gsrr1_wdec    <= ex2_gsrr1_rdec;
-ex2_hacop_wdec    <= (ex2_instr(11 to 20) = "1111101010");   
+ex2_hacop_wdec    <= (ex2_instr(11 to 20) = "1111101010");   --  351
 ex2_iar_wdec      <= ex2_iar_rdec;
 ex2_lr_wdec       <= ex2_lr_rdec;
 ex2_mcsr_wdec     <= ex2_mcsr_rdec;
@@ -1617,37 +1704,37 @@ ex2_udec_we       <=  ex2_udec_wdec;
 ex2_xer_we        <=  ex2_xer_wdec;
 ex2_xucr1_we      <=  ex2_xucr1_wdec;
 
-ex6_acop_wdec     <= (ex6_instr(11 to 20) = "1111100000");   
-ex6_ccr3_wdec     <= (ex6_instr(11 to 20) = "1010111111");   
-ex6_csrr0_wdec    <= (ex6_instr(11 to 20) = "1101000001");   
-ex6_csrr1_wdec    <= (ex6_instr(11 to 20) = "1101100001");   
-ex6_dbcr0_wdec    <= (ex6_instr(11 to 20) = "1010001001");   
-ex6_dbcr1_wdec    <= (ex6_instr(11 to 20) = "1010101001");   
-ex6_dbsr_wdec     <= (ex6_instr(11 to 20) = "1000001001");   
-ex6_dbsrwr_wdec   <= (ex6_instr(11 to 20) = "1001001001");   
-ex6_dear_wdec     <= (ex6_instr(11 to 20) = "1110100001");   
-ex6_dec_wdec      <= (ex6_instr(11 to 20) = "1011000000");   
-ex6_decar_wdec    <= (ex6_instr(11 to 20) = "1011000001");   
-ex6_epcr_wdec     <= (ex6_instr(11 to 20) = "1001101001");   
-ex6_esr_wdec      <= (ex6_instr(11 to 20) = "1111000001");   
-ex6_gdear_wdec    <= (ex6_instr(11 to 20) = "1110101011");   
-ex6_gesr_wdec     <= (ex6_instr(11 to 20) = "1111101011");   
-ex6_gpir_wdec     <= (ex6_instr(11 to 20) = "1111001011");   
-ex6_gsrr0_wdec    <= (ex6_instr(11 to 20) = "1101001011");   
-ex6_gsrr1_wdec    <= (ex6_instr(11 to 20) = "1101101011");   
-ex6_hacop_wdec    <= (ex6_instr(11 to 20) = "1111101010");   
-ex6_mcsr_wdec     <= (ex6_instr(11 to 20) = "1110010001");   
-ex6_mcsrr0_wdec   <= (ex6_instr(11 to 20) = "1101010001");   
-ex6_mcsrr1_wdec   <= (ex6_instr(11 to 20) = "1101110001");   
+ex6_acop_wdec     <= (ex6_instr(11 to 20) = "1111100000");   --   31
+ex6_ccr3_wdec     <= (ex6_instr(11 to 20) = "1010111111");   -- 1013
+ex6_csrr0_wdec    <= (ex6_instr(11 to 20) = "1101000001");   --   58
+ex6_csrr1_wdec    <= (ex6_instr(11 to 20) = "1101100001");   --   59
+ex6_dbcr0_wdec    <= (ex6_instr(11 to 20) = "1010001001");   --  308
+ex6_dbcr1_wdec    <= (ex6_instr(11 to 20) = "1010101001");   --  309
+ex6_dbsr_wdec     <= (ex6_instr(11 to 20) = "1000001001");   --  304
+ex6_dbsrwr_wdec   <= (ex6_instr(11 to 20) = "1001001001");   --  306
+ex6_dear_wdec     <= (ex6_instr(11 to 20) = "1110100001");   --   61
+ex6_dec_wdec      <= (ex6_instr(11 to 20) = "1011000000");   --   22
+ex6_decar_wdec    <= (ex6_instr(11 to 20) = "1011000001");   --   54
+ex6_epcr_wdec     <= (ex6_instr(11 to 20) = "1001101001");   --  307
+ex6_esr_wdec      <= (ex6_instr(11 to 20) = "1111000001");   --   62
+ex6_gdear_wdec    <= (ex6_instr(11 to 20) = "1110101011");   --  381
+ex6_gesr_wdec     <= (ex6_instr(11 to 20) = "1111101011");   --  383
+ex6_gpir_wdec     <= (ex6_instr(11 to 20) = "1111001011");   --  382
+ex6_gsrr0_wdec    <= (ex6_instr(11 to 20) = "1101001011");   --  378
+ex6_gsrr1_wdec    <= (ex6_instr(11 to 20) = "1101101011");   --  379
+ex6_hacop_wdec    <= (ex6_instr(11 to 20) = "1111101010");   --  351
+ex6_mcsr_wdec     <= (ex6_instr(11 to 20) = "1110010001");   --  572
+ex6_mcsrr0_wdec   <= (ex6_instr(11 to 20) = "1101010001");   --  570
+ex6_mcsrr1_wdec   <= (ex6_instr(11 to 20) = "1101110001");   --  571
 ex6_msr_wdec      <=  ex6_is_mtmsr;
-ex6_msrp_wdec     <= (ex6_instr(11 to 20) = "1011101001");   
-ex6_srr0_wdec     <= (ex6_instr(11 to 20) = "1101000000");   
-ex6_srr1_wdec     <= (ex6_instr(11 to 20) = "1101100000");   
-ex6_tcr_wdec      <= (ex6_instr(11 to 20) = "1010001010");   
-ex6_tsr_wdec      <= (ex6_instr(11 to 20) = "1000001010");   
+ex6_msrp_wdec     <= (ex6_instr(11 to 20) = "1011101001");   --  311
+ex6_srr0_wdec     <= (ex6_instr(11 to 20) = "1101000000");   --   26
+ex6_srr1_wdec     <= (ex6_instr(11 to 20) = "1101100000");   --   27
+ex6_tcr_wdec      <= (ex6_instr(11 to 20) = "1010001010");   --  340
+ex6_tsr_wdec      <= (ex6_instr(11 to 20) = "1000001010");   --  336
 ex6_udec_wdec     <= udec_en and
-                     (ex6_instr(11 to 20) = "0011010001");   
-ex6_xucr1_wdec    <= (ex6_instr(11 to 20) = "1001111010");   
+                     (ex6_instr(11 to 20) = "0011010001");   --  550
+ex6_xucr1_wdec    <= (ex6_instr(11 to 20) = "1001111010");   --  851
 ex6_acop_we       <= ex6_val and ex6_is_mtspr and  ex6_acop_wdec;
 ex6_ccr3_we       <= ex6_val and ex6_is_mtspr and  ex6_ccr3_wdec;
 ex6_csrr0_we      <= ex6_val and ex6_is_mtspr and  ex6_csrr0_wdec;
@@ -1679,6 +1766,7 @@ ex6_tsr_we        <= ex6_val and ex6_is_mtspr and  ex6_tsr_wdec;
 ex6_udec_we       <= ex6_val and ex6_is_mtspr and  ex6_udec_wdec;
 ex6_xucr1_we      <= ex6_val and ex6_is_mtspr and  ex6_xucr1_wdec;
 
+-- Illegal SPR checks
 ill_spr_00 : if a2mode = 0 and hvmode = 0 generate
 tspr_cspr_illeg_mtspr_b <= 
                               ex2_ccr3_wdec        or ex2_ctr_wdec         or ex2_dbcr0_wdec       
@@ -1904,547 +1992,577 @@ spr_xucr1_ll_tb_sel        <= xucr1_q(59 to 61);
 spr_xucr1_ll_sel           <= xucr1_q(62);
 spr_xucr1_ll_en            <= xucr1_q(63);
 
-ex6_acop_di    <= ex6_spr_wd(32 to 63)             ; 
+-- ACOP
+ex6_acop_di    <= ex6_spr_wd(32 to 63)             ; --CT
 acop_do        <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						acop_q(32 to 63)                 ; 
-ex6_ccr3_di    <= ex6_spr_wd(62 to 62)             & 
-						ex6_spr_wd(63 to 63)             ; 
+						tidn(0 to 31)                    & --///
+						acop_q(32 to 63)                 ; --CT
+-- CCR3
+ex6_ccr3_di    <= ex6_spr_wd(62 to 62)             & --EN_EEPRI
+						ex6_spr_wd(63 to 63)             ; --SI
 ccr3_do        <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						tidn(32 to 61)                   & 
-						ccr3_q(62 to 62)                 & 
-						ccr3_q(63 to 63)                 ; 
-ex6_csrr0_di   <= ex6_spr_wd(62-(eff_ifar) to 61)  ; 
+						tidn(0 to 31)                    & --///
+						tidn(32 to 61)                   & --///
+						ccr3_q(62 to 62)                 & --EN_EEPRI
+						ccr3_q(63 to 63)                 ; --SI
+-- CSRR0
+ex6_csrr0_di   <= ex6_spr_wd(62-(eff_ifar) to 61)  ; --SRR0
 csrr0_do       <= tidn(0 to 62-(eff_ifar))         &
-						csrr0_q(64-(eff_ifar) to 63)     & 
-						tidn(62 to 63)                   ; 
-ex6_csrr1_di   <= ex6_spr_wd(32 to 32)             & 
-						ex6_spr_wd(35 to 35)             & 
-						ex6_spr_wd(37 to 37)             & 
-						ex6_spr_wd(38 to 38)             & 
-						ex6_spr_wd(46 to 46)             & 
-						ex6_spr_wd(48 to 48)             & 
-						ex6_spr_wd(49 to 49)             & 
-						ex6_spr_wd(50 to 50)             & 
-						ex6_spr_wd(51 to 51)             & 
-						ex6_spr_wd(52 to 52)             & 
-						ex6_spr_wd(54 to 54)             & 
-						ex6_spr_wd(55 to 55)             & 
-						ex6_spr_wd(58 to 58)             & 
-						ex6_spr_wd(59 to 59)             ; 
+						csrr0_q(64-(eff_ifar) to 63)     & --SRR0
+						tidn(62 to 63)                   ; --///
+-- CSRR1
+ex6_csrr1_di   <= ex6_spr_wd(32 to 32)             & --CM
+						ex6_spr_wd(35 to 35)             & --GS
+						ex6_spr_wd(37 to 37)             & --UCLE
+						ex6_spr_wd(38 to 38)             & --SPV
+						ex6_spr_wd(46 to 46)             & --CE
+						ex6_spr_wd(48 to 48)             & --EE
+						ex6_spr_wd(49 to 49)             & --PR
+						ex6_spr_wd(50 to 50)             & --FP
+						ex6_spr_wd(51 to 51)             & --ME
+						ex6_spr_wd(52 to 52)             & --FE0
+						ex6_spr_wd(54 to 54)             & --DE
+						ex6_spr_wd(55 to 55)             & --FE1
+						ex6_spr_wd(58 to 58)             & --IS
+						ex6_spr_wd(59 to 59)             ; --DS
 csrr1_do       <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						csrr1_q(50 to 50)                & 
-						tidn(33 to 34)                   & 
-						csrr1_q(51 to 51)                & 
-						tidn(36 to 36)                   & 
-						csrr1_q(52 to 52)                & 
-						csrr1_q(53 to 53)                & 
-						tidn(39 to 45)                   & 
-						csrr1_q(54 to 54)                & 
-						tidn(47 to 47)                   & 
-						csrr1_q(55 to 55)                & 
-						csrr1_q(56 to 56)                & 
-						csrr1_q(57 to 57)                & 
-						csrr1_q(58 to 58)                & 
-						csrr1_q(59 to 59)                & 
-						tidn(53 to 53)                   & 
-						csrr1_q(60 to 60)                & 
-						csrr1_q(61 to 61)                & 
-						tidn(56 to 57)                   & 
-						csrr1_q(62 to 62)                & 
-						csrr1_q(63 to 63)                & 
-						tidn(60 to 63)                   ; 
-ex6_dbcr0_di   <= ex6_spr_wd(33 to 33)             & 
-						ex6_spr_wd(34 to 35)             & 
-						ex6_spr_wd(36 to 36)             & 
-						ex6_spr_wd(37 to 37)             & 
-						ex6_spr_wd(38 to 38)             & 
-						ex6_spr_wd(39 to 39)             & 
-						ex6_spr_wd(40 to 40)             & 
-						ex6_spr_wd(41 to 41)             & 
-						ex6_spr_wd(42 to 42)             & 
-						ex6_spr_wd(43 to 43)             & 
-						ex6_spr_wd(44 to 45)             & 
-						ex6_spr_wd(46 to 47)             & 
-						ex6_spr_wd(48 to 48)             & 
-						ex6_spr_wd(59 to 60)             & 
-						ex6_spr_wd(61 to 62)             & 
-						ex6_spr_wd(63 to 63)             ; 
+						tidn(0 to 31)                    & --///
+						csrr1_q(50 to 50)                & --CM
+						tidn(33 to 34)                   & --///
+						csrr1_q(51 to 51)                & --GS
+						tidn(36 to 36)                   & --///
+						csrr1_q(52 to 52)                & --UCLE
+						csrr1_q(53 to 53)                & --SPV
+						tidn(39 to 45)                   & --///
+						csrr1_q(54 to 54)                & --CE
+						tidn(47 to 47)                   & --///
+						csrr1_q(55 to 55)                & --EE
+						csrr1_q(56 to 56)                & --PR
+						csrr1_q(57 to 57)                & --FP
+						csrr1_q(58 to 58)                & --ME
+						csrr1_q(59 to 59)                & --FE0
+						tidn(53 to 53)                   & --///
+						csrr1_q(60 to 60)                & --DE
+						csrr1_q(61 to 61)                & --FE1
+						tidn(56 to 57)                   & --///
+						csrr1_q(62 to 62)                & --IS
+						csrr1_q(63 to 63)                & --DS
+						tidn(60 to 63)                   ; --///
+-- DBCR0
+ex6_dbcr0_di   <= ex6_spr_wd(33 to 33)             & --IDM
+						ex6_spr_wd(34 to 35)             & --RST
+						ex6_spr_wd(36 to 36)             & --ICMP
+						ex6_spr_wd(37 to 37)             & --BRT
+						ex6_spr_wd(38 to 38)             & --IRPT
+						ex6_spr_wd(39 to 39)             & --TRAP
+						ex6_spr_wd(40 to 40)             & --IAC1
+						ex6_spr_wd(41 to 41)             & --IAC2
+						ex6_spr_wd(42 to 42)             & --IAC3
+						ex6_spr_wd(43 to 43)             & --IAC4
+						ex6_spr_wd(44 to 45)             & --DAC1
+						ex6_spr_wd(46 to 47)             & --DAC2
+						ex6_spr_wd(48 to 48)             & --RET
+						ex6_spr_wd(59 to 60)             & --DAC3
+						ex6_spr_wd(61 to 62)             & --DAC4
+						ex6_spr_wd(63 to 63)             ; --FT
 dbcr0_do       <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						cpl_spr_dbcr0_edm                & 
-						dbcr0_q(43 to 43)                & 
-						dbcr0_q(44 to 45)                & 
-						dbcr0_q(46 to 46)                & 
-						dbcr0_q(47 to 47)                & 
-						dbcr0_q(48 to 48)                & 
-						dbcr0_q(49 to 49)                & 
-						dbcr0_q(50 to 50)                & 
-						dbcr0_q(51 to 51)                & 
-						dbcr0_q(52 to 52)                & 
-						dbcr0_q(53 to 53)                & 
-						dbcr0_q(54 to 55)                & 
-						dbcr0_q(56 to 57)                & 
-						dbcr0_q(58 to 58)                & 
-						tidn(49 to 58)                   & 
-						dbcr0_q(59 to 60)                & 
-						dbcr0_q(61 to 62)                & 
-						dbcr0_q(63 to 63)                ; 
-ex6_dbcr1_di   <= ex6_spr_wd(32 to 33)             & 
-						ex6_spr_wd(34 to 35)             & 
-						ex6_spr_wd(36 to 37)             & 
-						ex6_spr_wd(38 to 39)             & 
-						ex6_spr_wd(41 to 41)             & 
-						ex6_spr_wd(48 to 49)             & 
-						ex6_spr_wd(50 to 51)             & 
-						ex6_spr_wd(52 to 53)             & 
-						ex6_spr_wd(54 to 55)             & 
-						ex6_spr_wd(57 to 57)             ; 
+						tidn(0 to 31)                    & --///
+						cpl_spr_dbcr0_edm                & --EDM
+						dbcr0_q(43 to 43)                & --IDM
+						dbcr0_q(44 to 45)                & --RST
+						dbcr0_q(46 to 46)                & --ICMP
+						dbcr0_q(47 to 47)                & --BRT
+						dbcr0_q(48 to 48)                & --IRPT
+						dbcr0_q(49 to 49)                & --TRAP
+						dbcr0_q(50 to 50)                & --IAC1
+						dbcr0_q(51 to 51)                & --IAC2
+						dbcr0_q(52 to 52)                & --IAC3
+						dbcr0_q(53 to 53)                & --IAC4
+						dbcr0_q(54 to 55)                & --DAC1
+						dbcr0_q(56 to 57)                & --DAC2
+						dbcr0_q(58 to 58)                & --RET
+						tidn(49 to 58)                   & --///
+						dbcr0_q(59 to 60)                & --DAC3
+						dbcr0_q(61 to 62)                & --DAC4
+						dbcr0_q(63 to 63)                ; --FT
+-- DBCR1
+ex6_dbcr1_di   <= ex6_spr_wd(32 to 33)             & --IAC1US
+						ex6_spr_wd(34 to 35)             & --IAC1ER
+						ex6_spr_wd(36 to 37)             & --IAC2US
+						ex6_spr_wd(38 to 39)             & --IAC2ER
+						ex6_spr_wd(41 to 41)             & --IAC12M
+						ex6_spr_wd(48 to 49)             & --IAC3US
+						ex6_spr_wd(50 to 51)             & --IAC3ER
+						ex6_spr_wd(52 to 53)             & --IAC4US
+						ex6_spr_wd(54 to 55)             & --IAC4ER
+						ex6_spr_wd(57 to 57)             ; --IAC34M
 dbcr1_do       <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						dbcr1_q(46 to 47)                & 
-						dbcr1_q(48 to 49)                & 
-						dbcr1_q(50 to 51)                & 
-						dbcr1_q(52 to 53)                & 
-						tidn(40 to 40)                   & 
-						dbcr1_q(54 to 54)                & 
-						tidn(42 to 47)                   & 
-						dbcr1_q(55 to 56)                & 
-						dbcr1_q(57 to 58)                & 
-						dbcr1_q(59 to 60)                & 
-						dbcr1_q(61 to 62)                & 
-						tidn(56 to 56)                   & 
-						dbcr1_q(63 to 63)                & 
-						tidn(58 to 63)                   ; 
-ex6_dbsr_di    <= ex6_spr_wd(32 to 32)             & 
-						ex6_spr_wd(33 to 33)             & 
-						ex6_spr_wd(36 to 36)             & 
-						ex6_spr_wd(37 to 37)             & 
-						ex6_spr_wd(38 to 38)             & 
-						ex6_spr_wd(39 to 39)             & 
-						ex6_spr_wd(40 to 40)             & 
-						ex6_spr_wd(41 to 41)             & 
-						ex6_spr_wd(42 to 42)             & 
-						ex6_spr_wd(43 to 43)             & 
-						ex6_spr_wd(44 to 44)             & 
-						ex6_spr_wd(45 to 45)             & 
-						ex6_spr_wd(46 to 46)             & 
-						ex6_spr_wd(47 to 47)             & 
-						ex6_spr_wd(48 to 48)             & 
-						ex6_spr_wd(59 to 59)             & 
-						ex6_spr_wd(60 to 60)             & 
-						ex6_spr_wd(61 to 61)             & 
-						ex6_spr_wd(62 to 62)             & 
-						ex6_spr_wd(63 to 63)             ; 
+						tidn(0 to 31)                    & --///
+						dbcr1_q(46 to 47)                & --IAC1US
+						dbcr1_q(48 to 49)                & --IAC1ER
+						dbcr1_q(50 to 51)                & --IAC2US
+						dbcr1_q(52 to 53)                & --IAC2ER
+						tidn(40 to 40)                   & --///
+						dbcr1_q(54 to 54)                & --IAC12M
+						tidn(42 to 47)                   & --///
+						dbcr1_q(55 to 56)                & --IAC3US
+						dbcr1_q(57 to 58)                & --IAC3ER
+						dbcr1_q(59 to 60)                & --IAC4US
+						dbcr1_q(61 to 62)                & --IAC4ER
+						tidn(56 to 56)                   & --///
+						dbcr1_q(63 to 63)                & --IAC34M
+						tidn(58 to 63)                   ; --///
+-- DBSR
+ex6_dbsr_di    <= ex6_spr_wd(32 to 32)             & --IDE
+						ex6_spr_wd(33 to 33)             & --UDE
+						ex6_spr_wd(36 to 36)             & --ICMP
+						ex6_spr_wd(37 to 37)             & --BRT
+						ex6_spr_wd(38 to 38)             & --IRPT
+						ex6_spr_wd(39 to 39)             & --TRAP
+						ex6_spr_wd(40 to 40)             & --IAC1
+						ex6_spr_wd(41 to 41)             & --IAC2
+						ex6_spr_wd(42 to 42)             & --IAC3
+						ex6_spr_wd(43 to 43)             & --IAC4
+						ex6_spr_wd(44 to 44)             & --DAC1R
+						ex6_spr_wd(45 to 45)             & --DAC1W
+						ex6_spr_wd(46 to 46)             & --DAC2R
+						ex6_spr_wd(47 to 47)             & --DAC2W
+						ex6_spr_wd(48 to 48)             & --RET
+						ex6_spr_wd(59 to 59)             & --DAC3R
+						ex6_spr_wd(60 to 60)             & --DAC3W
+						ex6_spr_wd(61 to 61)             & --DAC4R
+						ex6_spr_wd(62 to 62)             & --DAC4W
+						ex6_spr_wd(63 to 63)             ; --IVC
 dbsr_do        <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						dbsr_q(44 to 44)                 & 
-						dbsr_q(45 to 45)                 & 
-						dbsr_mrr_q(0 to 1)               & 
-						dbsr_q(46 to 46)                 & 
-						dbsr_q(47 to 47)                 & 
-						dbsr_q(48 to 48)                 & 
-						dbsr_q(49 to 49)                 & 
-						dbsr_q(50 to 50)                 & 
-						dbsr_q(51 to 51)                 & 
-						dbsr_q(52 to 52)                 & 
-						dbsr_q(53 to 53)                 & 
-						dbsr_q(54 to 54)                 & 
-						dbsr_q(55 to 55)                 & 
-						dbsr_q(56 to 56)                 & 
-						dbsr_q(57 to 57)                 & 
-						dbsr_q(58 to 58)                 & 
-						tidn(49 to 58)                   & 
-						dbsr_q(59 to 59)                 & 
-						dbsr_q(60 to 60)                 & 
-						dbsr_q(61 to 61)                 & 
-						dbsr_q(62 to 62)                 & 
-						dbsr_q(63 to 63)                 ; 
-ex6_dear_di    <= ex6_spr_wd(64-(regsize) to 63)   ; 
+						tidn(0 to 31)                    & --///
+						dbsr_q(44 to 44)                 & --IDE
+						dbsr_q(45 to 45)                 & --UDE
+						dbsr_mrr_q(0 to 1)               & --MRR
+						dbsr_q(46 to 46)                 & --ICMP
+						dbsr_q(47 to 47)                 & --BRT
+						dbsr_q(48 to 48)                 & --IRPT
+						dbsr_q(49 to 49)                 & --TRAP
+						dbsr_q(50 to 50)                 & --IAC1
+						dbsr_q(51 to 51)                 & --IAC2
+						dbsr_q(52 to 52)                 & --IAC3
+						dbsr_q(53 to 53)                 & --IAC4
+						dbsr_q(54 to 54)                 & --DAC1R
+						dbsr_q(55 to 55)                 & --DAC1W
+						dbsr_q(56 to 56)                 & --DAC2R
+						dbsr_q(57 to 57)                 & --DAC2W
+						dbsr_q(58 to 58)                 & --RET
+						tidn(49 to 58)                   & --///
+						dbsr_q(59 to 59)                 & --DAC3R
+						dbsr_q(60 to 60)                 & --DAC3W
+						dbsr_q(61 to 61)                 & --DAC4R
+						dbsr_q(62 to 62)                 & --DAC4W
+						dbsr_q(63 to 63)                 ; --IVC
+-- DEAR
+ex6_dear_di    <= ex6_spr_wd(64-(regsize) to 63)   ; --DEAR
 dear_do        <= tidn(0 to 64-(regsize))          &
-						dear_q(64-(regsize) to 63)       ; 
-ex6_dec_di     <= ex6_spr_wd(32 to 63)             ; 
+						dear_q(64-(regsize) to 63)       ; --DEAR
+-- DEC
+ex6_dec_di     <= ex6_spr_wd(32 to 63)             ; --DEC
 dec_do         <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						dec_q(32 to 63)                  ; 
-ex6_decar_di   <= ex6_spr_wd(32 to 63)             ; 
+						tidn(0 to 31)                    & --///
+						dec_q(32 to 63)                  ; --DEC
+-- DECAR
+ex6_decar_di   <= ex6_spr_wd(32 to 63)             ; --DECAR
 decar_do       <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						decar_q(32 to 63)                ; 
-ex6_epcr_di    <= ex6_spr_wd(32 to 32)             & 
-						ex6_spr_wd(33 to 33)             & 
-						ex6_spr_wd(34 to 34)             & 
-						ex6_spr_wd(35 to 35)             & 
-						ex6_spr_wd(36 to 36)             & 
-						ex6_spr_wd(37 to 37)             & 
-						ex6_spr_wd(38 to 38)             & 
-						ex6_spr_wd(39 to 39)             & 
-						ex6_spr_wd(40 to 40)             & 
-						ex6_spr_wd(41 to 41)             ; 
+						tidn(0 to 31)                    & --///
+						decar_q(32 to 63)                ; --DECAR
+-- EPCR
+ex6_epcr_di    <= ex6_spr_wd(32 to 32)             & --EXTGS
+						ex6_spr_wd(33 to 33)             & --DTLBGS
+						ex6_spr_wd(34 to 34)             & --ITLBGS
+						ex6_spr_wd(35 to 35)             & --DSIGS
+						ex6_spr_wd(36 to 36)             & --ISIGS
+						ex6_spr_wd(37 to 37)             & --DUVD
+						ex6_spr_wd(38 to 38)             & --ICM
+						ex6_spr_wd(39 to 39)             & --GICM
+						ex6_spr_wd(40 to 40)             & --DGTMI
+						ex6_spr_wd(41 to 41)             ; --DMIUH
 epcr_do        <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						epcr_q(54 to 54)                 & 
-						epcr_q(55 to 55)                 & 
-						epcr_q(56 to 56)                 & 
-						epcr_q(57 to 57)                 & 
-						epcr_q(58 to 58)                 & 
-						epcr_q(59 to 59)                 & 
-						epcr_q(60 to 60)                 & 
-						epcr_q(61 to 61)                 & 
-						epcr_q(62 to 62)                 & 
-						epcr_q(63 to 63)                 & 
-						tidn(42 to 63)                   ; 
-ex6_esr_di     <= ex6_spr_wd(36 to 36)             & 
-						ex6_spr_wd(37 to 37)             & 
-						ex6_spr_wd(38 to 38)             & 
-						ex6_spr_wd(39 to 39)             & 
-						ex6_spr_wd(40 to 40)             & 
-						ex6_spr_wd(42 to 42)             & 
-						ex6_spr_wd(43 to 43)             & 
-						ex6_spr_wd(44 to 44)             & 
-						ex6_spr_wd(45 to 45)             & 
-						ex6_spr_wd(46 to 46)             & 
-						ex6_spr_wd(47 to 47)             & 
-						ex6_spr_wd(49 to 49)             & 
-						ex6_spr_wd(53 to 53)             & 
-						ex6_spr_wd(54 to 54)             & 
-						ex6_spr_wd(55 to 55)             & 
-						ex6_spr_wd(56 to 56)             & 
-						ex6_spr_wd(57 to 57)             ; 
+						tidn(0 to 31)                    & --///
+						epcr_q(54 to 54)                 & --EXTGS
+						epcr_q(55 to 55)                 & --DTLBGS
+						epcr_q(56 to 56)                 & --ITLBGS
+						epcr_q(57 to 57)                 & --DSIGS
+						epcr_q(58 to 58)                 & --ISIGS
+						epcr_q(59 to 59)                 & --DUVD
+						epcr_q(60 to 60)                 & --ICM
+						epcr_q(61 to 61)                 & --GICM
+						epcr_q(62 to 62)                 & --DGTMI
+						epcr_q(63 to 63)                 & --DMIUH
+						tidn(42 to 63)                   ; --///
+-- ESR
+ex6_esr_di     <= ex6_spr_wd(36 to 36)             & --PIL
+						ex6_spr_wd(37 to 37)             & --PPR
+						ex6_spr_wd(38 to 38)             & --PTR
+						ex6_spr_wd(39 to 39)             & --FP
+						ex6_spr_wd(40 to 40)             & --ST
+						ex6_spr_wd(42 to 42)             & --DLK0
+						ex6_spr_wd(43 to 43)             & --DLK1
+						ex6_spr_wd(44 to 44)             & --AP
+						ex6_spr_wd(45 to 45)             & --PUO
+						ex6_spr_wd(46 to 46)             & --BO
+						ex6_spr_wd(47 to 47)             & --PIE
+						ex6_spr_wd(49 to 49)             & --UCT
+						ex6_spr_wd(53 to 53)             & --DATA
+						ex6_spr_wd(54 to 54)             & --TLBI
+						ex6_spr_wd(55 to 55)             & --PT
+						ex6_spr_wd(56 to 56)             & --SPV
+						ex6_spr_wd(57 to 57)             ; --EPID
 esr_do         <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						tidn(32 to 35)                   & 
-						esr_q(47 to 47)                  & 
-						esr_q(48 to 48)                  & 
-						esr_q(49 to 49)                  & 
-						esr_q(50 to 50)                  & 
-						esr_q(51 to 51)                  & 
-						tidn(41 to 41)                   & 
-						esr_q(52 to 52)                  & 
-						esr_q(53 to 53)                  & 
-						esr_q(54 to 54)                  & 
-						esr_q(55 to 55)                  & 
-						esr_q(56 to 56)                  & 
-						esr_q(57 to 57)                  & 
-						tidn(48 to 48)                   & 
-						esr_q(58 to 58)                  & 
-						tidn(50 to 52)                   & 
-						esr_q(59 to 59)                  & 
-						esr_q(60 to 60)                  & 
-						esr_q(61 to 61)                  & 
-						esr_q(62 to 62)                  & 
-						esr_q(63 to 63)                  & 
-						tidn(58 to 63)                   ; 
-ex6_gdear_di   <= ex6_spr_wd(64-(regsize) to 63)   ; 
+						tidn(0 to 31)                    & --///
+						tidn(32 to 35)                   & --///
+						esr_q(47 to 47)                  & --PIL
+						esr_q(48 to 48)                  & --PPR
+						esr_q(49 to 49)                  & --PTR
+						esr_q(50 to 50)                  & --FP
+						esr_q(51 to 51)                  & --ST
+						tidn(41 to 41)                   & --///
+						esr_q(52 to 52)                  & --DLK0
+						esr_q(53 to 53)                  & --DLK1
+						esr_q(54 to 54)                  & --AP
+						esr_q(55 to 55)                  & --PUO
+						esr_q(56 to 56)                  & --BO
+						esr_q(57 to 57)                  & --PIE
+						tidn(48 to 48)                   & --///
+						esr_q(58 to 58)                  & --UCT
+						tidn(50 to 52)                   & --///
+						esr_q(59 to 59)                  & --DATA
+						esr_q(60 to 60)                  & --TLBI
+						esr_q(61 to 61)                  & --PT
+						esr_q(62 to 62)                  & --SPV
+						esr_q(63 to 63)                  & --EPID
+						tidn(58 to 63)                   ; --///
+-- GDEAR
+ex6_gdear_di   <= ex6_spr_wd(64-(regsize) to 63)   ; --GDEAR
 gdear_do       <= tidn(0 to 64-(regsize))          &
-						gdear_q(64-(regsize) to 63)      ; 
-ex6_gesr_di    <= ex6_spr_wd(36 to 36)             & 
-						ex6_spr_wd(37 to 37)             & 
-						ex6_spr_wd(38 to 38)             & 
-						ex6_spr_wd(39 to 39)             & 
-						ex6_spr_wd(40 to 40)             & 
-						ex6_spr_wd(42 to 42)             & 
-						ex6_spr_wd(43 to 43)             & 
-						ex6_spr_wd(44 to 44)             & 
-						ex6_spr_wd(45 to 45)             & 
-						ex6_spr_wd(46 to 46)             & 
-						ex6_spr_wd(47 to 47)             & 
-						ex6_spr_wd(49 to 49)             & 
-						ex6_spr_wd(53 to 53)             & 
-						ex6_spr_wd(54 to 54)             & 
-						ex6_spr_wd(55 to 55)             & 
-						ex6_spr_wd(56 to 56)             & 
-						ex6_spr_wd(57 to 57)             ; 
+						gdear_q(64-(regsize) to 63)      ; --GDEAR
+-- GESR
+ex6_gesr_di    <= ex6_spr_wd(36 to 36)             & --PIL
+						ex6_spr_wd(37 to 37)             & --PPR
+						ex6_spr_wd(38 to 38)             & --PTR
+						ex6_spr_wd(39 to 39)             & --FP
+						ex6_spr_wd(40 to 40)             & --ST
+						ex6_spr_wd(42 to 42)             & --DLK0
+						ex6_spr_wd(43 to 43)             & --DLK1
+						ex6_spr_wd(44 to 44)             & --AP
+						ex6_spr_wd(45 to 45)             & --PUO
+						ex6_spr_wd(46 to 46)             & --BO
+						ex6_spr_wd(47 to 47)             & --PIE
+						ex6_spr_wd(49 to 49)             & --UCT
+						ex6_spr_wd(53 to 53)             & --DATA
+						ex6_spr_wd(54 to 54)             & --TLBI
+						ex6_spr_wd(55 to 55)             & --PT
+						ex6_spr_wd(56 to 56)             & --SPV
+						ex6_spr_wd(57 to 57)             ; --EPID
 gesr_do        <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						tidn(32 to 35)                   & 
-						gesr_q(47 to 47)                 & 
-						gesr_q(48 to 48)                 & 
-						gesr_q(49 to 49)                 & 
-						gesr_q(50 to 50)                 & 
-						gesr_q(51 to 51)                 & 
-						tidn(41 to 41)                   & 
-						gesr_q(52 to 52)                 & 
-						gesr_q(53 to 53)                 & 
-						gesr_q(54 to 54)                 & 
-						gesr_q(55 to 55)                 & 
-						gesr_q(56 to 56)                 & 
-						gesr_q(57 to 57)                 & 
-						tidn(48 to 48)                   & 
-						gesr_q(58 to 58)                 & 
-						tidn(50 to 52)                   & 
-						gesr_q(59 to 59)                 & 
-						gesr_q(60 to 60)                 & 
-						gesr_q(61 to 61)                 & 
-						gesr_q(62 to 62)                 & 
-						gesr_q(63 to 63)                 & 
-						tidn(58 to 63)                   ; 
-ex6_gpir_di    <= ex6_spr_wd(32 to 49)             & 
-						ex6_spr_wd(50 to 63)             ; 
+						tidn(0 to 31)                    & --///
+						tidn(32 to 35)                   & --///
+						gesr_q(47 to 47)                 & --PIL
+						gesr_q(48 to 48)                 & --PPR
+						gesr_q(49 to 49)                 & --PTR
+						gesr_q(50 to 50)                 & --FP
+						gesr_q(51 to 51)                 & --ST
+						tidn(41 to 41)                   & --///
+						gesr_q(52 to 52)                 & --DLK0
+						gesr_q(53 to 53)                 & --DLK1
+						gesr_q(54 to 54)                 & --AP
+						gesr_q(55 to 55)                 & --PUO
+						gesr_q(56 to 56)                 & --BO
+						gesr_q(57 to 57)                 & --PIE
+						tidn(48 to 48)                   & --///
+						gesr_q(58 to 58)                 & --UCT
+						tidn(50 to 52)                   & --///
+						gesr_q(59 to 59)                 & --DATA
+						gesr_q(60 to 60)                 & --TLBI
+						gesr_q(61 to 61)                 & --PT
+						gesr_q(62 to 62)                 & --SPV
+						gesr_q(63 to 63)                 & --EPID
+						tidn(58 to 63)                   ; --///
+-- GPIR
+ex6_gpir_di    <= ex6_spr_wd(32 to 49)             & --VPTAG
+						ex6_spr_wd(50 to 63)             ; --DBTAG
 gpir_do        <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						gpir_q(32 to 49)                 & 
-						gpir_q(50 to 63)                 ; 
-ex6_gsrr0_di   <= ex6_spr_wd(62-(eff_ifar) to 61)  ; 
+						tidn(0 to 31)                    & --///
+						gpir_q(32 to 49)                 & --VPTAG
+						gpir_q(50 to 63)                 ; --DBTAG
+-- GSRR0
+ex6_gsrr0_di   <= ex6_spr_wd(62-(eff_ifar) to 61)  ; --GSRR0
 gsrr0_do       <= tidn(0 to 62-(eff_ifar))         &
-						gsrr0_q(64-(eff_ifar) to 63)     & 
-						tidn(62 to 63)                   ; 
-ex6_gsrr1_di   <= ex6_spr_wd(32 to 32)             & 
-						ex6_spr_wd(35 to 35)             & 
-						ex6_spr_wd(37 to 37)             & 
-						ex6_spr_wd(38 to 38)             & 
-						ex6_spr_wd(46 to 46)             & 
-						ex6_spr_wd(48 to 48)             & 
-						ex6_spr_wd(49 to 49)             & 
-						ex6_spr_wd(50 to 50)             & 
-						ex6_spr_wd(51 to 51)             & 
-						ex6_spr_wd(52 to 52)             & 
-						ex6_spr_wd(54 to 54)             & 
-						ex6_spr_wd(55 to 55)             & 
-						ex6_spr_wd(58 to 58)             & 
-						ex6_spr_wd(59 to 59)             ; 
+						gsrr0_q(64-(eff_ifar) to 63)     & --GSRR0
+						tidn(62 to 63)                   ; --///
+-- GSRR1
+ex6_gsrr1_di   <= ex6_spr_wd(32 to 32)             & --CM
+						ex6_spr_wd(35 to 35)             & --GS
+						ex6_spr_wd(37 to 37)             & --UCLE
+						ex6_spr_wd(38 to 38)             & --SPV
+						ex6_spr_wd(46 to 46)             & --CE
+						ex6_spr_wd(48 to 48)             & --EE
+						ex6_spr_wd(49 to 49)             & --PR
+						ex6_spr_wd(50 to 50)             & --FP
+						ex6_spr_wd(51 to 51)             & --ME
+						ex6_spr_wd(52 to 52)             & --FE0
+						ex6_spr_wd(54 to 54)             & --DE
+						ex6_spr_wd(55 to 55)             & --FE1
+						ex6_spr_wd(58 to 58)             & --IS
+						ex6_spr_wd(59 to 59)             ; --DS
 gsrr1_do       <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						gsrr1_q(50 to 50)                & 
-						tidn(33 to 34)                   & 
-						gsrr1_q(51 to 51)                & 
-						tidn(36 to 36)                   & 
-						gsrr1_q(52 to 52)                & 
-						gsrr1_q(53 to 53)                & 
-						tidn(39 to 45)                   & 
-						gsrr1_q(54 to 54)                & 
-						tidn(47 to 47)                   & 
-						gsrr1_q(55 to 55)                & 
-						gsrr1_q(56 to 56)                & 
-						gsrr1_q(57 to 57)                & 
-						gsrr1_q(58 to 58)                & 
-						gsrr1_q(59 to 59)                & 
-						tidn(53 to 53)                   & 
-						gsrr1_q(60 to 60)                & 
-						gsrr1_q(61 to 61)                & 
-						tidn(56 to 57)                   & 
-						gsrr1_q(62 to 62)                & 
-						gsrr1_q(63 to 63)                & 
-						tidn(60 to 63)                   ; 
-ex6_hacop_di   <= ex6_spr_wd(32 to 63)             ; 
+						tidn(0 to 31)                    & --///
+						gsrr1_q(50 to 50)                & --CM
+						tidn(33 to 34)                   & --///
+						gsrr1_q(51 to 51)                & --GS
+						tidn(36 to 36)                   & --///
+						gsrr1_q(52 to 52)                & --UCLE
+						gsrr1_q(53 to 53)                & --SPV
+						tidn(39 to 45)                   & --///
+						gsrr1_q(54 to 54)                & --CE
+						tidn(47 to 47)                   & --///
+						gsrr1_q(55 to 55)                & --EE
+						gsrr1_q(56 to 56)                & --PR
+						gsrr1_q(57 to 57)                & --FP
+						gsrr1_q(58 to 58)                & --ME
+						gsrr1_q(59 to 59)                & --FE0
+						tidn(53 to 53)                   & --///
+						gsrr1_q(60 to 60)                & --DE
+						gsrr1_q(61 to 61)                & --FE1
+						tidn(56 to 57)                   & --///
+						gsrr1_q(62 to 62)                & --IS
+						gsrr1_q(63 to 63)                & --DS
+						tidn(60 to 63)                   ; --///
+-- HACOP
+ex6_hacop_di   <= ex6_spr_wd(32 to 63)             ; --CT
 hacop_do       <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						hacop_q(32 to 63)                ; 
-ex6_mcsr_di    <= ex6_spr_wd(48 to 48)             & 
-						ex6_spr_wd(49 to 49)             & 
-						ex6_spr_wd(50 to 50)             & 
-						ex6_spr_wd(51 to 51)             & 
-						ex6_spr_wd(52 to 52)             & 
-						ex6_spr_wd(53 to 53)             & 
-						ex6_spr_wd(54 to 54)             & 
-						ex6_spr_wd(55 to 55)             & 
-						ex6_spr_wd(56 to 56)             & 
-						ex6_spr_wd(57 to 57)             & 
-						ex6_spr_wd(58 to 58)             & 
-						ex6_spr_wd(59 to 59)             & 
-						ex6_spr_wd(60 to 60)             & 
-						ex6_spr_wd(61 to 61)             & 
-						ex6_spr_wd(62 to 62)             ; 
+						tidn(0 to 31)                    & --///
+						hacop_q(32 to 63)                ; --CT
+-- MCSR
+ex6_mcsr_di    <= ex6_spr_wd(48 to 48)             & --DPOVR
+						ex6_spr_wd(49 to 49)             & --DDMH
+						ex6_spr_wd(50 to 50)             & --TLBIVAXSR
+						ex6_spr_wd(51 to 51)             & --TLBLRUPE
+						ex6_spr_wd(52 to 52)             & --IL2ECC
+						ex6_spr_wd(53 to 53)             & --DL2ECC
+						ex6_spr_wd(54 to 54)             & --DDPE
+						ex6_spr_wd(55 to 55)             & --EXT
+						ex6_spr_wd(56 to 56)             & --DCPE
+						ex6_spr_wd(57 to 57)             & --IEMH
+						ex6_spr_wd(58 to 58)             & --DEMH
+						ex6_spr_wd(59 to 59)             & --TLBMH
+						ex6_spr_wd(60 to 60)             & --IEPE
+						ex6_spr_wd(61 to 61)             & --DEPE
+						ex6_spr_wd(62 to 62)             ; --TLBPE
 mcsr_do        <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						tidn(32 to 47)                   & 
-						mcsr_q(49 to 49)                 & 
-						mcsr_q(50 to 50)                 & 
-						mcsr_q(51 to 51)                 & 
-						mcsr_q(52 to 52)                 & 
-						mcsr_q(53 to 53)                 & 
-						mcsr_q(54 to 54)                 & 
-						mcsr_q(55 to 55)                 & 
-						mcsr_q(56 to 56)                 & 
-						mcsr_q(57 to 57)                 & 
-						mcsr_q(58 to 58)                 & 
-						mcsr_q(59 to 59)                 & 
-						mcsr_q(60 to 60)                 & 
-						mcsr_q(61 to 61)                 & 
-						mcsr_q(62 to 62)                 & 
-						mcsr_q(63 to 63)                 & 
-						tidn(63 to 63)                   ; 
-ex6_mcsrr0_di  <= ex6_spr_wd(62-(eff_ifar) to 61)  ; 
+						tidn(0 to 31)                    & --///
+						tidn(32 to 47)                   & --///
+						mcsr_q(49 to 49)                 & --DPOVR
+						mcsr_q(50 to 50)                 & --DDMH
+						mcsr_q(51 to 51)                 & --TLBIVAXSR
+						mcsr_q(52 to 52)                 & --TLBLRUPE
+						mcsr_q(53 to 53)                 & --IL2ECC
+						mcsr_q(54 to 54)                 & --DL2ECC
+						mcsr_q(55 to 55)                 & --DDPE
+						mcsr_q(56 to 56)                 & --EXT
+						mcsr_q(57 to 57)                 & --DCPE
+						mcsr_q(58 to 58)                 & --IEMH
+						mcsr_q(59 to 59)                 & --DEMH
+						mcsr_q(60 to 60)                 & --TLBMH
+						mcsr_q(61 to 61)                 & --IEPE
+						mcsr_q(62 to 62)                 & --DEPE
+						mcsr_q(63 to 63)                 & --TLBPE
+						tidn(63 to 63)                   ; --///
+-- MCSRR0
+ex6_mcsrr0_di  <= ex6_spr_wd(62-(eff_ifar) to 61)  ; --SRR0
 mcsrr0_do      <= tidn(0 to 62-(eff_ifar))         &
-						mcsrr0_q(64-(eff_ifar) to 63)    & 
-						tidn(62 to 63)                   ; 
-ex6_mcsrr1_di  <= ex6_spr_wd(32 to 32)             & 
-						ex6_spr_wd(35 to 35)             & 
-						ex6_spr_wd(37 to 37)             & 
-						ex6_spr_wd(38 to 38)             & 
-						ex6_spr_wd(46 to 46)             & 
-						ex6_spr_wd(48 to 48)             & 
-						ex6_spr_wd(49 to 49)             & 
-						ex6_spr_wd(50 to 50)             & 
-						ex6_spr_wd(51 to 51)             & 
-						ex6_spr_wd(52 to 52)             & 
-						ex6_spr_wd(54 to 54)             & 
-						ex6_spr_wd(55 to 55)             & 
-						ex6_spr_wd(58 to 58)             & 
-						ex6_spr_wd(59 to 59)             ; 
+						mcsrr0_q(64-(eff_ifar) to 63)    & --SRR0
+						tidn(62 to 63)                   ; --///
+-- MCSRR1
+ex6_mcsrr1_di  <= ex6_spr_wd(32 to 32)             & --CM
+						ex6_spr_wd(35 to 35)             & --GS
+						ex6_spr_wd(37 to 37)             & --UCLE
+						ex6_spr_wd(38 to 38)             & --SPV
+						ex6_spr_wd(46 to 46)             & --CE
+						ex6_spr_wd(48 to 48)             & --EE
+						ex6_spr_wd(49 to 49)             & --PR
+						ex6_spr_wd(50 to 50)             & --FP
+						ex6_spr_wd(51 to 51)             & --ME
+						ex6_spr_wd(52 to 52)             & --FE0
+						ex6_spr_wd(54 to 54)             & --DE
+						ex6_spr_wd(55 to 55)             & --FE1
+						ex6_spr_wd(58 to 58)             & --IS
+						ex6_spr_wd(59 to 59)             ; --DS
 mcsrr1_do      <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						mcsrr1_q(50 to 50)               & 
-						tidn(33 to 34)                   & 
-						mcsrr1_q(51 to 51)               & 
-						tidn(36 to 36)                   & 
-						mcsrr1_q(52 to 52)               & 
-						mcsrr1_q(53 to 53)               & 
-						tidn(39 to 45)                   & 
-						mcsrr1_q(54 to 54)               & 
-						tidn(47 to 47)                   & 
-						mcsrr1_q(55 to 55)               & 
-						mcsrr1_q(56 to 56)               & 
-						mcsrr1_q(57 to 57)               & 
-						mcsrr1_q(58 to 58)               & 
-						mcsrr1_q(59 to 59)               & 
-						tidn(53 to 53)                   & 
-						mcsrr1_q(60 to 60)               & 
-						mcsrr1_q(61 to 61)               & 
-						tidn(56 to 57)                   & 
-						mcsrr1_q(62 to 62)               & 
-						mcsrr1_q(63 to 63)               & 
-						tidn(60 to 63)                   ; 
-ex6_msr_di     <= ex6_spr_wd(32 to 32)             & 
-						ex6_spr_wd(35 to 35)             & 
-						ex6_spr_wd(37 to 37)             & 
-						ex6_spr_wd(38 to 38)             & 
-						ex6_spr_wd(46 to 46)             & 
-						ex6_spr_wd(48 to 48)             & 
-						ex6_spr_wd(49 to 49)             & 
-						ex6_spr_wd(50 to 50)             & 
-						ex6_spr_wd(51 to 51)             & 
-						ex6_spr_wd(52 to 52)             & 
-						ex6_spr_wd(54 to 54)             & 
-						ex6_spr_wd(55 to 55)             & 
-						ex6_spr_wd(58 to 58)             & 
-						ex6_spr_wd(59 to 59)             ; 
+						tidn(0 to 31)                    & --///
+						mcsrr1_q(50 to 50)               & --CM
+						tidn(33 to 34)                   & --///
+						mcsrr1_q(51 to 51)               & --GS
+						tidn(36 to 36)                   & --///
+						mcsrr1_q(52 to 52)               & --UCLE
+						mcsrr1_q(53 to 53)               & --SPV
+						tidn(39 to 45)                   & --///
+						mcsrr1_q(54 to 54)               & --CE
+						tidn(47 to 47)                   & --///
+						mcsrr1_q(55 to 55)               & --EE
+						mcsrr1_q(56 to 56)               & --PR
+						mcsrr1_q(57 to 57)               & --FP
+						mcsrr1_q(58 to 58)               & --ME
+						mcsrr1_q(59 to 59)               & --FE0
+						tidn(53 to 53)                   & --///
+						mcsrr1_q(60 to 60)               & --DE
+						mcsrr1_q(61 to 61)               & --FE1
+						tidn(56 to 57)                   & --///
+						mcsrr1_q(62 to 62)               & --IS
+						mcsrr1_q(63 to 63)               & --DS
+						tidn(60 to 63)                   ; --///
+-- MSR
+ex6_msr_di     <= ex6_spr_wd(32 to 32)             & --CM
+						ex6_spr_wd(35 to 35)             & --GS
+						ex6_spr_wd(37 to 37)             & --UCLE
+						ex6_spr_wd(38 to 38)             & --SPV
+						ex6_spr_wd(46 to 46)             & --CE
+						ex6_spr_wd(48 to 48)             & --EE
+						ex6_spr_wd(49 to 49)             & --PR
+						ex6_spr_wd(50 to 50)             & --FP
+						ex6_spr_wd(51 to 51)             & --ME
+						ex6_spr_wd(52 to 52)             & --FE0
+						ex6_spr_wd(54 to 54)             & --DE
+						ex6_spr_wd(55 to 55)             & --FE1
+						ex6_spr_wd(58 to 58)             & --IS
+						ex6_spr_wd(59 to 59)             ; --DS
 msr_do         <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						msr_q(50 to 50)                  & 
-						tidn(33 to 34)                   & 
-						msr_q(51 to 51)                  & 
-						tidn(36 to 36)                   & 
-						msr_q(52 to 52)                  & 
-						msr_q(53 to 53)                  & 
-						tidn(39 to 45)                   & 
-						msr_q(54 to 54)                  & 
-						tidn(47 to 47)                   & 
-						msr_q(55 to 55)                  & 
-						msr_q(56 to 56)                  & 
-						msr_q(57 to 57)                  & 
-						msr_q(58 to 58)                  & 
-						msr_q(59 to 59)                  & 
-						tidn(53 to 53)                   & 
-						msr_q(60 to 60)                  & 
-						msr_q(61 to 61)                  & 
-						tidn(56 to 57)                   & 
-						msr_q(62 to 62)                  & 
-						msr_q(63 to 63)                  & 
-						tidn(60 to 63)                   ; 
-ex6_msrp_di    <= ex6_spr_wd(37 to 37)             & 
-						ex6_spr_wd(54 to 54)             ; 
+						tidn(0 to 31)                    & --///
+						msr_q(50 to 50)                  & --CM
+						tidn(33 to 34)                   & --///
+						msr_q(51 to 51)                  & --GS
+						tidn(36 to 36)                   & --///
+						msr_q(52 to 52)                  & --UCLE
+						msr_q(53 to 53)                  & --SPV
+						tidn(39 to 45)                   & --///
+						msr_q(54 to 54)                  & --CE
+						tidn(47 to 47)                   & --///
+						msr_q(55 to 55)                  & --EE
+						msr_q(56 to 56)                  & --PR
+						msr_q(57 to 57)                  & --FP
+						msr_q(58 to 58)                  & --ME
+						msr_q(59 to 59)                  & --FE0
+						tidn(53 to 53)                   & --///
+						msr_q(60 to 60)                  & --DE
+						msr_q(61 to 61)                  & --FE1
+						tidn(56 to 57)                   & --///
+						msr_q(62 to 62)                  & --IS
+						msr_q(63 to 63)                  & --DS
+						tidn(60 to 63)                   ; --///
+-- MSRP
+ex6_msrp_di    <= ex6_spr_wd(37 to 37)             & --UCLEP
+						ex6_spr_wd(54 to 54)             ; --DEP
 msrp_do        <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						tidn(32 to 36)                   & 
-						msrp_q(62 to 62)                 & 
-						tidn(38 to 53)                   & 
-						msrp_q(63 to 63)                 & 
-						tidn(55 to 63)                   ; 
-ex6_srr0_di    <= ex6_spr_wd(62-(eff_ifar) to 61)  ; 
+						tidn(0 to 31)                    & --///
+						tidn(32 to 36)                   & --///
+						msrp_q(62 to 62)                 & --UCLEP
+						tidn(38 to 53)                   & --///
+						msrp_q(63 to 63)                 & --DEP
+						tidn(55 to 63)                   ; --///
+-- SRR0
+ex6_srr0_di    <= ex6_spr_wd(62-(eff_ifar) to 61)  ; --SRR0
 srr0_do        <= tidn(0 to 62-(eff_ifar))         &
-						srr0_q(64-(eff_ifar) to 63)      & 
-						tidn(62 to 63)                   ; 
-ex6_srr1_di    <= ex6_spr_wd(32 to 32)             & 
-						ex6_spr_wd(35 to 35)             & 
-						ex6_spr_wd(37 to 37)             & 
-						ex6_spr_wd(38 to 38)             & 
-						ex6_spr_wd(46 to 46)             & 
-						ex6_spr_wd(48 to 48)             & 
-						ex6_spr_wd(49 to 49)             & 
-						ex6_spr_wd(50 to 50)             & 
-						ex6_spr_wd(51 to 51)             & 
-						ex6_spr_wd(52 to 52)             & 
-						ex6_spr_wd(54 to 54)             & 
-						ex6_spr_wd(55 to 55)             & 
-						ex6_spr_wd(58 to 58)             & 
-						ex6_spr_wd(59 to 59)             ; 
+						srr0_q(64-(eff_ifar) to 63)      & --SRR0
+						tidn(62 to 63)                   ; --///
+-- SRR1
+ex6_srr1_di    <= ex6_spr_wd(32 to 32)             & --CM
+						ex6_spr_wd(35 to 35)             & --GS
+						ex6_spr_wd(37 to 37)             & --UCLE
+						ex6_spr_wd(38 to 38)             & --SPV
+						ex6_spr_wd(46 to 46)             & --CE
+						ex6_spr_wd(48 to 48)             & --EE
+						ex6_spr_wd(49 to 49)             & --PR
+						ex6_spr_wd(50 to 50)             & --FP
+						ex6_spr_wd(51 to 51)             & --ME
+						ex6_spr_wd(52 to 52)             & --FE0
+						ex6_spr_wd(54 to 54)             & --DE
+						ex6_spr_wd(55 to 55)             & --FE1
+						ex6_spr_wd(58 to 58)             & --IS
+						ex6_spr_wd(59 to 59)             ; --DS
 srr1_do        <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						srr1_q(50 to 50)                 & 
-						tidn(33 to 34)                   & 
-						srr1_q(51 to 51)                 & 
-						tidn(36 to 36)                   & 
-						srr1_q(52 to 52)                 & 
-						srr1_q(53 to 53)                 & 
-						tidn(39 to 45)                   & 
-						srr1_q(54 to 54)                 & 
-						tidn(47 to 47)                   & 
-						srr1_q(55 to 55)                 & 
-						srr1_q(56 to 56)                 & 
-						srr1_q(57 to 57)                 & 
-						srr1_q(58 to 58)                 & 
-						srr1_q(59 to 59)                 & 
-						tidn(53 to 53)                   & 
-						srr1_q(60 to 60)                 & 
-						srr1_q(61 to 61)                 & 
-						tidn(56 to 57)                   & 
-						srr1_q(62 to 62)                 & 
-						srr1_q(63 to 63)                 & 
-						tidn(60 to 63)                   ; 
-ex6_tcr_di     <= ex6_spr_wd(32 to 33)             & 
-						ex6_spr_wd(34 to 35)             & 
-						ex6_spr_wd(36 to 36)             & 
-						ex6_spr_wd(37 to 37)             & 
-						ex6_spr_wd(38 to 39)             & 
-						ex6_spr_wd(40 to 40)             & 
-						ex6_spr_wd(41 to 41)             & 
-						ex6_spr_wd(42 to 42)             & 
-						ex6_spr_wd(51 to 51)             ; 
+						tidn(0 to 31)                    & --///
+						srr1_q(50 to 50)                 & --CM
+						tidn(33 to 34)                   & --///
+						srr1_q(51 to 51)                 & --GS
+						tidn(36 to 36)                   & --///
+						srr1_q(52 to 52)                 & --UCLE
+						srr1_q(53 to 53)                 & --SPV
+						tidn(39 to 45)                   & --///
+						srr1_q(54 to 54)                 & --CE
+						tidn(47 to 47)                   & --///
+						srr1_q(55 to 55)                 & --EE
+						srr1_q(56 to 56)                 & --PR
+						srr1_q(57 to 57)                 & --FP
+						srr1_q(58 to 58)                 & --ME
+						srr1_q(59 to 59)                 & --FE0
+						tidn(53 to 53)                   & --///
+						srr1_q(60 to 60)                 & --DE
+						srr1_q(61 to 61)                 & --FE1
+						tidn(56 to 57)                   & --///
+						srr1_q(62 to 62)                 & --IS
+						srr1_q(63 to 63)                 & --DS
+						tidn(60 to 63)                   ; --///
+-- TCR
+ex6_tcr_di     <= ex6_spr_wd(32 to 33)             & --WP
+						ex6_spr_wd(34 to 35)             & --WRC
+						ex6_spr_wd(36 to 36)             & --WIE
+						ex6_spr_wd(37 to 37)             & --DIE
+						ex6_spr_wd(38 to 39)             & --FP
+						ex6_spr_wd(40 to 40)             & --FIE
+						ex6_spr_wd(41 to 41)             & --ARE
+						ex6_spr_wd(42 to 42)             & --UDIE
+						ex6_spr_wd(51 to 51)             ; --UD
 tcr_do         <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						tcr_q(52 to 53)                  & 
-						tcr_q(54 to 55)                  & 
-						tcr_q(56 to 56)                  & 
-						tcr_q(57 to 57)                  & 
-						tcr_q(58 to 59)                  & 
-						tcr_q(60 to 60)                  & 
-						tcr_q(61 to 61)                  & 
-						tcr_q(62 to 62)                  & 
-						tidn(43 to 50)                   & 
-						tcr_q(63 to 63)                  & 
-						tidn(52 to 63)                   ; 
-ex6_tsr_di     <= ex6_spr_wd(32 to 32)             & 
-						ex6_spr_wd(33 to 33)             & 
-						ex6_spr_wd(36 to 36)             & 
-						ex6_spr_wd(37 to 37)             & 
-						ex6_spr_wd(38 to 38)             ; 
+						tidn(0 to 31)                    & --///
+						tcr_q(52 to 53)                  & --WP
+						tcr_q(54 to 55)                  & --WRC
+						tcr_q(56 to 56)                  & --WIE
+						tcr_q(57 to 57)                  & --DIE
+						tcr_q(58 to 59)                  & --FP
+						tcr_q(60 to 60)                  & --FIE
+						tcr_q(61 to 61)                  & --ARE
+						tcr_q(62 to 62)                  & --UDIE
+						tidn(43 to 50)                   & --///
+						tcr_q(63 to 63)                  & --UD
+						tidn(52 to 63)                   ; --///
+-- TSR
+ex6_tsr_di     <= ex6_spr_wd(32 to 32)             & --ENW
+						ex6_spr_wd(33 to 33)             & --WIS
+						ex6_spr_wd(36 to 36)             & --DIS
+						ex6_spr_wd(37 to 37)             & --FIS
+						ex6_spr_wd(38 to 38)             ; --UDIS
 tsr_do         <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						tsr_q(59 to 59)                  & 
-						tsr_q(60 to 60)                  & 
-						tsr_wrs_q(0 to 1)                & 
-						tsr_q(61 to 61)                  & 
-						tsr_q(62 to 62)                  & 
-						tsr_q(63 to 63)                  & 
-						tidn(39 to 63)                   ; 
-ex6_udec_di    <= ex6_spr_wd(32 to 63)             ; 
+						tidn(0 to 31)                    & --///
+						tsr_q(59 to 59)                  & --ENW
+						tsr_q(60 to 60)                  & --WIS
+						tsr_wrs_q(0 to 1)                & --WRS
+						tsr_q(61 to 61)                  & --DIS
+						tsr_q(62 to 62)                  & --FIS
+						tsr_q(63 to 63)                  & --UDIS
+						tidn(39 to 63)                   ; --///
+-- UDEC
+ex6_udec_di    <= ex6_spr_wd(32 to 63)             ; --UDEC
 udec_do        <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						udec_q(32 to 63)                 ; 
-ex6_xucr1_di   <= ex6_spr_wd(57 to 59)             & 
-						ex6_spr_wd(62 to 62)             & 
-						ex6_spr_wd(63 to 63)             ; 
+						tidn(0 to 31)                    & --///
+						udec_q(32 to 63)                 ; --UDEC
+-- XUCR1
+ex6_xucr1_di   <= ex6_spr_wd(57 to 59)             & --LL_TB_SEL
+						ex6_spr_wd(62 to 62)             & --LL_SEL
+						ex6_spr_wd(63 to 63)             ; --LL_EN
 xucr1_do       <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						tidn(32 to 56)                   & 
-						xucr1_q(59 to 61)                & 
-						llstate(0 to 1)                  & 
-						xucr1_q(62 to 62)                & 
-						xucr1_q(63 to 63)                ; 
+						tidn(0 to 31)                    & --///
+						tidn(32 to 56)                   & --///
+						xucr1_q(59 to 61)                & --LL_TB_SEL
+						llstate(0 to 1)                  & --LL_STATE
+						xucr1_q(62 to 62)                & --LL_SEL
+						xucr1_q(63 to 63)                ; --LL_EN
 
+-- Unused Signals
 mark_unused(acop_do(0 to 64-regsize));
 mark_unused(ccr3_do(0 to 64-regsize));
 mark_unused(csrr0_do(0 to 64-regsize));
@@ -2499,6 +2617,7 @@ mark_unused(exx_act_data(1));
 mark_unused(exx_act_data(3 to 4));
 mark_unused(mchk_int_q);
 
+-- SPR Latch Instances
 acop_latch_gen : if a2mode = 1 generate
 acop_latch : tri_ser_rlmreg_p
 generic map(width   => acop_q'length, init => 0, expand_type => expand_type, needs_sreset => 1)
@@ -2968,6 +3087,7 @@ generic map(width   => xucr1_q'length, init => 0, expand_type => expand_type, ne
             dout    => xucr1_q);
 
 
+-- Latch Instances
 exx_act_latch : tri_rlmreg_p
   generic map (width => exx_act_q'length, init => 0, expand_type => expand_type, needs_sreset => 0)
   port map (nclk    => nclk, vd => vdd, gd => gnd,
@@ -4234,7 +4354,6 @@ dcfg_scan_out                    <= dcfg_scan_in;
 sov_dcfg                         <= (others=>'0');
 siv_dcfg                         <= (others=>'0');
 end generate;
-
 
 
 end architecture xuq_spr_tspr;

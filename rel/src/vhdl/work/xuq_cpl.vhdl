@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Exception Handler
+--
 library ieee,ibm,support,work,tri,clib;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -26,10 +28,13 @@ generic(
    hvmode                           :     integer := 1;
    a2mode                           :     integer := 1);
 port(
+   -- Clocks
    nclk                             : in  clk_logic;
 
+   -- CHIP IO
    ac_tc_debug_trigger              : out std_ulogic_vector(0 to threads-1);
 
+   -- Pervasive
    an_ac_scan_dis_dc_b              : in  std_ulogic;
    pc_xu_ccflush_dc                 : in  std_ulogic;
    clkoff_dc_b                      : in  std_ulogic;
@@ -54,14 +59,17 @@ port(
    dcfg_scan_in                     : in  std_ulogic;
    dcfg_scan_out                    : out std_ulogic;
 
+   -- Valids
    dec_cpl_rf0_act                  : in  std_ulogic;
    dec_cpl_rf0_tid                  : in  std_ulogic_vector(0 to threads-1);
    dec_cpl_rf1_val                  : in  std_ulogic_vector(0 to threads-1);
    dec_cpl_rf1_issued               : in  std_ulogic_vector(0 to threads-1);
 
+   -- IU Inputs
    dec_cpl_ex2_error                : in std_ulogic_vector(0 to 2);
    dec_cpl_ex2_match                : in std_ulogic;
 
+   -- FU Inputs
    fu_xu_rf1_act                    : in  std_ulogic_vector(0 to threads-1);
    fu_xu_ex1_ifar                   : in  std_ulogic_vector(0 to eff_ifar*threads-1);
    fu_xu_ex2_ifar_issued            : in  std_ulogic_vector(0 to threads-1);
@@ -70,6 +78,7 @@ port(
    fu_xu_ex2_instr_match            : in  std_ulogic_vector(0 to threads-1);
    fu_xu_ex2_is_ucode               : in  std_ulogic_vector(0 to threads-1);
 
+   -- PC Inputs
    pc_xu_step                       : in  std_ulogic_vector(0 to threads-1);
    pc_xu_stop                       : in  std_ulogic_vector(0 to threads-1);
    pc_xu_dbg_action                 : in  std_ulogic_vector(0 to 3*threads-1);
@@ -77,8 +86,10 @@ port(
    xu_pc_step_done                  : out std_ulogic_vector(0 to threads-1);
    pc_xu_init_reset                 : in  std_ulogic;
 
+   -- Bypass Inputs
    byp_cpl_ex1_cr_bit               : in  std_ulogic;
 
+   -- Decode Inputs
    dec_cpl_rf1_pred_taken_cnt       : in  std_ulogic;
    dec_cpl_rf1_instr                : in  std_ulogic_vector(0 to 31);
    dec_cpl_ex3_is_any_store         : in  std_ulogic;
@@ -97,6 +108,7 @@ port(
    dec_cpl_ex3_mult_coll            : in  std_ulogic;
    fxa_cpl_ex2_div_coll             : in  std_ulogic_vector(0 to threads-1);
 
+   -- Async Interrupt Req Interface
    spr_cpl_ext_interrupt            : in  std_ulogic_vector(0 to threads-1);
    spr_cpl_udec_interrupt           : in  std_ulogic_vector(0 to threads-1);
    spr_cpl_perf_interrupt           : in  std_ulogic_vector(0 to threads-1);
@@ -116,8 +128,10 @@ port(
    cpl_spr_ex5_gcdbell_taken        : out std_ulogic_vector(0 to threads-1);
    cpl_spr_ex5_gmcdbell_taken       : out std_ulogic_vector(0 to threads-1);
 
+   -- IFAR
    dec_cpl_rf1_ifar                 : in  std_ulogic_vector(62-eff_ifar to 61);
      
+   -- Debug Compares
    spr_cpl_iac1_en                  : in  std_ulogic_vector(0 to threads-1);
    spr_cpl_iac2_en                  : in  std_ulogic_vector(0 to threads-1);
    spr_cpl_iac3_en                  : in  std_ulogic_vector(0 to threads-1);
@@ -133,6 +147,7 @@ port(
    fxu_cpl_ex3_dac3w_cmpr           : in  std_ulogic_vector(0 to threads-1);
    fxu_cpl_ex3_dac4w_cmpr           : in  std_ulogic_vector(0 to threads-1);
 
+   -- Interrupt Interface
    cpl_spr_ex5_act                  : out std_ulogic_vector(0 to threads-1);
    cpl_spr_ex5_int                  : out std_ulogic_vector(0 to threads-1);
    cpl_spr_ex5_gint                 : out std_ulogic_vector(0 to threads-1);
@@ -152,8 +167,10 @@ port(
    cpl_spr_ex5_dbsr_ide             : out std_ulogic_vector(0 to threads-1);
    spr_cpl_dbsr_ide                 : in  std_ulogic_vector(0 to threads-1);
 
+   -- ALU Inputs
    alu_cpl_ex1_eff_addr             : in  std_ulogic_vector(62 to 63);
 
+   -- Machine Check Interrupts
    mm_xu_local_snoop_reject         : in  std_ulogic_vector(0 to threads-1);
    mm_xu_lru_par_err                : in  std_ulogic_vector(0 to threads-1);
    mm_xu_tlb_par_err                : in  std_ulogic_vector(0 to threads-1);
@@ -167,27 +184,35 @@ port(
    lsu_xu_ex6_datc_par_err          : in  std_ulogic;
    spr_cpl_external_mchk            : in  std_ulogic_vector(0 to threads-1);
 
+   -- PC Errors
    xu_pc_err_attention_instr        : out std_ulogic_vector(0 to threads-1);
    xu_pc_err_nia_miscmpr            : out std_ulogic_vector(0 to threads-1);
    xu_pc_err_debug_event            : out std_ulogic_vector(0 to threads-1);
 
+   -- Data Storage
    lsu_xu_ex3_dsi                   : in  std_ulogic_vector(0 to threads-1);
    derat_xu_ex3_dsi                 : in  std_ulogic_vector(0 to threads-1);
    spr_cpl_ex3_ct_le                : in  std_ulogic_vector(0 to threads-1);
    spr_cpl_ex3_ct_be                : in  std_ulogic_vector(0 to threads-1);
 
+   -- Alignment
    lsu_xu_ex3_align                 : in  std_ulogic_vector(0 to threads-1);
 
+   -- Program
    spr_cpl_ex3_spr_illeg            : in  std_ulogic;
    spr_cpl_ex3_spr_priv             : in  std_ulogic;
    alu_cpl_ex3_trap_val             : in  std_ulogic;
 
+   -- Hypv Privledge
    spr_cpl_ex3_spr_hypv             : in  std_logic;
 
+   -- Data TLB Miss
    derat_xu_ex3_miss                : in  std_ulogic_vector(0 to threads-1);
 
+   -- uCode
    dec_cpl_ex2_is_ucode             : in  std_ulogic;
 
+   -- RAM
    pc_xu_ram_mode                   : in  std_ulogic;
    pc_xu_ram_thread                 : in  std_ulogic_vector(0 to 1);
    pc_xu_ram_execute                : in  std_ulogic;
@@ -196,6 +221,7 @@ port(
    xu_pc_ram_done                   : out std_ulogic;
    pc_xu_ram_flush_thread           : in  std_ulogic;
 
+   -- Run State
    cpl_spr_stop                     : out std_ulogic_vector(0 to threads-1);
    xu_pc_stop_dbg_event             : out std_ulogic_vector(0 to threads-1);
    cpl_spr_ex5_instr_cpl            : out std_ulogic_vector(0 to threads-1);
@@ -203,6 +229,7 @@ port(
    cpl_spr_quiesce                  : out std_ulogic_vector(0 to threads-1);
    spr_cpl_ex2_run_ctl_flush        : in  std_ulogic_vector(0 to threads-1);
 
+   -- MMU Flushes
    mm_xu_illeg_instr                : in  std_ulogic_vector(0 to threads-1);
    mm_xu_tlb_miss                   : in  std_ulogic_vector(0 to threads-1);
    mm_xu_pt_fault                   : in  std_ulogic_vector(0 to threads-1);
@@ -219,6 +246,7 @@ port(
    mm_xu_eratmiss_done              : in  std_ulogic_vector(0 to threads-1);
    mm_xu_ex3_flush_req              : in  std_ulogic_vector(0 to threads-1);
 
+   -- LSU Flushes
    lsu_xu_l2_ecc_err_flush          : in  std_ulogic_vector(0 to threads-1);
    lsu_xu_datc_perr_recovery        : in  std_ulogic;
    lsu_xu_ex3_dep_flush             : in  std_ulogic;
@@ -230,6 +258,7 @@ port(
    lsu_xu_ex3_attr                  : in  std_ulogic_vector(0 to 8);
    lsu_xu_ex3_derat_vf              : in  std_ulogic;
 
+   -- AXU Flushes
    fu_xu_ex3_ap_int_req             : in  std_ulogic_vector(0 to threads-1);
    fu_xu_ex3_trap                   : in  std_ulogic_vector(0 to threads-1);
    fu_xu_ex3_n_flush                : in  std_ulogic_vector(0 to threads-1);
@@ -237,6 +266,7 @@ port(
    fu_xu_ex3_flush2ucode            : in  std_ulogic_vector(0 to threads-1);
    fu_xu_ex2_async_block            : in  std_ulogic_vector(0 to threads-1);
 
+   -- IU Flushes
    xu_iu_ex5_br_taken               : out std_ulogic;
    xu_iu_ex5_ifar                   : out std_ulogic_vector(62-eff_ifar to 61);
    xu_iu_flush                      : out std_ulogic_vector(0 to threads-1);
@@ -247,6 +277,7 @@ port(
    xu_iu_ucode_restart              : out std_ulogic_vector(0 to threads-1);
    xu_iu_ex5_ppc_cpl                : out std_ulogic_vector(0 to threads-1);
 
+   -- Flushes
    xu_rf0_flush                     : out std_ulogic_vector(0 to threads-1);
    xu_rf1_flush                     : out std_ulogic_vector(0 to threads-1);
    xu_ex1_flush                     : out std_ulogic_vector(0 to threads-1);
@@ -285,13 +316,16 @@ port(
    xu_mm_ierat_flush                : out std_ulogic_vector(0 to threads-1);
    xu_mm_ierat_miss                 : out std_ulogic_vector(0 to threads-1);
    
+   -- Barrier
    xu_lsu_ex5_set_barr              : out std_ulogic_vector(0 to threads-1);
    cpl_fxa_ex5_set_barr             : out std_ulogic_vector(0 to threads-1);
    cpl_iu_set_barr_tid              : out std_ulogic_vector(0 to threads-1);
 
+   -- SPR Bus
    cpl_byp_ex3_spr_rt               : out std_ulogic_vector(64-regsize to 63);
    mux_cpl_ex4_rt                   : in  std_ulogic_vector(64-regsize to 63);
 
+   -- SPR Bits
    spr_bit_act                      : in  std_ulogic;
    cpl_spr_dbcr0_edm                : out std_ulogic_vector(0 to threads-1);
    spr_cpl_fp_precise               : in  std_ulogic_vector(0 to threads-1);
@@ -335,27 +369,32 @@ port(
    cpl_msr_spv                      : out std_ulogic_vector(0 to threads-1);
    cpl_ccr2_ap                      : out std_ulogic_vector(0 to threads-1);
 
+   -- Slow SPR Bus
    mux_cpl_slowspr_flush            : in  std_ulogic_vector(0 to threads-1);
    mux_cpl_slowspr_done             : in  std_ulogic_vector(0 to threads-1);
    dec_cpl_ex1_is_slowspr_wr        : in  std_ulogic;
    dec_cpl_ex3_ddmh_en              : in  std_ulogic;
    dec_cpl_ex3_back_inv             : in  std_ulogic;
     
+   -- Cache invalidate
    xu_lsu_ici                       : out std_ulogic;
    xu_lsu_dci                       : out std_ulogic;
    
+   -- Perf
    pc_xu_event_bus_enable           : in  std_ulogic;  
    cpl_perf_tx_events               : out std_ulogic_vector(0 to 75);
    spr_cpl_async_int                : in  std_ulogic_vector(0 to 3*threads-1);
    xu_mm_ex5_perf_itlb              : out std_ulogic_vector(0 to threads-1);
    xu_mm_ex5_perf_dtlb              : out std_ulogic_vector(0 to threads-1);
 
+   -- Parity
    spr_cpl_ex3_sprg_ce              : in  std_ulogic;
    spr_cpl_ex3_sprg_ue              : in  std_ulogic;
    iu_xu_ierat_ex2_flush_req        : in  std_ulogic_vector(0 to threads-1);
    iu_xu_ierat_ex3_par_err          : in  std_ulogic_vector(0 to threads-1);
    iu_xu_ierat_ex4_par_err          : in  std_ulogic_vector(0 to threads-1);
    
+   -- Regfile Parity
 	fu_xu_ex3_regfile_err_det	      : in  std_ulogic_vector(0 to threads-1);
 	xu_fu_regfile_seq_beg	         : out std_ulogic;
 	fu_xu_regfile_seq_end	         : in  std_ulogic;
@@ -376,6 +415,7 @@ port(
    xu_pc_err_mchk_disabled          : out std_ulogic;
    xu_pc_err_sprg_ue                : out std_ulogic_vector(0 to threads-1);
    
+   -- Debug
    pc_xu_instr_trace_mode           : in  std_ulogic;
    pc_xu_trace_bus_enable           : in  std_ulogic;  
    dec_cpl_rf1_instr_trace_val      : in  std_ulogic;
@@ -389,6 +429,7 @@ port(
    cpl_trigger_data_out             : out std_ulogic_vector(0 to 11);
    fxa_cpl_debug                    : in  std_ulogic_vector(0 to 272);
    
+   -- Power
    vdd                              : inout power_logic;
    gnd                              : inout power_logic
 );
@@ -403,49 +444,49 @@ constant ivos                                         : integer := 26;
 constant ifar_repwr                                   : integer := (eff_ifar+2)/8;
 constant MSL                                          : integer := 1274;
 
-constant PREVn                                        : integer := 0;   
-constant BTAn                                         : integer := 1;   
-constant DEPn                                         : integer := 2;   
-constant IMISSn                                       : integer := 3;   
-constant IMCHKn                                       : integer := 4;   
-constant DBG0n                                        : integer := 5;   
-constant ITLBn                                        : integer := 6;   
-constant ISTORn                                       : integer := 7;   
-constant ILRATn                                       : integer := 8;   
-constant FPEn                                         : integer := 9;   
-constant PROG0n                                       : integer := 10;  
-constant PROG1n                                       : integer := 11;  
-constant UNAVAILn                                     : integer := 12;  
-constant PROG2n                                       : integer := 13;  
-constant PROG3n                                       : integer := 14;  
-constant HPRIVn                                       : integer := 15;  
-constant PROG0An                                      : integer := 16;  
-constant DMCHKn                                       : integer := 17;  
-constant DTLBn                                        : integer := 18;  
-constant DMISSn                                       : integer := 19;  
-constant DSTORn                                       : integer := 20;  
-constant ALIGNn                                       : integer := 21;  
-constant DLRATn                                       : integer := 22;  
-constant DBG1n                                        : integer := 23;  
-constant F2Un                                         : integer := 24;  
-constant FwBSn                                        : integer := 25;  
-constant Fn                                           : integer := 26;  
-constant INSTRnp1                                     : integer := 27;  
-constant MCHKnp1                                      : integer := 28;  
-constant GDBMCHKnp1                                   : integer := 29;  
-constant DBG3np1                                      : integer := 30;  
-constant CRITnp1                                      : integer := 31;  
-constant WDOGnp1                                      : integer := 32;  
-constant CDBELLnp1                                    : integer := 33;  
-constant GCDBELLnp1                                   : integer := 34;  
-constant EXTnp1                                       : integer := 35;  
-constant FITnp1                                       : integer := 36;  
-constant DECnp1                                       : integer := 37;  
-constant DBELLnp1                                     : integer := 38;  
-constant GDBELLnp1                                    : integer := 39;  
-constant UDECnp1                                      : integer := 40;  
-constant PERFnp1                                      : integer := 41;  
-constant Fnp1                                         : integer := 42;  
+constant PREVn                                        : integer := 0;   -- Exception Caused by previous instruction
+constant BTAn                                         : integer := 1;   -- Branch Target Address Miscompare
+constant DEPn                                         : integer := 2;   -- LSU Dependancy Flush
+constant IMISSn                                       : integer := 3;   -- I-ERAT Miss
+constant IMCHKn                                       : integer := 4;   -- Machine Check Interrupt
+constant DBG0n                                        : integer := 5;   -- Debug Interrupt (IVC,IAC)
+constant ITLBn                                        : integer := 6;   -- Instruction TLB Interrupt
+constant ISTORn                                       : integer := 7;   -- Instruction Storage Interrupt
+constant ILRATn                                       : integer := 8;   -- Instruction LRAT Interrupt
+constant FPEn                                         : integer := 9;   -- Parity Error Flush
+constant PROG0n                                       : integer := 10;  -- Program Interrupt (Illegal Op)
+constant PROG1n                                       : integer := 11;  -- Program Interrupt (Privledeged Op)
+constant UNAVAILn                                     : integer := 12;  -- FP, AP, or Vector Unavailable
+constant PROG2n                                       : integer := 13;  -- Program Interrupt (Unimplemented Op)
+constant PROG3n                                       : integer := 14;  -- Program Interrupt (FP or AP Enabled)
+constant HPRIVn                                       : integer := 15;  -- Embedded Hypervisor Privilege Interrupt
+constant PROG0An                                      : integer := 16;  -- Program Interrupt (tlbwe Illegal MAS settings)
+constant DMCHKn                                       : integer := 17;  -- Machine Check Interrupt
+constant DTLBn                                        : integer := 18;  -- Data TLB Interrupt
+constant DMISSn                                       : integer := 19;  -- D-ERAT Miss
+constant DSTORn                                       : integer := 20;  -- Data Storage Interrupt
+constant ALIGNn                                       : integer := 21;  -- Alignment Interrupt
+constant DLRATn                                       : integer := 22;  -- Data LRAT Interrupt
+constant DBG1n                                        : integer := 23;  -- Debug Interrupt (DAC,RET,BRT,TRAP)
+constant F2Un                                         : integer := 24;  -- N Flush to uCode
+constant FwBSn                                        : integer := 25;  -- N Flush w/Barrier Set
+constant Fn                                           : integer := 26;  -- N Flush
+constant INSTRnp1                                     : integer := 27;  -- RFI, SC, TRAP Instruction
+constant MCHKnp1                                      : integer := 28;  -- Machine Check Interrupt
+constant GDBMCHKnp1                                   : integer := 29;  -- Guest Processor Doorbell Machine Check Interrupt
+constant DBG3np1                                      : integer := 30;  -- Async Debug Interrupt (UDE,IDE,IRPT)
+constant CRITnp1                                      : integer := 31;  -- Critical External Input Interrupt
+constant WDOGnp1                                      : integer := 32;  -- Watchdog Interrupt
+constant CDBELLnp1                                    : integer := 33;  -- Processor Doorbell Critical Interrupt
+constant GCDBELLnp1                                   : integer := 34;  -- Guest Processor Doorbell Critical Interrupt
+constant EXTnp1                                       : integer := 35;  -- External Input Interrupt
+constant FITnp1                                       : integer := 36;  -- Fixed Interval Timer Interrupt
+constant DECnp1                                       : integer := 37;  -- Decrementer Interrupt
+constant DBELLnp1                                     : integer := 38;  -- Processor Doorbell
+constant GDBELLnp1                                    : integer := 39;  -- Guest Processor Doorbell
+constant UDECnp1                                      : integer := 40;  -- User Decrementer
+constant PERFnp1                                      : integer := 41;  -- Performance Monitor
+constant Fnp1                                         : integer := 42;  -- NP1 Flush
 constant TRAP                                         : integer := 0;
 constant SC                                           : integer := 1;
 constant RFI                                          : integer := 2;
@@ -460,6 +501,7 @@ constant RW                                           : integer := 4;
 constant UCT                                          : integer := 5;
 constant APENA                                        : integer := 0;
 constant FPENA                                        : integer := 1;
+-- Types
 type TID_ARR                                         is array (0 to ifar_repwr-1) of std_ulogic_vector(0 to threads-1);
 type DAC                                             is array (1 to 4) of std_ulogic_vector(0 to threads-1);
 type DAC_A                                           is array (1 to 2) of std_ulogic_vector(0 to threads-1);
@@ -476,482 +518,485 @@ type ARY_BLOCK                                       is array (0 to threads-1) o
 subtype  IFAR                                        is std_ulogic_vector(62-eff_ifar to 61);
 subtype  IFAR_UC                                     is std_ulogic_vector(62-uc_ifar to 61);
 subtype  TID                                         is std_ulogic_vector(0 to threads-1);
-signal is2_flush_q                                            : std_ulogic_vector(0 to threads-1);        
-signal rf0_flush_q                                            : std_ulogic_vector(0 to threads-1);        
-signal rf1_flush_q                                            : std_ulogic_vector(0 to threads-1);        
-signal rf1_tid_q                                              : std_ulogic_vector(0 to threads-1);        
-signal ex1_axu_act_q                                          : std_ulogic_vector(0 to threads-1);        
-signal ex1_byte_rev_q,            rf1_byte_rev                : std_ulogic;                               
-signal ex1_flush_q                                            : std_ulogic_vector(0 to threads-1);        
-signal ex1_is_any_ldstmw_q,       rf1_is_any_ldstmw           : std_ulogic;                               
-signal ex1_is_attn_q,             rf1_is_attn                 : std_ulogic;                               
-signal ex1_is_dci_q,              ex1_is_dci_d                : std_ulogic;                               
-signal ex1_is_dlock_q,            rf1_is_dlock                : std_ulogic;                               
-signal ex1_is_ehpriv_q,           rf1_is_ehpriv               : std_ulogic;                               
-signal ex1_is_erativax_q,         rf1_is_erativax             : std_ulogic;                               
-signal ex1_is_ici_q,              ex1_is_ici_d                : std_ulogic;                               
-signal ex1_is_icswx_q,            rf1_is_icswx                : std_ulogic;                               
-signal ex1_is_ilock_q,            rf1_is_ilock                : std_ulogic;                               
-signal ex1_is_isync_q,            rf1_is_isync                : std_ulogic;                               
-signal ex1_is_mfspr_q,            rf1_is_mfspr                : std_ulogic;                               
-signal ex1_is_mtmsr_q,            rf1_is_mtmsr                : std_ulogic;                               
-signal ex1_is_mtspr_q,            rf1_is_mtspr                : std_ulogic;                               
-signal ex1_is_rfci_q,             rf1_is_rfci                 : std_ulogic;                               
-signal ex1_is_rfgi_q,             rf1_is_rfgi                 : std_ulogic;                               
-signal ex1_is_rfi_q,              rf1_is_rfi                  : std_ulogic;                               
-signal ex1_is_rfmci_q,            rf1_is_rfmci                : std_ulogic;                               
-signal ex1_is_sc_q,               rf1_is_sc                   : std_ulogic;                               
-signal ex1_is_tlbivax_q,          rf1_is_tlbivax              : std_ulogic;                               
-signal ex1_is_wrtee_q,            rf1_is_wrtee                : std_ulogic;                               
-signal ex1_is_wrteei_q,           rf1_is_wrteei               : std_ulogic;                               
-signal ex1_is_mtxucr0_q,          rf1_is_mtxucr0              : std_ulogic;                               
-signal ex1_is_tlbwe_q,            rf1_is_tlbwe                : std_ulogic;                               
-signal ex1_sc_lev_q,              rf1_sc_lev                  : std_ulogic;                               
-signal ex1_ucode_val_q                                        : std_ulogic_vector(0 to threads-1);        
-signal ex1_xu_val_q                                           : std_ulogic_vector(0 to threads-1);        
-signal ex2_axu_act_q                                          : std_ulogic_vector(0 to threads-1);        
-signal ex2_any_wrtee_q,           ex2_any_wrtee_d             : std_ulogic;                               
-signal ex2_br_taken_q                                         : std_ulogic;                               
-signal ex2_br_update_q                                        : std_ulogic;                               
-signal ex2_byte_rev_q                                         : std_ulogic;                               
-signal ex2_ctr_dec_update_q                                   : std_ulogic;                               
-signal ex2_epid_instr_q                                       : std_ulogic;                               
-signal ex2_flush_q                                            : std_ulogic_vector(0 to threads-1);        
-signal ex2_is_attn_q                                          : std_ulogic;                               
-signal ex2_is_dci_q                                           : std_ulogic;                               
-signal ex2_is_dlock_q                                         : std_ulogic;                               
-signal ex2_is_ehpriv_q                                        : std_ulogic;                               
-signal ex2_is_erativax_q                                      : std_ulogic;                               
-signal ex2_is_ici_q                                           : std_ulogic;                               
-signal ex2_is_icswx_q                                         : std_ulogic;                               
-signal ex2_is_ilock_q                                         : std_ulogic;                               
-signal ex2_is_isync_q                                         : std_ulogic;                               
-signal ex2_is_mtmsr_q                                         : std_ulogic;                               
-signal ex2_is_rfci_q                                          : std_ulogic;                               
-signal ex2_is_rfgi_q                                          : std_ulogic;                               
-signal ex2_is_rfi_q                                           : std_ulogic;                               
-signal ex2_is_rfmci_q                                         : std_ulogic;                               
-signal ex2_is_sc_q                                            : std_ulogic;                               
-signal ex2_is_slowspr_wr_q                                    : std_ulogic;                               
-signal ex2_is_tlbivax_q                                       : std_ulogic;                               
-signal ex2_is_tlbwe_q                                         : std_ulogic;                               
-signal ex2_lr_update_q                                        : std_ulogic;                               
-signal ex2_n_align_int_q,         ex2_n_align_int_d           : std_ulogic;                               
-signal ex2_sc_lev_q                                           : std_ulogic;                               
-signal ex2_taken_bclr_q                                       : std_ulogic;                               
-signal ex2_ucode_val_q                                        : std_ulogic_vector(0 to threads-1);        
-signal ex2_xu_val_q                                           : std_ulogic_vector(0 to threads-1);        
-signal ex2_is_mtxucr0_q                                       : std_ulogic;                               
-signal ex3_async_int_block_q,     ex3_async_int_block_d       : std_ulogic_vector(0 to threads-1);        
-signal ex3_axu_instr_match_q                                  : std_ulogic_vector(0 to threads-1);        
-signal ex3_axu_instr_type_q                                   : std_ulogic_vector(0 to 3*threads-1);      
-signal ex3_axu_is_ucode_q                                     : std_ulogic_vector(0 to threads-1);        
-signal ex3_axu_val_q                                          : std_ulogic_vector(0 to threads-1);        
-signal ex3_br_flush_ifar_q                                    : std_ulogic_vector(62-eff_ifar to 61);     
-signal ex3_br_taken_q                                         : std_ulogic;                               
-signal ex3_br_update_q                                        : std_ulogic;                               
-signal ex3_byte_rev_q                                         : std_ulogic;                               
-signal ex3_ctr_dec_update_q                                   : std_ulogic;                               
-signal ex3_div_coll_q,            ex3_div_coll_d              : std_ulogic_vector(0 to threads-1);        
-signal ex3_epid_instr_q                                       : std_ulogic;                               
-signal ex3_flush_q                                            : std_ulogic_vector(0 to threads-1);        
-signal ex3_ierat_flush_req_q                                  : std_ulogic_vector(0 to threads-1);        
-signal ex3_illegal_op_q                                       : std_ulogic;                               
-signal ex3_is_any_load_dac_q                                  : std_ulogic;                               
-signal ex3_is_any_store_dac_q                                 : std_ulogic;                               
-signal ex3_is_attn_q                                          : std_ulogic;                               
-signal ex3_is_dci_q                                           : std_ulogic;                               
-signal ex3_is_dlock_q                                         : std_ulogic;                               
-signal ex3_is_ehpriv_q                                        : std_ulogic;                               
-signal ex3_is_ici_q                                           : std_ulogic;                               
-signal ex3_is_icswx_q                                         : std_ulogic;                               
-signal ex3_is_ilock_q                                         : std_ulogic;                               
-signal ex3_is_isync_q                                         : std_ulogic;                               
-signal ex3_is_mtmsr_q                                         : std_ulogic;                               
-signal ex3_is_rfci_q                                          : std_ulogic;                               
-signal ex3_is_rfgi_q                                          : std_ulogic;                               
-signal ex3_is_rfi_q                                           : std_ulogic;                               
-signal ex3_is_rfmci_q                                         : std_ulogic;                               
-signal ex3_is_sc_q                                            : std_ulogic;                               
-signal ex3_is_tlbwe_q                                         : std_ulogic;                               
-signal ex3_is_slowspr_wr_q                                    : std_ulogic;                               
-signal ex3_iu_error_q,            ex3_iu_error_d              : std_ulogic_vector(1 to 7);                
-signal ex3_lr_update_q                                        : std_ulogic;                               
-signal ex3_lrat_miss_q                                        : std_ulogic_vector(0 to threads-1);        
-signal ex3_mmu_esr_data_q                                     : std_ulogic_vector(0 to threads-1);        
-signal ex3_mmu_esr_epid_q                                     : std_ulogic_vector(0 to threads-1);        
-signal ex3_mmu_esr_pt_q                                       : std_ulogic_vector(0 to threads-1);        
-signal ex3_mmu_esr_st_q                                       : std_ulogic_vector(0 to threads-1);        
-signal ex3_mmu_hv_priv_q                                      : std_ulogic_vector(0 to threads-1);        
-signal ex3_mtiar_q,               ex2_mtiar                   : std_ulogic;                               
-signal ex3_n_align_int_q                                      : std_ulogic;                               
-signal ex3_n_dcpe_flush_q,        ex3_n_dcpe_flush_d          : std_ulogic_vector(0 to threads-1);        
-signal ex3_n_l2_ecc_err_flush_q                               : std_ulogic_vector(0 to threads-1);        
-signal ex3_np1_run_ctl_flush_q                                : std_ulogic_vector(0 to threads-1);        
-signal ex3_sc_lev_q                                           : std_ulogic;                               
-signal ex3_taken_bclr_q                                       : std_ulogic;                               
-signal ex3_tlb_inelig_q                                       : std_ulogic_vector(0 to threads-1);        
-signal ex3_tlb_local_snoop_reject_q                           : std_ulogic_vector(0 to threads-1);        
-signal ex3_tlb_lru_par_err_q                                  : std_ulogic_vector(0 to threads-1);        
-signal ex3_tlb_illeg_q                                        : std_ulogic_vector(0 to threads-1);        
-signal ex3_tlb_miss_q                                         : std_ulogic_vector(0 to threads-1);        
-signal ex3_tlb_multihit_err_q                                 : std_ulogic_vector(0 to threads-1);        
-signal ex3_tlb_par_err_q                                      : std_ulogic_vector(0 to threads-1);        
-signal ex3_tlb_pt_fault_q                                     : std_ulogic_vector(0 to threads-1);        
-signal ex3_ucode_val_q                                        : std_ulogic_vector(0 to threads-1);        
-signal ex3_xu_instr_match_q                                   : std_ulogic;                               
-signal ex3_xu_is_ucode_q                                      : std_ulogic;                               
-signal ex3_xu_val_q                                           : std_ulogic_vector(0 to threads-1);        
-signal ex3_axu_async_block_q                                  : std_ulogic_vector(0 to threads-1);        
-signal ex3_is_mtxucr0_q                                       : std_ulogic;                               
-signal ex3_np1_instr_flush_q,     ex3_np1_instr_flush_d       : std_ulogic;                               
-signal ex4_apena_prog_int_q,      ex3_n_apena_prog_int        : std_ulogic_vector(0 to threads-1);        
-signal ex4_axu_is_ucode_q                                     : std_ulogic_vector(0 to threads-1);        
-signal ex4_axu_trap_q                                         : std_ulogic_vector(0 to threads-1);        
-signal ex4_axu_val_q                                          : std_ulogic_vector(0 to threads-1);        
-signal ex4_base_int_block_q                                   : std_ulogic_vector(0 to threads-1);        
-signal ex4_br_flush_ifar_q                                    : std_ulogic_vector(62-eff_ifar to 61);     
-signal ex4_br_taken_q                                         : std_ulogic;                               
-signal ex4_br_update_q                                        : std_ulogic;                               
-signal ex4_byte_rev_q                                         : std_ulogic;                               
-signal ex4_ctr_dec_update_q                                   : std_ulogic;                               
-signal ex4_debug_flush_en_q,      ex4_debug_flush_en_d        : std_ulogic_vector(0 to threads-1);        
-signal ex4_debug_int_en_q,        ex3_debug_int_en            : std_ulogic_vector(0 to threads-1);        
-signal ex4_flush_q                                            : std_ulogic_vector(0 to threads-1);        
-signal ex4_fpena_prog_int_q,      ex3_n_fpena_prog_int        : std_ulogic_vector(0 to threads-1);        
-signal ex4_iac1_cmpr_q,           ex3_iac1_cmpr               : std_ulogic_vector(0 to threads-1);        
-signal ex4_iac2_cmpr_q,           ex3_iac2_cmpr               : std_ulogic_vector(0 to threads-1);        
-signal ex4_iac3_cmpr_q,           ex3_iac3_cmpr               : std_ulogic_vector(0 to threads-1);        
-signal ex4_iac4_cmpr_q,           ex3_iac4_cmpr               : std_ulogic_vector(0 to threads-1);        
-signal ex4_instr_cpl_q,           ex4_instr_cpl_d             : std_ulogic_vector(0 to threads-1);        
-signal ex4_is_any_load_dac_q                                  : std_ulogic;                               
-signal ex4_is_any_store_dac_q                                 : std_ulogic;                               
-signal ex4_is_attn_q                                          : std_ulogic;                               
-signal ex4_is_dci_q                                           : std_ulogic;                               
-signal ex4_is_ehpriv_q                                        : std_ulogic;                               
-signal ex4_is_ici_q                                           : std_ulogic;                               
-signal ex4_is_isync_q                                         : std_ulogic;                               
-signal ex4_is_mtmsr_q                                         : std_ulogic;                               
-signal ex4_is_tlbwe_q                                         : std_ulogic;                               
-signal ex4_is_slowspr_wr_q                                    : std_ulogic;                               
-signal ex4_lr_update_q                                        : std_ulogic;                               
-signal ex4_mcsr_q,                ex4_mcsr_d                  : std_ulogic_vector(0 to 14*threads-1);     
-signal ex4_mem_attr_q                                         : std_ulogic_vector(lsu_xu_ex3_attr'range); 
-signal ex4_mmu_esr_data_q                                     : std_ulogic_vector(0 to threads-1);        
-signal ex4_mmu_esr_epid_q                                     : std_ulogic_vector(0 to threads-1);        
-signal ex4_mmu_esr_pt_q                                       : std_ulogic_vector(0 to threads-1);        
-signal ex4_mmu_esr_st_q                                       : std_ulogic_vector(0 to threads-1);        
-signal ex4_mmu_esr_val_q,         ex4_mmu_esr_val_d           : std_ulogic_vector(0 to threads-1);        
-signal ex4_mmu_hold_val_q,        ex3_mmu_hold_val            : std_ulogic_vector(0 to threads-1);        
-signal ex4_mtdp_nr_q                                          : std_ulogic;                               
-signal ex4_mtiar_q                                            : std_ulogic;                               
-signal ex4_n_2ucode_flush_q,      ex3_n_2ucode_flush          : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_align_int_q,         ex3_n_align_int             : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_any_hpriv_int_q,     ex4_n_any_hpriv_int_d       : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_any_unavail_int_q,   ex3_n_any_unavail_int       : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_ap_unavail_int_q,    ex3_n_ap_unavail_int        : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_barr_flush_q,        ex3_n_barr_flush            : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_bclr_ta_miscmpr_flush_q,ex3_n_bclr_ta_miscmpr_flush : std_ulogic_vector(0 to threads-1);     
-signal ex4_n_brt_dbg_cint_q,      ex3_n_brt_dbg_cint          : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_dac_dbg_cint_q,      ex3_n_dac_dbg_cint          : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_ddmh_mchk_en_q,      ex4_n_ddmh_mchk_en_d        : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_dep_flush_q,         ex3_n_dep_flush             : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_deratre_par_mchk_mcint_q,ex3_n_deratre_par_mchk_mcint : std_ulogic_vector(0 to threads-1);  
-signal ex4_n_dlk0_dstor_int_q,    ex3_n_dlk0_dstor_int        : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_dlk1_dstor_int_q,    ex3_n_dlk1_dstor_int        : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_dlrat_int_q,         ex3_n_dlrat_int             : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_dmchk_mcint_q,       ex3_n_dmchk_mcint           : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_dmiss_flush_q,       ex3_n_dmiss_flush           : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_dstor_int_q,         ex3_n_dstor_int             : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_dtlb_int_q,          ex3_n_dtlb_int              : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_ena_prog_int_q,      ex3_n_ena_prog_int          : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_flush_q,             ex3_n_flush                 : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_pe_flush_q,          ex3_n_pe_flush              : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_tlb_mchk_flush_q,    ex3_n_tlb_mchk_flush        : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_fp_unavail_int_q,    ex3_n_fp_unavail_int        : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_fu_rfpe_flush_q,     ex4_n_fu_rfpe_flush_d       : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_iac_dbg_cint_q,      ex3_n_iac_dbg_cint          : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_ieratre_par_mchk_mcint_q,ex3_n_ieratre_par_mchk_mcint : std_ulogic_vector(0 to threads-1);  
-signal ex4_n_ilrat_int_q,         ex3_n_ilrat_int             : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_imchk_mcint_q,       ex3_n_imchk_mcint           : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_imiss_flush_q,       ex3_n_imiss_flush           : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_instr_dbg_cint_q,    ex3_n_instr_dbg_cint        : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_istor_int_q,         ex3_n_istor_int             : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_itlb_int_q,          ex3_n_itlb_int              : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_ivc_dbg_cint_q,      ex3_n_ivc_dbg_cint          : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_ivc_dbg_match_q,     ex3_n_ivc_dbg_match         : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_ldq_hit_flush_q,     ex3_n_ldq_hit_flush         : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_lsu_ddmh_flush_en_q, ex4_n_lsu_ddmh_flush_en_d   : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_lsu_flush_q,         ex3_n_lsu_flush             : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_memattr_miscmpr_flush_q,ex3_n_memattr_miscmpr_flush : std_ulogic_vector(0 to threads-1);     
-signal ex4_n_mmu_hpriv_int_q,     ex3_n_mmu_hpriv_int         : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_pil_prog_int_q,      ex3_n_pil_prog_int          : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_ppr_prog_int_q,      ex3_n_ppr_prog_int          : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_ptemiss_dlrat_int_q, ex3_n_ptemiss_dlrat_int     : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_puo_prog_int_q,      ex3_n_puo_prog_int          : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_ret_dbg_cint_q,      ex3_n_ret_dbg_cint          : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_thrctl_stop_flush_q, ex3_n_thrctl_stop_flush     : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_tlbwemiss_dlrat_int_q,ex3_n_tlbwemiss_dlrat_int   : std_ulogic_vector(0 to threads-1);       
-signal ex4_n_tlbwe_pil_prog_int_q,ex3_n_tlbwe_pil_prog_int    : std_ulogic_vector(0 to threads-1);       
-signal ex4_n_trap_dbg_cint_q,     ex3_n_trap_dbg_cint         : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_uct_dstor_int_q,     ex3_n_uct_dstor_int         : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_vec_unavail_int_q,   ex3_n_vec_unavail_int       : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_vf_dstor_int_q,      ex3_n_vf_dstor_int          : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_xu_rfpe_flush_q,     ex4_n_xu_rfpe_flush_d       : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_cdbell_cint_q,     ex3_np1_cdbell_cint         : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_crit_cint_q,       ex3_np1_crit_cint           : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_dbell_int_q,       ex3_np1_dbell_int           : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_dec_int_q,         ex3_np1_dec_int             : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_ext_int_q,         ex3_np1_ext_int             : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_ext_mchk_mcint_q,  ex3_np1_ext_mchk_mcint      : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_fit_int_q,         ex3_np1_fit_int             : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_flush_q,           ex3_np1_flush               : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_gcdbell_cint_q,    ex3_np1_gcdbell_cint        : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_gdbell_int_q,      ex3_np1_gdbell_int          : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_gmcdbell_cint_q,   ex3_np1_gmcdbell_cint       : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_ide_dbg_cint_q,    ex3_np1_ide_dbg_cint        : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_instr_int_q,       ex3_np1_instr_int           : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_perf_int_q,        ex3_np1_perf_int            : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_ptr_prog_int_q,    ex3_np1_ptr_prog_int        : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_rfi_q,             ex3_np1_rfi                 : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_run_ctl_flush_q,   ex3_np1_run_ctl_flush       : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_sc_int_q,          ex3_np1_sc_int              : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_ude_dbg_cint_q,    ex3_np1_ude_dbg_cint        : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_ude_dbg_event_q,   ex3_np1_ude_dbg_event       : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_udec_int_q,        ex3_np1_udec_int            : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_wdog_cint_q,       ex3_np1_wdog_cint           : std_ulogic_vector(0 to threads-1);        
-signal ex4_np1_fu_flush_q,        ex3_np1_fu_flush            : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_ieratsx_par_mchk_mcint_q,ex3_n_ieratsx_par_mchk_mcint : std_ulogic_vector(0 to threads-1);   
-signal ex4_n_tlbmh_mchk_mcint_q                               : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_sprg_ue_flush_q                                  : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_rwaccess_dstor_int_q, ex3_n_rwaccess_dstor_int   : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_exaccess_istor_int_q, ex3_n_exaccess_istor_int   : std_ulogic_vector(0 to threads-1);        
-signal ex4_sc_lev_q                                           : std_ulogic;                               
-signal ex4_siar_sel_q,            ex4_siar_sel_d              : std_ulogic_vector(0 to 1);                
-signal ex4_step_q,                ex4_step_d                  : std_ulogic_vector(0 to threads-1);        
-signal ex4_taken_bclr_q                                       : std_ulogic;                               
-signal ex4_tlb_inelig_q                                       : std_ulogic_vector(0 to threads-1);        
-signal ex4_ucode_val_q                                        : std_ulogic_vector(0 to threads-1);        
-signal ex4_xu_is_ucode_q                                      : std_ulogic;                               
-signal ex4_xu_val_q                                           : std_ulogic_vector(0 to threads-1);        
-signal ex4_cia_act_q,             ex3_cia_act                 : std_ulogic_vector(0 to threads-1);        
-signal ex4_n_async_dacr_dbg_cint_q, ex3_n_async_dacr_dbg_cint : std_ulogic_vector(0 to threads-1);        
-signal ex4_dac1r_cmpr_async_q,     ex4_dac1r_cmpr_async_d     : std_ulogic_vector(0 to threads-1);        
-signal ex4_dac2r_cmpr_async_q,     ex4_dac2r_cmpr_async_d     : std_ulogic_vector(0 to threads-1);        
-signal ex4_thread_stop_q,         ex3_thread_stop             : std_ulogic_vector(0 to threads-1);        
-signal ex5_icmp_event_on_int_ok_q, ex4_icmp_event_on_int_ok   : std_ulogic_vector(0 to threads-1);        
-signal ex5_any_val_q                                          : std_ulogic_vector(0 to threads-1);        
-signal ex5_attn_flush_q,          ex4_attn_flush              : std_ulogic_vector(0 to threads-1);        
-signal ex5_axu_trap_pie_q,        ex5_axu_trap_pie_d          : std_ulogic_vector(0 to threads-1);        
-signal ex5_br_taken_q                                         : std_ulogic;                               
-signal ex5_cdbell_taken_q,        ex5_cdbell_taken_d          : std_ulogic_vector(0 to threads-1);        
-signal ex5_check_bclr_q,          ex5_check_bclr_d            : std_ulogic_vector(0 to threads-1);        
-signal ex5_cia_p1_q,              ex5_cia_p1_d                : std_ulogic_vector(62-eff_ifar to 61);     
-signal ex5_dbell_taken_q,         ex5_dbell_taken_d           : std_ulogic_vector(0 to threads-1);        
-signal ex5_dbsr_update_q,         ex4_dbsr_update             : std_ulogic_vector(0 to threads-1);        
-signal ex5_dear_update_saved_q,   ex5_dear_update_saved_d     : std_ulogic_vector(0 to threads-1);        
-signal ex5_deratre_par_err_q                                  : std_ulogic_vector(0 to threads-1);        
-signal ex5_div_set_barr_q,        ex5_div_set_barr_d          : std_ulogic_vector(0 to threads-1);        
-signal ex5_dsigs_q,               ex5_dsigs_d                 : std_ulogic_vector(0 to threads-1);        
-signal ex5_dtlbgs_q,              ex5_dtlbgs_d                : std_ulogic_vector(0 to threads-1);        
-signal ex5_err_nia_miscmpr_q,     ex5_err_nia_miscmpr_d       : std_ulogic_vector(0 to threads-1);        
-signal ex5_ext_dbg_err_q,         ex5_ext_dbg_err_d           : std_ulogic_vector(0 to threads-1);        
-signal ex5_ext_dbg_ext_q,         ex5_ext_dbg_ext_d           : std_ulogic_vector(0 to threads-1);        
-signal ex5_extgs_q,               ex5_extgs_d                 : std_ulogic_vector(0 to threads-1);        
-signal ex5_flush_q                                            : std_ulogic_vector(0 to threads-1);        
-signal ex5_force_gsrr_q,          ex5_force_gsrr_d            : std_ulogic_vector(0 to threads-1);        
-signal ex5_gcdbell_taken_q,       ex5_gcdbell_taken_d         : std_ulogic_vector(0 to threads-1);        
-signal ex5_gdbell_taken_q,        ex5_gdbell_taken_d          : std_ulogic_vector(0 to threads-1);        
-signal ex5_gmcdbell_taken_q,      ex5_gmcdbell_taken_d        : std_ulogic_vector(0 to threads-1);        
-signal ex5_ieratre_par_err_q                                  : std_ulogic_vector(0 to threads-1);        
-signal ex5_in_ucode_q,            ex5_in_ucode_d              : std_ulogic_vector(0 to threads-1);        
-signal ex5_instr_cpl_q,           ex4_instr_cpl               : std_ulogic_vector(0 to threads-1);        
-signal ex5_is_any_rfi_q,          ex4_is_any_rfi              : std_ulogic_vector(0 to threads-1);        
-signal ex5_is_attn_q,             ex5_is_attn_d               : std_ulogic_vector(0 to threads-1);        
-signal ex5_is_crit_int_q                                      : std_ulogic_vector(0 to threads-1);        
-signal ex5_is_mchk_int_q                                      : std_ulogic_vector(0 to threads-1);        
-signal ex5_is_mtmsr_q                                         : std_ulogic;                               
-signal ex5_is_isync_q                                         : std_ulogic;                               
-signal ex5_is_tlbwe_q                                         : std_ulogic;                               
-signal ex5_isigs_q,               ex5_isigs_d                 : std_ulogic_vector(0 to threads-1);        
-signal ex5_itlbgs_q,              ex5_itlbgs_d                : std_ulogic_vector(0 to threads-1);        
-signal ex5_lsu_set_barr_q,        ex5_lsu_set_barr_d          : std_ulogic_vector(0 to threads-1);        
-signal ex5_mem_attr_val_q,        ex4_mem_attr_val            : std_ulogic_vector(0 to threads-1);        
-signal ex5_mmu_hold_val_q                                     : std_ulogic_vector(0 to threads-1);        
-signal ex5_n_dmiss_flush_q,       ex4_n_dmiss_flush           : std_ulogic_vector(0 to threads-1);        
-signal ex5_n_ext_dbg_stopc_flush_q,ex5_n_ext_dbg_stopc_flush_d : std_ulogic;                              
-signal ex5_n_ext_dbg_stopt_flush_q,ex5_n_ext_dbg_stopt_flush_d : std_ulogic_vector(0 to threads-1);       
-signal ex5_n_imiss_flush_q,       ex4_n_imiss_flush           : std_ulogic_vector(0 to threads-1);        
-signal ex5_n_ptemiss_dlrat_int_q                              : std_ulogic_vector(0 to threads-1);        
-signal ex5_np1_icmp_dbg_cint_q,   ex5_np1_icmp_dbg_cint_d     : std_ulogic_vector(0 to threads-1);        
-signal ex5_np1_icmp_dbg_event_q,  ex5_np1_icmp_dbg_event_d    : std_ulogic_vector(0 to threads-1);        
-signal ex5_np1_run_ctl_flush_q,   ex4_np1_run_ctl_flush       : std_ulogic_vector(0 to threads-1);        
-signal ex5_dbsr_ide_q,            ex5_dbsr_ide_d              : std_ulogic_vector(0 to threads-1);        
-signal ex5_perf_dtlb_q,           ex5_perf_dtlb_d             : std_ulogic_vector(0 to threads-1);        
-signal ex5_perf_itlb_q,           ex5_perf_itlb_d             : std_ulogic_vector(0 to threads-1);        
-signal ex5_ram_done_q,            ex5_ram_done_d              : std_ulogic;                               
-signal ex5_ram_issue_q,           ex5_ram_issue_d             : std_ulogic_vector(0 to threads-1);        
-signal ex5_rt_q                                               : std_ulogic_vector(64-regsize to 63);      
-signal ex5_sel_rt_q,              ex5_sel_rt_d                : std_ulogic_vector(0 to threads-1);        
-signal ex5_srr0_dec_q,            ex5_srr0_dec_d              : std_ulogic_vector(0 to threads-1);        
-signal ex5_tlb_inelig_q                                       : std_ulogic_vector(0 to threads-1);        
-signal ex5_uc_cia_val_q,          ex5_uc_cia_val_d            : std_ulogic_vector(0 to threads-1);        
-signal ex5_xu_ifar_q,             ex5_xu_ifar_d               : IFAR;                                     
-signal ex5_xu_val_q                                           : std_ulogic_vector(0 to threads-1);        
-signal ex5_n_flush_sprg_ue_flush_q, ex4_n_flush_sprg_ue_flush : std_ulogic_vector(0 to threads-1);        
-signal ex5_mcsr_act_q                                         : std_ulogic_vector(0 to threads-1);        
-signal ex6_mcsr_act_q,            ex6_mcsr_act_d              : std_ulogic;                               
-signal ex6_late_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal ex6_mmu_hold_val_q                                     : std_ulogic_vector(0 to threads-1);        
-signal ex6_ram_done_q                                         : std_ulogic;                               
-signal ex6_ram_interrupt_q,       ex6_ram_interrupt_d         : std_ulogic;                               
-signal ex6_ram_issue_q,           ex6_ram_issue_d             : std_ulogic_vector(0 to threads-1);        
-signal ex7_ram_issue_q                                        : std_ulogic_vector(0 to threads-1);        
-signal ex8_ram_issue_q                                        : std_ulogic_vector(0 to threads-1);        
-signal ex6_set_barr_q,            ex6_set_barr_d              : std_ulogic_vector(0 to threads-1);        
-signal ex6_step_done_q,           ex5_step_done               : std_ulogic_vector(0 to threads-1);        
-signal ex6_xu_val_q                                           : std_ulogic_vector(0 to threads-1);        
-signal ex6_is_tlbwe_q                                         : std_ulogic;                               
-signal ex7_is_tlbwe_q,            ex7_is_tlbwe_d              : std_ulogic_vector(0 to threads-1);        
-signal ex8_is_tlbwe_q                                         : std_ulogic_vector(0 to threads-1);        
-signal ccr2_ap_q                                              : std_ulogic_vector(0 to threads-1);        
-signal cpl_quiesced_q,            cpl_quiesced_d              : std_ulogic_vector(0 to threads-1);        
-signal dbcr0_idm_q                                            : std_ulogic_vector(0 to threads-1);        
-signal dci_val_q,                 dci_val_d                   : std_ulogic;                               
-signal debug_event_en_q,          debug_event_en_d            : std_ulogic_vector(0 to threads-1);        
-signal derat_hold_present_q,      derat_hold_present_d        : std_ulogic_vector(0 to threads-1);        
-signal ext_dbg_act_err_q,         ext_dbg_act_err_d           : std_ulogic_vector(0 to threads-1);        
-signal ext_dbg_act_ext_q,         ext_dbg_act_ext_d           : std_ulogic_vector(0 to threads-1);        
-signal ext_dbg_stop_core_q,       ext_dbg_stop_core_d         : std_ulogic_vector(0 to threads-1);        
-signal ext_dbg_stop_n_q,          ext_dbg_stop_n_d            : std_ulogic_vector(0 to threads-1);        
-signal external_mchk_q                                        : std_ulogic_vector(0 to threads-1);        
-signal exx_instr_async_block_q,   exx_instr_async_block_d     : ARY_BLOCK;                                
-signal exx_multi_flush_q,         exx_multi_flush_d           : std_ulogic_vector(0 to threads-1);        
-signal force_ude_q                                            : std_ulogic_vector(0 to threads-1);        
-signal fu_rf_seq_end_q                                        : std_ulogic;                               
-signal fu_rfpe_ack_q,             fu_rfpe_ack_d               : std_ulogic_vector(0 to 1);                
-signal fu_rfpe_hold_present_q,    fu_rfpe_hold_present_d      : std_ulogic;                               
-signal ici_hold_present_q,        ici_hold_present_d          : std_ulogic_vector(0 to 2);                
-signal ici_val_q,                 ici_val_d                   : std_ulogic;                               
-signal ierat_hold_present_q,      ierat_hold_present_d        : std_ulogic_vector(0 to threads-1);        
-signal mmu_eratmiss_done_q                                    : std_ulogic_vector(0 to threads-1);        
-signal mmu_hold_present_q,        mmu_hold_present_d          : std_ulogic_vector(0 to threads-1);        
-signal mmu_hold_request_q,        mmu_hold_request_d          : std_ulogic_vector(0 to threads-1);        
-signal msr_cm_q                                               : std_ulogic_vector(0 to threads-1);        
-signal msr_de_q                                               : std_ulogic_vector(0 to threads-1);        
-signal msr_fp_q                                               : std_ulogic_vector(0 to threads-1);        
-signal msr_gs_q                                               : std_ulogic_vector(0 to threads-1);        
-signal msr_me_q                                               : std_ulogic_vector(0 to threads-1);        
-signal msr_pr_q                                               : std_ulogic_vector(0 to threads-1);        
-signal msr_spv_q                                              : std_ulogic_vector(0 to threads-1);        
-signal msr_ucle_q                                             : std_ulogic_vector(0 to threads-1);        
-signal msrp_uclep_q                                           : std_ulogic_vector(0 to threads-1);        
-signal pc_dbg_action_q                                        : std_ulogic_vector(0 to 3*threads-1);      
-signal pc_dbg_stop_q,             pc_dbg_stop_d               : std_ulogic_vector(0 to threads-1);        
-signal pc_dbg_stop_2_q,           pc_dbg_stop                 : std_ulogic_vector(0 to threads-1);        
-signal pc_err_mcsr_rpt_q,         pc_err_mcsr_rpt_d           : std_ulogic_vector(0 to 10);               
-signal pc_err_mcsr_summary_q,     pc_err_mcsr_summary_d       : std_ulogic_vector(0 to threads-1);        
-signal pc_init_reset_q                                        : std_ulogic;                               
-signal quiesced_q,                quiesced_d                  : std_ulogic;                               
-signal ram_flush_q,               ram_flush_d                 : std_ulogic_vector(0 to threads-1);        
-signal ram_ip_q,                  ram_ip_d                    : std_ulogic_vector(0 to threads-1);        
-signal ram_mode_q,                ram_mode_d                  : std_ulogic_vector(0 to threads-1);        
-signal slowspr_flush_q                                        : std_ulogic_vector(0 to threads-1);        
-signal spr_cpl_async_int_q                                    : std_ulogic_vector(0 to 3*threads-1);      
-signal ram_execute_q,             ram_execute_d               : std_ulogic_vector(0 to threads-1);        
-signal ssprwr_ip_q,               ssprwr_ip_d                 : std_ulogic_vector(0 to threads-1);        
-signal exx_cm_hold_q                                          : std_ulogic_vector(0 to threads-1);        
-signal xu_ex1_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex1_s_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex1_w_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex2_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex2_s_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex2_w_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex3_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex3_s_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex3_w_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex4_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex4_s_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex4_w_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex5_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex5_s_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_ex5_w_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_is2_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_rf0_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_rf1_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_rf1_s_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal xu_rf1_w_flush_q                                       : std_ulogic_vector(0 to threads-1);        
-signal ex5_np1_irpt_dbg_cint_q,  ex4_np1_irpt_dbg_cint        : std_ulogic_vector(0 to threads-1);        
-signal ex6_np1_irpt_dbg_cint_q,  ex6_np1_irpt_dbg_cint_d      : std_ulogic_vector(0 to threads-1);        
-signal ex5_np1_irpt_dbg_event_q,  ex4_np1_irpt_dbg_event      : std_ulogic_vector(0 to threads-1);        
-signal ex6_np1_irpt_dbg_event_q,  ex6_np1_irpt_dbg_event_d    : std_ulogic_vector(0 to threads-1);        
-signal clkg_ctl_q                                             : std_ulogic;                               
-signal xu_rf_seq_end_q                                        : std_ulogic;                               
-signal xu_rfpe_ack_q,             xu_rfpe_ack_d               : std_ulogic_vector(0 to 1);                
-signal xu_rfpe_hold_present_q,    xu_rfpe_hold_present_d      : std_ulogic;                               
-signal exx_act_q,                 exx_act_d                   : std_ulogic_vector(0 to 4);                
-signal ex4_mchk_int_en_q,         ex3_mchk_int_en             : std_ulogic_vector(0 to threads-1);        
-signal ex5_mchk_int_en_q                                      : std_ulogic_vector(0 to threads-1);        
-signal trace_bus_enable_q                                     : std_ulogic;                               
-signal ex1_instr_trace_type_q                                 : std_ulogic_vector(0 to 1);                
-signal ex1_instr_trace_val_q                                  : std_ulogic;                               
-signal ex1_xu_issued_q                                        : std_ulogic_vector(0 to threads-1);        
-signal ex2_xu_issued_q                                        : std_ulogic_vector(0 to threads-1);        
-signal ex3_xu_issued_q                                        : std_ulogic_vector(0 to threads-1);        
-signal ex4_xu_issued_q,           ex3_xu_issued               : std_ulogic_vector(0 to threads-1);        
-signal ex3_axu_issued_q                                       : std_ulogic_vector(0 to threads-1);        
-signal ex4_axu_issued_q                                       : std_ulogic_vector(0 to threads-1);        
-signal ex2_instr_dbg_q                                        : std_ulogic_vector(0 to 31);               
-signal ex2_instr_trace_type_q                                 : std_ulogic_vector(0 to 1);                
-signal ex4_instr_trace_val_q                                  : std_ulogic;                               
-signal ex5_axu_val_dbg_q                                      : std_ulogic_vector(0 to threads-1);        
-signal ex5_instr_cpl_dbg_q                                    : std_ulogic_vector(0 to threads-1);        
-signal ex5_instr_trace_val_q                                  : std_ulogic;                               
-signal ex5_siar_q,                ex5_siar_d                  : std_ulogic_vector(62-eff_ifar to 61);     
-signal ex5_siar_cpl_q,            ex5_siar_cpl_d              : std_ulogic;                               
-signal ex5_siar_gs_q,             ex5_siar_gs_d               : std_ulogic;                               
-signal ex5_siar_issued_q,         ex5_siar_issued_d           : std_ulogic;                               
-signal ex5_siar_pr_q,             ex5_siar_pr_d               : std_ulogic;                               
-signal ex5_siar_tid_q,            ex5_siar_tid_d              : std_ulogic_vector(0 to 1);                
-signal ex5_ucode_end_dbg_q                                    : std_ulogic_vector(0 to threads-1);        
-signal ex5_ucode_val_dbg_q                                    : std_ulogic_vector(0 to threads-1);        
-signal instr_trace_mode_q                                     : std_ulogic;                               
-signal debug_data_out_q,          debug_data_out_d            : std_ulogic_vector(0 to 87);               
-signal debug_mux_ctrls_q                                      : std_ulogic_vector(0 to 15);               
-signal debug_mux_ctrls_int_q,     debug_mux_ctrls_int         : std_ulogic_vector(0 to 15);               
-signal trigger_data_out_q,        trigger_data_out_d          : std_ulogic_vector(0 to 11);               
-signal event_bus_enable_q                                     : std_ulogic;                               
-signal ex2_perf_event_q,          ex2_perf_event_d            : std_ulogic_vector(0 to 2);                
-signal ex3_perf_event_q                                       : std_ulogic_vector(0 to 2);                
-signal ex4_perf_event_q,          ex4_perf_event_d            : std_ulogic_vector(0 to 3);                
-signal ex5_perf_event_q,          ex5_perf_event_d            : std_ulogic_vector(0 to 14*threads-1);     
-signal spr_bit_act_q                                          : std_ulogic;                               
-signal clk_override_q                                         : std_ulogic;                               
+-- Latches
+signal is2_flush_q                                            : std_ulogic_vector(0 to threads-1);        -- input=>any_flush                  , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal rf0_flush_q                                            : std_ulogic_vector(0 to threads-1);        -- input=>is2_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal rf1_flush_q                                            : std_ulogic_vector(0 to threads-1);        -- input=>rf0_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal rf1_tid_q                                              : std_ulogic_vector(0 to threads-1);        -- input=>dec_cpl_rf0_tid            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex1_axu_act_q                                          : std_ulogic_vector(0 to threads-1);        -- input=>fu_xu_rf1_act              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex1_byte_rev_q,            rf1_byte_rev                : std_ulogic;                               -- input=>rf1_byte_rev               , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_flush_q                                            : std_ulogic_vector(0 to threads-1);        -- input=>rf1_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex1_is_any_ldstmw_q,       rf1_is_any_ldstmw           : std_ulogic;                               -- input=>rf1_is_any_ldstmw          , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_attn_q,             rf1_is_attn                 : std_ulogic;                               -- input=>rf1_is_attn                , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_dci_q,              ex1_is_dci_d                : std_ulogic;                               -- input=>ex1_is_dci_d               , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_dlock_q,            rf1_is_dlock                : std_ulogic;                               -- input=>rf1_is_dlock               , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_ehpriv_q,           rf1_is_ehpriv               : std_ulogic;                               -- input=>rf1_is_ehpriv              , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_erativax_q,         rf1_is_erativax             : std_ulogic;                               -- input=>rf1_is_erativax            , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_ici_q,              ex1_is_ici_d                : std_ulogic;                               -- input=>ex1_is_ici_d               , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_icswx_q,            rf1_is_icswx                : std_ulogic;                               -- input=>rf1_is_icswx               , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_ilock_q,            rf1_is_ilock                : std_ulogic;                               -- input=>rf1_is_ilock               , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_isync_q,            rf1_is_isync                : std_ulogic;                               -- input=>rf1_is_isync               , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_mfspr_q,            rf1_is_mfspr                : std_ulogic;                               -- input=>rf1_is_mfspr               , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_mtmsr_q,            rf1_is_mtmsr                : std_ulogic;                               -- input=>rf1_is_mtmsr               , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_mtspr_q,            rf1_is_mtspr                : std_ulogic;                               -- input=>rf1_is_mtspr               , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_rfci_q,             rf1_is_rfci                 : std_ulogic;                               -- input=>rf1_is_rfci                , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_rfgi_q,             rf1_is_rfgi                 : std_ulogic;                               -- input=>rf1_is_rfgi                , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_rfi_q,              rf1_is_rfi                  : std_ulogic;                               -- input=>rf1_is_rfi                 , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_rfmci_q,            rf1_is_rfmci                : std_ulogic;                               -- input=>rf1_is_rfmci               , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_sc_q,               rf1_is_sc                   : std_ulogic;                               -- input=>rf1_is_sc                  , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_tlbivax_q,          rf1_is_tlbivax              : std_ulogic;                               -- input=>rf1_is_tlbivax             , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_wrtee_q,            rf1_is_wrtee                : std_ulogic;                               -- input=>rf1_is_wrtee               , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_wrteei_q,           rf1_is_wrteei               : std_ulogic;                               -- input=>rf1_is_wrteei              , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_mtxucr0_q,          rf1_is_mtxucr0              : std_ulogic;                               -- input=>rf1_is_mtxucr0             , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_is_tlbwe_q,            rf1_is_tlbwe                : std_ulogic;                               -- input=>rf1_is_tlbwe               , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_sc_lev_q,              rf1_sc_lev                  : std_ulogic;                               -- input=>rf1_sc_lev                 , act=>exx_act(0)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_ucode_val_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>rf1_ucode_val              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex1_xu_val_q                                           : std_ulogic_vector(0 to threads-1);        -- input=>rf1_xu_val                 , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex2_axu_act_q                                          : std_ulogic_vector(0 to threads-1);        -- input=>ex1_axu_act_q              , act=>tiup                 , scan=>N, sleep=>N, needs_sreset=>1
+signal ex2_any_wrtee_q,           ex2_any_wrtee_d             : std_ulogic;                               -- input=>ex2_any_wrtee_d            , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_br_taken_q                                         : std_ulogic;                               -- input=>ex1_br_taken               , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_br_update_q                                        : std_ulogic;                               -- input=>ex1_br_update              , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_byte_rev_q                                         : std_ulogic;                               -- input=>ex1_byte_rev_q             , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_ctr_dec_update_q                                   : std_ulogic;                               -- input=>ex1_ctr_dec_update         , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_epid_instr_q                                       : std_ulogic;                               -- input=>dec_cpl_ex1_epid_instr     , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_flush_q                                            : std_ulogic_vector(0 to threads-1);        -- input=>ex1_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex2_is_attn_q                                          : std_ulogic;                               -- input=>ex1_is_attn_q              , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_dci_q                                           : std_ulogic;                               -- input=>ex1_is_dci_q               , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_dlock_q                                         : std_ulogic;                               -- input=>ex1_is_dlock_q             , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_ehpriv_q                                        : std_ulogic;                               -- input=>ex1_is_ehpriv_q            , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_erativax_q                                      : std_ulogic;                               -- input=>ex1_is_erativax_q          , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_ici_q                                           : std_ulogic;                               -- input=>ex1_is_ici_q               , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_icswx_q                                         : std_ulogic;                               -- input=>ex1_is_icswx_q             , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_ilock_q                                         : std_ulogic;                               -- input=>ex1_is_ilock_q             , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_isync_q                                         : std_ulogic;                               -- input=>ex1_is_isync_q             , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_mtmsr_q                                         : std_ulogic;                               -- input=>ex1_is_mtmsr_q             , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_rfci_q                                          : std_ulogic;                               -- input=>ex1_is_rfci_q              , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_rfgi_q                                          : std_ulogic;                               -- input=>ex1_is_rfgi_q              , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_rfi_q                                           : std_ulogic;                               -- input=>ex1_is_rfi_q               , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_rfmci_q                                         : std_ulogic;                               -- input=>ex1_is_rfmci_q             , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_sc_q                                            : std_ulogic;                               -- input=>ex1_is_sc_q                , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_slowspr_wr_q                                    : std_ulogic;                               -- input=>dec_cpl_ex1_is_slowspr_wr  , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_tlbivax_q                                       : std_ulogic;                               -- input=>ex1_is_tlbivax_q           , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_is_tlbwe_q                                         : std_ulogic;                               -- input=>ex1_is_tlbwe_q             , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_lr_update_q                                        : std_ulogic;                               -- input=>ex1_lr_update              , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_n_align_int_q,         ex2_n_align_int_d           : std_ulogic;                               -- input=>ex2_n_align_int_d          , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_sc_lev_q                                           : std_ulogic;                               -- input=>ex1_sc_lev_q               , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_taken_bclr_q                                       : std_ulogic;                               -- input=>ex1_taken_bclr             , act=>exx_act(1)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex2_ucode_val_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>ex1_ucode_val              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex2_xu_val_q                                           : std_ulogic_vector(0 to threads-1);        -- input=>ex1_xu_val                 , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex2_is_mtxucr0_q                                       : std_ulogic;                               -- input=>ex1_is_mtxucr0_q          , act=>exx_act(1)            , scan=>N, sleep=>N, needs_sreset=>0
+signal ex3_async_int_block_q,     ex3_async_int_block_d       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_async_int_block_d      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_axu_instr_match_q                                  : std_ulogic_vector(0 to threads-1);        -- input=>fu_xu_ex2_instr_match      , act=>ex2_axu_act_q        , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_axu_instr_type_q                                   : std_ulogic_vector(0 to 3*threads-1);      -- input=>fu_xu_ex2_instr_type       , act=>ex2_axu_act_q        , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_axu_is_ucode_q                                     : std_ulogic_vector(0 to threads-1);        -- input=>fu_xu_ex2_is_ucode         , act=>ex2_axu_act_q        , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_axu_val_q                                          : std_ulogic_vector(0 to threads-1);        -- input=>ex2_axu_val                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_br_flush_ifar_q                                    : std_ulogic_vector(62-eff_ifar to 61);     -- input=>ex2_br_flush_ifar          , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_br_taken_q                                         : std_ulogic;                               -- input=>ex2_br_taken_q             , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_br_update_q                                        : std_ulogic;                               -- input=>ex2_br_update_q            , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_byte_rev_q                                         : std_ulogic;                               -- input=>ex2_byte_rev_q             , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_ctr_dec_update_q                                   : std_ulogic;                               -- input=>ex2_ctr_dec_update_q       , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_div_coll_q,            ex3_div_coll_d              : std_ulogic_vector(0 to threads-1);        -- input=>ex3_div_coll_d             , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_epid_instr_q                                       : std_ulogic;                               -- input=>ex2_epid_instr_q           , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_flush_q                                            : std_ulogic_vector(0 to threads-1);        -- input=>ex2_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_ierat_flush_req_q                                  : std_ulogic_vector(0 to threads-1);        -- input=>iu_xu_ierat_ex2_flush_req  , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_illegal_op_q                                       : std_ulogic;                               -- input=>dec_cpl_ex2_illegal_op     , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_any_load_dac_q                                  : std_ulogic;                               -- input=>dec_cpl_ex2_is_any_load_dac, act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_any_store_dac_q                                 : std_ulogic;                               --input=>dec_cpl_ex2_is_any_store_dac, act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_attn_q                                          : std_ulogic;                               -- input=>ex2_is_attn_q              , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_dci_q                                           : std_ulogic;                               -- input=>ex2_is_dci_q               , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_dlock_q                                         : std_ulogic;                               -- input=>ex2_is_dlock_q             , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_ehpriv_q                                        : std_ulogic;                               -- input=>ex2_is_ehpriv_q            , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_ici_q                                           : std_ulogic;                               -- input=>ex2_is_ici_q               , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_icswx_q                                         : std_ulogic;                               -- input=>ex2_is_icswx_q             , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_ilock_q                                         : std_ulogic;                               -- input=>ex2_is_ilock_q             , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_isync_q                                         : std_ulogic;                               -- input=>ex2_is_isync_q             , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_mtmsr_q                                         : std_ulogic;                               -- input=>ex2_is_mtmsr_q             , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_rfci_q                                          : std_ulogic;                               -- input=>ex2_is_rfci_q              , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_rfgi_q                                          : std_ulogic;                               -- input=>ex2_is_rfgi_q              , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_rfi_q                                           : std_ulogic;                               -- input=>ex2_is_rfi_q               , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_rfmci_q                                         : std_ulogic;                               -- input=>ex2_is_rfmci_q             , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_sc_q                                            : std_ulogic;                               -- input=>ex2_is_sc_q                , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_tlbwe_q                                         : std_ulogic;                               -- input=>ex2_is_tlbwe_q             , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_is_slowspr_wr_q                                    : std_ulogic;                               -- input=>ex2_is_slowspr_wr_q        , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_iu_error_q,            ex3_iu_error_d              : std_ulogic_vector(1 to 7);                -- input=>ex3_iu_error_d             , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_lr_update_q                                        : std_ulogic;                               -- input=>ex2_lr_update_q            , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_lrat_miss_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_lrat_miss            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_mmu_esr_data_q                                     : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_esr_data             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_mmu_esr_epid_q                                     : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_esr_epid             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_mmu_esr_pt_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_esr_pt               , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_mmu_esr_st_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_esr_st               , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_mmu_hv_priv_q                                      : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_hv_priv              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_mtiar_q,               ex2_mtiar                   : std_ulogic;                               -- input=>ex2_mtiar                  , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_n_align_int_q                                      : std_ulogic;                               -- input=>ex2_n_align_int_q          , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_n_dcpe_flush_q,        ex3_n_dcpe_flush_d          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_dcpe_flush_d         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_n_l2_ecc_err_flush_q                               : std_ulogic_vector(0 to threads-1);        -- input=>lsu_xu_l2_ecc_err_flush    , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_np1_run_ctl_flush_q                                : std_ulogic_vector(0 to threads-1);        -- input=>spr_cpl_ex2_run_ctl_flush  , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_sc_lev_q                                           : std_ulogic;                               -- input=>ex2_sc_lev_q               , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_taken_bclr_q                                       : std_ulogic;                               -- input=>ex2_taken_bclr_q           , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_tlb_inelig_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_tlb_inelig           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_tlb_local_snoop_reject_q                           : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_local_snoop_reject   , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_tlb_lru_par_err_q                                  : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_lru_par_err          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_tlb_illeg_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_illeg_instr          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_tlb_miss_q                                         : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_tlb_miss             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_tlb_multihit_err_q                                 : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_tlb_multihit_err     , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_tlb_par_err_q                                      : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_tlb_par_err          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_tlb_pt_fault_q                                     : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_pt_fault             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_ucode_val_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>ex2_ucode_val              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_xu_instr_match_q                                   : std_ulogic;                               -- input=>dec_cpl_ex2_match          , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_xu_is_ucode_q                                      : std_ulogic;                               -- input=>dec_cpl_ex2_is_ucode       , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_xu_val_q                                           : std_ulogic_vector(0 to threads-1);        -- input=>ex2_xu_val                 , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_axu_async_block_q                                  : std_ulogic_vector(0 to threads-1);        -- input=>fu_xu_ex2_async_block      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex3_is_mtxucr0_q                                       : std_ulogic;                               -- input=>ex2_is_mtxucr0_q           , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_np1_instr_flush_q,     ex3_np1_instr_flush_d       : std_ulogic;                               -- input=>ex3_np1_instr_flush_d      , act=>exx_act(2)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_apena_prog_int_q,      ex3_n_apena_prog_int        : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_apena_prog_int       , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_axu_is_ucode_q                                     : std_ulogic_vector(0 to threads-1);        -- input=>ex3_axu_is_ucode_q         , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_axu_trap_q                                         : std_ulogic_vector(0 to threads-1);        -- input=>fu_xu_ex3_trap             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_axu_val_q                                          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_axu_val                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_base_int_block_q                                   : std_ulogic_vector(0 to threads-1);        -- input=>ex3_base_int_block         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_br_flush_ifar_q                                    : std_ulogic_vector(62-eff_ifar to 61);     -- input=>ex3_br_flush_ifar_q        , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_br_taken_q                                         : std_ulogic;                               -- input=>ex3_br_taken_q             , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_br_update_q                                        : std_ulogic;                               -- input=>ex3_br_update_q            , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_byte_rev_q                                         : std_ulogic;                               -- input=>ex3_byte_rev_q             , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_ctr_dec_update_q                                   : std_ulogic;                               -- input=>ex3_ctr_dec_update_q       , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_debug_flush_en_q,      ex4_debug_flush_en_d        : std_ulogic_vector(0 to threads-1);        -- input=>ex4_debug_flush_en_d       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_debug_int_en_q,        ex3_debug_int_en            : std_ulogic_vector(0 to threads-1);        -- input=>ex3_debug_int_en           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_flush_q                                            : std_ulogic_vector(0 to threads-1);        -- input=>ex3_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_fpena_prog_int_q,      ex3_n_fpena_prog_int        : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_fpena_prog_int       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_iac1_cmpr_q,           ex3_iac1_cmpr               : std_ulogic_vector(0 to threads-1);        -- input=>ex3_iac1_cmpr              , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_iac2_cmpr_q,           ex3_iac2_cmpr               : std_ulogic_vector(0 to threads-1);        -- input=>ex3_iac2_cmpr              , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_iac3_cmpr_q,           ex3_iac3_cmpr               : std_ulogic_vector(0 to threads-1);        -- input=>ex3_iac3_cmpr              , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_iac4_cmpr_q,           ex3_iac4_cmpr               : std_ulogic_vector(0 to threads-1);        -- input=>ex3_iac4_cmpr              , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_instr_cpl_q,           ex4_instr_cpl_d             : std_ulogic_vector(0 to threads-1);        -- input=>ex4_instr_cpl_d            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_is_any_load_dac_q                                  : std_ulogic;                               -- input=>ex3_is_any_load_dac_q      , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_is_any_store_dac_q                                 : std_ulogic;                               -- input=>ex3_is_any_store_dac_q     , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_is_attn_q                                          : std_ulogic;                               -- input=>ex3_is_attn_q              , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_is_dci_q                                           : std_ulogic;                               -- input=>ex3_is_dci_q               , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_is_ehpriv_q                                        : std_ulogic;                               -- input=>ex3_is_ehpriv_q            , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_is_ici_q                                           : std_ulogic;                               -- input=>ex3_is_ici_q               , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_is_isync_q                                         : std_ulogic;                               -- input=>ex3_is_isync_q             , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_is_mtmsr_q                                         : std_ulogic;                               -- input=>ex3_is_mtmsr_q             , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_is_tlbwe_q                                         : std_ulogic;                               -- input=>ex3_is_tlbwe_q             , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_is_slowspr_wr_q                                    : std_ulogic;                               -- input=>ex3_is_slowspr_wr_q        , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_lr_update_q                                        : std_ulogic;                               -- input=>ex3_lr_update_q            , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_mcsr_q,                ex4_mcsr_d                  : std_ulogic_vector(0 to 14*threads-1);     -- input=>ex4_mcsr_d                 , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_mem_attr_q                                         : std_ulogic_vector(lsu_xu_ex3_attr'range); -- input=>lsu_xu_ex3_attr            , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_mmu_esr_data_q                                     : std_ulogic_vector(0 to threads-1);        -- input=>ex3_mmu_esr_data_q         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_mmu_esr_epid_q                                     : std_ulogic_vector(0 to threads-1);        -- input=>ex3_mmu_esr_epid_q         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_mmu_esr_pt_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_mmu_esr_pt_q           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_mmu_esr_st_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_mmu_esr_st_q           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_mmu_esr_val_q,         ex4_mmu_esr_val_d           : std_ulogic_vector(0 to threads-1);        -- input=>ex4_mmu_esr_val_d          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_mmu_hold_val_q,        ex3_mmu_hold_val            : std_ulogic_vector(0 to threads-1);        -- input=>ex3_mmu_hold_val           , act=>tiup                 , scan=>Y, sleep=>Y, needs_sreset=>1
+signal ex4_mtdp_nr_q                                          : std_ulogic;                               -- input=>dec_cpl_ex3_mtdp_nr        , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_mtiar_q                                            : std_ulogic;                               -- input=>ex3_mtiar_q                , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_n_2ucode_flush_q,      ex3_n_2ucode_flush          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_2ucode_flush         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_align_int_q,         ex3_n_align_int             : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_align_int            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_any_hpriv_int_q,     ex4_n_any_hpriv_int_d       : std_ulogic_vector(0 to threads-1);        -- input=>ex4_n_any_hpriv_int_d      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_any_unavail_int_q,   ex3_n_any_unavail_int       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_any_unavail_int      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_ap_unavail_int_q,    ex3_n_ap_unavail_int        : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_ap_unavail_int       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_barr_flush_q,        ex3_n_barr_flush            : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_barr_flush           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_bclr_ta_miscmpr_flush_q,ex3_n_bclr_ta_miscmpr_flush : std_ulogic_vector(0 to threads-1);     -- input=>ex3_n_bclr_ta_miscmpr_flush, act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_brt_dbg_cint_q,      ex3_n_brt_dbg_cint          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_brt_dbg_cint         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_dac_dbg_cint_q,      ex3_n_dac_dbg_cint          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_dac_dbg_cint         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_ddmh_mchk_en_q,      ex4_n_ddmh_mchk_en_d        : std_ulogic_vector(0 to threads-1);        -- input=>ex4_n_ddmh_mchk_en_d       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_dep_flush_q,         ex3_n_dep_flush             : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_dep_flush            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_deratre_par_mchk_mcint_q,ex3_n_deratre_par_mchk_mcint : std_ulogic_vector(0 to threads-1);  -- input=>ex3_n_deratre_par_mchk_mcint, act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_dlk0_dstor_int_q,    ex3_n_dlk0_dstor_int        : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_dlk0_dstor_int       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_dlk1_dstor_int_q,    ex3_n_dlk1_dstor_int        : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_dlk1_dstor_int       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_dlrat_int_q,         ex3_n_dlrat_int             : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_dlrat_int            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_dmchk_mcint_q,       ex3_n_dmchk_mcint           : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_dmchk_mcint          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_dmiss_flush_q,       ex3_n_dmiss_flush           : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_dmiss_flush          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_dstor_int_q,         ex3_n_dstor_int             : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_dstor_int            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_dtlb_int_q,          ex3_n_dtlb_int              : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_dtlb_int             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_ena_prog_int_q,      ex3_n_ena_prog_int          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_ena_prog_int         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_flush_q,             ex3_n_flush                 : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_flush                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_pe_flush_q,          ex3_n_pe_flush              : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_pe_flush             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_tlb_mchk_flush_q,    ex3_n_tlb_mchk_flush        : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_tlb_mchk_flush       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_fp_unavail_int_q,    ex3_n_fp_unavail_int        : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_fp_unavail_int       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_fu_rfpe_flush_q,     ex4_n_fu_rfpe_flush_d       : std_ulogic_vector(0 to threads-1);        -- input=>ex4_n_fu_rfpe_flush_d      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_iac_dbg_cint_q,      ex3_n_iac_dbg_cint          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_iac_dbg_cint         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_ieratre_par_mchk_mcint_q,ex3_n_ieratre_par_mchk_mcint : std_ulogic_vector(0 to threads-1);  -- input=>ex3_n_ieratre_par_mchk_mcint, act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_ilrat_int_q,         ex3_n_ilrat_int             : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_ilrat_int            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_imchk_mcint_q,       ex3_n_imchk_mcint           : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_imchk_mcint          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_imiss_flush_q,       ex3_n_imiss_flush           : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_imiss_flush          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_instr_dbg_cint_q,    ex3_n_instr_dbg_cint        : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_instr_dbg_cint       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_istor_int_q,         ex3_n_istor_int             : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_istor_int            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_itlb_int_q,          ex3_n_itlb_int              : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_itlb_int             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_ivc_dbg_cint_q,      ex3_n_ivc_dbg_cint          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_ivc_dbg_cint         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_ivc_dbg_match_q,     ex3_n_ivc_dbg_match         : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_ivc_dbg_match        , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_ldq_hit_flush_q,     ex3_n_ldq_hit_flush         : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_ldq_hit_flush        , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_lsu_ddmh_flush_en_q, ex4_n_lsu_ddmh_flush_en_d   : std_ulogic_vector(0 to threads-1);        -- input=>ex4_n_lsu_ddmh_flush_en_d  , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_lsu_flush_q,         ex3_n_lsu_flush             : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_lsu_flush            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_memattr_miscmpr_flush_q,ex3_n_memattr_miscmpr_flush : std_ulogic_vector(0 to threads-1);     -- input=>ex3_n_memattr_miscmpr_flush, act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_mmu_hpriv_int_q,     ex3_n_mmu_hpriv_int         : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_mmu_hpriv_int        , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_pil_prog_int_q,      ex3_n_pil_prog_int          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_pil_prog_int         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_ppr_prog_int_q,      ex3_n_ppr_prog_int          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_ppr_prog_int         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_ptemiss_dlrat_int_q, ex3_n_ptemiss_dlrat_int     : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_ptemiss_dlrat_int    , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_puo_prog_int_q,      ex3_n_puo_prog_int          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_puo_prog_int         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_ret_dbg_cint_q,      ex3_n_ret_dbg_cint          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_ret_dbg_cint         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_thrctl_stop_flush_q, ex3_n_thrctl_stop_flush     : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_thrctl_stop_flush    , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_tlbwemiss_dlrat_int_q,ex3_n_tlbwemiss_dlrat_int   : std_ulogic_vector(0 to threads-1);       -- input=>ex3_n_tlbwemiss_dlrat_int  , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_tlbwe_pil_prog_int_q,ex3_n_tlbwe_pil_prog_int    : std_ulogic_vector(0 to threads-1);       -- input=>ex3_n_tlbwe_pil_prog_int    , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_trap_dbg_cint_q,     ex3_n_trap_dbg_cint         : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_trap_dbg_cint        , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_uct_dstor_int_q,     ex3_n_uct_dstor_int         : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_uct_dstor_int        , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_vec_unavail_int_q,   ex3_n_vec_unavail_int       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_vec_unavail_int      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_vf_dstor_int_q,      ex3_n_vf_dstor_int          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_vf_dstor_int         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_xu_rfpe_flush_q,     ex4_n_xu_rfpe_flush_d       : std_ulogic_vector(0 to threads-1);        -- input=>ex4_n_xu_rfpe_flush_d      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_cdbell_cint_q,     ex3_np1_cdbell_cint         : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_cdbell_cint        , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_crit_cint_q,       ex3_np1_crit_cint           : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_crit_cint          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_dbell_int_q,       ex3_np1_dbell_int           : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_dbell_int          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_dec_int_q,         ex3_np1_dec_int             : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_dec_int            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_ext_int_q,         ex3_np1_ext_int             : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_ext_int            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_ext_mchk_mcint_q,  ex3_np1_ext_mchk_mcint      : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_ext_mchk_mcint     , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_fit_int_q,         ex3_np1_fit_int             : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_fit_int            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_flush_q,           ex3_np1_flush               : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_flush              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_gcdbell_cint_q,    ex3_np1_gcdbell_cint        : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_gcdbell_cint       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_gdbell_int_q,      ex3_np1_gdbell_int          : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_gdbell_int         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_gmcdbell_cint_q,   ex3_np1_gmcdbell_cint       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_gmcdbell_cint      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_ide_dbg_cint_q,    ex3_np1_ide_dbg_cint        : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_ide_dbg_cint       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_instr_int_q,       ex3_np1_instr_int           : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_instr_int          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_perf_int_q,        ex3_np1_perf_int            : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_perf_int           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_ptr_prog_int_q,    ex3_np1_ptr_prog_int        : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_ptr_prog_int       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_rfi_q,             ex3_np1_rfi                 : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_rfi                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_run_ctl_flush_q,   ex3_np1_run_ctl_flush       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_run_ctl_flush      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_sc_int_q,          ex3_np1_sc_int              : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_sc_int             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_ude_dbg_cint_q,    ex3_np1_ude_dbg_cint        : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_ude_dbg_cint       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_ude_dbg_event_q,   ex3_np1_ude_dbg_event       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_ude_dbg_event      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_udec_int_q,        ex3_np1_udec_int            : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_udec_int           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_wdog_cint_q,       ex3_np1_wdog_cint           : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_wdog_cint          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_np1_fu_flush_q,        ex3_np1_fu_flush            : std_ulogic_vector(0 to threads-1);        -- input=>ex3_np1_fu_flush           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_ieratsx_par_mchk_mcint_q,ex3_n_ieratsx_par_mchk_mcint : std_ulogic_vector(0 to threads-1);   -- input=>ex3_n_ieratsx_par_mchk_mcint,act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_tlbmh_mchk_mcint_q                               : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_tlbmh_mchk_mcint     , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_sprg_ue_flush_q                                  : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_sprg_ue_flush        , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_rwaccess_dstor_int_q, ex3_n_rwaccess_dstor_int   : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_rwaccess_dstor_int   , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_exaccess_istor_int_q, ex3_n_exaccess_istor_int   : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_exaccess_istor_int   , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_sc_lev_q                                           : std_ulogic;                               -- input=>ex3_sc_lev_q               , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_siar_sel_q,            ex4_siar_sel_d              : std_ulogic_vector(0 to 1);                -- input=>ex4_siar_sel_d             , act=>ex4_siar_sel_act     , scan=>Y, sleep=>N, needs_sreset=>0, init=>1
+signal ex4_step_q,                ex4_step_d                  : std_ulogic_vector(0 to threads-1);        -- input=>ex4_step_d                 , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_taken_bclr_q                                       : std_ulogic;                               -- input=>ex3_taken_bclr_q           , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_tlb_inelig_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_tlb_inelig_q           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_ucode_val_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>ex3_ucode_val              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_xu_is_ucode_q                                      : std_ulogic;                               -- input=>ex3_xu_is_ucode_q          , act=>exx_act(3)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_xu_val_q                                           : std_ulogic_vector(0 to threads-1);        -- input=>ex3_xu_val                 , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_cia_act_q,             ex3_cia_act                 : std_ulogic_vector(0 to threads-1);        -- input=>ex3_cia_act                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_n_async_dacr_dbg_cint_q, ex3_n_async_dacr_dbg_cint : std_ulogic_vector(0 to threads-1);        -- input=>ex3_n_async_dacr_dbg_cint  , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_dac1r_cmpr_async_q,     ex4_dac1r_cmpr_async_d     : std_ulogic_vector(0 to threads-1);        -- input=>ex4_dacr_cmpr_d            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_dac2r_cmpr_async_q,     ex4_dac2r_cmpr_async_d     : std_ulogic_vector(0 to threads-1);        -- input=>ex4_dacw_cmpr_d            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_thread_stop_q,         ex3_thread_stop             : std_ulogic_vector(0 to threads-1);        -- input=>ex3_thread_stop            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_icmp_event_on_int_ok_q, ex4_icmp_event_on_int_ok   : std_ulogic_vector(0 to threads-1);        -- input=>ex4_icmp_event_on_int_ok   , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_any_val_q                                          : std_ulogic_vector(0 to threads-1);        -- input=>ex4_any_val                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_attn_flush_q,          ex4_attn_flush              : std_ulogic_vector(0 to threads-1);        -- input=>ex4_attn_flush             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_axu_trap_pie_q,        ex5_axu_trap_pie_d          : std_ulogic_vector(0 to threads-1);        -- input=>ex5_axu_trap_pie_d         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_br_taken_q                                         : std_ulogic;                               -- input=>ex4_br_taken_q             , act=>exx_act(4)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex5_cdbell_taken_q,        ex5_cdbell_taken_d          : std_ulogic_vector(0 to threads-1);        -- input=>ex5_cdbell_taken_d         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_check_bclr_q,          ex5_check_bclr_d            : std_ulogic_vector(0 to threads-1);        -- input=>ex5_check_bclr_d           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_cia_p1_q,              ex5_cia_p1_d                : std_ulogic_vector(62-eff_ifar to 61);     -- input=>ex5_cia_p1_d               , act=>exx_act(4)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex5_dbell_taken_q,         ex5_dbell_taken_d           : std_ulogic_vector(0 to threads-1);        -- input=>ex5_dbell_taken_d          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_dbsr_update_q,         ex4_dbsr_update             : std_ulogic_vector(0 to threads-1);        -- input=>ex4_dbsr_update            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_dear_update_saved_q,   ex5_dear_update_saved_d     : std_ulogic_vector(0 to threads-1);        -- input=>ex5_dear_update_saved_d    , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_deratre_par_err_q                                  : std_ulogic_vector(0 to threads-1);        -- input=>lsu_xu_ex4_derat_par_err   , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_div_set_barr_q,        ex5_div_set_barr_d          : std_ulogic_vector(0 to threads-1);        -- input=>ex5_div_set_barr_d         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_dsigs_q,               ex5_dsigs_d                 : std_ulogic_vector(0 to threads-1);        -- input=>ex5_dsigs_d                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_dtlbgs_q,              ex5_dtlbgs_d                : std_ulogic_vector(0 to threads-1);        -- input=>ex5_dtlbgs_d               , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_err_nia_miscmpr_q,     ex5_err_nia_miscmpr_d       : std_ulogic_vector(0 to threads-1);        -- input=>ex5_err_nia_miscmpr_d      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_ext_dbg_err_q,         ex5_ext_dbg_err_d           : std_ulogic_vector(0 to threads-1);        -- input=>ex5_ext_dbg_err_d          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_ext_dbg_ext_q,         ex5_ext_dbg_ext_d           : std_ulogic_vector(0 to threads-1);        -- input=>ex5_ext_dbg_ext_d          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_extgs_q,               ex5_extgs_d                 : std_ulogic_vector(0 to threads-1);        -- input=>ex5_extgs_d                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_flush_q                                            : std_ulogic_vector(0 to threads-1);        -- input=>ex4_flush                  , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_force_gsrr_q,          ex5_force_gsrr_d            : std_ulogic_vector(0 to threads-1);        -- input=>ex5_force_gsrr_d           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_gcdbell_taken_q,       ex5_gcdbell_taken_d         : std_ulogic_vector(0 to threads-1);        -- input=>ex5_gcdbell_taken_d        , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_gdbell_taken_q,        ex5_gdbell_taken_d          : std_ulogic_vector(0 to threads-1);        -- input=>ex5_gdbell_taken_d         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_gmcdbell_taken_q,      ex5_gmcdbell_taken_d        : std_ulogic_vector(0 to threads-1);        -- input=>ex5_gmcdbell_taken_d       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_ieratre_par_err_q                                  : std_ulogic_vector(0 to threads-1);        -- input=>iu_xu_ierat_ex4_par_err    , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_in_ucode_q,            ex5_in_ucode_d              : std_ulogic_vector(0 to threads-1);        -- input=>ex5_in_ucode_d             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_instr_cpl_q,           ex4_instr_cpl               : std_ulogic_vector(0 to threads-1);        -- input=>ex4_instr_cpl              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_is_any_rfi_q,          ex4_is_any_rfi              : std_ulogic_vector(0 to threads-1);        -- input=>ex4_is_any_rfi             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_is_attn_q,             ex5_is_attn_d               : std_ulogic_vector(0 to threads-1);        -- input=>ex5_is_attn_d              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_is_crit_int_q                                      : std_ulogic_vector(0 to threads-1);        -- input=>ex4_is_crit_int            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_is_mchk_int_q                                      : std_ulogic_vector(0 to threads-1);        -- input=>ex4_is_mchk_int            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_is_mtmsr_q                                         : std_ulogic;                               -- input=>ex4_is_mtmsr_q             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_is_isync_q                                         : std_ulogic;                               -- input=>ex4_is_isync_q             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_is_tlbwe_q                                         : std_ulogic;                               -- input=>ex4_is_tlbwe_q             , act=>exx_act(4)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex5_isigs_q,               ex5_isigs_d                 : std_ulogic_vector(0 to threads-1);        -- input=>ex5_isigs_d                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_itlbgs_q,              ex5_itlbgs_d                : std_ulogic_vector(0 to threads-1);        -- input=>ex5_itlbgs_d               , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_lsu_set_barr_q,        ex5_lsu_set_barr_d          : std_ulogic_vector(0 to threads-1);        -- input=>ex5_lsu_set_barr_d         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_mem_attr_val_q,        ex4_mem_attr_val            : std_ulogic_vector(0 to threads-1);        -- input=>ex4_mem_attr_val           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_mmu_hold_val_q                                     : std_ulogic_vector(0 to threads-1);        -- input=>ex4_mmu_hold_val_q         , act=>tiup                 , scan=>Y, sleep=>Y, needs_sreset=>1
+signal ex5_n_dmiss_flush_q,       ex4_n_dmiss_flush           : std_ulogic_vector(0 to threads-1);        -- input=>ex4_n_dmiss_flush          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_n_ext_dbg_stopc_flush_q,ex5_n_ext_dbg_stopc_flush_d : std_ulogic;                              -- input=>ex5_n_ext_dbg_stopc_flush_d, act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_n_ext_dbg_stopt_flush_q,ex5_n_ext_dbg_stopt_flush_d : std_ulogic_vector(0 to threads-1);       -- input=>ex5_n_ext_dbg_stopt_flush_d, act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_n_imiss_flush_q,       ex4_n_imiss_flush           : std_ulogic_vector(0 to threads-1);        -- input=>ex4_n_imiss_flush          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_n_ptemiss_dlrat_int_q                              : std_ulogic_vector(0 to threads-1);        -- input=>ex4_n_ptemiss_dlrat_int_q  , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_np1_icmp_dbg_cint_q,   ex5_np1_icmp_dbg_cint_d     : std_ulogic_vector(0 to threads-1);        -- input=>ex5_np1_icmp_dbg_cint_d    , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_np1_icmp_dbg_event_q,  ex5_np1_icmp_dbg_event_d    : std_ulogic_vector(0 to threads-1);        -- input=>ex5_np1_icmp_dbg_event_d   , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_np1_run_ctl_flush_q,   ex4_np1_run_ctl_flush       : std_ulogic_vector(0 to threads-1);        -- input=>ex4_np1_run_ctl_flush      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_dbsr_ide_q,            ex5_dbsr_ide_d              : std_ulogic_vector(0 to threads-1);        -- input=>ex5_dbsr_ide_d             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_perf_dtlb_q,           ex5_perf_dtlb_d             : std_ulogic_vector(0 to threads-1);        -- input=>ex5_perf_dtlb_d            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_perf_itlb_q,           ex5_perf_itlb_d             : std_ulogic_vector(0 to threads-1);        -- input=>ex5_perf_itlb_d            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_ram_done_q,            ex5_ram_done_d              : std_ulogic;                               -- input=>ex5_ram_done_d             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_ram_issue_q,           ex5_ram_issue_d             : std_ulogic_vector(0 to threads-1);        -- input=>ex5_ram_issue_d            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_rt_q                                               : std_ulogic_vector(64-regsize to 63);      -- input=>mux_cpl_ex4_rt             , act=>exx_act(4)           , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex5_sel_rt_q,              ex5_sel_rt_d                : std_ulogic_vector(0 to threads-1);        -- input=>ex5_sel_rt_d               , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_srr0_dec_q,            ex5_srr0_dec_d              : std_ulogic_vector(0 to threads-1);        -- input=>ex5_srr0_dec_d             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_tlb_inelig_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex4_tlb_inelig_q           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_uc_cia_val_q,          ex5_uc_cia_val_d            : std_ulogic_vector(0 to threads-1);        -- input=>ex5_uc_cia_val_d           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_xu_ifar_q,             ex5_xu_ifar_d               : IFAR;                                     -- input=>ex5_xu_ifar_d              , act=>exx_act(4)           , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_xu_val_q                                           : std_ulogic_vector(0 to threads-1);        -- input=>ex4_xu_val                 , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_n_flush_sprg_ue_flush_q, ex4_n_flush_sprg_ue_flush : std_ulogic_vector(0 to threads-1);        -- input=>ex4_n_flush_sprg_ue_flush  , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_mcsr_act_q                                         : std_ulogic_vector(0 to threads-1);        -- input=>ex4_mcsr_act               , act=>tiup                , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex6_mcsr_act_q,            ex6_mcsr_act_d              : std_ulogic;                               -- input=>ex6_mcsr_act_d             , act=>tiup                , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex6_late_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex5_late_flush_q(0)        , act=>tiup                 , scan=>N, sleep=>N, needs_sreset=>1
+signal ex6_mmu_hold_val_q                                     : std_ulogic_vector(0 to threads-1);        -- input=>ex5_mmu_hold_val_q         , act=>tiup                 , scan=>N, sleep=>Y, needs_sreset=>1
+signal ex6_ram_done_q                                         : std_ulogic;                               -- input=>ex5_ram_done_q             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex6_ram_interrupt_q,       ex6_ram_interrupt_d         : std_ulogic;                               -- input=>ex6_ram_interrupt_d        , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex6_ram_issue_q,           ex6_ram_issue_d             : std_ulogic_vector(0 to threads-1);        -- input=>ex6_ram_issue_d            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex7_ram_issue_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>ex6_ram_issue_q            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex8_ram_issue_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>ex7_ram_issue_q            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex6_set_barr_q,            ex6_set_barr_d              : std_ulogic_vector(0 to threads-1);        -- input=>ex6_set_barr_d             , act=>tiup                 , scan=>N, sleep=>N, needs_sreset=>1
+signal ex6_step_done_q,           ex5_step_done               : std_ulogic_vector(0 to threads-1);        -- input=>ex5_step_done              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex6_xu_val_q                                           : std_ulogic_vector(0 to threads-1);        -- input=>ex5_xu_val_q               , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex6_is_tlbwe_q                                         : std_ulogic;                               -- input=>ex5_is_tlbwe_q             , act=>tiup                 , scan=>N, sleep=>N, needs_sreset=>0
+signal ex7_is_tlbwe_q,            ex7_is_tlbwe_d              : std_ulogic_vector(0 to threads-1);        -- input=>ex7_is_tlbwe_d             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex8_is_tlbwe_q                                         : std_ulogic_vector(0 to threads-1);        -- input=>ex7_is_tlbwe_q             , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ccr2_ap_q                                              : std_ulogic_vector(0 to threads-1);        -- input=>spr_ccr2_ap                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal cpl_quiesced_q,            cpl_quiesced_d              : std_ulogic_vector(0 to threads-1);        -- input=>cpl_quiesced_d             , act=>tiup                 , scan=>Y, sleep=>Y, needs_sreset=>1
+signal dbcr0_idm_q                                            : std_ulogic_vector(0 to threads-1);        -- input=>spr_dbcr0_idm              , act=>spr_bit_act_q          , scan=>Y, sleep=>N, needs_sreset=>1
+signal dci_val_q,                 dci_val_d                   : std_ulogic;                               -- input=>dci_val_d                  , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal debug_event_en_q,          debug_event_en_d            : std_ulogic_vector(0 to threads-1);        -- input=>debug_event_en_d           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal derat_hold_present_q,      derat_hold_present_d        : std_ulogic_vector(0 to threads-1);        -- input=>derat_hold_present_d       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ext_dbg_act_err_q,         ext_dbg_act_err_d           : std_ulogic_vector(0 to threads-1);        -- input=>ext_dbg_act_err_d          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ext_dbg_act_ext_q,         ext_dbg_act_ext_d           : std_ulogic_vector(0 to threads-1);        -- input=>ext_dbg_act_ext_d          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ext_dbg_stop_core_q,       ext_dbg_stop_core_d         : std_ulogic_vector(0 to threads-1);        -- input=>ext_dbg_stop_core_d        , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ext_dbg_stop_n_q,          ext_dbg_stop_n_d            : std_ulogic_vector(0 to threads-1);        -- input=>ext_dbg_stop_n_d           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal external_mchk_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>spr_cpl_external_mchk        , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal exx_instr_async_block_q,   exx_instr_async_block_d     : ARY_BLOCK;                                -- input=>exx_instr_async_block_d    , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal exx_multi_flush_q,         exx_multi_flush_d           : std_ulogic_vector(0 to threads-1);        -- input=>exx_multi_flush_d          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal force_ude_q                                            : std_ulogic_vector(0 to threads-1);        -- input=>pc_xu_force_ude            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal fu_rf_seq_end_q                                        : std_ulogic;                               -- input=>fu_xu_regfile_seq_end      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal fu_rfpe_ack_q,             fu_rfpe_ack_d               : std_ulogic_vector(0 to 1);                -- input=>fu_rfpe_ack_d              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal fu_rfpe_hold_present_q,    fu_rfpe_hold_present_d      : std_ulogic;                               -- input=>fu_rfpe_hold_present_d     , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ici_hold_present_q,        ici_hold_present_d          : std_ulogic_vector(0 to 2);                -- input=>ici_hold_present_d         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ici_val_q,                 ici_val_d                   : std_ulogic;                               -- input=>ici_val_d                  , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ierat_hold_present_q,      ierat_hold_present_d        : std_ulogic_vector(0 to threads-1);        -- input=>ierat_hold_present_d       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal mmu_eratmiss_done_q                                    : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_eratmiss_done        , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal mmu_hold_present_q,        mmu_hold_present_d          : std_ulogic_vector(0 to threads-1);        -- input=>mmu_hold_present_d         , act=>tiup                 , scan=>Y, sleep=>Y, needs_sreset=>1
+signal mmu_hold_request_q,        mmu_hold_request_d          : std_ulogic_vector(0 to threads-1);        -- input=>mmu_hold_request_d         , act=>tiup                 , scan=>Y, sleep=>Y, needs_sreset=>1
+signal msr_cm_q                                               : std_ulogic_vector(0 to threads-1);        -- input=>spr_msr_cm                 , act=>spr_bit_w_int_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal msr_de_q                                               : std_ulogic_vector(0 to threads-1);        -- input=>spr_msr_de                 , act=>spr_bit_w_int_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal msr_fp_q                                               : std_ulogic_vector(0 to threads-1);        -- input=>spr_msr_fp                 , act=>spr_bit_w_int_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal msr_gs_q                                               : std_ulogic_vector(0 to threads-1);        -- input=>spr_msr_gs                 , act=>spr_bit_w_int_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal msr_me_q                                               : std_ulogic_vector(0 to threads-1);        -- input=>spr_msr_me                 , act=>spr_bit_w_int_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal msr_pr_q                                               : std_ulogic_vector(0 to threads-1);        -- input=>spr_msr_pr                 , act=>spr_bit_w_int_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal msr_spv_q                                              : std_ulogic_vector(0 to threads-1);        -- input=>spr_msr_spv                , act=>spr_bit_w_int_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal msr_ucle_q                                             : std_ulogic_vector(0 to threads-1);        -- input=>spr_msr_ucle               , act=>spr_bit_w_int_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal msrp_uclep_q                                           : std_ulogic_vector(0 to threads-1);        -- input=>spr_msrp_uclep             , act=>spr_bit_act_q          , scan=>Y, sleep=>N, needs_sreset=>1
+signal pc_dbg_action_q                                        : std_ulogic_vector(0 to 3*threads-1);      -- input=>pc_xu_dbg_action           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal pc_dbg_stop_q,             pc_dbg_stop_d               : std_ulogic_vector(0 to threads-1);        -- input=>pc_dbg_stop_d              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal pc_dbg_stop_2_q,           pc_dbg_stop                 : std_ulogic_vector(0 to threads-1);        -- input=>pc_dbg_stop                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal pc_err_mcsr_rpt_q,         pc_err_mcsr_rpt_d           : std_ulogic_vector(0 to 10);               -- input=>pc_err_mcsr_rpt_d          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal pc_err_mcsr_summary_q,     pc_err_mcsr_summary_d       : std_ulogic_vector(0 to threads-1);        -- input=>pc_err_mcsr_summary_d      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal pc_init_reset_q                                        : std_ulogic;                               -- input=>pc_xu_init_reset           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal quiesced_q,                quiesced_d                  : std_ulogic;                               -- input=>quiesced_d                 , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ram_flush_q,               ram_flush_d                 : std_ulogic_vector(0 to threads-1);        -- input=>ram_flush_d                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ram_ip_q,                  ram_ip_d                    : std_ulogic_vector(0 to threads-1);        -- input=>ram_ip_d                   , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ram_mode_q,                ram_mode_d                  : std_ulogic_vector(0 to threads-1);        -- input=>ram_mode_d                 , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal slowspr_flush_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>mux_cpl_slowspr_flush      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal spr_cpl_async_int_q                                    : std_ulogic_vector(0 to 3*threads-1);      -- input=>spr_cpl_async_int          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ram_execute_q,             ram_execute_d               : std_ulogic_vector(0 to threads-1);        -- input=>ram_execute_d              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ssprwr_ip_q,               ssprwr_ip_d                 : std_ulogic_vector(0 to threads-1);        -- input=>ssprwr_ip_d                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal exx_cm_hold_q                                          : std_ulogic_vector(0 to threads-1);        -- input=>exx_cm_hold                , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex1_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>rf1_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex1_s_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>rf1_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex1_w_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>rf1_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex2_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex1_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex2_s_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex1_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex2_w_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex1_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex3_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex2_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex3_s_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex2_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex3_w_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex2_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex4_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex4_s_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex4_w_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex5_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex4_flush                  , act=>ex4_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex5_s_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex4_flush                  , act=>ex4_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_ex5_w_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex4_flush                  , act=>ex4_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_is2_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>any_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_rf0_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>is2_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_rf1_n_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>rf0_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_rf1_s_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>rf0_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_rf1_w_flush_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>rf0_flush                  , act=>exx_flush_inf_act    , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_np1_irpt_dbg_cint_q,  ex4_np1_irpt_dbg_cint        : std_ulogic_vector(0 to threads-1);        -- input=>ex4_np1_irpt_dbg_cint     , act=>tiup                  , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex6_np1_irpt_dbg_cint_q,  ex6_np1_irpt_dbg_cint_d      : std_ulogic_vector(0 to threads-1);        -- input=>ex6_np1_irpt_dbg_cint_d   , act=>tiup                  , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_np1_irpt_dbg_event_q,  ex4_np1_irpt_dbg_event      : std_ulogic_vector(0 to threads-1);        -- input=>ex4_np1_irpt_dbg_event     , act=>tiup                  , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex6_np1_irpt_dbg_event_q,  ex6_np1_irpt_dbg_event_d    : std_ulogic_vector(0 to threads-1);        -- input=>ex6_np1_irpt_dbg_event_d   , act=>tiup                  , scan=>Y, sleep=>N, needs_sreset=>1
+signal clkg_ctl_q                                             : std_ulogic;                               --input=>spr_xucr0_clkg_ctl(2)       , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_rf_seq_end_q                                        : std_ulogic;                               -- input=>gpr_cpl_regfile_seq_end    , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_rfpe_ack_q,             xu_rfpe_ack_d               : std_ulogic_vector(0 to 1);                -- input=>xu_rfpe_ack_d              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal xu_rfpe_hold_present_q,    xu_rfpe_hold_present_d      : std_ulogic;                               -- input=>xu_rfpe_hold_present_d     , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal exx_act_q,                 exx_act_d                   : std_ulogic_vector(0 to 4);                -- input=>exx_act_d                  , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_mchk_int_en_q,         ex3_mchk_int_en             : std_ulogic_vector(0 to threads-1);        -- input=>ex3_mchk_int_en            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex5_mchk_int_en_q                                      : std_ulogic_vector(0 to threads-1);        -- input=>ex4_mchk_int_en_q          , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>0
+signal trace_bus_enable_q                                     : std_ulogic;                               -- input=>pc_xu_trace_bus_enable     , act=>tiup                 , scan=>Y, sleep=>Y, needs_sreset=>0
+signal ex1_instr_trace_type_q                                 : std_ulogic_vector(0 to 1);                -- input=>dec_cpl_rf1_instr_trace_type,act=>trace_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_instr_trace_val_q                                  : std_ulogic;                               -- input=>dec_cpl_rf1_instr_trace_val, act=>trace_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex1_xu_issued_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>dec_cpl_rf1_issued         , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex2_xu_issued_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>ex1_xu_issued_q            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_xu_issued_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>ex2_xu_issued_q            , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_xu_issued_q,           ex3_xu_issued               : std_ulogic_vector(0 to threads-1);        -- input=>ex3_xu_issued              , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex3_axu_issued_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>fu_xu_ex2_ifar_issued      , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_axu_issued_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_axu_issued_q           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex2_instr_dbg_q                                        : std_ulogic_vector(0 to 31);               -- input=>ex1_instr                  , act=>trace_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex2_instr_trace_type_q                                 : std_ulogic_vector(0 to 1);                -- input=>ex1_instr_trace_type_q     , act=>trace_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_instr_trace_val_q                                  : std_ulogic;                               -- input=>dec_cpl_ex3_instr_trace_val, act=>trace_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex5_axu_val_dbg_q                                      : std_ulogic_vector(0 to threads-1);        -- input=>ex4_axu_val                , act=>trace_bus_enable_q   , scan=>N, sleep=>Y, needs_sreset=>0
+signal ex5_instr_cpl_dbg_q                                    : std_ulogic_vector(0 to threads-1);        -- input=>ex4_instr_cpl              , act=>trace_bus_enable_q   , scan=>N, sleep=>Y, needs_sreset=>0
+signal ex5_instr_trace_val_q                                  : std_ulogic;                               -- input=>ex4_instr_trace_val_q      , act=>trace_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex5_siar_q,                ex5_siar_d                  : std_ulogic_vector(62-eff_ifar to 61);     -- input=>ex5_siar_d                 , act=>trace_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex5_siar_cpl_q,            ex5_siar_cpl_d              : std_ulogic;                               -- input=>ex5_siar_cpl_d             , act=>trace_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex5_siar_gs_q,             ex5_siar_gs_d               : std_ulogic;                               -- input=>ex5_siar_gs_d              , act=>trace_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex5_siar_issued_q,         ex5_siar_issued_d           : std_ulogic;                               -- input=>ex5_siar_issued_d          , act=>trace_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex5_siar_pr_q,             ex5_siar_pr_d               : std_ulogic;                               -- input=>ex5_siar_pr_d              , act=>trace_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex5_siar_tid_q,            ex5_siar_tid_d              : std_ulogic_vector(0 to 1);                -- input=>ex5_siar_tid_d             , act=>trace_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex5_ucode_end_dbg_q                                    : std_ulogic_vector(0 to threads-1);        -- input=>ex4_ucode_end              , act=>trace_bus_enable_q   , scan=>Y, sleep=>Y, needs_sreset=>0
+signal ex5_ucode_val_dbg_q                                    : std_ulogic_vector(0 to threads-1);        -- input=>ex4_ucode_val              , act=>trace_bus_enable_q   , scan=>Y, sleep=>Y, needs_sreset=>0
+signal instr_trace_mode_q                                     : std_ulogic;                               -- input=>pc_xu_instr_trace_mode     , act=>trace_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal debug_data_out_q,          debug_data_out_d            : std_ulogic_vector(0 to 87);               -- input=>debug_data_out_d           , act=>trace_bus_enable_q   , scan=>Y, sleep=>Y, needs_sreset=>0
+signal debug_mux_ctrls_q                                      : std_ulogic_vector(0 to 15);               -- input=>cpl_debug_mux_ctrls        , act=>trace_bus_enable_q   , scan=>Y, sleep=>Y, needs_sreset=>0
+signal debug_mux_ctrls_int_q,     debug_mux_ctrls_int         : std_ulogic_vector(0 to 15);               -- input=>debug_mux_ctrls_int        , act=>trace_bus_enable_q   , scan=>Y, sleep=>Y, needs_sreset=>0
+signal trigger_data_out_q,        trigger_data_out_d          : std_ulogic_vector(0 to 11);               -- input=>trigger_data_out_d         , act=>trace_bus_enable_q   , scan=>Y, sleep=>Y, needs_sreset=>0
+signal event_bus_enable_q                                     : std_ulogic;                               -- input=>pc_xu_event_bus_enable     , act=>tiup                 , scan=>Y, sleep=>Y, needs_sreset=>0
+signal ex2_perf_event_q,          ex2_perf_event_d            : std_ulogic_vector(0 to 2);                -- input=>ex2_perf_event_d           , act=>event_bus_enable_q   , scan=>N, sleep=>N, needs_sreset=>0
+signal ex3_perf_event_q                                       : std_ulogic_vector(0 to 2);                -- input=>ex2_perf_event_q           , act=>event_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal ex4_perf_event_q,          ex4_perf_event_d            : std_ulogic_vector(0 to 3);                -- input=>ex4_perf_event_d           , act=>event_bus_enable_q   , scan=>N, sleep=>N, needs_sreset=>0
+signal ex5_perf_event_q,          ex5_perf_event_d            : std_ulogic_vector(0 to 14*threads-1);     -- input=>ex5_perf_event_d           , act=>event_bus_enable_q   , scan=>Y, sleep=>N, needs_sreset=>0
+signal spr_bit_act_q                                          : std_ulogic;                               -- input=>spr_bit_act                , act=>tiup                 , scan=>Y, sleep=>N, ring=>func, needs_sreset=>1
+signal clk_override_q                                         : std_ulogic;                               -- input=>clk_override_q         , act=>tidn                 , scan=>Y, sleep=>N, needs_sreset=>0, ring=>ccfg,
 
-signal spare_0_q,                 spare_0_d                   : std_ulogic_vector(0 to 15);               
-signal spare_1_q,                 spare_1_d                   : std_ulogic_vector(0 to 15);               
-signal spare_2_q,                 spare_2_d                   : std_ulogic_vector(0 to 15);               
-signal spare_3_q,                 spare_3_d                   : std_ulogic_vector(0 to 15);               
-signal spare_4_q,                 spare_4_d                   : std_ulogic_vector(0 to 7);                
-signal spare_5_q,                 spare_5_d                   : std_ulogic_vector(0 to 3);                
+signal spare_0_q,                 spare_0_d                   : std_ulogic_vector(0 to 15);               -- input=>spare_0_d,             act=>tidn,
+signal spare_1_q,                 spare_1_d                   : std_ulogic_vector(0 to 15);               -- input=>spare_1_d,             act=>tidn,
+signal spare_2_q,                 spare_2_d                   : std_ulogic_vector(0 to 15);               -- input=>spare_2_d,             act=>tidn,
+signal spare_3_q,                 spare_3_d                   : std_ulogic_vector(0 to 15);               -- input=>spare_3_d,             act=>tidn,
+signal spare_4_q,                 spare_4_d                   : std_ulogic_vector(0 to 7);                -- input=>spare_4_d,             act=>tidn,
+signal spare_5_q,                 spare_5_d                   : std_ulogic_vector(0 to 3);                -- input=>spare_5_d,             act=>tidn,
 
-signal ex2_ifar_b_q                                           : std_ulogic_vector(0 to eff_ifar*threads-1);
-signal ex3_ifar_q                                             : std_ulogic_vector(0 to eff_ifar*threads-1);
-signal ex4_ifar_q                                             : std_ulogic_vector(0 to eff_ifar*threads-1);
+-- Per thread controls
+signal ex2_ifar_b_q                                           : std_ulogic_vector(0 to eff_ifar*threads-1);--input=>ex1_xu_ifar                , act=>ex1_ifar_act(t)      , scan=>N, sleep=>N, needs_sreset=>0, iterator=>(t)
+signal ex3_ifar_q                                             : std_ulogic_vector(0 to eff_ifar*threads-1);--input=>ex2_ifar                   , act=>ex2_ifar_act(t)      , scan=>Y, sleep=>N, needs_sreset=>0, iterator=>(t)
+signal ex4_ifar_q                                             : std_ulogic_vector(0 to eff_ifar*threads-1);--input=>ex3_ifar_q                 , act=>ex3_ifar_act(t)      , scan=>N, sleep=>N, needs_sreset=>0, iterator=>(t)
 signal ex5_nia_b_q                                            : std_ulogic_vector(0 to eff_ifar*threads-1);
-signal ex4_epid_instr_q                                       : std_ulogic_vector(0 to threads-1);        
-signal ex4_is_any_store_q                                     : std_ulogic_vector(0 to threads-1);        
-signal ex5_flush_2ucode_q,        ex5_flush_2ucode_d          : std_ulogic_vector(0 to threads-1);        
-signal ex5_ucode_restart_q,       ex5_ucode_restart_d         : std_ulogic_vector(0 to threads-1);        
-signal ex5_mem_attr_le_q,         ex5_mem_attr_le_d           : std_ulogic_vector(0 to threads-1);        
-signal ex4_dacr_cmpr_q,           ex4_dacr_cmpr_d             : DAC;                                      
-signal ex4_dacw_cmpr_q,           ex4_dacw_cmpr_d             : DAC;                                      
-signal ex5_late_flush_q,          ex5_late_flush_d            : TID_ARR;                                  
-signal ex5_esr_q,                 ex5_esr_d                   : std_ulogic_vector(0 to 17*threads-1);     
-signal ex5_dbsr_q,                ex5_dbsr_d                  : std_ulogic_vector(0 to 19*threads-1);     
-signal ex5_mcsr_q,                ex5_mcsr_d                  : std_ulogic_vector(0 to 15*threads-1);     
-signal dbg_flushcond_q,           dbg_flushcond_d             : ARY64;                                    
+signal ex4_epid_instr_q                                       : std_ulogic_vector(0 to threads-1);        -- input=>ex3_epid_instr_q           , act=>ex3_esr_bit_act      , scan=>N, sleep=>N, needs_sreset=>1
+signal ex4_is_any_store_q                                     : std_ulogic_vector(0 to threads-1);        -- input=>dec_cpl_ex3_is_any_store   , act=>ex3_esr_bit_act      , scan=>N, sleep=>N, needs_sreset=>1
+signal ex5_flush_2ucode_q,        ex5_flush_2ucode_d          : std_ulogic_vector(0 to threads-1);        -- input=>ex5_flush_2ucode_d         , act=>ex4_flush_act        , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_ucode_restart_q,       ex5_ucode_restart_d         : std_ulogic_vector(0 to threads-1);        -- input=>ex5_ucode_restart_d        , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_mem_attr_le_q,         ex5_mem_attr_le_d           : std_ulogic_vector(0 to threads-1);        -- input=>ex5_mem_attr_le_d          , act=>ex4_flush_act        , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex4_dacr_cmpr_q,           ex4_dacr_cmpr_d             : DAC;                                      -- input=>ex4_dacr_cmpr_d            , act=>exx_act(3)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex4_dacw_cmpr_q,           ex4_dacw_cmpr_d             : DAC;                                      -- input=>ex4_dacw_cmpr_d            , act=>exx_act(3)           , scan=>N, sleep=>N, needs_sreset=>0
+signal ex5_late_flush_q,          ex5_late_flush_d            : TID_ARR;                                  -- input=>ex5_late_flush_d           , act=>tiup                 , scan=>Y, sleep=>N, needs_sreset=>1
+signal ex5_esr_q,                 ex5_esr_d                   : std_ulogic_vector(0 to 17*threads-1);     -- input=>ex5_esr_d                  , act=>ex4_esr_act(t)       , scan=>Y, sleep=>N, needs_sreset=>1, iterator=>(t)
+signal ex5_dbsr_q,                ex5_dbsr_d                  : std_ulogic_vector(0 to 19*threads-1);     -- input=>ex5_dbsr_d                 , act=>ex4_dbsr_act(t)      , scan=>Y, sleep=>N, needs_sreset=>1, iterator=>(t)
+signal ex5_mcsr_q,                ex5_mcsr_d                  : std_ulogic_vector(0 to 15*threads-1);     -- input=>ex5_mcsr_d                 , act=>ex4_mcsr_act(t)      , scan=>Y, sleep=>N, needs_sreset=>1, iterator=>(t)
+signal dbg_flushcond_q,           dbg_flushcond_d             : ARY64;                                    -- input=>dbg_flushcond_d            , act=>trace_bus_enable_q   , scan=>N, sleep=>Y, needs_sreset=>0
 
+-- Scanchains
 constant is2_flush_offset                             : integer := 0;
 constant rf0_flush_offset                             : integer := is2_flush_offset               + is2_flush_q'length;
 constant rf1_flush_offset                             : integer := rf0_flush_offset               + rf0_flush_q'length;
@@ -1417,7 +1462,9 @@ signal sov_bcfg                                       : std_ulogic_vector(0 to s
 constant scan_right_dcfg                              : integer := 1;
 signal siv_dcfg                                       : std_ulogic_vector(0 to scan_right_dcfg-1);
 signal sov_dcfg                                       : std_ulogic_vector(0 to scan_right_dcfg-1);
+-- Signals
 signal tiup, tidn                                     : std_ulogic;
+-- Valids
 signal rf1_xu_val                                     : std_ulogic_vector(0 to threads-1);
 signal ex1_xu_val                                     : std_ulogic_vector(0 to threads-1);
 signal ex2_xu_val                                     : std_ulogic_vector(0 to threads-1);
@@ -1442,6 +1489,7 @@ signal ex4_xuuc_val_q                                 : std_ulogic_vector(0 to t
 signal ex3_xuuc_val                                   : std_ulogic_vector(0 to threads-1);
 signal ex4_xuuc_val                                   : std_ulogic_vector(0 to threads-1);
 signal ex3_dep_val                                    : std_ulogic_vector(0 to threads-1);
+-- Flushes
 signal iu_flush                                       : std_ulogic_vector(0 to threads-1);
 signal any_flush                                      : std_ulogic_vector(0 to threads-1);
 signal is2_flush                                      : std_ulogic_vector(0 to threads-1);
@@ -1451,6 +1499,7 @@ signal ex1_flush                                      : std_ulogic_vector(0 to t
 signal ex2_flush                                      : std_ulogic_vector(0 to threads-1);
 signal ex3_flush                                      : std_ulogic_vector(0 to threads-1);
 signal ex4_flush                                      : std_ulogic_vector(0 to threads-1);
+-- Other Stuff
 signal spare_0_lclk                                   : clk_logic;
 signal spare_1_lclk                                   : clk_logic;
 signal spare_2_lclk                                   : clk_logic;
@@ -1793,40 +1842,41 @@ ex3_ifar_act   <= ex3_xu_val_q or ex3_xu_issued_q or ex3_ucode_val_q or ex3_axu_
 
 spr_bit_w_int_act    <= spr_bit_act_q or clkg_ctl_q;
 
+-- Deocode
 rf1_opcode_is_31  <= dec_cpl_rf1_instr(0 to 5) = "011111";
 rf1_opcode_is_0   <= dec_cpl_rf1_instr(0 to 5) = "000000";
 rf1_opcode_is_19  <= dec_cpl_rf1_instr(0 to 5) = "010011";
-rf1_is_tlbsx      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1110010010" else '0';  
-rf1_is_tlbsrx     <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1101010010" else '0';  
-rf1_is_tlbre      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1110110010" else '0';  
-rf1_is_tlbwe      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1111010010" else '0';  
-rf1_is_eratre     <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0010110011" else '0';  
+rf1_is_tlbsx      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1110010010" else '0';  -- 31/914
+rf1_is_tlbsrx     <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1101010010" else '0';  -- 31/850
+rf1_is_tlbre      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1110110010" else '0';  -- 31/946
+rf1_is_tlbwe      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1111010010" else '0';  -- 31/978
+rf1_is_eratre     <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0010110011" else '0';  -- 31/179
 rf1_is_wait       <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0000111110" else '0';
 rf1_is_icblc      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0011100110" else '0';
 rf1_is_icbtls     <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0111100110" else '0';
 rf1_is_dcblc      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0110000110" else '0';
 rf1_is_dcbtls     <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0010100110" else '0';
 rf1_is_dcbtstls   <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0010000110" else '0';
-rf1_is_rfi        <= '1' when rf1_opcode_is_19 and dec_cpl_rf1_instr(21 to 30) = "0000110010" else '0'; 
-rf1_is_rfci       <= '1' when rf1_opcode_is_19 and dec_cpl_rf1_instr(21 to 30) = "0000110011" else '0'; 
-rf1_is_rfgi       <= '1' when rf1_opcode_is_19 and dec_cpl_rf1_instr(21 to 30) = "0001100110" else '0'; 
-rf1_is_rfmci      <= '1' when rf1_opcode_is_19 and dec_cpl_rf1_instr(21 to 30) = "0000100110" else '0'; 
-rf1_is_mfspr      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0101010011" else '0'; 
-rf1_is_mtspr      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0111010011" else '0'; 
-rf1_is_mtmsr      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0010010010" else '0'; 
-rf1_is_wrtee      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0010000011" else '0'; 
-rf1_is_wrteei     <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0010100011" else '0'; 
-rf1_is_erativax   <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1100110011" else '0'; 
-rf1_is_isync      <= '1' when rf1_opcode_is_19 and dec_cpl_rf1_instr(21 to 30) = "0010010110" else '0'; 
-rf1_is_sc         <= '1' when                      dec_cpl_rf1_instr( 0 to  5) = "010001"     else '0'; 
-rf1_is_dci        <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0111000110" else '0'; 
-rf1_is_ici        <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1111000110" else '0'; 
-rf1_is_tlbivax    <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1100010010" else '0'; 
-rf1_is_ehpriv     <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0100001110" else '0'; 
-rf1_is_attn       <= '1' when rf1_opcode_is_0  and dec_cpl_rf1_instr(21 to 30) = "0100000000" else '0'; 
-rf1_is_icswx      <= '1' when rf1_opcode_is_31 and (dec_cpl_rf1_instr(21 to 30) = "0110010110" or           
-                                                    dec_cpl_rf1_instr(21 to 30) = "1110110110") else '0';   
-rf1_is_any_ldstmw <= '1' when dec_cpl_rf1_instr(0 to 4) = "10111" else '0';                                       
+rf1_is_rfi        <= '1' when rf1_opcode_is_19 and dec_cpl_rf1_instr(21 to 30) = "0000110010" else '0'; -- 19/50
+rf1_is_rfci       <= '1' when rf1_opcode_is_19 and dec_cpl_rf1_instr(21 to 30) = "0000110011" else '0'; -- 19/51
+rf1_is_rfgi       <= '1' when rf1_opcode_is_19 and dec_cpl_rf1_instr(21 to 30) = "0001100110" else '0'; -- 19/102
+rf1_is_rfmci      <= '1' when rf1_opcode_is_19 and dec_cpl_rf1_instr(21 to 30) = "0000100110" else '0'; -- 19/38
+rf1_is_mfspr      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0101010011" else '0'; -- 31/339
+rf1_is_mtspr      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0111010011" else '0'; -- 31/467
+rf1_is_mtmsr      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0010010010" else '0'; -- 31/146
+rf1_is_wrtee      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0010000011" else '0'; -- 31/131
+rf1_is_wrteei     <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0010100011" else '0'; -- 31/163
+rf1_is_erativax   <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1100110011" else '0'; -- 31/819
+rf1_is_isync      <= '1' when rf1_opcode_is_19 and dec_cpl_rf1_instr(21 to 30) = "0010010110" else '0'; -- 19/150
+rf1_is_sc         <= '1' when                      dec_cpl_rf1_instr( 0 to  5) = "010001"     else '0'; -- 17
+rf1_is_dci        <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0111000110" else '0'; -- 31/454
+rf1_is_ici        <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1111000110" else '0'; -- 31/966
+rf1_is_tlbivax    <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1100010010" else '0'; -- 31/786
+rf1_is_ehpriv     <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "0100001110" else '0'; -- 31/270
+rf1_is_attn       <= '1' when rf1_opcode_is_0  and dec_cpl_rf1_instr(21 to 30) = "0100000000" else '0'; -- 0/256
+rf1_is_icswx      <= '1' when rf1_opcode_is_31 and (dec_cpl_rf1_instr(21 to 30) = "0110010110" or           -- 31/406
+                                                    dec_cpl_rf1_instr(21 to 30) = "1110110110") else '0';   -- 31/950
+rf1_is_any_ldstmw <= '1' when dec_cpl_rf1_instr(0 to 4) = "10111" else '0';                                       -- 46/47
 rf1_sc_lev        <= dec_cpl_rf1_instr(26);
 
 rf1_is_ldbrx      <= '1' when rf1_opcode_is_31 and dec_cpl_rf1_instr(21 to 30) = "1000010100" else '0';
@@ -1840,7 +1890,7 @@ rf1_byte_rev      <= rf1_is_lhbrx or rf1_is_lwbrx or rf1_is_ldbrx or rf1_is_sthb
 rf1_is_dlock      <= rf1_is_dcblc or rf1_is_dcbtls or rf1_is_dcbtstls;
 rf1_is_ilock      <= rf1_is_icblc or rf1_is_icbtls;
 
-rf1_is_mtxucr0    <= rf1_is_mtspr and (dec_cpl_rf1_instr(11 to 20) = "1011011111");   
+rf1_is_mtxucr0    <= rf1_is_mtspr and (dec_cpl_rf1_instr(11 to 20) = "1011011111");   -- 1014
 
 rf1_th_fld_val    <= (dec_cpl_rf1_instr(7 to 10) = "0000") or (dec_cpl_rf1_instr(7 to 10) = "0010");
 ex1_is_dci_d      <= rf1_is_dci and rf1_th_fld_val;
@@ -1871,7 +1921,7 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    signal ex4_axu_instr_type_q,  ex4_axu_instr_type_d    : std_ulogic_vector(0 to 2);
    signal ex5_mem_attr_q                                 : std_ulogic_vector(lsu_xu_ex3_attr'range);     
    signal ex5_ivo_sel_q,         ex4_ivo_sel             : std_ulogic_vector(0 to ivos-1);
-   signal ex5_flush_pri_dbg_q                            : std_ulogic_vector(0 to Fnp1);                 
+   signal ex5_flush_pri_dbg_q                            : std_ulogic_vector(0 to Fnp1);                 -- input=>ex4_flush_pri,            act=>trace_bus_enable_q,   sleep=>Y,   needs_sreset=>0, scan=>N
    signal ex4_cia_flush,         flush_ifar              : IFAR;
    signal ex4_axu_instr_type                             : std_ulogic_vector(0 to 2);
    signal ex3_ifar, ex4_ifar, ex3_spr_lr                 : IFAR;
@@ -1901,20 +1951,41 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    begin
 
 
+   --=============================================================================
+   --=============================================================================
+   --
+   -- Interrupt Conditions
+   --
+   --=============================================================================
+   --=============================================================================
 
+   -------------------------------------------------------------------------------
+   -- Critical External Input Interrupt
+   -------------------------------------------------------------------------------
    ex3_np1_crit_cint(t)             <= spr_cpl_crit_interrupt(t) and not ex3_async_int_block(t);
 
+   -------------------------------------------------------------------------------
+   -- Machine Check Interrupt
+   -------------------------------------------------------------------------------
+   -- Enable
    ex3_mchk_int_en(t)              <= (msr_me_q(t) or msr_gs_q(t)) and not ex3_mchk_int_block(t);
 
+   -------------------------------------------------------------------------------
+   -- N Flushes [tlb parity error flush]
+   -------------------------------------------------------------------------------
    ex3_n_tlbmh_mchk_flush(t)        <= ex3_n_tlb_mchk_flush_en(t) and ex3_tlb_multihit_err_q(t);
    ex3_n_tlbpe_mchk_flush(t)        <= ex3_n_tlb_mchk_flush_en(t) and ex3_tlb_par_err_q(t);   
    
    ex3_n_tlb_mchk_flush(t)          <=                      ex3_n_tlbmh_mchk_flush(t) or
                                                             ex3_n_tlbpe_mchk_flush(t);
 
+   -------------------------------------------------------------------------------
+   -- Instr Machine Check Interrupt
+   -------------------------------------------------------------------------------
    ex3_n_tlb_mchk_flush_en(t)       <= ex3_n_mmu_mchk_flush_only and mmu_eratmiss_done_q(t);
    ex3_n_ieratsx_par_mchk_mcint(t)  <= ex3_xu_val(t) and iu_xu_ierat_ex3_par_err(t);
 
+   -- Conditions
    ex3_n_iemh_mchk_mcint_xuuc(t)    <= ex3_iu_error_q(6);
    ex3_n_iepe_mchk_mcint_xuuc(t)    <= ex3_iu_error_q(5);
    ex3_n_il2ecc_mchk_mcint_xuuc(t)  <= ex3_iu_error_q(2);
@@ -1926,6 +1997,7 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    
    spare_5_d(t)                     <= not(ex3_n_tlbpe_mchk_mcint(t) or ex3_n_tlblru_mchk_mcint(t));
    
+   -- Summary
    ex3_n_imchk_mcint(t)             <=(ex3_xuuc_val(t) and (ex3_n_iemh_mchk_mcint_xuuc(t) or  
                                                             ex3_n_iepe_mchk_mcint_xuuc(t) or  
                                                             ex3_n_il2ecc_mchk_mcint_xuuc(t)))
@@ -1936,8 +2008,12 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                                             ex3_n_tlbsrej_mchk_mcint(t) or
                                                             ex3_n_ieratre_par_mchk_mcint(t);
 
+   -------------------------------------------------------------------------------
+   -- Data Machine Check Interrupt
+   -------------------------------------------------------------------------------
    ex3_n_dexx_mchk_flush_en(t)      <= ex3_n_mmu_mchk_flush_only and ex3_is_any_ldst;
 
+   -- Conditions
    ex3_n_demh_mchk_mcint_xu(t)      <= not ex3_n_dexx_mchk_flush_en(t) and lsu_xu_ex3_derat_multihit_err(t);
    ex3_n_depe_mchk_mcint_xu(t)      <= not ex3_n_dexx_mchk_flush_en(t) and lsu_xu_ex3_derat_par_err(t);
    ex3_n_dl2ecc_mchk_mcint(t)       <= lsu_xu_ex3_l2_uc_ecc_err(t);
@@ -1948,6 +2024,7 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    ex3_n_dcpe_mchk_mcint(t)         <= ex6_xu_val_q(t) and lsu_xu_ex6_datc_par_err    and spr_xucr0_mdcp;
 
 
+   -- Summary
    ex3_n_dmchk_mcint(t)             <=(ex3_xu_val(t)   and (ex3_n_demh_mchk_mcint_xu(t) or
                                                             ex3_n_depe_mchk_mcint_xu(t) or
                                                             ex3_n_ddpe_mchk_mcint_xu(t)))
@@ -1960,8 +2037,14 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    ex4_n_ddmh_mchk_en_d(t)          <= ex3_xu_val(t) and dec_cpl_ex3_ddmh_en and spr_xucr4_mddmh;
    ex4_n_ddmh_mchk_mcint(t)         <= ex4_n_ddmh_mchk_en_q(t) and lsu_xu_ex4_n_lsu_ddmh_flush(t);
 
+   -------------------------------------------------------------------------------
+   -- Async Machine Check Interrupt
+   -------------------------------------------------------------------------------
    ex3_np1_ext_mchk_mcint(t)        <=  external_mchk_q(t) and not ex3_async_int_block(t);
                                                             
+   -------------------------------------------------------------------------------
+   -- Data Storage Interrupt
+   -------------------------------------------------------------------------------
    ex3_ct(t)                        <=(spr_cpl_ex3_ct_le(t) and     lsu_xu_ex3_attr(8)) or
                                       (spr_cpl_ex3_ct_be(t) and not lsu_xu_ex3_attr(8));
 
@@ -1972,14 +2055,16 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    ex3_dlk_dstor_cond(t)            <= ex3_dlk_dstor_cond0(t) or
                                        ex3_dlk_dstor_cond1(t) or
                                        ex3_dlk_dstor_cond2(t);
+   -- Conditions
    ex3_n_rwaccess_dstor_int(t)      <= ex3_xuuc_val(t) and derat_xu_ex3_dsi(t);
    ex3_n_i1w1lock_dstor_int(t)      <= ex3_xu_val(t) and lsu_xu_ex3_dsi(t);                                                                     
    ex3_n_uct_dstor_int(t)           <= ex3_xu_val(t) and ex3_is_icswx_q and not ex3_ct(t);                                              
    ex3_n_dlk0_dstor_int(t)          <= ex3_xu_val(t) and msr_pr_q(t) and ex3_dlk_dstor_cond(t) and ex3_is_dlock_q;                         
    ex3_n_dlk1_dstor_int(t)          <= ex3_xu_val(t) and msr_pr_q(t) and ex3_dlk_dstor_cond(t) and ex3_is_ilock_q;                         
-   ex3_n_tlbi_dstor_int(t)          <= ex3_tlb_inelig_q(t)   and ex3_mmu_esr_data_q(t);      
-   ex3_n_pt_dstor_int(t)            <= ex3_tlb_pt_fault_q(t) and ex3_mmu_esr_data_q(t);      
+   ex3_n_tlbi_dstor_int(t)          <= ex3_tlb_inelig_q(t)   and ex3_mmu_esr_data_q(t);      -- PTE Realod when all ways are IPROT=1
+   ex3_n_pt_dstor_int(t)            <= ex3_tlb_pt_fault_q(t) and ex3_mmu_esr_data_q(t);      -- HTW attempted to install invalid entry in TLB
    ex3_n_vf_dstor_int(t)            <= ex3_xuuc_val(t) and lsu_xu_ex3_derat_vf and ex3_is_any_ldst;                   
+   -- Summary
    ex3_n_dstor_int(t)               <=                      ex3_n_rwaccess_dstor_int(t) or
                                                             ex3_n_i1w1lock_dstor_int(t) or
                                                             ex3_n_uct_dstor_int(t) or
@@ -1989,25 +2074,44 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                                             ex3_n_pt_dstor_int(t) or
                                                             ex3_n_vf_dstor_int(t);
 
+   -------------------------------------------------------------------------------
+   -- Instruction Storage Interrupt
+   -------------------------------------------------------------------------------
+   -- Conditions
    ex3_n_exaccess_istor_int(t)      <= ex3_xuuc_val(t)  and   ex3_iu_error_q(4);
-   ex3_n_tlbi_istor_int(t)          <= ex3_tlb_inelig_q(t)   and not ex3_mmu_esr_data_q(t);  
-   ex3_n_pt_istor_int(t)            <= ex3_tlb_pt_fault_q(t) and not ex3_mmu_esr_data_q(t);  
+   ex3_n_tlbi_istor_int(t)          <= ex3_tlb_inelig_q(t)   and not ex3_mmu_esr_data_q(t);  -- PTE Realod when all ways are IPROT=1
+   ex3_n_pt_istor_int(t)            <= ex3_tlb_pt_fault_q(t) and not ex3_mmu_esr_data_q(t);  -- HTW attempted to install invalid entry in TLB
+   -- Summary
    ex3_n_istor_int(t)               <=                      ex3_n_exaccess_istor_int(t) or
                                                             ex3_n_tlbi_istor_int(t) or
                                                             ex3_n_pt_istor_int(t);
    
+   -------------------------------------------------------------------------------
+   -- External Input Interrupt
+   -------------------------------------------------------------------------------
    ex3_np1_ext_int(t)               <= spr_cpl_ext_interrupt(t) and not ex3_async_int_block(t);
 
+   -------------------------------------------------------------------------------
+   -- Alignment Interrupt
+   -------------------------------------------------------------------------------
+   -- Conditions
    ex3_n_ldstmw_align_int(t)        <= ex3_ucode_val(t) and ex3_n_align_int_q;
    ex3_n_ldst_align_int(t)          <= ex3_xu_val(t)    and lsu_xu_ex3_align(t);
+   -- Summary
    ex3_n_align_int(t)               <=                      ex3_n_ldstmw_align_int(t) or
                                                             ex3_n_ldst_align_int(t);
 
+   -------------------------------------------------------------------------------
+   -- Program Interrupt [illegal]
+   -------------------------------------------------------------------------------
+   -- Conditions
+   -- Priv SPR accessed in problem state needs to get Priv-Prog Int even if it's an illegal SPR.
    ex3_n_sprpil_prog_int_xu(t)      <= spr_cpl_ex3_spr_illeg and not (spr_cpl_ex3_spr_priv and msr_pr_q(t));
    ex3_n_tlbpil_prog_int_xu(t)      <= dec_cpl_ex3_tlb_illeg;
    ex3_n_mmupil_prog_int_xu(t)      <= mm_xu_illeg_instr(t) and not ex7_is_tlbwe_q(t);
    ex3_n_xupil_prog_int_xuuc(t)     <= ex3_illegal_op_q;
    ex3_n_iupil_prog_int_xuuc(t)     <= ex3_iu_error_q(1);
+   -- Summary
    ex3_n_pil_prog_int(t)            <=(ex3_xuuc_val(t) and (ex3_n_iupil_prog_int_xuuc(t) or
                                                             ex3_n_xupil_prog_int_xuuc(t)))
                                                             or
@@ -2015,32 +2119,59 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                                             ex3_n_tlbpil_prog_int_xu(t) or
                                                             ex3_n_mmupil_prog_int_xu(t)));
 
+   -------------------------------------------------------------------------------
+   -- Program Interrupt [illegal MAS settings]
+   -------------------------------------------------------------------------------
    ex3_n_tlbwe_pil_prog_int(t)      <= ex3_tlb_illeg_q(t)   and     ex8_is_tlbwe_q(t);
 
+   -------------------------------------------------------------------------------
+   -- Program Interrupt [privileged]
+   -------------------------------------------------------------------------------
+   -- Enable
    ex3_n_ppr_prog_int_en(t)         <= msr_pr_q(t) and not (ex3_n_dlk0_dstor_int(t) or
                                                             ex3_n_dlk1_dstor_int(t));
+   -- Conditions
    ex3_n_sprppr_prog_int_xuuc(t)    <= spr_cpl_ex3_spr_priv;
    ex3_n_instrppr_prog_int_xuuc(t)  <= dec_cpl_ex3_instr_priv and not ex3_is_ehpriv_q;
+   -- Summary
    ex3_n_ppr_prog_int(t)            <= ex3_n_ppr_prog_int_en(t) and
                                        ex3_xuuc_val(t) and (ex3_n_sprppr_prog_int_xuuc(t) or
                                                             ex3_n_instrppr_prog_int_xuuc(t));
 
+   -------------------------------------------------------------------------------
+   -- Program Interrupt [unimplemented]
+   -------------------------------------------------------------------------------
+   -- Add the 2ucode flush.. otherwise could run into priority problems.
    ex3_n_puo_prog_int(t)            <= (ex3_ucode_val(t) or ex3_n_2ucode_flush(t)) and  spr_ccr2_ucode_dis;
 
+   -------------------------------------------------------------------------------
+   -- Program Interrupt [trap]
+   -------------------------------------------------------------------------------
    ex3_np1_ptr_prog_int(t)          <= ex3_xu_val(t) and alu_cpl_ex3_trap_val and not (spr_dbcr0_trap(t) and msr_de_q(t) and dbcr0_idm_q(t) and debug_event_en_q(t));
 
+   -------------------------------------------------------------------------------
+   -- Program Interrupt [enabled]
+   -------------------------------------------------------------------------------
+   -- Enable
+   -- Need to block while base interrupts are in progress, until (FE0|FE1)==0.  This will keep this from occuring twice.
    ex3_n_fpena_prog_int(t)          <= fu_xu_ex3_trap(t) and spr_cpl_fp_precise(t) and not ex3_async_int_block_noaxu(t);
    ex3_n_apena_prog_int(t)          <= ex3_any_val(t) and fu_xu_ex3_ap_int_req(t);
+   -- Summary
    ex3_n_ena_prog_int(t)            <= 
                                                             ex3_n_fpena_prog_int(t) or
                                                             ex3_n_apena_prog_int(t);
 
+   -------------------------------------------------------------------------------
+   -- XX Unavailable Interrupt
+   -------------------------------------------------------------------------------
+   -- Conditions
    ex3_n_fu_fp_unavail_int_axu(t)   <= ex3_axu_instr_type_q(2+3*t)   and not msr_fp_q(t);
    ex3_n_xu_fp_unavail_int_xuuc(t)  <= dec_cpl_ex3_axu_instr_type(2) and not msr_fp_q(t);
    ex3_n_fu_ap_unavail_int_axu(t)   <= ex3_axu_instr_type_q(3*t)     and not ccr2_ap_q(t);
    ex3_n_xu_ap_unavail_int_xuuc(t)  <= dec_cpl_ex3_axu_instr_type(0) and not ccr2_ap_q(t);   
    ex3_n_fu_vec_unavail_int_axu(t)  <= ex3_axu_instr_type_q(1+3*t)   and not msr_spv_q(t);
    ex3_n_xu_vec_unavail_int_xuuc(t) <= dec_cpl_ex3_axu_instr_type(1) and not msr_spv_q(t);
+   -- Summary
    ex3_n_fp_unavail_int(t)          <=(ex3_axu_val(t)  and  ex3_n_fu_fp_unavail_int_axu(t)) or
                                       (ex3_xuuc_val(t) and  ex3_n_xu_fp_unavail_int_xuuc(t));
 
@@ -2058,29 +2189,59 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                                             ex3_n_xu_ap_unavail_int_xuuc(t) or
                                                             ex3_n_xu_vec_unavail_int_xuuc(t)));
 
+   -------------------------------------------------------------------------------
+   -- Instruction Based Interrupts [rfi,sc,trap]
+   -------------------------------------------------------------------------------
+   -- Conditions
    ex3_np1_sc_int(t)                <= ex3_xu_val(t) and ex3_is_sc_q;
    ex3_np1_rfi(t)                   <= ex3_xu_val(t) and (ex3_is_rfmci_q or ex3_is_rfci_q or ex3_is_rfi_q or ex3_is_rfgi_q);
+   -- Summary
    ex3_np1_instr_int(t)             <=                      ex3_np1_ptr_prog_int(t) or
                                                             ex3_np1_sc_int(t) or                                                      
                                                             ex3_np1_rfi(t);
 
+   -------------------------------------------------------------------------------
+   -- Decrementer Interrupt
+   -------------------------------------------------------------------------------
    ex3_np1_dec_int(t)               <= spr_cpl_dec_interrupt(t)   and not ex3_async_int_block(t);
 
+   -------------------------------------------------------------------------------
+   -- Fixed Interval Timer Interrupt
+   -------------------------------------------------------------------------------
    ex3_np1_fit_int(t)               <= spr_cpl_fit_interrupt(t)   and not ex3_async_int_block(t);
 
+   -------------------------------------------------------------------------------
+   -- Watchdog Interrupt
+   -------------------------------------------------------------------------------
    ex3_np1_wdog_cint(t)             <= spr_cpl_wdog_interrupt(t)  and not ex3_async_int_block(t);
 
+   -------------------------------------------------------------------------------
+   -- Data TLB Interrupt
+   -------------------------------------------------------------------------------
+   -- Conditions
    ex3_n_deratmiss_dtlb_int(t)      <= ex3_xuuc_val(t)   and     derat_xu_ex3_miss(t)   and     spr_ccr2_notlb;
    ex3_n_tlbmiss_dtlb_int(t)        <= ex3_tlb_miss_q(t) and     ex3_mmu_esr_data_q(t)  and not spr_ccr2_notlb;
+   -- Summary
    ex3_n_dtlb_int(t)                <=                      ex3_n_deratmiss_dtlb_int(t) or
                                                             ex3_n_tlbmiss_dtlb_int(t);
+   -------------------------------------------------------------------------------
+   -- Instruction TLB Interrupt
+   -------------------------------------------------------------------------------
+   -- Conditions
    ex3_n_ieratmiss_itlb_int(t)      <= ex3_xuuc_val(t)   and     ex3_iu_error_q(7)      and     spr_ccr2_notlb;
    ex3_n_tlbmiss_itlb_int(t)        <= ex3_tlb_miss_q(t) and not ex3_mmu_esr_data_q(t)  and not spr_ccr2_notlb;
+   -- Summary
    ex3_n_itlb_int(t)                <=                      ex3_n_ieratmiss_itlb_int(t) or
                                                             ex3_n_tlbmiss_itlb_int(t);
 
+   -------------------------------------------------------------------------------
+   -- Debug Interrupts [synchronous]
+   -------------------------------------------------------------------------------
+   -- Enabled
    debug_event_en_d(t)              <= not (spr_epcr_duvd(t) and not spr_msr_gs(t) and not spr_msr_pr(t));
 
+   -- Conditions
+   -- Note: BRT & ICMP don't record in the DBSR if MSR[DE]=0
    ex3_n_brt_dbg_cint(t)            <= ex3_xu_val(t)    and ex3_br_update_q                 and spr_dbcr0_brt(t)  and msr_de_q(t) and debug_event_en_q(t);
    ex3_n_trap_dbg_cint(t)           <= ex3_xu_val(t)    and alu_cpl_ex3_trap_val            and spr_dbcr0_trap(t)                 and debug_event_en_q(t);
    ex3_n_ret_dbg_cint(t)            <= ex3_xu_val(t)    and (ex3_is_rfi_q or ex3_is_rfgi_q) and spr_dbcr0_ret(t)                  and debug_event_en_q(t);
@@ -2119,6 +2280,10 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                       
    ex3_n_instr_dbg_cint(t)          <= ex4_debug_flush_en_d(t) and (ex3_n_ivc_dbg_cint(t) or ex3_n_iac_dbg_cint(t));
 
+   -------------------------------------------------------------------------------
+   -- Debug Interrupts [asynchronous]
+   -------------------------------------------------------------------------------
+   -- Enable
    ex3_np1_dbg_cint_en(t)           <= not ex3_async_int_block(t);
    ex3_np1_ide_dbg_cint(t)          <= ex3_np1_dbg_cint_en(t) and debug_event_en_q(t) and
                                                             spr_cpl_dbsr_ide(t) and dbcr0_idm_q(t) and msr_de_q(t);
@@ -2128,22 +2293,44 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    ex3_np1_ude_dbg_event(t)         <=                      force_ude_q(t) and debug_event_en_q(t);
 
 
+   -------------------------------------------------------------------------------
+   -- Doorbell Interrupt
+   -------------------------------------------------------------------------------
    ex3_np1_dbell_int(t)             <= spr_cpl_dbell_interrupt(t)    and not ex3_async_int_block(t);
    
+   -------------------------------------------------------------------------------
+   -- Critical Doorbell Interrupt
+   -------------------------------------------------------------------------------
    ex3_np1_cdbell_cint(t)           <= spr_cpl_cdbell_interrupt(t)   and not ex3_async_int_block(t);
 
+   -------------------------------------------------------------------------------
+   -- Guest Doorbell Interrupt
+   -------------------------------------------------------------------------------
    ex3_np1_gdbell_int(t)            <= spr_cpl_gdbell_interrupt(t)   and not ex3_async_int_block(t);
    
+   -------------------------------------------------------------------------------
+   -- Guest Critical Doorbell Interrupt
+   -------------------------------------------------------------------------------
    ex3_np1_gcdbell_cint(t)          <= spr_cpl_gcdbell_interrupt(t)  and not ex3_async_int_block(t);
 
+   -------------------------------------------------------------------------------
+   -- Guest Machine Check Doorbell Interrupt
+   -------------------------------------------------------------------------------
    ex3_np1_gmcdbell_cint(t)         <= spr_cpl_gmcdbell_interrupt(t) and not ex3_async_int_block(t);
 
 
+   -------------------------------------------------------------------------------
+   -- Hypervisor Privilege Interrupt
+   -------------------------------------------------------------------------------
+   -- Enable
    msr_guest_priv(t)                <= not msr_pr_q(t) and msr_gs_q(t);
+   -- Conditions
    ex3_n_spr_hpriv_int_xuuc(t)      <= msr_guest_priv(t) and spr_cpl_ex3_spr_hypv;
    ex3_n_instr_hpriv_int_xuuc(t)    <= msr_guest_priv(t) and dec_cpl_ex3_instr_hypv;
    ex3_n_ehpriv_hpriv_int(t)        <= ex3_xu_val(t)     and ex3_is_ehpriv_q;
+      -- tlbwe when all ways are IPROT=1 or attempted to install invalid entry in LRAT
    ex3_n_mmu_hpriv_int(t)           <= msr_guest_priv(t) and ex3_mmu_hv_priv_q(t);
+   -- Summary
    ex4_n_any_hpriv_int_d(t)         <=(ex3_xuuc_val(t) and (ex3_n_spr_hpriv_int_xuuc(t) or  
                                                             ex3_n_instr_hpriv_int_xuuc(t)))
                                                             or
@@ -2151,19 +2338,44 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                                             ex3_n_mmu_hpriv_int(t);
                              
                                                     
-   ex3_n_ilrat_int(t)               <= ex3_lrat_miss_q(t) and     ex3_mmu_esr_pt_q(t) and not ex3_mmu_esr_data_q(t); 
+   -------------------------------------------------------------------------------
+   -- Instruction LRAT Interrupt
+   -------------------------------------------------------------------------------
+   ex3_n_ilrat_int(t)               <= ex3_lrat_miss_q(t) and     ex3_mmu_esr_pt_q(t) and not ex3_mmu_esr_data_q(t); -- PTE Reload missed in the LRAT
    
-   ex3_n_ptemiss_dlrat_int(t)       <= ex3_lrat_miss_q(t) and     ex3_mmu_esr_pt_q(t) and     ex3_mmu_esr_data_q(t); 
-   ex3_n_tlbwemiss_dlrat_int(t)     <= ex3_lrat_miss_q(t) and not ex3_mmu_esr_pt_q(t);                               
+   -------------------------------------------------------------------------------
+   -- Data LRAT Interrupt
+   -------------------------------------------------------------------------------
+   -- Conditions
+   ex3_n_ptemiss_dlrat_int(t)       <= ex3_lrat_miss_q(t) and     ex3_mmu_esr_pt_q(t) and     ex3_mmu_esr_data_q(t); -- PTE Reload missed in the LRAT
+   ex3_n_tlbwemiss_dlrat_int(t)     <= ex3_lrat_miss_q(t) and not ex3_mmu_esr_pt_q(t);                               -- tlbwe      missed in the LRAT
+   -- Summary
    ex3_n_dlrat_int(t)               <=                      ex3_n_ptemiss_dlrat_int(t) or  
                                                             ex3_n_tlbwemiss_dlrat_int(t);
 
 
+   -------------------------------------------------------------------------------
+   -- User Decrementer Interrupt
+   -------------------------------------------------------------------------------
    ex3_np1_udec_int(t)              <= spr_cpl_udec_interrupt(t) and not ex3_async_int_block(t);
 
+   -------------------------------------------------------------------------------
+   -- Performance Monitor Interrupt
+   -------------------------------------------------------------------------------
    ex3_np1_perf_int(t)              <= spr_cpl_perf_interrupt(t) and not ex3_async_int_block(t);
    
+   --=============================================================================
+   --=============================================================================
+   --
+   -- Flush Conditions
+   --
+   --=============================================================================
+   --=============================================================================
 
+   -------------------------------------------------------------------------------
+   -- NP1 Flushes
+   -------------------------------------------------------------------------------
+   -- Conditions
    ex3_np1_instr_flush(t)           <= ex3_xu_val(t)  and  ex3_np1_instr_flush_q;
                                                             
    ex3_np1_sprg_ce_flush(t)         <= or_reduce(ex3_xu_val) and spr_cpl_ex3_sprg_ce;
@@ -2183,6 +2395,7 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    
    ex3_np1_mtxucr0_flush(t)         <= or_reduce(ex3_xu_val) and ex3_is_mtxucr0_q;
    
+   -- Summary
    ex3_np1_flush(t)                 <=                      ex3_np1_instr_flush(t) or 
                                                             ex3_np1_mtiar_flush(t) or
                                                             ex3_np1_run_ctl_flush(t) or 
@@ -2192,15 +2405,27 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                                             ex3_np1_mtxucr0_flush(t) or
                                                             slowspr_flush_q(t);
 
+   -------------------------------------------------------------------------------
+   -- N Flush [I-ERAT Miss]
+   -------------------------------------------------------------------------------
    ex3_n_imiss_flush(t)             <= ex3_xuuc_val(t) and ex3_iu_error_q(7)    and not spr_ccr2_notlb;
    ex4_n_imiss_flush(t)             <= ex4_n_flush_pri(IMISSn);
 
+   -------------------------------------------------------------------------------
+   -- N Flush [D-ERAT Miss]
+   -------------------------------------------------------------------------------
    ex3_n_dmiss_flush(t)             <= ex3_xuuc_val(t) and derat_xu_ex3_miss(t) and not spr_ccr2_notlb;
    ex4_n_dmiss_flush(t)             <= ex4_n_flush_pri(DMISSn);
    
+   -------------------------------------------------------------------------------
+   -- N Flush [Dependant]
+   -------------------------------------------------------------------------------
 
+   -- tlb structural hazard due to tlb reload
    ex3_n_derat_dep_flush(t)         <= ex3_xuuc_val(t) and  derat_xu_ex3_n_flush_req(t);
+   -- dependant op following load miss
    ex3_n_lsu_dep_flush(t)           <= (ex3_xuuc_val(t) or ex3_dep_val(t)) and lsu_xu_ex3_dep_flush;
+   -- dependant op following load miss (FU version)
    ex3_n_fu_dep_flush(t)            <=                  not ex3_flush(t) and 
                                                         not fu_xu_ex3_flush2ucode(t) and
                                                             fu_xu_ex3_n_flush(t);
@@ -2209,22 +2434,34 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                                             ex3_n_derat_dep_flush(t) or 
                                                             ex3_n_fu_dep_flush(t);
   
+   -------------------------------------------------------------------------------
+   -- N Flush [Load Queue Hit]
+   -------------------------------------------------------------------------------
    ex3_n_ldq_hit_flush(t)           <= lsu_xu_ex3_ldq_hit_flush;
 
+   -------------------------------------------------------------------------------
+   -- N Flush [Load Queue Full]
+   -------------------------------------------------------------------------------
+--   ex3_n_ldq_full_flush(t)         <= lsu_xu_ex4_ldq_full_flush;
    ex4_n_ldq_full_flush(t)         <= ex4_xu_val_q(t) and lsu_xu_ex4_ldq_full_flush;
    
 
 
 
+   -------------------------------------------------------------------------------
+   -- N Flushes
+   -------------------------------------------------------------------------------
+   -- Conditions
    ex3_n_ram_flush(t)               <= ram_flush_q(t);
    ex3_n_mmuhold_flush(t)           <= ex3_mmu_hold_val(t);
-   ex3_n_ici_flush(t)               <= or_reduce(ex3_xu_val) and not ex3_xu_val(t) and ex3_is_ici_q;     
-   ex3_n_dci_flush(t)               <= or_reduce(ex3_xu_val) and not ex3_xu_val(t) and ex3_is_dci_q;     
+   ex3_n_ici_flush(t)               <= or_reduce(ex3_xu_val) and not ex3_xu_val(t) and ex3_is_ici_q;     -- N Flushes other threads
+   ex3_n_dci_flush(t)               <= or_reduce(ex3_xu_val) and not ex3_xu_val(t) and ex3_is_dci_q;     -- N Flushes other threads
    ex3_n_mmu_flush(t)               <= mm_xu_ex3_flush_req(t);
    ex3_n_thrctl_stop_flush(t)       <= (pc_dbg_stop_q(t) and not pc_dbg_stop_2_q(t)) and not (ex5_in_ucode_q(t) or ex4_ucode_val(t));
    ex3_n_multcoll_flush(t)          <= ex3_xu_val(t)   and  dec_cpl_ex3_mult_coll;
    ex3_n_ierat_flush(t)             <= ex3_anyuc_val(t) and ex3_ierat_flush_req_q(t);
 
+   -- Summary
    ex3_n_flush(t)                   <=                      ex3_n_ram_flush(t) or
                                                             ex3_n_mmuhold_flush(t) or
                                                             ex3_n_ici_flush(t) or
@@ -2236,19 +2473,23 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                                             ex3_n_multcoll_flush(t);
 
    ex4_n_lsu_ddmh_flush_en_d(t)     <= (or_reduce(ex3_xu_val) and dec_cpl_ex3_ddmh_en) or dec_cpl_ex3_back_inv;
-   ex4_n_lsu_ddmh_flush(t)          <= ex4_n_lsu_ddmh_flush_en_q(t) and lsu_xu_ex4_n_lsu_ddmh_flush(t);       
+   ex4_n_lsu_ddmh_flush(t)          <= ex4_n_lsu_ddmh_flush_en_q(t) and lsu_xu_ex4_n_lsu_ddmh_flush(t);       -- N Flushes all threads
    
    ex3_n_lsu_flush(t)               <= lsu_xu_ex3_n_flush_req;
    ex4_n_lsu_flush(t)               <= ex4_xu_val_q(t) and  ex4_n_lsu_flush_q(t);
 
+   -------------------------------------------------------------------------------
+   -- N Flushes [parity errors]
+   -------------------------------------------------------------------------------
    ex3_n_demh_mchk_flush(t)         <= ex3_n_dexx_mchk_flush_en(t) and ex3_xu_val(t) and lsu_xu_ex3_derat_multihit_err(t);
    ex3_n_depe_mchk_flush(t)         <= ex3_n_dexx_mchk_flush_en(t) and ex3_xu_val(t) and lsu_xu_ex3_derat_par_err(t);
    ex3_n_lsu_dcpe_flush(t)          <= or_reduce(ex6_xu_val_q) and lsu_xu_ex6_datc_par_err;
-   ex3_n_lsu_ddpe_flush(t)          <= or_reduce(ex3_xu_val) and lsu_xu_ex3_ddir_par_err;                      
-   ex3_n_fu_rfpe_flush(t)           <= or_reduce(ex3_n_fu_rfpe_det);                                           
-   ex3_n_xu_rfpe_flush(t)           <= or_reduce(ex3_xuuc_val or ex3_dep_val) and gpr_cpl_ex3_regfile_err_det; 
+   ex3_n_lsu_ddpe_flush(t)          <= or_reduce(ex3_xu_val) and lsu_xu_ex3_ddir_par_err;                      -- N Flushes all threads
+   ex3_n_fu_rfpe_flush(t)           <= or_reduce(ex3_n_fu_rfpe_det);                                           -- N Flushes all threads
+   ex3_n_xu_rfpe_flush(t)           <= or_reduce(ex3_xuuc_val or ex3_dep_val) and gpr_cpl_ex3_regfile_err_det; -- N Flushes all threads
    ex3_n_sprg_ue_flush(t)           <= ex3_xu_val(t) and spr_cpl_ex3_sprg_ue;
 
+   -- Summary
    ex3_n_pe_flush(t)                <=                      ex3_n_l2_ecc_err_flush_q(t) or
                                                             ex3_n_dcpe_flush_q(t) or
                                                             ex3_n_lsu_dcpe_flush(t) or
@@ -2259,19 +2500,36 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                                             ex3_n_demh_mchk_flush(t) or
                                                             ex3_n_depe_mchk_flush(t);
 
+   -------------------------------------------------------------------------------
+   -- N Flushes [to uCode]
+   -------------------------------------------------------------------------------
+   -- Conditions
    ex3_n_lsualign_2ucode_flush(t)   <= ex3_xu_val(t)    and lsu_xu_ex3_inval_align_2ucode;
    ex3_n_fu_2ucode_flush(t)         <=                  not ex3_flush(t) and 
                                                             fu_xu_ex3_flush2ucode(t) and
                                                             fu_xu_ex3_n_flush(t); 
+   -- Summary
    ex3_n_2ucode_flush(t)            <=                      ex3_n_lsualign_2ucode_flush(t) or
                                                             ex3_n_fu_2ucode_flush(t);
 
+   -------------------------------------------------------------------------------
+   -- N Flushes [Barrier Set]
+   -------------------------------------------------------------------------------
+   -- TID of the collision indicates which thread the original divide is running on
+   -- if that gets flushed, do not set the barrier.
    ex3_div_coll_d(t)                <= fxa_cpl_ex2_div_coll(t) and not any_flush(t);
    ex3_div_coll(t)                  <= ex3_div_coll_q(t)       and not any_flush(t);
 
    ex3_n_barr_flush(t)              <= ex3_xu_val(t)    and or_reduce(ex3_div_coll);
 
 
+   --=============================================================================
+   --=============================================================================
+   --
+   -- Multi Cycle Flush Generation
+   --
+   --=============================================================================
+   --=============================================================================
    ex5_step_done(t)                 <= ex4_step_q(t) and    (ex5_instr_cpl_q(t) or ex5_is_any_int(t) or ex5_n_ext_dbg_stopc_flush_q or ex5_n_ext_dbg_stopt_flush_q(t));
    ex4_np1_run_ctl_flush(t)         <= or_reduce(ex4_xu_val) and ex4_np1_run_ctl_flush_q(t);
    ex4_attn_flush(t)                <= ex4_xu_val(t) and ex4_is_attn_q;   
@@ -2285,21 +2543,34 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                        ex5_is_any_int(t) or 
                                        ex5_is_any_rfi_q(t);
                                        
+   -- Hold the xu_iu_flush interface, during multi cycle flushes
    ex4_flush_act(t)           <= ex4_n_flush(t) or ex4_np1_flush(t);
 
+   -------------------------------------------------------------------------------
+   -- Hold Reqests - per thread
+   -------------------------------------------------------------------------------
    hold_state_0(t)         <= mmu_hold_present_q(t)    or 
                               derat_hold_present_q(t)  or 
                               ierat_hold_present_q(t)  or 
                               ex5_np1_irpt_dbg_cint_q(t);
 
+   -- MMU Hold req:
+   -- either a local generated local or global tlbivax holds the source thead..
+   -- or an incoming from bus global tlbivax that holds all threads
+   -- or a load/store that misses in derat   holds source thread until miss is resolved from tlb
    mmu_hold_request_d(t)   <= mm_xu_hold_req(t)                or (mmu_hold_request_q(t)    and     or_reduce(ex3_hold_block));   
    ex3_mmu_hold_val(t)     <=                                      mmu_hold_request_q(t)    and not or_reduce(ex3_hold_block);
-   xu_mm_hold_ack(t)       <= ex6_mmu_hold_val_q(t);  
+   xu_mm_hold_ack(t)       <= ex6_mmu_hold_val_q(t);  -- Stage out a few cycles for safety.
 
    mmu_hold_present_d(t)      <= ex3_mmu_hold_val(t)              or (mmu_hold_present_q(t)    and not mm_xu_hold_done(t));
    ierat_hold_present_d(t)    <= ex4_n_imiss_flush(t)             or (ierat_hold_present_q(t)  and not mmu_eratmiss_done_q(t));
    derat_hold_present_d(t)    <= ex4_n_dmiss_flush(t)             or (derat_hold_present_q(t)  and not mmu_eratmiss_done_q(t));
+   -- Hold present needs to stay on long enough for any MMU sourced interrupts to cccur
    
+   -------------------------------------------------------------------------------
+   -- Flush/Interrupt Condition Generation
+   -------------------------------------------------------------------------------
+   -- External Debug Actions
    ext_dbg_stop_n_d(t)     <=((pc_dbg_action_q(3*t to 3*t+2) = "010") or
                               (pc_dbg_action_q(3*t to 3*t+2) = "110"));
    ext_dbg_stop_core_d(t)  <=((pc_dbg_action_q(3*t to 3*t+2) = "011") or
@@ -2337,28 +2608,34 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    ex4_cia_cmprh(t)        <= '1';
    end generate;
 
+   -- Don't care the upperhalf of the compare in 32b mode
    ex3_lr_cmpr(t)          <= ex3_anyuc_val_q(t) and ex3_lr_cmprl(t)   and (ex3_lr_cmprh(t)   or not msr_cm_q(t));
    ex3_cia_cmpr(t)         <= ex3_anyuc_val_q(t) and ex3_cia_cmprl(t)  and (ex3_cia_cmprh(t)  or not msr_cm_q(t));
    ex4_cia_cmpr(t)         <= ex4_anyuc_val_q(t) and ex4_cia_cmprl(t)  and (ex4_cia_cmprh(t)  or not msr_cm_q(t));
               
+   -- BLR Checking
+   -- Clear the bit on a valid instruction or a flush.  If the XU redirects via flush,
+   -- the fetch will be guaranteed correct next time and there is no need for the check.
    ex4_clear_bclr_chk(t)   <= (ex4_anyuc_val_q(t)  and not ram_mode_q(t)) or ex5_late_flush_q(0)(t);
    
    ex4_taken_bclr(t)       <= (ex4_taken_bclr_q    and     ex4_xu_val(t));
-   ex5_check_bclr_d(t)     <= (ex5_check_bclr_q(t) and not ex4_clear_bclr_chk(t)) or   
-                               ex4_taken_bclr(t);                                      
+   ex5_check_bclr_d(t)     <= (ex5_check_bclr_q(t) and not ex4_clear_bclr_chk(t)) or   -- Clear on next valid instr or flush
+                               ex4_taken_bclr(t);                                      -- Set after bclr
                                
    ex5_check_bclr(t)       <= ex5_check_bclr_q(t) and not  ex4_clear_bclr_chk(t);                               
 
-   ex3_bclr_cmpr_b(t)      <= (not ex3_lr_cmpr(t)  and ex4_taken_bclr(t)) or      
-                              (not ex3_cia_cmpr(t) and ex5_check_bclr(t));      
+   ex3_bclr_cmpr_b(t)      <= (not ex3_lr_cmpr(t)  and ex4_taken_bclr(t)) or      -- bclr with instr BTB, ex4_cia not updated yet
+                              (not ex3_cia_cmpr(t) and ex5_check_bclr(t));      -- use ex4_cia here, LR could have updated due bclrl
 
    ex3_n_bclr_ta_miscmpr_flush(t)   <= not ram_mode_q(t) and ex3_anyuc_val(t) and ex3_bclr_cmpr_b(t);
    
-   ex4_check_cia(t)           <=((ex4_xu_val_q(t) or ex4_axu_val_q(t)) and not ex5_in_ucode_q(t)) or  
-                                 ex4_ucode_val_q(t);                                                  
+   -- IFAR Checking
+   ex4_check_cia(t)           <=((ex4_xu_val_q(t) or ex4_axu_val_q(t)) and not ex5_in_ucode_q(t)) or  -- Don't check the end of a ucode op...
+                                 ex4_ucode_val_q(t);                                                  -- Check uCode issue
 
    ex5_err_nia_miscmpr_d(t)   <= ex4_instr_cpl(t) and ex4_check_cia(t) and not ex4_cia_cmpr(t) and not (ex4_taken_bclr(t) or ex5_check_bclr_q(t));
       
+   -- Page Crossing detection
    ex4_mem_attr_act(t)     <= ex4_ucode_val(t);
 
    ex4_mem_attr_val(t)     <=(ex4_ucode_val(t)      and (ex4_is_any_store_dac_q or ex4_is_any_load_dac_q)) or 
@@ -2366,20 +2643,22 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
 
    ex3_mem_attr_cmpr(t)    <= '1' when lsu_xu_ex3_attr = ex5_mem_attr_q else '0';
 
-   ex3_mem_attr_chk(t)     <= ex5_in_ucode_q(t) and ex5_mem_attr_val_q(t) and                         
-                              (ex3_xu_val(t)   and (ex3_is_any_store_dac_q or                   
-                                                    ex3_is_any_load_dac_q));                    
+   ex3_mem_attr_chk(t)     <= ex5_in_ucode_q(t) and ex5_mem_attr_val_q(t) and                         -- uCode attributes valid
+                              (ex3_xu_val(t)   and (ex3_is_any_store_dac_q or                   -- Valid store
+                                                    ex3_is_any_load_dac_q));                    -- Valid load
 
    ex3_n_memattr_miscmpr_flush(t)   <= ex3_mem_attr_chk(t) and not ex3_mem_attr_cmpr(t);
    
    ex5_mem_attr_le_d(t)    <= ex4_mem_attr_q(8) xor ex4_byte_rev_q;
 
+   -- uCode
    ex4_ucode_end(t)        <=     ex5_in_ucode_q(t) and ((ex4_xu_val_q(t)  and not ex4_xu_is_ucode_q) or
                                                          (ex4_axu_val_q(t) and not ex4_axu_is_ucode_q(t)) or
                                                           ex5_is_any_int(t));
 
    ex5_in_ucode_d(t)          <= ex4_ucode_val(t) or (ex5_in_ucode_q(t) and not (((ex4_np1_flush(t) or ex4_n_flush(t)) and ex4_ucode_restart(t)) or ex5_is_any_int(t)));
    
+   -- Interrupt blocking
    ssprwr_ip_d(t)          <=(ex4_xu_val(t) and ex4_is_slowspr_wr_q) or
                              (ssprwr_ip_q(t) and not mux_cpl_slowspr_done(t));
    
@@ -2387,9 +2666,17 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    exx_instr_async_block_d(t)(2 to 7)     <= exx_instr_async_block_q(t)(1 to 6);
       
    
+   -- In RAM Mode
+   -- In uCode
+   -- XU uCode Start
+   --AXU uCode Start
+   -- Wait instruction in pipe
+   -- If MSR is updated here a potential interrupt will not get
+   --    the updated value... blocking is easiest for timing.
    ex3_async_int_block_cond(t)   <= (ex2_xu_val_q(t) and (ex2_msr_updater or ex2_mtiar or ex2_is_slowspr_wr_q)) or
                                     or_reduce(exx_instr_async_block_q(t)) or 
                                     ex4_n_flush_cond(IMISSn) or ex4_n_flush_cond(DMISSn);  
+                                    -- MMU Hold present not needed, exx_hold0_mcflush will be on in time
 
    ex3_base_int_block_cond(t)    <= ex4_is_mchk_int(t) or ex4_is_crit_int(t) or ex4_is_base_int(t);
    ex3_mchk_int_block_cond(t)    <= ex4_is_mchk_int(t);
@@ -2409,19 +2696,30 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                               spare_4_q(4+t);
                               
                                                                   
+   -- Don't block FPenabled ints due to ICMP.  FPenabled has higher priority.
    ex3_async_int_block(t)  <= ex3_async_int_block_noaxu(t) or ex3_axu_async_block_q(t) or ex4_icmp_async_block(t);
                               
+   -- Timing Note:  base_int_block is causing timing problems.  Replacing it with a latched version + ex4_async_block
+   --    to cover the first cycle after.  Can also remove IMISS/DMISS, as they are also included.
                               
 
    ex3_debug_int_en(t)     <= msr_de_q(t) and dbcr0_idm_q(t) and not (ex4_is_crit_int(t) or ex4_is_mchk_int(t) or ext_dbg_stop_n_q(t) or ext_dbg_stop_core_q(t));
    
    ex4_debug_flush_en_d(t) <= ex3_debug_int_en(t) or ext_dbg_stop_n_q(t) or ext_dbg_stop_core_q(t);
 
+   -- This signal will clock gate ESR[FP,AP,SPV,ST,EPID]
+   -- so they are saved during uCode, flush-to-uCode, and HW table walk
+   -- Update for non-ucode instructions or on uCode pre-issue.
+   -- Need to also catch the last cycle of ucode.
+   -- Use in_ucode for this, we flush after so there's cycles to account for this to clear.
    ex3_esr_bit_act(t)   <= not (ex3_flush(t) and not ex4_n_flush_pri(F2Un)) and 
                               (ex3_ucode_val_q(t) or                        
                               (ex3_xu_val_q(t)  and not (ex5_in_ucode_q(t) or ex3_xu_is_ucode_q    )) or
                               (ex3_axu_val_q(t) and not (ex5_in_ucode_q(t) or ex3_axu_is_ucode_q(t))));
 
+   -------------------------------------------------------------------------------
+   -- IFAR Mux
+   -------------------------------------------------------------------------------
    ex5_sel_rt_d(t)      <= ex4_np1_mtiar_flush(t) or ex4_is_any_rfi(t);
 
    with s3'(ex5_is_any_hint(t) & ex5_is_any_gint(t) & ex5_sel_rt_q(t)) select
@@ -2439,6 +2737,9 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
          flush_ifar(56 to 61)                <= not ex4_cia_b_q(56 to 61)                    when '1',
                                                 ex2_br_flush_ifar(56 to 61)                  when others;
 
+   -------------------------------------------------------------------------------
+   -- Next instruction address
+   -------------------------------------------------------------------------------
    ex4_instr_cpl_d(t)   <=((ex3_xu_val(t)    and not ex3_xu_is_ucode_q) or
                            (ex3_axu_val(t)   and not ex3_axu_is_ucode_q(t)));
 
@@ -2447,17 +2748,20 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
 
    ex5_flush_update(t)  <= ex5_is_any_int(t) or ex5_is_any_rfi_q(t) or ex5_sel_rt_q(t);
 
+   -- Update NIA on a taken branch
    with (ex4_xu_val_q(t) and ex4_br_update_q) select
-      ex4_nia_instr     <= ex4_br_flush_ifar_q                    when '1',      
-                           ex4_cia_p1                             when others;   
+      ex4_nia_instr     <= ex4_br_flush_ifar_q                    when '1',      -- Branch IFAR
+                           ex4_cia_p1                             when others;   -- Current IFAR + 1
 
+   -- Update CIA due to flushes
    with ex5_flush_update(t) select
       ex4_cia_flush     <= ex5_flush_ifar                         when '1',
                            ex4_cia                                when others;
 
+   -- Update NIA when a new instr completes
    with (ex4_instr_cpl(t)) select
-      ex4_nia_cpl       <= (ex4_nia_instr and ex4_cm_mask)         when '1',      
-                           (ex4_cia_flush and ex4_cm_mask)         when others;   
+      ex4_nia_cpl       <= (ex4_nia_instr and ex4_cm_mask)         when '1',      -- Next Instr
+                           (ex4_cia_flush and ex4_cm_mask)         when others;   -- Current/No Instr (or Flushed IAR)
                            
    ex4_nia              <= ex4_nia_cpl;
    ex4_cia              <= not ex4_cia_b_q;
@@ -2465,6 +2769,7 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                                            
    ex4_cia_p1           <= std_ulogic_vector(unsigned(ex4_cia) + 1);
         
+   -- Preserve the upper 32bits of the ifar until msr_cm_q is stable.
    ex5_cm_hold_cond(t)  <= (ex5_xu_val_q(t) and ex5_is_mtmsr_q) or ex5_is_any_int(t) or ex5_is_any_rfi_q(t);
 
    ex4_cm(t)            <= msr_cm_q(t) or exx_cm_hold(t);
@@ -2478,21 +2783,30 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    
    ex4_nia_act(t)       <= ex4_cia_act_q(t) or ex3_cia_act(t) or ex4_n_flush(t) or ex4_np1_flush(t);
    
+   -------------------------------------------------------------------------------
+   -- uCode "Next instruction address"
+   -------------------------------------------------------------------------------
    ex5_uc_cia_val_d(t)  <= ex5_in_ucode_q(t) and  ex4_uc_cia_val(t);
    ex4_uc_cia_val(t)    <= ex5_in_ucode_q(t) and (ex5_uc_cia_val_q(t) or ex4_any_val(t));
    
    ex3_uc_cia_act(t)    <= clkg_ctl_q or (ex5_in_ucode_q(t) and (ex4_xu_val_q(t) or ex4_axu_val_q(t)));
 
+   -- Capture NIA when a new instr completes
+   -- The IU needs the IFAR of the op being flushed (if there is one there)
    with (ex4_xu_val_q(t) or ex4_axu_val_q(t)) select
       ex4_uc_nia        <= ex4_ifar(IFAR_UC'range)                      when '1',
                            ex4_uc_cia_q                                 when others;
                            
+   -- Don't capture ops that were flushed into the capture latch (See note above)
    with ex4_n_flush(t) select
       ex4_uc_cia_d      <= ex4_uc_cia_q                                 when '1',
                            ex4_uc_nia                                   when others;
 
    xu_iu_uc_flush_ifar(uc_ifar*t to uc_ifar*(t+1)-1)  <= ex4_uc_cia_q;
 
+   -------------------------------------------------------------------------------
+   -- Exception Priority
+   -------------------------------------------------------------------------------
    ex4_dbsr_cond(0)                <= ex4_n_ivc_dbg_cint_q(t) or 
                                       ex4_n_iac_dbg_cint_q(t);
 
@@ -2501,6 +2815,9 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                       ex4_n_brt_dbg_cint_q(t) or
                                       ex4_n_trap_dbg_cint_q(t);
 
+   -- Only allow the DBSR to be set, if:
+   --    the interrupt occured
+   --    the instruction completed
    ex4_dbsr_en_cond(0)                   <= ex4_anyuc_val(t) or   ex4_n_flush_pri(DBG0n);  
    ex4_dbsr_en_cond(1)                   <= ex4_anyuc_val(t) or   ex4_n_flush_pri(DBG1n);  
 
@@ -2576,14 +2893,14 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                            ex4_n_flush_cond(PROG1n) or
                                            ex4_n_flush_cond(UNAVAILn) or
                                            ex4_n_flush_cond(PROG3n) or
-                                 ex4_n_dmchk_mcint_q(t) or                                   
+                                 ex4_n_dmchk_mcint_q(t) or                                   -- DMCHKn
                                  or_reduce(ex4_n_flush_cond(DTLBn to ALIGNn)) or
-                                 (ex4_debug_flush_en_q(t) and ex4_n_dac_dbg_cint_q(t)) or    
+                                 (ex4_debug_flush_en_q(t) and ex4_n_dac_dbg_cint_q(t)) or    -- DBG1n
                                            ex4_n_flush_cond(F2Un) or 
-                                 ex4_n_flush_cond(FPEn) or                                   
-                                 (ex4_xu_val_q(t) and ex4_n_ldq_hit_flush_q(t)) or           
-                                 ex4_n_flush_q(t) or ex4_n_lsu_flush(t) or                   
-                                 ex4_thread_stop_q(t) or                                     
+                                 ex4_n_flush_cond(FPEn) or                                   -- FPEn
+                                 (ex4_xu_val_q(t) and ex4_n_ldq_hit_flush_q(t)) or           -- Fn
+                                 ex4_n_flush_q(t) or ex4_n_lsu_flush(t) or                   -- Fn
+                                 ex4_thread_stop_q(t) or                                     -- Fn
                                  ex4_flush_q(t);
    
    ex5_flush_pri_enc_dbg(t)   <= gate("000001",ex5_flush_pri_dbg_q(0)) or   
@@ -2648,9 +2965,12 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    
    ex4_n_flush_sprg_ue_flush(t)     <= ex4_n_flush_pri(FPEn)         and ex4_n_sprg_ue_flush_q(t);
 
+   -- Delay ICMP until just before the next instruction.  This strategy should account for barrier ops
    
    ex4_icmp_event_on_int_ok(t)      <= ex4_n_flush_pri_ehpriv(t) or ex4_np1_flush_pri_instr(SC) or ex4_np1_flush_pri_instr(TRAP);
    
+   -- ehpriv/sc/trap causes a flushes, but still needs to set the DBSR.
+   -- ICMP can only occur or record when DE=1
    ex4_np1_icmp_dbg_en(t)           <= spr_dbcr0_icmp(t) and msr_de_q(t) and debug_event_en_q(t);   
    ex4_np1_icmp_dbg_event(t)        <= ex4_np1_icmp_dbg_en(t) and (ex4_instr_cpl(t) or ex4_icmp_event_on_int_ok(t));
    ex4_np1_icmp_dbg_cint(t)         <= ex4_np1_icmp_dbg_en(t) and  ex4_instr_cpl(t) and ex4_debug_flush_en_q(t);
@@ -2663,12 +2983,14 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    ex5_np1_icmp_dbg_cint_d(t)       <=(ex4_np1_icmp_dbg_cint(t)    and not                         (ex5_is_any_int(t) or ex4_thread_stop_q(t))) or
                                       (ex5_np1_icmp_dbg_cint_q(t)  and not (ex4_anyuc_val_q(t) or   ex5_is_any_int(t) or ex4_thread_stop_q(t)));
    
+   -- Actually take the ICMP just before the next instruction.
    exx_np1_icmp_dbg_cint(t)         <= ex5_np1_icmp_dbg_cint_q(t)  and (ex4_anyuc_val_q(t) or ex4_thread_stop_q(t));
    exx_np1_icmp_dbg_event(t)        <= ex5_np1_icmp_dbg_event_q(t) and (ex4_anyuc_val_q(t) or ex4_thread_stop_q(t) or (ex5_is_any_int(t) and ex5_icmp_event_on_int_ok_q(t)));
    
    ex4_n_flush_pri_icmp(t)          <= ex4_n_flush_pri(PREVn) and exx_np1_icmp_dbg_cint(t);
    
    
+   -- Do the same business with IRPT...
    ex4_np1_irpt_dbg_cint(t)         <= ex4_is_base_int(t) and debug_event_en_q(t) and spr_dbcr0_irpt(t) and ex4_debug_flush_en_q(t);
    ex4_np1_irpt_dbg_event(t)        <= ex4_is_base_int(t) and debug_event_en_q(t) and spr_dbcr0_irpt(t);
    
@@ -2760,35 +3082,44 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    ex4_is_crit_int(t)   <= ex4_ivo_sel(0) or ex4_ivo_sel(12) or ex4_ivo_sel(15) or ex4_ivo_sel(18) or ex4_ivo_sel(20);
    ex4_is_mchk_int(t)   <= ex4_ivo_sel(1);
 
-   ex5_ivo           <= gate(x"02",ex5_ivo_sel_q( 0)) or   
-                        gate(x"00",ex5_ivo_sel_q( 1)) or   
-                        gate(x"06",ex5_ivo_sel_q( 2)) or   
-                        gate(x"08",ex5_ivo_sel_q( 3)) or   
-                        gate(x"0A",ex5_ivo_sel_q( 4)) or   
-                        gate(x"0C",ex5_ivo_sel_q( 5)) or   
-                        gate(x"0E",ex5_ivo_sel_q( 6)) or   
-                        gate(x"10",ex5_ivo_sel_q( 7)) or   
-                        gate(x"12",ex5_ivo_sel_q( 8)) or   
-                        gate(x"14",ex5_ivo_sel_q( 9)) or   
-                        gate(x"16",ex5_ivo_sel_q(10)) or   
-                        gate(x"18",ex5_ivo_sel_q(11)) or   
-                        gate(x"1A",ex5_ivo_sel_q(12)) or   
-                        gate(x"1C",ex5_ivo_sel_q(13)) or   
-                        gate(x"1E",ex5_ivo_sel_q(14)) or   
-                        gate(x"04",ex5_ivo_sel_q(15)) or   
-                        gate(x"20",ex5_ivo_sel_q(16)) or   
-                        gate(x"28",ex5_ivo_sel_q(17)) or   
-                        gate(x"2A",ex5_ivo_sel_q(18)) or   
-                        gate(x"2C",ex5_ivo_sel_q(19)) or   
-                        gate(x"2E",ex5_ivo_sel_q(20)) or   
-                        gate(x"30",ex5_ivo_sel_q(21)) or   
-                        gate(x"32",ex5_ivo_sel_q(22)) or   
-                        gate(x"34",ex5_ivo_sel_q(23)) or   
-                        gate(x"80",ex5_ivo_sel_q(24)) or   
-                        gate(x"82",ex5_ivo_sel_q(25));     
+   ex5_ivo           <= gate(x"02",ex5_ivo_sel_q( 0)) or   -- IVOR0    Critical Input
+                        gate(x"00",ex5_ivo_sel_q( 1)) or   -- IVOR1    Machine Check
+                        gate(x"06",ex5_ivo_sel_q( 2)) or   -- IVOR2    Data Storage
+                        gate(x"08",ex5_ivo_sel_q( 3)) or   -- IVOR3    Instr Storage
+                        gate(x"0A",ex5_ivo_sel_q( 4)) or   -- IVOR4    External Input
+                        gate(x"0C",ex5_ivo_sel_q( 5)) or   -- IVOR5    Alignment
+                        gate(x"0E",ex5_ivo_sel_q( 6)) or   -- IVOR6    Program
+                        gate(x"10",ex5_ivo_sel_q( 7)) or   -- IVOR7    FP Unavailable
+                        gate(x"12",ex5_ivo_sel_q( 8)) or   -- IVOR8    System Call
+                        gate(x"14",ex5_ivo_sel_q( 9)) or   -- IVOR9    AP Unavailable
+                        gate(x"16",ex5_ivo_sel_q(10)) or   -- IVOR10   Decrementer
+                        gate(x"18",ex5_ivo_sel_q(11)) or   -- IVOR11   Fixed Interval Timer
+                        gate(x"1A",ex5_ivo_sel_q(12)) or   -- IVOR12   Watchdog
+                        gate(x"1C",ex5_ivo_sel_q(13)) or   -- IVOR13   Data TLB Error
+                        gate(x"1E",ex5_ivo_sel_q(14)) or   -- IVOR14   Instr TLB Error
+                        gate(x"04",ex5_ivo_sel_q(15)) or   -- IVOR15   Debug
+                        gate(x"20",ex5_ivo_sel_q(16)) or   -- IVOR32   Vector Unavailable
+                        gate(x"28",ex5_ivo_sel_q(17)) or   -- IVOR36   Doorbell
+                        gate(x"2A",ex5_ivo_sel_q(18)) or   -- IVOR37   Doorbell Critical
+                        gate(x"2C",ex5_ivo_sel_q(19)) or   -- IVOR38   Guest Doorbell
+                        gate(x"2E",ex5_ivo_sel_q(20)) or   -- IVOR39   Guest Doorbell Critical / Guest Doorbell Machine Check
+                        gate(x"30",ex5_ivo_sel_q(21)) or   -- IVOR40   Embedded Hypervisor System Call
+                        gate(x"32",ex5_ivo_sel_q(22)) or   -- IVOR41   Embedded Hypervisor Privilege
+                        gate(x"34",ex5_ivo_sel_q(23)) or   -- IVOR42   LRAT Error
+                        gate(x"80",ex5_ivo_sel_q(24)) or   -- IVORXX   User Decrementer
+                        gate(x"82",ex5_ivo_sel_q(25));     -- IVORXX   Performance Monitor
 
+   -- Guest Doorbell is an oddball.  It's directed to hypervisor, but it updates GSRR0/GSRR1
    ex5_force_gsrr_d(t)        <= ex4_np1_flush_pri(GDBELLnp1);
 
+   -------------------------------------------------------------------------------
+   -- IO assignments
+   -------------------------------------------------------------------------------
+   -- This signal will decrement the SRR0 by 1, since the AXU's trap comes on past completion, but the
+   -- architecture specifies that SRR0 be the address of the instruction that caused the trap.
+   -- This should only be set if the trap was unmasked.  If it was unmasked by an rfi/mtmsr it
+   -- should get the address of the next instruction.
+   -- **NOTE** repurposing for other interrupts as well...
    
    ex4_ena_prog_int(t)           <= ex4_n_flush_pri_ena(FPENA) and not ex5_axu_trap_pie_q(t);
    ex4_n_ieratre_par_mcint(t)    <= ex4_n_flush_pri(IMCHKn)    and     ex4_n_ieratre_par_mchk_mcint_q(t);
@@ -2809,19 +3140,28 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                     ex4_n_tlbmh_mchk_mcint(t) or
                                     ex4_n_tlbpar_mchk_mcint(t);
    
+   -- If any instruction completes after the trap signal has gone high, signal an imprecise interrupt
+   -- FP uCode complete comes after the trap signal has gone high, use ex5_in_ucode_q to block this.
 
+   -- Need to account for cycles between ex4 & ex7...
+   --                               EX4              EX5             EX6               EX7
    ex4_axu_trap_pie(t)           <= not(spare_1_d(t)) or spare_1_q(t) or spare_1_q(4+t) or spare_1_q(8+t);
    
    ex5_axu_trap_pie_d(t)         <= ex4_axu_trap_q(t) and (ex4_axu_trap_pie(t) or ex5_axu_trap_pie_q(t));
    
 
+   -- Save a side copy of the dear on D-ERAT misses
+   -- Use that copy to update the dear for D-ERAT misses which resulted in an interrupt during HTW.
    ex5_dear_update_saved_d(t)       <= derat_hold_present_q(t);
    cpl_spr_ex5_dear_update_saved(t) <= ex5_dear_update_saved_q(t);
    cpl_spr_ex5_dear_save(t)         <= ex5_n_dmiss_flush_q(t);
 
+   -- Select which INTs will update which regs ... These lists go by IVOR#
    cpl_spr_ex5_dear_update(t)    <= ex5_ivo_sel_q(2) or ex5_ivo_sel_q(5) or ex5_ivo_sel_q(13) or (ex5_ivo_sel_q(23) and ex5_n_ptemiss_dlrat_int_q(t));
    cpl_spr_ex5_esr_update(t)     <= ex5_ivo_sel_q(2) or ex5_ivo_sel_q(5) or ex5_ivo_sel_q(13) or ex5_ivo_sel_q(6) or ex5_ivo_sel_q(3) or ex5_ivo_sel_q(16) or ex5_ivo_sel_q(23);
 
+   -- Don't allow lower priority DBSR events to be set if a higher priority event exists
+   -- Use the IVC/IAC signals that are not gated with MSR[DE] and DBCR[IDM]
    ex4_dbsr_update(t)           <= or_reduce(ex4_dbsr_cond and ex4_dbsr_en_cond) or exx_np1_icmp_dbg_event(t) or exx_np1_irpt_dbg_event(t) or ex4_n_flush_pri_dacr_async(t) or ex4_np1_ude_dbg_event_q(t);
    ex4_dbsr_act(t)               <= clkg_ctl_q or or_reduce(ex4_dbsr_cond)       or exx_np1_icmp_dbg_event(t) or exx_np1_irpt_dbg_event(t) or ex4_n_flush_pri_dacr_async(t) or ex4_np1_ude_dbg_event_q(t);
 
@@ -2831,52 +3171,52 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                                   ex4_n_flush_pri(ISTORn) or ex4_n_flush_pri(ILRATn);
    ex4_mcsr_act(t)               <= clkg_ctl_q or ex4_n_flush_cond(IMCHKn) or ex4_n_flush_cond(DMCHKn) or ex4_np1_flush_cond(MCHKnp1);
                                    
-   ex4_mcsr_d(0+14*t)         <=                       ex3_n_dpovr_mchk_mcint(t);         
-   ex4_mcsr_d(1+14*t)         <=                       ex3_n_tlbsrej_mchk_mcint(t);       
-   ex4_mcsr_d(2+14*t)         <=                       ex3_n_tlblru_mchk_mcint(t);        
-   ex4_mcsr_d(3+14*t)         <= ex3_xuuc_val_q(t) and ex3_n_il2ecc_mchk_mcint_xuuc(t);   
-   ex4_mcsr_d(4+14*t)         <=                       ex3_n_dl2ecc_mchk_mcint(t);        
-   ex4_mcsr_d(5+14*t)         <= ex3_xu_val_q(t)   and ex3_n_ddpe_mchk_mcint_xu(t);       
-   ex4_mcsr_d(6+14*t)         <=                       ex3_np1_ext_mchk_mcint(t);         
-   ex4_mcsr_d(7+14*t)         <=                       ex3_n_dcpe_mchk_mcint(t);          
-   ex4_mcsr_d(8+14*t)         <= ex3_xuuc_val_q(t) and ex3_n_iemh_mchk_mcint_xuuc(t);     
-   ex4_mcsr_d(9+14*t)         <= ex3_xu_val_q(t)   and lsu_xu_ex3_derat_multihit_err(t);  
-   ex4_mcsr_d(10+14*t)        <=                       ex3_tlb_multihit_err_q(t);         
-   ex4_mcsr_d(11+14*t)        <=(ex3_xuuc_val_q(t) and ex3_n_iepe_mchk_mcint_xuuc(t)) or  
+   ex4_mcsr_d(0+14*t)         <=                       ex3_n_dpovr_mchk_mcint(t);         -- DPOVR:   Data Port Overrun
+   ex4_mcsr_d(1+14*t)         <=                       ex3_n_tlbsrej_mchk_mcint(t);       -- TLBIVAXSR:TLBivax Snoop Reject
+   ex4_mcsr_d(2+14*t)         <=                       ex3_n_tlblru_mchk_mcint(t);        -- TLBLRUPE: TLB LRU Parity Error
+   ex4_mcsr_d(3+14*t)         <= ex3_xuuc_val_q(t) and ex3_n_il2ecc_mchk_mcint_xuuc(t);   -- IL2ECC:  I$ L2 UC ECC Error
+   ex4_mcsr_d(4+14*t)         <=                       ex3_n_dl2ecc_mchk_mcint(t);        -- DL2ECC:  D$ L2 UC ECC Error
+   ex4_mcsr_d(5+14*t)         <= ex3_xu_val_q(t)   and ex3_n_ddpe_mchk_mcint_xu(t);       -- DDPE:    D$ Dir  Parity Error
+   ex4_mcsr_d(6+14*t)         <=                       ex3_np1_ext_mchk_mcint(t);         -- EXT:     External Machine Check
+   ex4_mcsr_d(7+14*t)         <=                       ex3_n_dcpe_mchk_mcint(t);          -- DCPE:    D$ Data Parity Error
+   ex4_mcsr_d(8+14*t)         <= ex3_xuuc_val_q(t) and ex3_n_iemh_mchk_mcint_xuuc(t);     -- IEMH:    I-ERAT Multi-Hit
+   ex4_mcsr_d(9+14*t)         <= ex3_xu_val_q(t)   and lsu_xu_ex3_derat_multihit_err(t);  -- DEMH:    D-ERAT Multi-Hit
+   ex4_mcsr_d(10+14*t)        <=                       ex3_tlb_multihit_err_q(t);         -- TLBMH:   TLB Multi-Hit
+   ex4_mcsr_d(11+14*t)        <=(ex3_xuuc_val_q(t) and ex3_n_iepe_mchk_mcint_xuuc(t)) or  -- IEPE:    I-ERAT Parity Error
                                                        ex3_n_ieratre_par_mchk_mcint(t);
-   ex4_mcsr_d(12+14*t)        <=(ex3_xu_val_q(t)   and lsu_xu_ex3_derat_par_err(t)) or    
+   ex4_mcsr_d(12+14*t)        <=(ex3_xu_val_q(t)   and lsu_xu_ex3_derat_par_err(t)) or    -- DEPE:    D-ERAT Parity Error
                                 (                      ex3_n_deratre_par_mchk_mcint(t));
-   ex4_mcsr_d(13+14*t)        <=                       ex3_tlb_par_err_q(t);              
+   ex4_mcsr_d(13+14*t)        <=                       ex3_tlb_par_err_q(t);              -- TLBPE:   TLB Parity Error
    
    
-   ex5_mcsr_d(0+15*t)         <= ex4_n_flush_pri(DMCHKn)    and ex4_mcsr_q(0+14*t);                
-   ex5_mcsr_d(1+15*t)         <= ex4_n_flush_pri(DMCHKn)    and ex4_n_ddmh_mchk_mcint(t);          
-   ex5_mcsr_d(2+15*t)         <= ex4_n_flush_pri(IMCHKn)    and ex4_mcsr_q(1+14*t);                
-   ex5_mcsr_d(3+15*t)         <= ex4_n_flush_pri(IMCHKn)    and ex4_mcsr_q(2+14*t);                
-   ex5_mcsr_d(4+15*t)         <= ex4_n_flush_pri(IMCHKn)    and ex4_mcsr_q(3+14*t);                
-   ex5_mcsr_d(5+15*t)         <= ex4_n_flush_pri(DMCHKn)    and ex4_mcsr_q(4+14*t);                
-   ex5_mcsr_d(6+15*t)         <= ex4_n_flush_pri(DMCHKn)    and ex4_mcsr_q(5+14*t);                
-   ex5_mcsr_d(7+15*t)         <= ex4_np1_flush_pri(MCHKnp1) and ex4_mcsr_q(6+14*t);                
-   ex5_mcsr_d(8+15*t)         <= ex4_n_flush_pri(DMCHKn)    and ex4_mcsr_q(7+14*t);                
-   ex5_mcsr_d(9+15*t)         <= ex4_n_flush_pri(IMCHKn)    and ex4_mcsr_q(8+14*t);                
-   ex5_mcsr_d(10+15*t)        <= ex4_n_flush_pri(DMCHKn)    and ex4_mcsr_q(9+14*t);                
-   ex5_mcsr_d(11+15*t)        <= ex4_n_flush_pri(IMCHKn)    and ex4_mcsr_q(10+14*t);               
+   ex5_mcsr_d(0+15*t)         <= ex4_n_flush_pri(DMCHKn)    and ex4_mcsr_q(0+14*t);                -- DPOVR:   Data Port Overrun
+   ex5_mcsr_d(1+15*t)         <= ex4_n_flush_pri(DMCHKn)    and ex4_n_ddmh_mchk_mcint(t);          -- DDMH:    Data Cache Directory MultiHit
+   ex5_mcsr_d(2+15*t)         <= ex4_n_flush_pri(IMCHKn)    and ex4_mcsr_q(1+14*t);                -- TLBIVAXSR:TLBivax Snoop Reject
+   ex5_mcsr_d(3+15*t)         <= ex4_n_flush_pri(IMCHKn)    and ex4_mcsr_q(2+14*t);                -- TLBLRUPE: TLB LRU Parity Error
+   ex5_mcsr_d(4+15*t)         <= ex4_n_flush_pri(IMCHKn)    and ex4_mcsr_q(3+14*t);                -- IL2ECC:  I$ L2 UC ECC Error
+   ex5_mcsr_d(5+15*t)         <= ex4_n_flush_pri(DMCHKn)    and ex4_mcsr_q(4+14*t);                -- DL2ECC:  D$ L2 UC ECC Error
+   ex5_mcsr_d(6+15*t)         <= ex4_n_flush_pri(DMCHKn)    and ex4_mcsr_q(5+14*t);                -- DDPE:    D$ Dir  Parity Error
+   ex5_mcsr_d(7+15*t)         <= ex4_np1_flush_pri(MCHKnp1) and ex4_mcsr_q(6+14*t);                -- EXT:     External Machine Check
+   ex5_mcsr_d(8+15*t)         <= ex4_n_flush_pri(DMCHKn)    and ex4_mcsr_q(7+14*t);                -- DCPE:    D$ Data Parity Error
+   ex5_mcsr_d(9+15*t)         <= ex4_n_flush_pri(IMCHKn)    and ex4_mcsr_q(8+14*t);                -- IEMH:    I-ERAT Multi-Hit
+   ex5_mcsr_d(10+15*t)        <= ex4_n_flush_pri(DMCHKn)    and ex4_mcsr_q(9+14*t);                -- DEMH:    D-ERAT Multi-Hit
+   ex5_mcsr_d(11+15*t)        <= ex4_n_flush_pri(IMCHKn)    and ex4_mcsr_q(10+14*t);               -- TLBMH:   TLB Multi-Hit
    ex5_mcsr_d(12+15*t)        <= ex4_n_flush_pri(IMCHKn)    and(ex4_mcsr_q(11+14*t) or 
-                                                             ex4_n_ieratsx_par_mchk_mcint_q(t));   
-   ex5_mcsr_d(13+15*t)        <= ex4_n_flush_pri(DMCHKn)    and ex4_mcsr_q(12+14*t);               
-   ex5_mcsr_d(14+15*t)        <= ex4_n_flush_pri(IMCHKn)    and ex4_mcsr_q(13+14*t);               
+                                                             ex4_n_ieratsx_par_mchk_mcint_q(t));   -- IEPE:    I-ERAT Parity Error
+   ex5_mcsr_d(13+15*t)        <= ex4_n_flush_pri(DMCHKn)    and ex4_mcsr_q(12+14*t);               -- DEPE:    D-ERAT Parity Error
+   ex5_mcsr_d(14+15*t)        <= ex4_n_flush_pri(IMCHKn)    and ex4_mcsr_q(13+14*t);               -- TLBPE:   TLB Parity Error
    
-   pc_err_mcsr(0+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(0+15*t);  
-   pc_err_mcsr(1+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(2+15*t);  
-   pc_err_mcsr(2+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(3+15*t);  
-   pc_err_mcsr(3+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(7+15*t);  
-   pc_err_mcsr(4+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(9+15*t);  
-   pc_err_mcsr(5+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(10+15*t); 
-   pc_err_mcsr(6+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(11+15*t); 
-   pc_err_mcsr(7+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(12+15*t); 
-   pc_err_mcsr(8+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(13+15*t); 
-   pc_err_mcsr(9+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(14+15*t); 
-   pc_err_mcsr(10+11*t)       <= not ex5_mchk_int_en_q(t) and or_reduce(pc_err_mcsr(11*t to 11*t+9)); 
+   pc_err_mcsr(0+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(0+15*t);  -- DPOVR:   Data Port Overrun
+   pc_err_mcsr(1+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(2+15*t);  -- TLBIVAXSR:TLBivax Snoop Reject
+   pc_err_mcsr(2+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(3+15*t);  -- TLBLRUPE: TLB LRU Parity Error
+   pc_err_mcsr(3+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(7+15*t);  -- EXT:     External Machine Check
+   pc_err_mcsr(4+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(9+15*t);  -- IEMH:    I-ERAT Multi-Hit
+   pc_err_mcsr(5+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(10+15*t); -- DEMH:    D-ERAT Multi-Hit
+   pc_err_mcsr(6+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(11+15*t); -- TLBMH:   TLB Multi-Hit
+   pc_err_mcsr(7+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(12+15*t); -- IEPE:    I-ERAT Parity Error
+   pc_err_mcsr(8+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(13+15*t); -- DEPE:    D-ERAT Parity Error
+   pc_err_mcsr(9+11*t)        <= ex5_mcsr_act_q(t) and ex5_mcsr_q(14+15*t); -- TLBPE:   TLB Parity Error
+   pc_err_mcsr(10+11*t)       <= not ex5_mchk_int_en_q(t) and or_reduce(pc_err_mcsr(11*t to 11*t+9)); -- MCHK when machine checks are disabled.
    pc_err_mcsr_summary_d(t)   <= or_reduce(pc_err_mcsr_rpt(11*t to 11*t+9));
 
    ex4_esr_mask(0)            <= ex4_n_flush_pri(PROG0n) or ex4_n_flush_pri(PROG0An);
@@ -2900,6 +3240,7 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
 
    ex4_mmu_esr_val_d(t)       <= ex3_tlb_inelig_q(t) or ex3_tlb_pt_fault_q(t) or ex3_tlb_miss_q(t);
 
+   -- Force Instruction Type for AP/FP Enabled Interrupts
    with ex4_n_flush_pri_ena select
       ex4_axu_instr_type         <= "001"                   when "01",
                                     "100"                   when "10",
@@ -2930,50 +3271,55 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
       pri                              => ex4_esr_pri);
 
 
-   ex5_esr_d(0+17*t)    <= ex4_esr_mask(0);                                                           
-   ex5_esr_d(1+17*t)    <= ex4_esr_mask(1);                                                           
-   ex5_esr_d(2+17*t)    <= ex4_esr_mask(2)  and ex4_np1_ptr_prog_int_q(t);                            
-   ex5_esr_d(3+17*t)    <= ex4_esr_mask(3)  and ex4_axu_instr_type(2);                                
-   ex5_esr_d(4+17*t)    <= ex4_esr_mask(4)  and ex4_is_any_store(t)  and not ex4_esr_pri(UCT);        
-   ex5_esr_d(5+17*t)    <= ex4_esr_mask(5)  and ex4_esr_pri(DLK)     and ex4_n_dlk0_dstor_int_q(t);   
-   ex5_esr_d(6+17*t)    <= ex4_esr_mask(6)  and ex4_esr_pri(DLK)     and ex4_n_dlk1_dstor_int_q(t);   
-   ex5_esr_d(7+17*t)    <= ex4_esr_mask(7)  and ex4_axu_instr_type(0);                                
-   ex5_esr_d(8+17*t)    <= ex4_esr_mask(8);                                                           
-   ex5_esr_d(9+17*t)    <= ex4_esr_mask(9);                                                           
-   ex5_esr_d(10+17*t)   <= ex4_esr_mask(10) and ex5_axu_trap_pie_q(t);                                
-   ex5_esr_d(11+17*t)   <= ex4_esr_mask(11) and ex4_esr_pri(UCT);                                     
-   ex5_esr_d(12+17*t)   <= ex4_esr_mask(12) and ex4_mmu_esr_data_q(t);                                
-   ex5_esr_d(13+17*t)   <= ex4_esr_mask(13) and ex4_esr_pri(TLBI);                                    
-   ex5_esr_d(14+17*t)   <= ex4_esr_mask(14) and ex4_esr_pri(PT);                                      
-   ex5_esr_d(15+17*t)   <= ex4_esr_mask(15) and ex4_axu_instr_type(1);                                
-   ex5_esr_d(16+17*t)   <= ex4_esr_mask(16) and ex4_epid_instr(t);                                    
+   ex5_esr_d(0+17*t)    <= ex4_esr_mask(0);                                                           -- PIL:  Illegal
+   ex5_esr_d(1+17*t)    <= ex4_esr_mask(1);                                                           -- PPR:  Privledged
+   ex5_esr_d(2+17*t)    <= ex4_esr_mask(2)  and ex4_np1_ptr_prog_int_q(t);                            -- PTR:  Trap
+   ex5_esr_d(3+17*t)    <= ex4_esr_mask(3)  and ex4_axu_instr_type(2);                                -- FP:   Floating Point
+   ex5_esr_d(4+17*t)    <= ex4_esr_mask(4)  and ex4_is_any_store(t)  and not ex4_esr_pri(UCT);        -- ST:   Store
+   ex5_esr_d(5+17*t)    <= ex4_esr_mask(5)  and ex4_esr_pri(DLK)     and ex4_n_dlk0_dstor_int_q(t);   -- DLK0:
+   ex5_esr_d(6+17*t)    <= ex4_esr_mask(6)  and ex4_esr_pri(DLK)     and ex4_n_dlk1_dstor_int_q(t);   -- DLK1:
+   ex5_esr_d(7+17*t)    <= ex4_esr_mask(7)  and ex4_axu_instr_type(0);                                -- AP:   Auxillary
+   ex5_esr_d(8+17*t)    <= ex4_esr_mask(8);                                                           -- PUO:  Unimplemented
+   ex5_esr_d(9+17*t)    <= ex4_esr_mask(9);                                                           -- BO:   Byte Ordering
+   ex5_esr_d(10+17*t)   <= ex4_esr_mask(10) and ex5_axu_trap_pie_q(t);                                -- PIE:  Imprecise
+   ex5_esr_d(11+17*t)   <= ex4_esr_mask(11) and ex4_esr_pri(UCT);                                     -- UCT:   Unvailable Coprocessor Type
+   ex5_esr_d(12+17*t)   <= ex4_esr_mask(12) and ex4_mmu_esr_data_q(t);                                -- DATA:  Data Access
+   ex5_esr_d(13+17*t)   <= ex4_esr_mask(13) and ex4_esr_pri(TLBI);                                    -- TLBI:  TLB Ineligible
+   ex5_esr_d(14+17*t)   <= ex4_esr_mask(14) and ex4_esr_pri(PT);                                      -- PT:    Page Table
+   ex5_esr_d(15+17*t)   <= ex4_esr_mask(15) and ex4_axu_instr_type(1);                                -- SPV:  Vector
+   ex5_esr_d(16+17*t)   <= ex4_esr_mask(16) and ex4_epid_instr(t);                                    -- EPID: External PID
 
-   ex5_dbsr_d(0+19*t)   <=                         ex4_np1_ude_dbg_event_q(t);                          
-   ex5_dbsr_d(1+19*t)   <=                         exx_np1_icmp_dbg_event(t);                           
-   ex5_dbsr_d(2+19*t)   <= ex4_dbsr_en_cond(1) and ex4_n_brt_dbg_cint_q(t);                             
-   ex5_dbsr_d(3+19*t)   <=                         exx_np1_irpt_dbg_event(t);                           
-   ex5_dbsr_d(4+19*t)   <= ex4_dbsr_en_cond(1) and ex4_n_trap_dbg_cint_q(t);                            
-   ex5_dbsr_d(5+19*t)   <= ex4_dbsr_en_cond(0) and ex4_iac1_cmpr_q(t)      and ex4_anyuc_val_q(t);      
-   ex5_dbsr_d(6+19*t)   <= ex4_dbsr_en_cond(0) and ex4_iac2_cmpr_q(t)      and ex4_anyuc_val_q(t);      
-   ex5_dbsr_d(7+19*t)   <= ex4_dbsr_en_cond(0) and ex4_iac3_cmpr_q(t)      and ex4_anyuc_val_q(t);      
-   ex5_dbsr_d(8+19*t)   <= ex4_dbsr_en_cond(0) and ex4_iac4_cmpr_q(t)      and ex4_anyuc_val_q(t);      
-   ex5_dbsr_d(9+19*t)   <=(ex4_dbsr_en_cond(1) and ex4_dacr_cmpr_q(1)(t)   and ex4_anyuc_val_q(t)) or   
+   ex5_dbsr_d(0+19*t)   <=                         ex4_np1_ude_dbg_event_q(t);                          -- UDE:  Unconditional Debug Event
+   ex5_dbsr_d(1+19*t)   <=                         exx_np1_icmp_dbg_event(t);                           -- ICMP: Instr Complete  (Must have MSR[DE]=1)
+   ex5_dbsr_d(2+19*t)   <= ex4_dbsr_en_cond(1) and ex4_n_brt_dbg_cint_q(t);                             -- BRT:  Branch Taken    (Must have MSR[DE]=1)
+   ex5_dbsr_d(3+19*t)   <=                         exx_np1_irpt_dbg_event(t);                           -- IRPT: Interrupt Taken
+   ex5_dbsr_d(4+19*t)   <= ex4_dbsr_en_cond(1) and ex4_n_trap_dbg_cint_q(t);                            -- TRAP: Trap Taken
+   ex5_dbsr_d(5+19*t)   <= ex4_dbsr_en_cond(0) and ex4_iac1_cmpr_q(t)      and ex4_anyuc_val_q(t);      -- IAC1: Instruction Address Compare
+   ex5_dbsr_d(6+19*t)   <= ex4_dbsr_en_cond(0) and ex4_iac2_cmpr_q(t)      and ex4_anyuc_val_q(t);      -- IAC2: Instruction Address Compare
+   ex5_dbsr_d(7+19*t)   <= ex4_dbsr_en_cond(0) and ex4_iac3_cmpr_q(t)      and ex4_anyuc_val_q(t);      -- IAC3: Instruction Address Compare
+   ex5_dbsr_d(8+19*t)   <= ex4_dbsr_en_cond(0) and ex4_iac4_cmpr_q(t)      and ex4_anyuc_val_q(t);      -- IAC4: Instruction Address Compare
+   ex5_dbsr_d(9+19*t)   <=(ex4_dbsr_en_cond(1) and ex4_dacr_cmpr_q(1)(t)   and ex4_anyuc_val_q(t)) or   -- DAC1R Read Data Address Compare
                            ex4_dac1r_cmpr_async_q(t);
-   ex5_dbsr_d(10+19*t)  <= ex4_dbsr_en_cond(1) and ex4_dacw_cmpr_q(1)(t)   and ex4_anyuc_val_q(t);      
-   ex5_dbsr_d(11+19*t)  <=(ex4_dbsr_en_cond(1) and ex4_dacr_cmpr_q(2)(t)   and ex4_anyuc_val_q(t)) or   
+   ex5_dbsr_d(10+19*t)  <= ex4_dbsr_en_cond(1) and ex4_dacw_cmpr_q(1)(t)   and ex4_anyuc_val_q(t);      -- DAC1W Write Data Address Compare
+   ex5_dbsr_d(11+19*t)  <=(ex4_dbsr_en_cond(1) and ex4_dacr_cmpr_q(2)(t)   and ex4_anyuc_val_q(t)) or   -- DAC2R Read Data Address Compare
                            ex4_dac2r_cmpr_async_q(t);
-   ex5_dbsr_d(12+19*t)  <= ex4_dbsr_en_cond(1) and ex4_dacw_cmpr_q(2)(t)   and ex4_anyuc_val_q(t);      
-   ex5_dbsr_d(13+19*t)  <= ex4_dbsr_en_cond(1) and ex4_n_ret_dbg_cint_q(t);                             
-   ex5_dbsr_d(14+19*t)  <= ex4_dbsr_en_cond(1) and ex4_dacr_cmpr_q(3)(t)   and ex4_anyuc_val_q(t);      
-   ex5_dbsr_d(15+19*t)  <= ex4_dbsr_en_cond(1) and ex4_dacw_cmpr_q(3)(t)   and ex4_anyuc_val_q(t);      
-   ex5_dbsr_d(16+19*t)  <= ex4_dbsr_en_cond(1) and ex4_dacr_cmpr_q(4)(t)   and ex4_anyuc_val_q(t);      
-   ex5_dbsr_d(17+19*t)  <= ex4_dbsr_en_cond(1) and ex4_dacw_cmpr_q(4)(t)   and ex4_anyuc_val_q(t);      
-   ex5_dbsr_d(18+19*t)  <= ex4_dbsr_en_cond(0) and ex4_n_ivc_dbg_cint_q(t);                             
+   ex5_dbsr_d(12+19*t)  <= ex4_dbsr_en_cond(1) and ex4_dacw_cmpr_q(2)(t)   and ex4_anyuc_val_q(t);      -- DAC2W Write Data Address Compare
+   ex5_dbsr_d(13+19*t)  <= ex4_dbsr_en_cond(1) and ex4_n_ret_dbg_cint_q(t);                             -- RET   Return Debug Event
+   ex5_dbsr_d(14+19*t)  <= ex4_dbsr_en_cond(1) and ex4_dacr_cmpr_q(3)(t)   and ex4_anyuc_val_q(t);      -- DAC3R Read Data Address Compare
+   ex5_dbsr_d(15+19*t)  <= ex4_dbsr_en_cond(1) and ex4_dacw_cmpr_q(3)(t)   and ex4_anyuc_val_q(t);      -- DAC3W Write Data Address Compare
+   ex5_dbsr_d(16+19*t)  <= ex4_dbsr_en_cond(1) and ex4_dacr_cmpr_q(4)(t)   and ex4_anyuc_val_q(t);      -- DAC4R Read Data Address Compare
+   ex5_dbsr_d(17+19*t)  <= ex4_dbsr_en_cond(1) and ex4_dacw_cmpr_q(4)(t)   and ex4_anyuc_val_q(t);      -- DAC4W Write Data Address Compare
+   ex5_dbsr_d(18+19*t)  <= ex4_dbsr_en_cond(0) and ex4_n_ivc_dbg_cint_q(t);                             -- IVC:  Instruction Value Compare
    
    ex5_dbsr_ide_d(t)    <=(ex4_dac1r_cmpr_async_q(t) or ex4_dac2r_cmpr_async_q(t)) and not ex5_in_ucode_q(t);
    cpl_spr_ex5_dbsr_ide(t)    <= ex5_dbsr_ide_q(t);
 
 
+   -- restart = flush to IU0
+   -- Restart must default to be on in all cases except when in ucode
+   -- Restart when an interrupt occurs in all cases
+   -- Restart @ ucode end
+   -- Restart if a flush to ucode while in ucode occurs (unaligned ld update forms)
    ex4_ucode_restart(t)                                     <= not ex4_uc_cia_val(t) or 
                                                                   (ex4_np1_flush_pri(Fnp1) and ex4_ucode_end(t)) or
                                                                    ex4_n_flush_pri(F2Un) or
@@ -2987,6 +3333,7 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
    ex5_ram_interrupt(t)                                     <= ram_ip_q(t) and ex5_is_any_int(t);
    ex5_ram_issue_d(t)                                       <= ram_ip_q(t) and ex5_late_flush_q(0)(t);                             
 
+   -- Mux correct instruction type for ESR
    with s2'((ex3_xu_val_q(t) or ex3_ucode_val_q(t)) & ex3_axu_val_q(t)) select
       ex4_axu_instr_type_d                <= dec_cpl_ex3_axu_instr_type          when "10",
                                              ex3_axu_instr_type_q(3*t to 3*t+2)  when "01",
@@ -2994,6 +3341,10 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
                                              
 
 
+   -- Special Handling for Trap Events
+   -- with ex4_np1_flush_pri_instr(TRAP) select
+   --    ex4_nia_muxed     <= ex4_cia                       when '1',
+   --                         ex4_nia                       when others;
    ex4_cia_sel       <= fanout((not ex4_n_flush(t) and     ex4_np1_ptr_prog_int_q(t)),eff_ifar);
    ex4_nia_sel       <= fanout((    ex4_n_flush(t) or  not ex4_np1_ptr_prog_int_q(t)),eff_ifar);
 
@@ -3026,6 +3377,9 @@ xuq_cpl_slice : for t in 0 to threads-1 generate
       ex4_cia_out(t)                                        <= ex4_cia;
    end generate;
 
+   -------------------------------------------------------------------------------
+   -- Replicated Latches
+   -------------------------------------------------------------------------------
    ex4_cia_b_latch : tri_rlmreg_p
  generic map(width   => ex4_cia_b_q'length, init => 0, expand_type => expand_type, needs_sreset => 1)
    port map(nclk    => nclk,
@@ -3283,46 +3637,49 @@ port map (nclk    => nclk, vd => vdd, gd => gnd,
                din(0)  => ex5_np1_icmp_dbg_event_d(t),
                dout(0) => ex5_np1_icmp_dbg_event_q(t));
 
+   -------------------------------------------------------------------------------
+   -- Performance Monitor
+   -------------------------------------------------------------------------------
    ex5_perf_itlb_d(t)         <= ex4_n_flush_pri(ITLBn);
    ex5_perf_dtlb_d(t)         <= ex4_n_flush_pri(DTLBn);
    
    xu_mm_ex5_perf_itlb(t)     <= ex5_perf_itlb_q(t);
    xu_mm_ex5_perf_dtlb(t)     <= ex5_perf_dtlb_q(t);
 
-   ex5_perf_event_d(00+14*t)  <= ex4_instr_cpl(t);                                                             
-   ex5_perf_event_d(01+14*t)  <= ex4_xuuc_val(t);                                                              
-   ex5_perf_event_d(02+14*t)  <= ex4_np1_flush_pri(Fnp1) and ex4_ucode_end(t);                                 
-   ex5_perf_event_d(03+14*t)  <= ex2_br_flush(t) or ex4_n_flush(t) or ex4_np1_flush(t);                        
-   ex5_perf_event_d(04+14*t)  <= ex4_xu_val(t)    and ex4_perf_event_q(0);                                     
-   ex5_perf_event_d(05+14*t)  <= ex4_anyuc_val(t) and ex4_perf_event_q(1);                                     
-   ex5_perf_event_d(06+14*t)  <= ex4_anyuc_val(t) and ex4_perf_event_q(2);                                     
-   ex5_perf_event_d(07+14*t)  <= ex4_n_flush_pri(BTAn);                                                        
-   ex5_perf_event_d(08+14*t)  <= ex4_anyuc_val(t) and ex4_perf_event_q(3);                                     
-   ex5_perf_event_d(09+14*t)  <= (ext_int_asserted(t)  or ex5_perf_event_q(09+14*t)) and not ex5_ivo_sel_q(4); 
-   ex5_perf_event_d(10+14*t)  <= (crit_int_asserted(t) or ex5_perf_event_q(10+14*t)) and not ex5_ivo_sel_q(0); 
-   ex5_perf_event_d(11+14*t)  <= (perf_int_asserted(t) or ex5_perf_event_q(11+14*t)) and not ex5_ivo_sel_q(25);
-   ex5_perf_event_d(12+14*t)  <= ex4_anyuc_val(t) and ex4_n_ivc_dbg_match_q(t);                                
-   ex5_perf_event_d(13+14*t)  <= ex4_instr_cpl(t) and not or_reduce(spr_ccr0_we);                              
+   ex5_perf_event_d(00+14*t)  <= ex4_instr_cpl(t);                                                             -- PPE Commit
+   ex5_perf_event_d(01+14*t)  <= ex4_xuuc_val(t);                                                              -- Integer Commit
+   ex5_perf_event_d(02+14*t)  <= ex4_np1_flush_pri(Fnp1) and ex4_ucode_end(t);                                 -- uCode Commit
+   ex5_perf_event_d(03+14*t)  <= ex2_br_flush(t) or ex4_n_flush(t) or ex4_np1_flush(t);                        -- Any Flush
+   ex5_perf_event_d(04+14*t)  <= ex4_xu_val(t)    and ex4_perf_event_q(0);                                     -- Branch Commit
+   ex5_perf_event_d(05+14*t)  <= ex4_anyuc_val(t) and ex4_perf_event_q(1);                                     -- Branch Mispredict Commit
+   ex5_perf_event_d(06+14*t)  <= ex4_anyuc_val(t) and ex4_perf_event_q(2);                                     -- Branch Taken Commit
+   ex5_perf_event_d(07+14*t)  <= ex4_n_flush_pri(BTAn);                                                        -- Branch TA Mispredict Commit
+   ex5_perf_event_d(08+14*t)  <= ex4_anyuc_val(t) and ex4_perf_event_q(3);                                     -- Mult/Div collision
+   ex5_perf_event_d(09+14*t)  <= (ext_int_asserted(t)  or ex5_perf_event_q(09+14*t)) and not ex5_ivo_sel_q(4); -- External Interrupt Pending
+   ex5_perf_event_d(10+14*t)  <= (crit_int_asserted(t) or ex5_perf_event_q(10+14*t)) and not ex5_ivo_sel_q(0); -- Critical External Interrupt Pending
+   ex5_perf_event_d(11+14*t)  <= (perf_int_asserted(t) or ex5_perf_event_q(11+14*t)) and not ex5_ivo_sel_q(25);-- Performance Mon Interrupt Pending
+   ex5_perf_event_d(12+14*t)  <= ex4_anyuc_val(t) and ex4_n_ivc_dbg_match_q(t);                                -- Opcode Match
+   ex5_perf_event_d(13+14*t)  <= ex4_instr_cpl(t) and not or_reduce(spr_ccr0_we);                              -- Concurrent Run Instructions
 
-   cpl_perf_tx_events(00+19*t)<= ex5_perf_event_q(00+14*t);                
-   cpl_perf_tx_events(01+19*t)<= ex5_perf_event_q(01+14*t);                
-   cpl_perf_tx_events(02+19*t)<= ex5_perf_event_q(02+14*t);                
-   cpl_perf_tx_events(03+19*t)<= ex5_perf_event_q(03+14*t);                
-   cpl_perf_tx_events(04+19*t)<= ex5_perf_event_q(04+14*t);                
-   cpl_perf_tx_events(05+19*t)<= ex5_perf_event_q(05+14*t);                
-   cpl_perf_tx_events(06+19*t)<= ex5_perf_event_q(06+14*t);                
-   cpl_perf_tx_events(07+19*t)<= ex5_perf_event_q(07+14*t);                
-   cpl_perf_tx_events(08+19*t)<= ex5_perf_event_q(08+14*t);                
-   cpl_perf_tx_events(09+19*t)<= ex5_perf_event_q(09+14*t);                
-   cpl_perf_tx_events(10+19*t)<= ex5_perf_event_q(10+14*t);                
-   cpl_perf_tx_events(11+19*t)<= ex5_perf_event_q(11+14*t);                
-   cpl_perf_tx_events(12+19*t)<= ex5_perf_event_q(12+14*t);                
-   cpl_perf_tx_events(13+19*t)<= ex5_perf_event_q(13+14*t);                
-   cpl_perf_tx_events(14+19*t)<= any_ext_perf_int;                         
-   cpl_perf_tx_events(15+19*t)<= ex5_ivo_sel_q(4);                         
-   cpl_perf_tx_events(16+19*t)<= ex5_ivo_sel_q(0);                         
-   cpl_perf_tx_events(17+19*t)<= ex5_ivo_sel_q(25);                        
-   cpl_perf_tx_events(18+19*t)<= ex5_ivo_sel_q(17) or ex5_ivo_sel_q(18);   
+   cpl_perf_tx_events(00+19*t)<= ex5_perf_event_q(00+14*t);                -- PPE Commit
+   cpl_perf_tx_events(01+19*t)<= ex5_perf_event_q(01+14*t);                -- Integer Commit
+   cpl_perf_tx_events(02+19*t)<= ex5_perf_event_q(02+14*t);                -- uCode Commit
+   cpl_perf_tx_events(03+19*t)<= ex5_perf_event_q(03+14*t);                -- Any Flush
+   cpl_perf_tx_events(04+19*t)<= ex5_perf_event_q(04+14*t);                -- Branch Commit
+   cpl_perf_tx_events(05+19*t)<= ex5_perf_event_q(05+14*t);                -- Branch Mispredict Commit
+   cpl_perf_tx_events(06+19*t)<= ex5_perf_event_q(06+14*t);                -- Branch Taken Commit
+   cpl_perf_tx_events(07+19*t)<= ex5_perf_event_q(07+14*t);                -- Branch TA Mispredict Commit
+   cpl_perf_tx_events(08+19*t)<= ex5_perf_event_q(08+14*t);                -- Mult/Div collision
+   cpl_perf_tx_events(09+19*t)<= ex5_perf_event_q(09+14*t);                -- External Interrupt Pending
+   cpl_perf_tx_events(10+19*t)<= ex5_perf_event_q(10+14*t);                -- Critical External Interrupt Pending
+   cpl_perf_tx_events(11+19*t)<= ex5_perf_event_q(11+14*t);                -- Performance Mon Interrupt Pending
+   cpl_perf_tx_events(12+19*t)<= ex5_perf_event_q(12+14*t);                -- Opcode Match
+   cpl_perf_tx_events(13+19*t)<= ex5_perf_event_q(13+14*t);                -- Concurrent Run Instructions
+   cpl_perf_tx_events(14+19*t)<= any_ext_perf_int;                         -- External, Critical, Perf Interrupts Taken (any thread)
+   cpl_perf_tx_events(15+19*t)<= ex5_ivo_sel_q(4);                         -- External Interrupt Taken
+   cpl_perf_tx_events(16+19*t)<= ex5_ivo_sel_q(0);                         -- Critical External Interrupt Taken
+   cpl_perf_tx_events(17+19*t)<= ex5_ivo_sel_q(25);                        -- Performance Mon Interrupt Taken
+   cpl_perf_tx_events(18+19*t)<= ex5_ivo_sel_q(17) or ex5_ivo_sel_q(18);   -- Processor Doorbell or Critical Doorbell Taken
 
    any_ext_perf_ints(t)       <= ex5_ivo_sel_q(4) or ex5_ivo_sel_q(0) or ex5_ivo_sel_q(25);
    
@@ -3333,6 +3690,7 @@ port map (nclk    => nclk, vd => vdd, gd => gnd,
    mark_unused(ex4_esr_pri(VF));
    mark_unused(ex4_esr_pri(RW));
 
+   --                            Ucode Completing           Type is FP                      Not LD/ST
    ex5_axu_ucode_val_opc(t)   <= ex5_ucode_end_dbg_q(t) and ex4_axu_instr_type_q(2) and not ex5_mem_attr_val_q(t);
    
    ex5_axu_val_dbg_opc(t)     <= ex5_axu_val_dbg_q(t) or  ex5_axu_ucode_val_opc(t);
@@ -3345,6 +3703,9 @@ end generate;
 
 any_ext_perf_int           <= or_reduce(any_ext_perf_ints);
 
+-------------------------------------------------------------------------------
+-- Branch Sub-Unit
+-------------------------------------------------------------------------------
 xu_cpl_br : entity work.xuq_cpl_br(xuq_cpl_br)
 generic map(
    expand_type                      => expand_type,
@@ -3392,6 +3753,9 @@ port map(
    gnd                              => gnd
 );
 
+-------------------------------------------------------------------------------
+-- SPR Sub-Unit
+-------------------------------------------------------------------------------
 xu_cpl_spr : entity work.xuq_cpl_spr(xuq_cpl_spr)
 generic map(
    hvmode                           => hvmode,
@@ -3465,6 +3829,9 @@ port map(
    gnd                              => gnd
 );
 
+-------------------------------------------------------------------------------
+-- Error Macros
+-------------------------------------------------------------------------------
 xu_cpl_sprg_ue_err_rpt : entity tri.tri_direct_err_rpt(tri_direct_err_rpt) 
 generic map(width => threads, expand_type => expand_type)
 port map (  vd => vdd, gd => gnd,
@@ -3565,6 +3932,9 @@ port map (nclk    => nclk, vd => vdd, gd => gnd,
             din     => ex5_cm_hold_cond,
             dout    => exx_cm_hold);
 
+-------------------------------------------------------------------------------
+-- Block Conditions
+-------------------------------------------------------------------------------
 ex3_async_int_block_fctr : entity work.xuq_cpl_fctr(xuq_cpl_fctr)
 generic map (threads => threads, expand_type => expand_type, passthru => 1)
 port map (nclk    => nclk, vd => vdd, gd => gnd,
@@ -3607,6 +3977,9 @@ port map (nclk    => nclk, vd => vdd, gd => gnd,
             din     => ex3_mchk_int_block_cond,
             dout    => ex3_mchk_int_block);
 
+-------------------------------------------------------------------------------
+-- Multi-Cycle Flushes
+-------------------------------------------------------------------------------
 exx_thread_stop_mcflush_fctr : entity work.xuq_cpl_fctr(xuq_cpl_fctr)
 generic map (threads => threads, expand_type => expand_type, passthru => 1)
 port map (nclk    => nclk, vd => vdd, gd => gnd,
@@ -3702,6 +4075,9 @@ exx_multi_flush   <= exx_lateflush_mcflush or
                      exx_multi_flush_q;
 
 
+-------------------------------------------------------------------------------
+-- Flush Pipe
+-------------------------------------------------------------------------------
 xu_iu_ex5_ppc_cpl  <= ex5_instr_cpl_q;
 
 iu_flush       <= ex2_br_flush     or ex5_late_flush_q(0);
@@ -3756,13 +4132,18 @@ xu_w_ex3_flush <= xu_ex3_w_flush_q;
 xu_w_ex4_flush <= xu_ex4_w_flush_q;
 xu_w_ex5_flush <= xu_ex5_w_flush_q;
 
+-- MMU needs special flushes to avoid flushing a I/D-ERAT miss inside the MMU.
+-- However, the I/D-ERAT miss still needs to get flushed out of the XU.
 xu_mm_ex4_flush   <= ex4_flush_q;
 xu_mm_ex5_flush   <= ex5_flush_q       and not ex5_n_dmiss_flush_q;
-xu_mm_ierat_flush <= is2_flush_q       and not ierat_hold_present_q; 
+xu_mm_ierat_flush <= is2_flush_q       and not ierat_hold_present_q; -- Gets set by ex5
 xu_mm_ierat_miss  <=                           ex5_n_imiss_flush_q;
 
+-------------------------------------------------------------------------------
+-- Valid Shadow Pipes
+-------------------------------------------------------------------------------
 rf1_xu_val     <= dec_cpl_rf1_val         and not rf1_flush_q;
-ex1_xu_val     <= ex1_xu_val_q            and not ex1_flush_q and not ex1_flush; 
+ex1_xu_val     <= ex1_xu_val_q            and not ex1_flush_q and not ex1_flush; -- Branch resolve needs fast flush
 ex2_xu_val     <= ex2_xu_val_q            and not ex2_flush;
 ex3_xu_val     <= ex3_xu_val_q            and not ex3_flush;
 ex4_xu_val     <= ex4_xu_val_q            and not ex4_flush;
@@ -3798,6 +4179,9 @@ ex4_xuuc_val   <= ex4_xuuc_val_q          and not ex4_flush;
 
 ex3_dep_val    <= dec_cpl_ex3_mc_dep_chk_val          and not ex3_flush;
 
+-------------------------------------------------------------------------------
+-- Misc Logic
+-------------------------------------------------------------------------------
 ex3_n_mmu_mchk_flush_only        <= not spr_ccr2_notlb and not spr_xucr4_mmu_mchk_int;
 
 ex3_is_any_ldst                  <= ex3_is_any_load_dac_q or ex3_is_any_store_dac_q or ex3_is_icswx_q;
@@ -3857,9 +4241,12 @@ with s3'(pc_xu_ram_flush_thread & pc_xu_ram_thread) select
                      "0000" when others;
 
 
-ram_ip_d          <= ram_mode_q and (ram_execute_q or                                     
-                                    (ram_ip_q and not (ex4_ram_cpl or ex5_is_any_int)));  
+ram_ip_d          <= ram_mode_q and (ram_execute_q or                                     -- Set on Execute
+                                    (ram_ip_q and not (ex4_ram_cpl or ex5_is_any_int)));  -- Cleared on completion or interrupt
                         
+-- ex5_ram_issue_q comes on when a ram instruction gets flushed.
+-- However, if it gets flushed within two cycles of getting issued,
+-- the iu does not flush it.  accounting for this here.
 ex5_ram_issue_gated  <= ex5_ram_issue_q and not (ex7_ram_issue_q or ex8_ram_issue_q);
 
 ex5_ram_done_d       <= or_reduce(ram_ip_q and ram_mode_q and gate(ex4_xu_val,not(ex4_xu_is_ucode_q)));
@@ -3897,6 +4284,10 @@ ex5_is_attn_d        <= gate(ex4_xu_val,ex4_is_attn_q);
 
 ex5_xu_ifar_d        <= mux_t(ex4_ifar_q,ex4_xu_val_q);
 
+-------------------------------------------------------------------------------
+-- Barrier Set
+-------------------------------------------------------------------------------
+-- These two should be mutually exclusive
 ex4_lsu_barr_flush   <= ex4_barrier_flush and ex4_n_ldq_hit_flush_q;
 ex4_div_barr_flush   <= ex4_barrier_flush and ex4_n_barr_flush_q;
 
@@ -3910,6 +4301,9 @@ ex6_set_barr_d       <= ex5_lsu_set_barr_q;
 
 cpl_iu_set_barr_tid   <= ex6_set_barr_q;
 
+-------------------------------------------------------------------------------
+-- Quiesce State
+-------------------------------------------------------------------------------
 cpl_quiesced_d          <= not(
                            ssprwr_ip_q or
                            ex5_in_ucode_q or
@@ -3921,6 +4315,9 @@ cpl_spr_quiesce         <= cpl_quiesced_q;
 
 quiesced_d              <= and_reduce(spr_cpl_quiesce);
                           
+-------------------------------------------------------------------------------
+-- Hold Generation - per core
+-------------------------------------------------------------------------------
 hold_state_1            <=(others=>
                           (ici_hold_present       or
                            fu_rfpe_hold_present_q or
@@ -3935,6 +4332,7 @@ ici_hold_present        <= or_reduce(ici_hold_present_q);
 ex4_n_fu_rfpe_set       <= or_reduce(ex4_n_fu_rfpe_flush);
 ex4_n_xu_rfpe_set       <= or_reduce(ex4_n_xu_rfpe_flush);
 
+-- Put the set in the equation to force wait at least 192 cycles for a divide/slowspr to clear out
 rfpe_quiesce_cond_b     <= ex4_n_fu_rfpe_set or ex4_n_xu_rfpe_set or not quiesced_q;
 
 rfpe_quiesced           <= not rfpe_quiesce_cond_b and not rfpe_quiesced_ctr_zero_b;
@@ -3964,6 +4362,9 @@ xu_rfpe_ack_d(0)        <= xu_rfpe_hold_present_q and rfpe_quiesced;
 xu_rfpe_ack_d(1)        <= xu_rfpe_ack_d(0) and not xu_rfpe_ack_q(0);
 cpl_gpr_regfile_seq_beg <= xu_rfpe_ack_q(1);
 
+-------------------------------------------------------------------------------
+-- IO assignments
+-------------------------------------------------------------------------------
 pc_dbg_stop             <= pc_dbg_stop_q and not (ex5_in_ucode_q or ex4_ucode_val);
 cpl_spr_stop            <= pc_dbg_stop_2_q;
 xu_lsu_dci              <= dci_val_q;
@@ -4004,6 +4405,9 @@ cpl_msr_fp            <= msr_fp_q;
 cpl_msr_spv           <= msr_spv_q;
 cpl_ccr2_ap           <= ccr2_ap_q;
 
+-------------------------------------------------------------------------------
+-- Performance Counters
+-------------------------------------------------------------------------------
 ex2_perf_event_d(0)        <= ex1_branch;
 ex2_perf_event_d(1)        <= ex1_br_mispred;
 ex2_perf_event_d(2)        <= ex1_br_taken;
@@ -4013,17 +4417,21 @@ ex4_perf_event_d(1)        <= ex3_perf_event_q(1);
 ex4_perf_event_d(2)        <= ex3_perf_event_q(2);
 ex4_perf_event_d(3)        <= or_reduce(ex3_n_multcoll_flush);
 
+-------------------------------------------------------------------------------
+-- SIAR
+-------------------------------------------------------------------------------
 ex4_xu_siar_val            <= or_reduce(ex4_xuuc_val   and not ex5_in_ucode_q);
 ex4_axu_siar_val           <= or_reduce(ex4_axu_val    and not ex5_in_ucode_q);
 ex4_siar_cpl               <=          (ex4_instr_cpl  and not ex5_in_ucode_q) or ex4_ucode_val;
 
+-- Kill the issued bit if the IU issued an Error.  The IFAR is invalid in this case.
 ex3_xu_issued              <= gate(ex3_xu_issued_q,not(or_reduce(ex3_iu_error_q)));
 
 ex4_siar_sel_act           <= ex4_xu_siar_val and ex4_axu_siar_val and trace_bus_enable_q;
 ex4_siar_sel_d(0 to 1)     <= ex4_siar_sel_q(1) & ex4_siar_sel_q(0);
 
 with ex4_siar_sel_act select
-   ex4_siar_axu_sel        <= ex4_siar_sel_q(1)    when '1',      
+   ex4_siar_axu_sel        <= ex4_siar_sel_q(1)    when '1',      -- Tiebreaker
                               ex4_axu_siar_val     when others;
                               
 with (ex4_siar_axu_sel and not ex4_instr_trace_val_q) select
@@ -4052,7 +4460,13 @@ with s4'(ex4_siar_cpl  and ex4_siar_sel) select
                               
 mark_unused(ex5_siar_issued_q);
 
+-------------------------------------------------------------------------------
+-- Debug
+-------------------------------------------------------------------------------
+-- NOTE: The following bits can be muxed onto the perf event bus:
+--          0:15, 22:36, 44:59, 66:81
 
+-- Rotates on  0:21, 22:43, 44:65, 66:87
 
 dbg_subgroup_gen : for t in 0 to threads-1 generate
 dbg_valids_opc(t)(0 to 4) <= ex5_xu_val_dbg_opc(t) & ex5_axu_val_dbg_opc(t) & ex5_instr_cpl_dbg_q(t) & ex5_ucode_val_dbg_q(t) & ex5_ucode_end_dbg_q(t);
@@ -4149,33 +4563,40 @@ siar_cm(0)        <= msr_cm_q(0) and not ex5_instr_trace_val_q;
 siar_cm(1 to 2)   <= msr_cm_q(1 to 2);
 siar_cm(3)        <=(msr_cm_q(3) and not ex5_instr_trace_val_q) or ex5_xu_trace_val;
 
+--                0:4                 5                   6:11                    12:73             74:82         83:87
 dbg_group0  <= dbg_valids(0) & ex5_in_ucode_q(0) & ex5_flush_pri_enc_dbg(0) & ex4_cia_out(0) & dbg_iuflush(0) & dbg_msr(0);
 dbg_group1  <= dbg_valids(1) & ex5_in_ucode_q(1) & ex5_flush_pri_enc_dbg(1) & ex4_cia_out(1) & dbg_iuflush(1) & dbg_msr(1);
 dbg_group2  <= dbg_valids(2) & ex5_in_ucode_q(2) & ex5_flush_pri_enc_dbg(2) & ex4_cia_out(2) & dbg_iuflush(2) & dbg_msr(2);
 dbg_group3  <= dbg_valids(3) & ex5_in_ucode_q(3) & ex5_flush_pri_enc_dbg(3) & ex4_cia_out(3) & dbg_iuflush(3) & dbg_msr(3);
+--                 0:4             5:9            10:14            15:19         20:23              24:30                31:41                  42:55              56:63                   64:71                         72:79                     80:87
 dbg_group4  <= dbg_valids_opc(0) & dbg_valids_opc(1) & dbg_valids_opc(2) & dbg_valids_opc(3) & ex5_in_ucode_q & ex1_instr(0 to 6) & ex1_instr(21 to 31) & ex1_instr(7 to 20) & ex4_cia_out(0)(54 to 61) & ex4_cia_out(1)(54 to 61) & ex4_cia_out(2)(54 to 61) & ex4_cia_out(3)(54 to 61);
+--                0:4                 5                   6:11                       12:75                       76:82                 83:87
 dbg_group5  <= dbg_valids(0) & ex5_in_ucode_q(0) & ex5_flush_pri_enc_dbg(0) & dbg_flushcond_q(0)(0 to 63) & dbg_iuflush(0)(0 to 6) & dbg_msr(0);
 dbg_group6  <= dbg_valids(1) & ex5_in_ucode_q(1) & ex5_flush_pri_enc_dbg(1) & dbg_flushcond_q(1)(0 to 63) & dbg_iuflush(1)(0 to 6) & dbg_msr(1);
 dbg_group7  <= dbg_valids(2) & ex5_in_ucode_q(2) & ex5_flush_pri_enc_dbg(2) & dbg_flushcond_q(2)(0 to 63) & dbg_iuflush(2)(0 to 6) & dbg_msr(2);
 dbg_group8  <= dbg_valids(3) & ex5_in_ucode_q(3) & ex5_flush_pri_enc_dbg(3) & dbg_flushcond_q(3)(0 to 63) & dbg_iuflush(3)(0 to 6) & dbg_msr(3);
+--                0:4                 5                   6:11                  12:20               21:52
 dbg_group9  <= dbg_valids(0) & ex5_in_ucode_q(0) & ex5_flush_pri_enc_dbg(0) & dbg_iuflush(0) & ex1_instr(0 to 31) & 
-               dbg_hold(0)(0 to 5) & dbg_async_block(0)(0 to 6) & dbg_int_types(0)(0 to 4) & dbg_misc(0)(0 to 3) &  
-               br_debug & '0'; 
+               dbg_hold(0)(0 to 5) & dbg_async_block(0)(0 to 6) & dbg_int_types(0)(0 to 4) & dbg_misc(0)(0 to 3) &  -- 53:75
+               br_debug & '0'; -- 76:87
 
 dbg_group10 <= dbg_valids(1) & ex5_in_ucode_q(1) & ex5_flush_pri_enc_dbg(1) & dbg_iuflush(1) & ex1_instr(0 to 31) & 
-               dbg_hold(1)(0 to 5) & dbg_async_block(1)(0 to 6) & dbg_int_types(1)(0 to 4) & dbg_misc(1)(0 to 3) &  
-               br_debug & '0'; 
+               dbg_hold(1)(0 to 5) & dbg_async_block(1)(0 to 6) & dbg_int_types(1)(0 to 4) & dbg_misc(1)(0 to 3) &  -- 53:75
+               br_debug & '0'; -- 76:87
 
 dbg_group11 <= dbg_valids(2) & ex5_in_ucode_q(2) & ex5_flush_pri_enc_dbg(2) & dbg_iuflush(2) & ex1_instr(0 to 31) & 
-               dbg_hold(2)(0 to 5) & dbg_async_block(2)(0 to 6) & dbg_int_types(2)(0 to 4) & dbg_misc(2)(0 to 3) &  
-               br_debug & '0'; 
+               dbg_hold(2)(0 to 5) & dbg_async_block(2)(0 to 6) & dbg_int_types(2)(0 to 4) & dbg_misc(2)(0 to 3) &  -- 53:75
+               br_debug & '0'; -- 76:87
 
 dbg_group12 <= dbg_valids(3) & ex5_in_ucode_q(3) & ex5_flush_pri_enc_dbg(3) & dbg_iuflush(3) & ex1_instr(0 to 31) & 
-               dbg_hold(3)(0 to 5) & dbg_async_block(3)(0 to 6) & dbg_int_types(3)(0 to 4) & dbg_misc(3)(0 to 3) &  
-               br_debug & '0'; 
+               dbg_hold(3)(0 to 5) & dbg_async_block(3)(0 to 6) & dbg_int_types(3)(0 to 4) & dbg_misc(3)(0 to 3) &  -- 53:75
+               br_debug & '0'; -- 76:87
                
+--               0:61            62              63          64:67           68                69               70:71          72:75              76:79              80:83                84:87
 dbg_group13 <= ex5_siar_q & ex5_siar_gs_q & ex5_siar_pr_q & siar_cm & ex5_siar_cpl_q & ex5_siar_cpl_q & ex5_siar_tid_q & ex4_xu_issued_q & ex4_axu_issued_q & ex5_instr_cpl_q & ex5_ucode_val_dbg_q;
+--               0:31               32:55    56          57:58                59:63          64           65:66             67
 dbg_group14 <= ex2_instr_dbg_q & x"0ABCDE" & '1' & ex2_instr_trace_type_q & (59 to 63=>'0') & '1' & ex2_instr_trace_type_q & '1' & (68 to 87=>'0');
+--                   0:31               32:36             37                    38:43                 44              45
 dbg_group15 <= ex1_instr(0 to 31) & dbg_valids(0) & ex5_in_ucode_q(0) & ex5_flush_pri_enc_dbg(0) & iu_flush(0) & ex5_ucode_restart_q(0) &
                                     dbg_valids(1) & ex5_in_ucode_q(1) & ex5_flush_pri_enc_dbg(1) & iu_flush(1) & ex5_ucode_restart_q(1) &
                                     dbg_valids(2) & ex5_in_ucode_q(2) & ex5_flush_pri_enc_dbg(2) & iu_flush(2) & ex5_ucode_restart_q(2) &
@@ -4201,11 +4622,16 @@ trg_group1  <= dbg_valids(1)(0 to 4) & dbg_iuflush(1)(0 to 3) & dbg_match(1)(0 t
 trg_group2  <= dbg_valids(2)(0 to 4) & dbg_iuflush(2)(0 to 3) & dbg_match(2)(0 to 2);
 trg_group3  <= dbg_valids(3)(0 to 4) & dbg_iuflush(3)(0 to 3) & dbg_match(3)(0 to 2);
 
+-- fxa_group0( 0:87)    (88) Instruction / Mult/Div
+-- fxa_group1(88:175)   (88) Issue Interface
+-- fxa_group2(176:197)  (22) GPR Parity Error
+-- fxa_group3(198:263)  (66) Reload Write Data
+-- fxa_group4(264:272)  (09) Reload Write Addr/Valid
 
 
 with s2'(ex1_instr_trace_val_q & ex4_instr_trace_val_q) select
-   debug_mux_ctrls_int     <= x"71E0"              when "10",  
-                              x"69E0"              when "01",  
+   debug_mux_ctrls_int     <= x"71E0"              when "10",  -- Group 14
+                              x"69E0"              when "01",  -- Group 13
                               debug_mux_ctrls_q    when others;
 
 
@@ -4267,6 +4693,7 @@ cpl_trigger_data_out <= trigger_data_out_q;
 cpl_debug_data_out   <= debug_data_out_q;
 
 
+-- Unused Signals
 mark_unused(ex3_iu_error_q(3));
 mark_unused(spare_0_q);
 mark_unused(spare_1_q);
@@ -4275,6 +4702,9 @@ mark_unused(spare_3_q);
 mark_unused(spare_4_q);
 
 
+-------------------------------------------------------------------------------
+-- Latches
+-------------------------------------------------------------------------------
 is2_flush_latch : tri_rlmreg_p
   generic map (width => is2_flush_q'length, init => 0, expand_type => expand_type, needs_sreset => 1)
   port map (nclk    => nclk, vd => vdd, gd => gnd,
@@ -10035,9 +10465,10 @@ spare_1_latch : entity tri.tri_inv_nlats(tri_inv_nlats)
             SCANOUT => sov(spare_1_offset to spare_1_offset + spare_1_q'length-1),
             D       => spare_1_d,
             QB      => spare_1_q);
-spare_1_d(0 to 3)             <= not (ex4_instr_cpl and not ex5_in_ucode_q);        
-spare_1_d(4 to 7)             <= not spare_1_q(0 to 3);                             
-spare_1_d(8 to 11)            <= not spare_1_q(4 to 7);                             
+-- Need to account for cycles between ex4 & ex7...
+spare_1_d(0 to 3)             <= not (ex4_instr_cpl and not ex5_in_ucode_q);        -- EX5
+spare_1_d(4 to 7)             <= not spare_1_q(0 to 3);                             -- EX6
+spare_1_d(8 to 11)            <= not spare_1_q(4 to 7);                             -- EX7
 spare_1_d(12 to 15)           <= not spare_1_q(12 to 15);
 
 
@@ -10236,6 +10667,9 @@ ex2_ifar_b_latch_gen : for t in 0 to threads-1 generate
                dout    => ex4_ifar_q(eff_ifar*t to eff_ifar*(t+1)-1));
 end generate;
 
+-------------------------------------------------
+-- Pervasive
+-------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 8, expand_type => expand_type)
 port map (vd          => vdd,

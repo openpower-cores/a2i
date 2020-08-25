@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Merge Or-Reduce Component
+--
 LIBRARY ieee;       USE ieee.std_logic_1164.all;
                     use ieee.numeric_std.all;
 LIBRARY ibm;        
@@ -19,11 +21,9 @@ use tri.tri_latches_pkg.all;
 
 entity xuq_alu_caor is  generic(expand_type: integer := 2 );   port (
 
-
-
-        ca_root_b       :in  std_ulogic_vector(0 to 63) ;
-        ca_or_hi        :out std_ulogic ;
-        ca_or_lo        :out std_ulogic  
+        ca_root_b       :in  std_ulogic_vector(0 to 63) ;--data
+        ca_or_hi        :out std_ulogic ;-- upper 32 ORed together
+        ca_or_lo        :out std_ulogic  -- lower 32 ORed together
 );
 
 -- synopsys translate_off
@@ -42,15 +42,7 @@ architecture xuq_alu_caor of xuq_alu_caor is
    signal ca_or_lv5   :std_ulogic_vector(0 to  1) ;
 
 
-
-
-
-
-
-
-
 begin
-
 
 
  u_ca_or_00: ca_or_lv1  ( 0) <= not( ca_root_b  ( 0) and ca_root_b  ( 1) );
@@ -120,12 +112,7 @@ begin
  u_ca_or_15: ca_or_lv5  ( 0) <= not( ca_or_lv4_b( 0) and ca_or_lv4_b( 1) );
  u_ca_or_47: ca_or_lv5  ( 1) <= not( ca_or_lv4_b( 2) and ca_or_lv4_b( 3) );
 
-  ca_or_hi <= ca_or_lv5(0); 
-  ca_or_lo <= ca_or_lv5(1); 
-
-
-
+  ca_or_hi <= ca_or_lv5(0); -- rename
+  ca_or_lo <= ca_or_lv5(1); -- rename
 
 end architecture xuq_alu_caor;
-
-

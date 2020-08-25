@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_inv_nlats_wlcb.vhdl
+-- *! DESCRIPTION : Multi-bit aoi22-latch, LCB included
+-- *!
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
@@ -19,12 +24,13 @@ entity tri_inv_nlats_wlcb is
 
   generic (
     width       : integer := 4;
-    offset      : integer range 0 to 65535 := 0 ; 
-    init        : integer := 0;  
-    ibuf        : boolean := false;       
-    dualscan    : string  := ""; 
-    needs_sreset: integer := 1 ; 
-    expand_type : integer := 1 ; 
+    offset      : integer range 0 to 65535 := 0 ; --starting bit
+    init        : integer := 0;  -- will be converted to the least signficant
+                                 -- 31 bits of init_v
+    ibuf        : boolean := false;       --inverted latch IOs, if set to true.
+    dualscan    : string  := ""; -- if "S", marks data ports as scan for Moebius
+    needs_sreset: integer := 1 ; -- for inferred latches
+    expand_type : integer := 1 ; -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
     synthclonedlatch   : string                    := "" ;
     btr                : string                    := "NLI0001_X2_A12TH" );
 
@@ -32,15 +38,15 @@ entity tri_inv_nlats_wlcb is
     vd      : inout power_logic;
     gd      : inout power_logic;
     nclk    : in  clk_logic;
-    act     : in  std_ulogic := '1'; 
-    forcee   : in  std_ulogic := '0'; 
-    thold_b : in  std_ulogic := '1'; 
-    d_mode  : in  std_ulogic := '0'; 
-    sg      : in  std_ulogic := '0'; 
-    delay_lclkr : in  std_ulogic := '0'; 
-    mpw1_b  : in  std_ulogic := '1'; 
-    mpw2_b  : in  std_ulogic := '1'; 
-    scin    : in  std_ulogic_vector(offset to offset+width-1);  
+    act     : in  std_ulogic := '1'; -- 1: functional, 0: no clock
+    forcee   : in  std_ulogic := '0'; -- 1: force LCB active
+    thold_b : in  std_ulogic := '1'; -- 1: functional, 0: no clock
+    d_mode  : in  std_ulogic := '0'; -- 1: disable pulse mode, 0: pulse mode
+    sg      : in  std_ulogic := '0'; -- 0: functional, 1: scan
+    delay_lclkr : in  std_ulogic := '0'; -- 0: functional
+    mpw1_b  : in  std_ulogic := '1'; -- pulse width control bit
+    mpw2_b  : in  std_ulogic := '1'; -- pulse width control bit
+    scin    : in  std_ulogic_vector(offset to offset+width-1);  -- scan in
     scout   : out std_ulogic_vector(offset to offset+width-1);
     D        : in    std_ulogic_vector(offset to offset+width-1); 
     QB       : out   std_ulogic_vector(offset to offset+width-1));
@@ -106,4 +112,3 @@ begin
   end generate a;
 
 end tri_inv_nlats_wlcb;
-

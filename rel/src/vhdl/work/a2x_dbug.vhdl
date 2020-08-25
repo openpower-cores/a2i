@@ -7,6 +7,14 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- a2x dbug junk
+--
+-- 1. passthru threadstop and modify with trig if enabled
+-- 2. enable trigger ack
+-- 3. counter for stuff
+-- 4. scom
+--
+-- others: debug stop
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -52,6 +60,7 @@ end a2x_dbug;
 
 architecture a2x_dbug of a2x_dbug is
 
+-- FFs
 signal counter_d, counter_q            : std_logic_vector(0 to 39);
 signal trigger_ack_d, trigger_ack_q    : std_logic;
 	
@@ -79,18 +88,31 @@ end process FF;
 
 
 
+------------------------------------------------------------------------------------------------------------
+-- counter
+------------------------------------------------------------------------------------------------------------
 
 counter_d <= inc(counter_q);
 
+------------------------------------------------------------------------------------------------------------
+-- threadstop
+------------------------------------------------------------------------------------------------------------
 
 threadstop_out <= threadstop_in or gate_and(trigger_in, trigger_threadstop);
 
+------------------------------------------------------------------------------------------------------------
+-- ILA
+------------------------------------------------------------------------------------------------------------
 
 trigger_out <= trigger_in;
 
+-- acks until it goes away; or could do a pulse
 trigger_ack_d   <= trigger_ack_enable and trigger_in;
 trigger_ack_out <= trigger_ack_q;
 
+------------------------------------------------------------------------------------------------------------
+-- SCOM
+------------------------------------------------------------------------------------------------------------
 
 scom: entity work.a2x_scom(a2x_scom) 
    port map (
@@ -115,4 +137,3 @@ scom: entity work.a2x_scom(a2x_scom)
    ); 
    
 end a2x_dbug;
-

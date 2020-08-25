@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--
+--  Description: Pervasive Core Debug/Event Bus Controls
+--
+--*****************************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library ibm,clib;
@@ -17,7 +22,7 @@ library tri;
 use tri.tri_latches_pkg.all;
 
 entity pcq_dbg is
-generic(expand_type             : integer := 2          
+generic(expand_type             : integer := 2          -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
 );         
 port(
     vdd                         : inout power_logic;
@@ -33,12 +38,14 @@ port(
     pc_pc_sg_0                  : in    std_ulogic;
     func_scan_in                : in    std_ulogic;
     func_scan_out               : out   std_ulogic;
+-- Trace/Trigger Bus
     debug_bus_out               : out   std_ulogic_vector(0 to 87);
     trace_triggers_out          : out   std_ulogic_vector(0 to 11);
     debug_bus_in                : in    std_ulogic_vector(0 to 87);
     trace_triggers_in           : in    std_ulogic_vector(0 to 11);
     rg_db_trace_bus_enable      : in    std_ulogic;
     rg_db_debug_mux_ctrls       : in    std_ulogic_vector(0 to 15);
+    --PC Unit internal debug signals
     ck_db_dbg_clks_ctrls        : in    std_ulogic_vector(0 to 13);
     rg_db_dbg_scom_rdata        : in    std_ulogic_vector(0 to 63);
     rg_db_dbg_scom_wdata        : in    std_ulogic_vector(0 to 63);
@@ -51,11 +58,13 @@ port(
     rg_db_dbg_fir_misc          : in    std_ulogic_vector(0 to 35);
     ct_db_dbg_ctrls             : in    std_ulogic_vector(0 to 36);
     rg_db_dbg_spr               : in    std_ulogic_vector(0 to 46);
+-- Perfmon Event Bus
     ac_an_event_bus             : out   std_ulogic_vector(0 to 7);
     ac_an_fu_bypass_events      : out   std_ulogic_vector(0 to 7);
     ac_an_iu_bypass_events      : out   std_ulogic_vector(0 to 7);
     ac_an_mm_bypass_events      : out   std_ulogic_vector(0 to 7);
     ac_an_lsu_bypass_events     : out   std_ulogic_vector(0 to 7);
+    --Event signals and event mux controls
     rg_db_event_bus_enable      : in    std_ulogic;
     rg_db_event_mux_ctrls       : in    std_ulogic_vector(0 to 23);
     fu_pc_event_data            : in    std_ulogic_vector(0 to 7);
@@ -72,6 +81,9 @@ port(
 end pcq_dbg;
 
 architecture pcq_dbg of pcq_dbg is
+--=====================================================================
+-- Signal Declarations
+--=====================================================================
 constant fuevents_size          : positive := 8;
 constant iuevents_size          : positive := 8;
 constant mmevents_size          : positive := 8;
@@ -86,6 +98,9 @@ constant ramthrctl_size         : positive := 4;
 constant traceout_size          : positive := 88;
 constant triggout_size          : positive := 12;
 
+-----------------------------------------------------------------------
+-- Scan Ring Ordering:
+-- start of func scan chain ordering
 constant fuevents_offset        : natural := 0;
 constant fubypass_offset        : natural := fuevents_offset + fuevents_size;
 constant iuevents_offset        : natural := fubypass_offset + fuevents_size;
@@ -104,10 +119,14 @@ constant ramthrctl_offset       : natural := scmisc_offset + scmisc_size;
 constant traceout_offset        : natural := ramthrctl_offset + ramthrctl_size;
 constant triggout_offset        : natural := traceout_offset + traceout_size;
 constant func_right             : natural := triggout_offset + triggout_size - 1;
+-- end of func scan chain ordering
 
+-----------------------------------------------------------------------
+-- Basic/Misc signals
 signal func_siv, func_sov               : std_ulogic_vector(0 to func_right);
 signal pc_pc_func_slp_sl_thold_0_b      : std_ulogic;
 signal force_func                       : std_ulogic;
+-- Trace/Trigger/Event Mux signals
 signal debug_group_0                    : std_ulogic_vector(0 to traceout_size-1);
 signal debug_group_1                    : std_ulogic_vector(0 to traceout_size-1);
 signal debug_group_2                    : std_ulogic_vector(0 to traceout_size-1);
@@ -120,6 +139,7 @@ signal trigg_group_0                    : std_ulogic_vector(0 to triggout_size-1
 signal trigg_group_1                    : std_ulogic_vector(0 to triggout_size-1);
 signal trigg_group_2                    : std_ulogic_vector(0 to triggout_size-1);
 signal trigg_group_3                    : std_ulogic_vector(0 to triggout_size-1);
+-- Trace/Trigger input signals
 signal fir_icache_parity_q              : std_ulogic;
 signal fir_icachedir_parity_q           : std_ulogic;
 signal fir_dcache_parity_q              : std_ulogic;
@@ -221,6 +241,7 @@ signal spr_slowspr_addr_l2              : std_ulogic_vector(0 to 9);
 signal spr_slowspr_data_l2              : std_ulogic_vector(0 to 31);
 signal spr_pc_done_l2                   : std_ulogic;
 
+-- Latch definitions begin
 signal fu_events_d, fu_events_q         : std_ulogic_vector(0 to fuevents_size-1);
 signal fu_bypass_q                      : std_ulogic_vector(0 to fuevents_size-1);
 signal iu_events_d, iu_events_q         : std_ulogic_vector(0 to iuevents_size-1);
@@ -244,6 +265,9 @@ begin
   unused_signals  <= or_reduce(rg_db_dbg_fir2_err(14 to 19) );
 
 
+--=====================================================================
+-- Event Bus Mux Logic
+--=====================================================================
   fu_events_d  <= fu_pc_event_data;
   iu_events_d  <= iu_pc_event_data;
   mm_events_d  <= mm_pc_event_data;
@@ -264,10 +288,15 @@ event_mux: entity work.pcq_dbg_event
    , xu_event_data      => xu_events_q
    , lsu_event_data     => lsu_events_q
    , trace_bus_data     => trc_events_q
+    -------------------------------------------------
    , event_bus          => event_bus_d
   );
 
 
+--=====================================================================
+-- Trace/Trigger Bus - Sort out input debug signals
+--=====================================================================
+-- FIR/Error related signals.
   fir_icache_parity_q       <=  rg_db_dbg_fir0_err(0);
   fir_icachedir_parity_q    <=  rg_db_dbg_fir0_err(1);      
   fir_dcache_parity_q       <=  rg_db_dbg_fir0_err(2);
@@ -317,6 +346,7 @@ event_mux: entity work.pcq_dbg_event
   fir0_recov_err_pulse_q    <=  rg_db_dbg_fir_misc(33);
   fir1_recov_err_pulse_q    <=  rg_db_dbg_fir_misc(34);
   fir2_recov_err_pulse_q    <=  rg_db_dbg_fir_misc(35);
+-- SCOM error; data; address; control signals
   scom_rdata_d              <= rg_db_dbg_scom_rdata(0 to 63);
   scom_wdata_d              <= rg_db_dbg_scom_wdata(0 to 63);
   scom_decaddr_q            <= rg_db_dbg_scom_decaddr(0 to 63);
@@ -327,6 +357,7 @@ event_mux: entity work.pcq_dbg_event
   scom_misc_scaddr_fir_d    <= rg_db_dbg_scom_misc(6);
   scom_misc_sc_par_inj_q    <= rg_db_dbg_scom_misc(7);
   scom_misc_sc_wparity_d    <= rg_db_dbg_scom_misc(8);
+-- RAM and THRCTL register control signals
   ram_execute_q             <= rg_db_dbg_ram_thrctl(0);
   ram_interrupt_q           <= rg_db_dbg_ram_thrctl(1);
   ram_error_q               <= rg_db_dbg_ram_thrctl(2);
@@ -338,6 +369,7 @@ event_mux: entity work.pcq_dbg_event
   thrctl_stop_out_q         <= rg_db_dbg_ram_thrctl(9 to 12);
   thrctl_step_out_q         <= rg_db_dbg_ram_thrctl(13 to 16);
   thrctl_run_in_q           <= rg_db_dbg_ram_thrctl(17 to 20);
+-- Reset SM and Power Management signals
   ctrls_init_active_q       <= ct_db_dbg_ctrls(0);
   ctrls_resetsm_q           <= ct_db_dbg_ctrls(1 to 5);
   ctrls_initerat_q          <= ct_db_dbg_ctrls(6);
@@ -351,6 +383,7 @@ event_mux: entity work.pcq_dbg_event
   ctrls_dis_pwr_sav_q       <= ct_db_dbg_ctrls(34);
   ctrls_ccflush_dis_q       <= ct_db_dbg_ctrls(35);
   ctrls_raise_tholds_q      <= ct_db_dbg_ctrls(36);
+-- Clock control; thold/sg/fce signals around clock control macro
   clks_ccenable_dc          <= ck_db_dbg_clks_ctrls(0);
   clks_gsd_tst_en_dc        <= ck_db_dbg_clks_ctrls(1);
   clks_gsd_tst_ac_dc        <= ck_db_dbg_clks_ctrls(2);
@@ -358,6 +391,7 @@ event_mux: entity work.pcq_dbg_event
   clks_lbist_ip_dc          <= ck_db_dbg_clks_ctrls(4);
   clks_scan_type_dc         <= ck_db_dbg_clks_ctrls(5 to 12);
   clks_fast_xstop           <= ck_db_dbg_clks_ctrls(13);
+-- SPRs; slow_spr bus signals from latches
   spr_slowspr_val_l2        <= rg_db_dbg_spr(0);
   spr_slowspr_rw_l2         <= rg_db_dbg_spr(1);
   spr_slowspr_etid_l2       <= rg_db_dbg_spr(2 to 3);
@@ -366,6 +400,9 @@ event_mux: entity work.pcq_dbg_event
   spr_pc_done_l2            <= rg_db_dbg_spr(46);
 
 
+--=====================================================================
+-- Trace/Trigger Bus - Form trace bus groups from input debug signals
+--=====================================================================
   debug_group_0   <= fir_icache_parity_q    & fir_icachedir_parity_q & fir_dcache_parity_q &
                      fir_dcachedir_parity_q & fir_sprg_ecc_q(0 to 3) & fir_nia_miscmpr_q   & 
                      fir_l2intrf_ue_q & fir_sprg_ue_q  & fir_invld_reld_q & fir_xu_regf_ue_q &
@@ -412,6 +449,9 @@ event_mux: entity work.pcq_dbg_event
                      spr_slowspr_data_l2(0 to 31) & x"00000000" & "0";
   
 
+--=====================================================================
+-- Trace/Trigger Bus - Form trigger bus groups from input debug signals
+--=====================================================================
   trigg_group_0   <= scom_misc_sc_act_q & scom_misc_sc_req_q & scom_misc_sc_wr_q &
                      scom_misc_sc_nvld_q(0 to 2) & scom_misc_scaddr_fir_q &
                      thrctl_stop_out_q(0 to 3) & ctrls_initerat_q;
@@ -428,6 +468,11 @@ event_mux: entity work.pcq_dbg_event
                      thrctl_run_in_q(0 to 3);
 
 
+--=====================================================================
+-- Trace/Trigger Bus - Trace/Trigger Mux
+--=====================================================================
+--   trace_data_in_d  <= debug_bus_in;
+--   trigg_data_in_d  <= trace_triggers_in;
 
 
 debug_mux: entity clib.c_debug_mux8
@@ -458,6 +503,9 @@ debug_mux: entity clib.c_debug_mux8
   );
 
 
+--=====================================================================
+-- Outputs
+--=====================================================================
   ac_an_event_bus         <= event_bus_q;
   ac_an_fu_bypass_events  <= fu_bypass_q;
   ac_an_iu_bypass_events  <= iu_bypass_q;
@@ -470,6 +518,10 @@ debug_mux: entity clib.c_debug_mux8
   trace_triggers_out  <= trigg_data_out_q;
 
 
+--=====================================================================
+-- Latches
+--=====================================================================
+-- func ring registers start
 fuevents: tri_rlmreg_p
   generic map (width => fuevents_size, init => 0, expand_type => expand_type)
   port map (vd      => vdd,
@@ -763,8 +815,13 @@ triggout: tri_rlmreg_p
             scout   => func_sov(triggout_offset to triggout_offset + triggout_size-1),
             din     => trigg_data_out_d,
             dout    => trigg_data_out_q );
+-- func ring registers end
 
 
+--=====================================================================
+-- Thold/SG Staging
+--=====================================================================
+-- func lcbor
 lcbor_func0: tri_lcbor
 generic map (expand_type => expand_type )
 port map (
@@ -776,9 +833,13 @@ port map (
     thold_b  => pc_pc_func_slp_sl_thold_0_b );
 
 
+--=====================================================================
+-- Scan Connections
+--=====================================================================
+-- Func ring
 func_siv(0 TO func_right) <=  func_scan_in & func_sov(0 to func_right-1);
 func_scan_out  <=  func_sov(func_right) and scan_dis_dc_b;
 
 
+-----------------------------------------------------------------------
 end pcq_dbg;
-

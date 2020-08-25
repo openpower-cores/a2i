@@ -15,16 +15,18 @@ library support; use support.power_logic_pkg.all;
 library tri; use tri.tri_latches_pkg.all;
 
 entity tri_512x288_9 is
-  generic (addressable_ports : positive := 512; 
-           addressbus_width : positive := 6;    
-           port_bitwidth : positive := 288;     
-           bit_write_type : positive := 9;  
-           ways : positive := 1;        
-           expand_type : integer := 1);         
+  generic (addressable_ports : positive := 512; -- number of addressable register in this array
+           addressbus_width : positive := 6;    -- width of the bus to address all ports (2^addressbus_width >= addressable_ports)
+           port_bitwidth : positive := 288;     -- bitwidth of ports (per way)
+           bit_write_type : positive := 9;  -- gives the number of bits that shares one write-enable; must divide evenly into array
+           ways : positive := 1;        -- number of ways
+           expand_type : integer := 1);         -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
   port (
+  -- POWER PINS
     gnd               : inout power_logic;
     vdd               : inout power_logic;
     vcs               : inout power_logic;
+  -- CLOCK and CLOCKCONTROL ports
     nclk              : in clk_logic;
     act               : in std_ulogic;
     sg_0              : in std_ulogic;
@@ -49,6 +51,7 @@ entity tri_512x288_9 is
     aodo_lcb_delay_lclkr_dc     : in std_ulogic;
     aodo_lcb_mpw1_dc_b          : in std_ulogic;
     aodo_lcb_mpw2_dc_b          : in std_ulogic;
+  -- ABIST
     bitw_abist                  : in std_ulogic_vector(0 to 1);
     tc_lbist_ary_wrt_thru_dc    : in std_ulogic;
     abist_en_1                  : in std_ulogic;
@@ -58,26 +61,29 @@ entity tri_512x288_9 is
     data_cmp_abist              : in std_ulogic_vector(0 to 3);
     addr_abist                  : in std_ulogic_vector(0 to 8);
     r_wb_abist                  : in std_ulogic;
+  -- Scan
     abst_scan_in      : in std_ulogic_vector(0 to 1);
     time_scan_in      : in std_ulogic;
     repr_scan_in      : in std_ulogic;
     abst_scan_out     : out std_ulogic_vector(0 to 1);
     time_scan_out     : out std_ulogic;
     repr_scan_out     : out std_ulogic;
-    lcb_bolt_sl_thold_0         : in std_ulogic; 
-    pc_bo_enable_2              : in std_ulogic; 
-    pc_bo_reset                 : in std_ulogic; 
+  -- BOLT-ON
+    lcb_bolt_sl_thold_0         : in std_ulogic; -- thold for any regs inside backend
+    pc_bo_enable_2              : in std_ulogic; -- general bolt-on enable, probably DC
+    pc_bo_reset                 : in std_ulogic; -- execute sticky bit decode
     pc_bo_unload                : in std_ulogic;
-    pc_bo_repair                : in std_ulogic; 
-    pc_bo_shdata                : in std_ulogic; 
-    pc_bo_select                : in std_ulogic_vector(0 to 1); 
-    bo_pc_failout               : out std_ulogic_vector(0 to 1); 
+    pc_bo_repair                : in std_ulogic; -- load repair reg
+    pc_bo_shdata                : in std_ulogic; -- shift data for timing write
+    pc_bo_select                : in std_ulogic_vector(0 to 1); -- select for mask and hier writes
+    bo_pc_failout               : out std_ulogic_vector(0 to 1); -- fail/no-fix reg
     bo_pc_diagloop              : out std_ulogic_vector(0 to 1);
     tri_lcb_mpw1_dc_b           : in  std_ulogic;
     tri_lcb_mpw2_dc_b           : in  std_ulogic;
     tri_lcb_delay_lclkr_dc      : in  std_ulogic;
     tri_lcb_clkoff_dc_b         : in  std_ulogic;
     tri_lcb_act_dis_dc          : in  std_ulogic;
+  -- FUNCTIONAL PORTS
     write_enable      : in std_ulogic;
     bw                : in std_ulogic_vector (0 to (port_bitwidth-1));
     arr_up_addr       : in std_ulogic_vector (0 to 2);
@@ -99,7 +105,7 @@ architecture tri_512x288_9 of tri_512x288_9 is
 
 constant ramb_base_addr  : integer := 11;
 
-begin  
+begin  -- tri_512x288_9
 
   -- synopsys translate_off
   um: if expand_type = 0 generate
@@ -204,7 +210,7 @@ begin
       -- pragma translate_off
 	generic
 	(
-		SIM_COLLISION_CHECK : string := "none"); 
+		SIM_COLLISION_CHECK : string := "none"); -- all, none, warning_only, GENERATE_X_ONLY
       -- pragma translate_on
 	port
 	(
@@ -269,6 +275,7 @@ begin
             wrt_en_wAH(t) <= write_enable and bitWrt(t);
       end generate wrtEn_gen;
 
+      -- Read/Write Port Address Generate
       uh_addr <= arr_up_addr & addr & '0';
       lh_addr <= arr_up_addr & addr & '1';
 
@@ -301,6 +308,7 @@ begin
       arr0: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -327,6 +335,7 @@ begin
       arr1: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -353,6 +362,7 @@ begin
       arr2: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -379,6 +389,7 @@ begin
       arr3: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -405,6 +416,7 @@ begin
       arr4: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -431,6 +443,7 @@ begin
       arr5: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -457,6 +470,7 @@ begin
       arr6: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -483,6 +497,7 @@ begin
       arr7: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -509,6 +524,7 @@ begin
       arr8: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -535,6 +551,7 @@ begin
       arr9: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -561,6 +578,7 @@ begin
       arrA: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -587,6 +605,7 @@ begin
       arrB: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -613,6 +632,7 @@ begin
       arrC: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -639,6 +659,7 @@ begin
       arrD: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -665,6 +686,7 @@ begin
       arrE: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -691,6 +713,7 @@ begin
       arrF: RAMB16_S9_S9
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -740,4 +763,3 @@ begin
 
 
 end tri_512x288_9;
-

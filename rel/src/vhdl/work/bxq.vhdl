@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Inbox/Outbox logic for message passing between processors
+--
 
 LIBRARY ieee;     USE ieee.std_logic_1164.all ;
                   USE ieee.numeric_std.all;
@@ -21,55 +23,59 @@ LIBRARY clib;
 
 
 ENTITY bxq IS
-   generic(expand_type      : integer := 2;             
-           regmode          : integer := 6;             
-	   real_data_add    : integer := 42 );		
+   generic(expand_type      : integer := 2;             -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
+           regmode          : integer := 6;             -- 5 = 32bit mode, 6 = 64bit mode
+	   real_data_add    : integer := 42 );		-- 42 bit real address
    PORT (
      xu_bx_ccr2_en_ditc           :in     std_ulogic;
      xu_ex2_flush                 :in     std_ulogic_vector(0 to 3);
      xu_ex3_flush                 :in     std_ulogic_vector(0 to 3);
      xu_ex4_flush                 :in     std_ulogic_vector(0 to 3);
      xu_ex5_flush                 :in     std_ulogic_vector(0 to 3);
-     xu_bx_ex1_mtdp_val           :in     std_ulogic;                  
-     xu_bx_ex1_mfdp_val           :in     std_ulogic;                  
-     xu_bx_ex1_ipc_thrd            :in     std_ulogic_vector(0 to 1);   
-     xu_bx_ex2_ipc_ba              :in     std_ulogic_vector(0 to 4);   
-     xu_bx_ex2_ipc_sz              :in     std_ulogic_vector(0 to 1);   
-    xu_bx_ex4_256st_data          :in     std_ulogic_vector(0 to 127); 
+     xu_bx_ex1_mtdp_val           :in     std_ulogic;                  -- command from mtdp is valid
+     xu_bx_ex1_mfdp_val           :in     std_ulogic;                  -- command from mtdp is valid
+     xu_bx_ex1_ipc_thrd            :in     std_ulogic_vector(0 to 1);   -- Thread ID
+     xu_bx_ex2_ipc_ba              :in     std_ulogic_vector(0 to 4);   -- offset into the active 64B buffer
+     xu_bx_ex2_ipc_sz              :in     std_ulogic_vector(0 to 1);   -- size of data (00=4B, 10=16B)
+    xu_bx_ex4_256st_data          :in     std_ulogic_vector(0 to 127); -- 16B of data to put into outbox buffer
 
-     bx_xu_ex4_mtdp_cr_status     :out    std_ulogic;                  
-     bx_xu_ex4_mfdp_cr_status     :out    std_ulogic;                  
-     bx_xu_ex5_dp_data            :out    std_ulogic_vector(0 to 127); 
+     bx_xu_ex4_mtdp_cr_status     :out    std_ulogic;                  -- status (pas/fail) of the mtdp (sets CR)
+     bx_xu_ex4_mfdp_cr_status     :out    std_ulogic;                  -- status (pas/fail) of the mfdp (sets CR)
+     bx_xu_ex5_dp_data            :out    std_ulogic_vector(0 to 127); -- 16B of data from the inbox buffer
 
+     -- outputs to network or l2 from outbox
      bx_lsu_ob_pwr_tok       :out    std_ulogic;
-     bx_lsu_ob_req_val       :out    std_ulogic;                  
-     bx_lsu_ob_ditc_val      :out    std_ulogic;                  
-     bx_lsu_ob_thrd          :out    std_ulogic_vector(0 to 1);   
-     bx_lsu_ob_qw            :out    std_ulogic_vector(58 to 59); 
-     bx_lsu_ob_dest          :out    std_ulogic_vector(0 to 14);  
-     bx_lsu_ob_data          :out    std_ulogic_vector(0 to 127); 
-     bx_lsu_ob_addr          :out    std_ulogic_vector(64-real_data_add to 57); 
+     bx_lsu_ob_req_val       :out    std_ulogic;                  -- message buffer data is ready to send
+     bx_lsu_ob_ditc_val      :out    std_ulogic;                  -- send dtic command
+     bx_lsu_ob_thrd          :out    std_ulogic_vector(0 to 1);   -- source thread
+     bx_lsu_ob_qw            :out    std_ulogic_vector(58 to 59); -- quadword data pointer
+     bx_lsu_ob_dest          :out    std_ulogic_vector(0 to 14);  -- destination for the packet
+     bx_lsu_ob_data          :out    std_ulogic_vector(0 to 127); -- 16B of data from the outbox
+     bx_lsu_ob_addr          :out    std_ulogic_vector(64-real_data_add to 57); -- address for boxes message
 
-     ac_an_reld_ditc_pop        :out    std_ulogic_vector(0 to 3);   
+     ac_an_reld_ditc_pop        :out    std_ulogic_vector(0 to 3);   -- return credit from inbox (per thread)
 
-     bx_ib_empty                :out    std_ulogic_vector(0 to 3);   
-     bx_xu_quiesce              :out    std_ulogic_vector(0 to 3);   
+     bx_ib_empty                :out    std_ulogic_vector(0 to 3);   -- inbox is empty
+     bx_xu_quiesce              :out    std_ulogic_vector(0 to 3);   -- inbox and outbox are empty
 
+     -- inputs from lsu
      lsu_bx_cmd_avail           :in     std_ulogic;
      lsu_bx_cmd_sent            :in     std_ulogic;
      lsu_bx_cmd_stall           :in     std_ulogic;
 
+     -- inputs from network or l2 going to inbox
 
-     lsu_reld_data_vld        :in     std_ulogic;                      
-     lsu_reld_core_tag        :in     std_ulogic_vector(3 to 4);       
-     lsu_reld_qw              :in     std_ulogic_vector(58 to 59);       
-     lsu_reld_ditc            :in     std_ulogic;                      
-     lsu_reld_data            :in     std_ulogic_vector(0 to 127);     
-     lsu_reld_ecc_err         :in     std_ulogic;                      
+     lsu_reld_data_vld        :in     std_ulogic;                      -- reload data is coming in 2 cycles
+     lsu_reld_core_tag        :in     std_ulogic_vector(3 to 4);       -- reload data destinatoin tag (thread)
+     lsu_reld_qw              :in     std_ulogic_vector(58 to 59);       -- reload data quadword pointer
+     lsu_reld_ditc            :in     std_ulogic;                      -- reload data is for ditc (inbox)
+     lsu_reld_data            :in     std_ulogic_vector(0 to 127);     -- reload data
+     lsu_reld_ecc_err         :in     std_ulogic;                      -- reload data has ecc error
 
-     lsu_req_st_pop           :in     std_ulogic;                  
-     lsu_req_st_pop_thrd      :in     std_ulogic_vector(0 to 2);   
+     lsu_req_st_pop           :in     std_ulogic;                  -- decrement outbox credit count
+     lsu_req_st_pop_thrd      :in     std_ulogic_vector(0 to 2);   -- decrement outbox credit count
 
+     -- Slow SPR Bus
      slowspr_val_in             :in  std_ulogic;
      slowspr_rw_in              :in  std_ulogic;
      slowspr_etid_in            :in  std_ulogic_vector(0 to 1);
@@ -90,6 +96,7 @@ ENTITY bxq IS
      pc_bx_inj_inbox_ecc        :in     std_ulogic;                                              
      pc_bx_inj_outbox_ecc       :in     std_ulogic;                                                
 
+     -- debug connections
      pc_bx_trace_bus_enable     : in  std_ulogic;
      pc_bx_debug_mux1_ctrls     : in  std_ulogic_vector(0 to 15);
      trigger_data_in            : in  std_ulogic_vector(0 to 11);
@@ -98,6 +105,7 @@ ENTITY bxq IS
      debug_data_out             : out std_ulogic_vector(0 to 87);
      
 
+-- power
      vdd                        : inout power_logic;
      gnd                        : inout power_logic;
      vcs                        : inout power_logic;
@@ -163,52 +171,52 @@ ARCHITECTURE bxq OF bxq IS
 
 signal ex4_mtdp_val_gated       :std_ulogic;
 
-signal ob0_wrt_entry_ptr_d       :std_ulogic_vector(0 to 1);    
+signal ob0_wrt_entry_ptr_d       :std_ulogic_vector(0 to 1);    -- outbox thread 0 write buffer entry pointer
 signal ob0_wrt_entry_ptr_q       :std_ulogic_vector(0 to 1);
 signal ob0_set_val               :std_ulogic;
-signal ob1_wrt_entry_ptr_d       :std_ulogic_vector(0 to 1);    
+signal ob1_wrt_entry_ptr_d       :std_ulogic_vector(0 to 1);    -- outbox thread 1 write buffer entry pointer
 signal ob1_wrt_entry_ptr_q       :std_ulogic_vector(0 to 1);
 signal ob1_set_val               :std_ulogic;
-signal ob2_wrt_entry_ptr_d       :std_ulogic_vector(0 to 1);    
+signal ob2_wrt_entry_ptr_d       :std_ulogic_vector(0 to 1);    -- outbox thread 2 write buffer entry pointer
 signal ob2_wrt_entry_ptr_q       :std_ulogic_vector(0 to 1);
 signal ob2_set_val               :std_ulogic;
-signal ob3_wrt_entry_ptr_d       :std_ulogic_vector(0 to 1);    
+signal ob3_wrt_entry_ptr_d       :std_ulogic_vector(0 to 1);    -- outbox thread 3 write buffer entry pointer
 signal ob3_wrt_entry_ptr_q       :std_ulogic_vector(0 to 1);
 signal ob3_set_val               :std_ulogic;
  
-signal ob_status_reg_newdata     :std_ulogic_vector(0 to 17);     
-signal ob0_buf0_status_d         :std_ulogic_vector(0 to 17);     
-signal ob0_buf1_status_d         :std_ulogic_vector(0 to 17);     
-signal ob0_buf2_status_d         :std_ulogic_vector(0 to 17);     
-signal ob0_buf3_status_d         :std_ulogic_vector(0 to 17);     
-signal ob1_buf0_status_d         :std_ulogic_vector(0 to 17);     
-signal ob1_buf1_status_d         :std_ulogic_vector(0 to 17);     
-signal ob1_buf2_status_d         :std_ulogic_vector(0 to 17);     
-signal ob1_buf3_status_d         :std_ulogic_vector(0 to 17);     
-signal ob2_buf0_status_d         :std_ulogic_vector(0 to 17);     
-signal ob2_buf1_status_d         :std_ulogic_vector(0 to 17);     
-signal ob2_buf2_status_d         :std_ulogic_vector(0 to 17);     
-signal ob2_buf3_status_d         :std_ulogic_vector(0 to 17);     
-signal ob3_buf0_status_d         :std_ulogic_vector(0 to 17);     
-signal ob3_buf1_status_d         :std_ulogic_vector(0 to 17);     
-signal ob3_buf2_status_d         :std_ulogic_vector(0 to 17);     
-signal ob3_buf3_status_d         :std_ulogic_vector(0 to 17);     
-signal ob0_buf0_status_q         :std_ulogic_vector(0 to 17);     
-signal ob0_buf1_status_q         :std_ulogic_vector(0 to 17);     
-signal ob0_buf2_status_q         :std_ulogic_vector(0 to 17);     
-signal ob0_buf3_status_q         :std_ulogic_vector(0 to 17);     
-signal ob1_buf0_status_q         :std_ulogic_vector(0 to 17);     
-signal ob1_buf1_status_q         :std_ulogic_vector(0 to 17);     
-signal ob1_buf2_status_q         :std_ulogic_vector(0 to 17);     
-signal ob1_buf3_status_q         :std_ulogic_vector(0 to 17);     
-signal ob2_buf0_status_q         :std_ulogic_vector(0 to 17);     
-signal ob2_buf1_status_q         :std_ulogic_vector(0 to 17);     
-signal ob2_buf2_status_q         :std_ulogic_vector(0 to 17);     
-signal ob2_buf3_status_q         :std_ulogic_vector(0 to 17);     
-signal ob3_buf0_status_q         :std_ulogic_vector(0 to 17);     
-signal ob3_buf1_status_q         :std_ulogic_vector(0 to 17);     
-signal ob3_buf2_status_q         :std_ulogic_vector(0 to 17);     
-signal ob3_buf3_status_q         :std_ulogic_vector(0 to 17);     
+signal ob_status_reg_newdata     :std_ulogic_vector(0 to 17);     -- data to be written into message buffer complete and status registers
+signal ob0_buf0_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 0 buffer 0 message buffer complete register
+signal ob0_buf1_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 0 buffer 1 message buffer complete register
+signal ob0_buf2_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 0 buffer 2 message buffer complete register
+signal ob0_buf3_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 0 buffer 3 message buffer complete register
+signal ob1_buf0_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 1 buffer 0 message buffer complete register
+signal ob1_buf1_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 1 buffer 1 message buffer complete register
+signal ob1_buf2_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 1 buffer 2 message buffer complete register
+signal ob1_buf3_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 1 buffer 3 message buffer complete register
+signal ob2_buf0_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 2 buffer 0 message buffer complete register
+signal ob2_buf1_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 2 buffer 1 message buffer complete register
+signal ob2_buf2_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 2 buffer 2 message buffer complete register
+signal ob2_buf3_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 2 buffer 3 message buffer complete register
+signal ob3_buf0_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 3 buffer 0 message buffer complete register
+signal ob3_buf1_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 3 buffer 1 message buffer complete register
+signal ob3_buf2_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 3 buffer 2 message buffer complete register
+signal ob3_buf3_status_d         :std_ulogic_vector(0 to 17);     -- outbox thread 3 buffer 3 message buffer complete register
+signal ob0_buf0_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 0 buffer 0 message buffer complete register
+signal ob0_buf1_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 0 buffer 1 message buffer complete register
+signal ob0_buf2_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 0 buffer 2 message buffer complete register
+signal ob0_buf3_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 0 buffer 3 message buffer complete register
+signal ob1_buf0_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 1 buffer 0 message buffer complete register
+signal ob1_buf1_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 1 buffer 1 message buffer complete register
+signal ob1_buf2_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 1 buffer 2 message buffer complete register
+signal ob1_buf3_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 1 buffer 3 message buffer complete register
+signal ob2_buf0_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 2 buffer 0 message buffer complete register
+signal ob2_buf1_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 2 buffer 1 message buffer complete register
+signal ob2_buf2_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 2 buffer 2 message buffer complete register
+signal ob2_buf3_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 2 buffer 3 message buffer complete register
+signal ob3_buf0_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 3 buffer 0 message buffer complete register
+signal ob3_buf1_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 3 buffer 1 message buffer complete register
+signal ob3_buf2_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 3 buffer 2 message buffer complete register
+signal ob3_buf3_status_q         :std_ulogic_vector(0 to 17);     -- outbox thread 3 buffer 3 message buffer complete register
 signal wrt_ob0_buf0_status       :std_ulogic;
 signal wrt_ob0_buf1_status       :std_ulogic;
 signal wrt_ob0_buf2_status       :std_ulogic;
@@ -519,38 +527,38 @@ signal ib_t1_pop_d               :std_ulogic;
 signal ib_t2_pop_d               :std_ulogic;
 signal ib_t3_pop_d               :std_ulogic;
 
-signal ib0_buf0_val_d            :std_ulogic;     
-signal ib0_buf1_val_d            :std_ulogic;     
-signal ib0_buf2_val_d            :std_ulogic;     
-signal ib0_buf3_val_d            :std_ulogic;     
-signal ib1_buf0_val_d            :std_ulogic;     
-signal ib1_buf1_val_d            :std_ulogic;     
-signal ib1_buf2_val_d            :std_ulogic;     
-signal ib1_buf3_val_d            :std_ulogic;     
-signal ib2_buf0_val_d            :std_ulogic;     
-signal ib2_buf1_val_d            :std_ulogic;     
-signal ib2_buf2_val_d            :std_ulogic;     
-signal ib2_buf3_val_d            :std_ulogic;     
-signal ib3_buf0_val_d            :std_ulogic;     
-signal ib3_buf1_val_d            :std_ulogic;     
-signal ib3_buf2_val_d            :std_ulogic;     
-signal ib3_buf3_val_d            :std_ulogic;     
-signal ib0_buf0_val_q            :std_ulogic;     
-signal ib0_buf1_val_q            :std_ulogic;     
-signal ib0_buf2_val_q            :std_ulogic;     
-signal ib0_buf3_val_q            :std_ulogic;     
-signal ib1_buf0_val_q            :std_ulogic;     
-signal ib1_buf1_val_q            :std_ulogic;     
-signal ib1_buf2_val_q            :std_ulogic;     
-signal ib1_buf3_val_q            :std_ulogic;     
-signal ib2_buf0_val_q            :std_ulogic;     
-signal ib2_buf1_val_q            :std_ulogic;     
-signal ib2_buf2_val_q            :std_ulogic;     
-signal ib2_buf3_val_q            :std_ulogic;     
-signal ib3_buf0_val_q            :std_ulogic;     
-signal ib3_buf1_val_q            :std_ulogic;     
-signal ib3_buf2_val_q            :std_ulogic;     
-signal ib3_buf3_val_q            :std_ulogic;     
+signal ib0_buf0_val_d            :std_ulogic;     -- outbox thread 0 buffer 0 val register
+signal ib0_buf1_val_d            :std_ulogic;     -- outbox thread 0 buffer 1 val register
+signal ib0_buf2_val_d            :std_ulogic;     -- outbox thread 0 buffer 2 val register
+signal ib0_buf3_val_d            :std_ulogic;     -- outbox thread 0 buffer 3 val register
+signal ib1_buf0_val_d            :std_ulogic;     -- outbox thread 1 buffer 0 val register
+signal ib1_buf1_val_d            :std_ulogic;     -- outbox thread 1 buffer 1 val register
+signal ib1_buf2_val_d            :std_ulogic;     -- outbox thread 1 buffer 2 val register
+signal ib1_buf3_val_d            :std_ulogic;     -- outbox thread 1 buffer 3 val register
+signal ib2_buf0_val_d            :std_ulogic;     -- outbox thread 2 buffer 0 val register
+signal ib2_buf1_val_d            :std_ulogic;     -- outbox thread 2 buffer 1 val register
+signal ib2_buf2_val_d            :std_ulogic;     -- outbox thread 2 buffer 2 val register
+signal ib2_buf3_val_d            :std_ulogic;     -- outbox thread 2 buffer 3 val register
+signal ib3_buf0_val_d            :std_ulogic;     -- outbox thread 3 buffer 0 val register
+signal ib3_buf1_val_d            :std_ulogic;     -- outbox thread 3 buffer 1 val register
+signal ib3_buf2_val_d            :std_ulogic;     -- outbox thread 3 buffer 2 val register
+signal ib3_buf3_val_d            :std_ulogic;     -- outbox thread 3 buffer 3 val register
+signal ib0_buf0_val_q            :std_ulogic;     -- outbox thread 0 buffer 0 val register
+signal ib0_buf1_val_q            :std_ulogic;     -- outbox thread 0 buffer 1 val register
+signal ib0_buf2_val_q            :std_ulogic;     -- outbox thread 0 buffer 2 val register
+signal ib0_buf3_val_q            :std_ulogic;     -- outbox thread 0 buffer 3 val register
+signal ib1_buf0_val_q            :std_ulogic;     -- outbox thread 1 buffer 0 val register
+signal ib1_buf1_val_q            :std_ulogic;     -- outbox thread 1 buffer 1 val register
+signal ib1_buf2_val_q            :std_ulogic;     -- outbox thread 1 buffer 2 val register
+signal ib1_buf3_val_q            :std_ulogic;     -- outbox thread 1 buffer 3 val register
+signal ib2_buf0_val_q            :std_ulogic;     -- outbox thread 2 buffer 0 val register
+signal ib2_buf1_val_q            :std_ulogic;     -- outbox thread 2 buffer 1 val register
+signal ib2_buf2_val_q            :std_ulogic;     -- outbox thread 2 buffer 2 val register
+signal ib2_buf3_val_q            :std_ulogic;     -- outbox thread 2 buffer 3 val register
+signal ib3_buf0_val_q            :std_ulogic;     -- outbox thread 3 buffer 0 val register
+signal ib3_buf1_val_q            :std_ulogic;     -- outbox thread 3 buffer 1 val register
+signal ib3_buf2_val_q            :std_ulogic;     -- outbox thread 3 buffer 2 val register
+signal ib3_buf3_val_q            :std_ulogic;     -- outbox thread 3 buffer 3 val register
 signal ib0_rd_val_reg            :std_ulogic;
 signal ib1_rd_val_reg            :std_ulogic;
 signal ib2_rd_val_reg            :std_ulogic;
@@ -657,7 +665,6 @@ signal ib_abst_scan_out          :std_ulogic;
 signal ob_time_scan_out          :std_ulogic;
 signal ib_time_scan_out          :std_ulogic;
 signal ob_repr_scan_out          :std_ulogic;
-
 
 signal lat_reld_data_val         :std_ulogic;
 signal lat_reld_ditc             :std_ulogic;
@@ -774,27 +781,29 @@ signal my_ex6_flush_q          :std_ulogic_vector(0 to 3);
 signal my_ex4_stg_flush        :std_ulogic;
 signal my_ex5_stg_flush        :std_ulogic;
 signal my_ex6_stg_flush        :std_ulogic;
-signal ex2_mfdp_val_q         :std_ulogic;                  
-signal ex3_mfdp_val_q         :std_ulogic;                  
-signal ex4_mfdp_val_q         :std_ulogic;                  
-signal ex5_mfdp_val_q         :std_ulogic;                  
-signal ex6_mfdp_val_q         :std_ulogic;                  
-signal ex3_mtdp_val           :std_ulogic;                  
-signal ex2_mtdp_val_q         :std_ulogic;                  
-signal ex3_mtdp_val_q         :std_ulogic;                  
-signal ex2_ipc_thrd_q          :std_ulogic_vector(0 to 1);   
-signal ex3_ipc_thrd_q          :std_ulogic_vector(0 to 1);   
-signal ex3_ipc_ba_q            :std_ulogic_vector(0 to 4);   
-signal ex3_ipc_sz_q            :std_ulogic_vector(0 to 1);   
-signal ex4_mtdp_val_q         :std_ulogic;                  
-signal ex5_mtdp_val_q         :std_ulogic;                  
-signal ex6_mtdp_val_q         :std_ulogic;                  
-signal ex7_mtdp_val_q         :std_ulogic;                  
-signal ex4_ipc_thrd_q          :std_ulogic_vector(0 to 1);   
-signal ex5_ipc_thrd_q          :std_ulogic_vector(0 to 1);   
-signal ex6_ipc_thrd_q          :std_ulogic_vector(0 to 1);   
-signal ex4_ipc_ba_q            :std_ulogic_vector(0 to 4);   
-signal ex4_ipc_sz_q            :std_ulogic_vector(0 to 1);   
+signal ex2_mfdp_val_q         :std_ulogic;                  -- command from mtdp is valid
+signal ex3_mfdp_val_q         :std_ulogic;                  -- command from mtdp is valid
+signal ex4_mfdp_val_q         :std_ulogic;                  -- command from mtdp is valid
+signal ex5_mfdp_val_q         :std_ulogic;                  -- command from mtdp is valid
+signal ex6_mfdp_val_q         :std_ulogic;                  -- command from mtdp is valid
+signal ex3_mtdp_val           :std_ulogic;                  -- command from mtdp is valid
+signal ex2_mtdp_val_q         :std_ulogic;                  -- command from mtdp is valid
+signal ex3_mtdp_val_q         :std_ulogic;                  -- command from mtdp is valid
+signal ex2_ipc_thrd_q          :std_ulogic_vector(0 to 1);   -- Thread ID
+signal ex3_ipc_thrd_q          :std_ulogic_vector(0 to 1);   -- Thread ID
+signal ex3_ipc_ba_q            :std_ulogic_vector(0 to 4);   -- offset into the active 64B buffer
+signal ex3_ipc_sz_q            :std_ulogic_vector(0 to 1);   -- size of data (00=4B, 10=16B)
+signal ex4_mtdp_val_q         :std_ulogic;                  -- command from mtdp is valid
+signal ex5_mtdp_val_q         :std_ulogic;                  -- command from mtdp is valid
+signal ex6_mtdp_val_q         :std_ulogic;                  -- command from mtdp is valid
+signal ex7_mtdp_val_q         :std_ulogic;                  -- command from mtdp is valid
+signal ex4_ipc_thrd_q          :std_ulogic_vector(0 to 1);   -- Thread ID
+signal ex5_ipc_thrd_q          :std_ulogic_vector(0 to 1);   -- Thread ID
+signal ex6_ipc_thrd_q          :std_ulogic_vector(0 to 1);   -- Thread ID
+signal ex4_ipc_ba_q            :std_ulogic_vector(0 to 4);   -- offset into the active 64B buffer
+signal ex4_ipc_sz_q            :std_ulogic_vector(0 to 1);   -- size of data (00=4B, 10=16B)
+--signal ex4_256st_data_q        :std_ulogic_vector(0 to 127); -- 16B of data to put into outbox buffer
+--signal ex4_256st_data_par_q    :std_ulogic_vector(0 to 15);  -- parity accross the st_data
 signal ex3_mtdp_cr_status     :std_ulogic;
 signal ex4_mtdp_cr_status     :std_ulogic;
 signal ex3_mfdp_cr_status     :std_ulogic;
@@ -1090,7 +1099,6 @@ constant ib2_rd_entry_ptr_dly_offset       : natural :=ib1_rd_entry_ptr_dly_offs
 constant ib3_rd_entry_ptr_dly_offset       : natural :=ib2_rd_entry_ptr_dly_offset  + ib2_rd_entry_ptr_dly_q'length;
 
 
-
 constant ib_err_inj_offset                 : natural :=ib3_rd_entry_ptr_dly_offset  + ib3_rd_entry_ptr_dly_q'length;
 constant ex5_inbox_data_cor_offset         : natural :=ib_err_inj_offset            + 1;
 constant ib_ary_sbe_offset                 : natural :=ex5_inbox_data_cor_offset    + ex5_inbox_data_cor'length;
@@ -1163,6 +1171,9 @@ unused_signals <= or_reduce(unused & delay_lclkr_dc_v(1 to 4) & mpw1_dc_b_v(1 to
 
 dp_op_val <= mtdp_ex3_to_7_val or ex3_mfdp_val_q or ex4_mfdp_val_q or ex5_mfdp_val_q or ex6_mfdp_val_q;
 
+--**********************************************************************************************
+-- Latch XU interface signals
+--**********************************************************************************************
 
 latch_my_ex3_flush : tri_rlmreg_p
   generic map (width => my_ex3_flush_q'length, init => 0, expand_type => expand_type)
@@ -1537,34 +1548,43 @@ latch_ex3_ipc_sz : tri_rlmreg_p
             din     => xu_bx_ex2_ipc_sz(0 to 1),
             dout    => ex3_ipc_sz_q(0 to 1) );
 
-
+-- XXXXXXXXXXXXXXXXXX
+-- Slow SPR's
+-- XXXXXXXXXXXXXXXXXX
 
 ditc_addr_sel <= (bx_slowspr_addr_q = "11" & x"DF");
 
 ditc_addr_wen <= bx_slowspr_val_q and ditc_addr_sel and not bx_slowspr_rw_q;
 
+-- SLOWSPR Writes
 
+-- Thread 0 SlowSPR Register
 ditc_addr_t0_wen   <= ditc_addr_wen and (bx_slowspr_etid_q = "00");
 
 ditc_addr_t0_d <= bx_slowspr_data_q(64-real_data_add to 57) when ditc_addr_t0_wen='1' else 
                   ditc_addr_t0_q;
 
+-- Thread 1 SlowSPR Register
 ditc_addr_t1_wen   <= ditc_addr_wen and (bx_slowspr_etid_q = "01");
 
 ditc_addr_t1_d <= bx_slowspr_data_q(64-real_data_add to 57) when ditc_addr_t1_wen='1' else 
                   ditc_addr_t1_q;
 
+-- Thread 2 SlowSPR Register
 ditc_addr_t2_wen   <= ditc_addr_wen and (bx_slowspr_etid_q = "10");
 
 ditc_addr_t2_d <= bx_slowspr_data_q(64-real_data_add to 57) when ditc_addr_t2_wen='1' else 
                   ditc_addr_t2_q;
 
+-- Thread 3 SlowSPR Register
 ditc_addr_t3_wen   <= ditc_addr_wen and (bx_slowspr_etid_q = "11");
 
 ditc_addr_t3_d <= bx_slowspr_data_q(64-real_data_add to 57) when ditc_addr_t3_wen='1' else 
                   ditc_addr_t3_q;
 
 
+-- SLOWSPR Read
+-- Thread Register Selection
 with bx_slowspr_etid_q select
     ditc_addr_reg(64-real_data_add to 57) <= ditc_addr_t0_q when "00",
                                              ditc_addr_t1_q when "01",
@@ -1574,11 +1594,13 @@ with bx_slowspr_etid_q select
 ditc_addr_reg(64-(2**REGMODE) to 64-real_data_add-1) <= (others=>'0');
 ditc_addr_reg(58 to 63)                              <= (others=>'0');
 
+-- SlowSPR Selection
 ditc_addr_rd_val <= bx_slowspr_val_q and ditc_addr_sel and bx_slowspr_rw_q;
 
 xu_slowspr_data_d <= ditc_addr_reg        when ditc_addr_rd_val='1' else 
                      bx_slowspr_data_q;
 
+-- Operation Complete
 xu_slowspr_done_d <= (bx_slowspr_val_q and ditc_addr_sel) or bx_slowspr_done_q;
 
 
@@ -1876,11 +1898,19 @@ latch_ditc_addr_t3 : tri_rlmreg_p
             din     => ditc_addr_t3_d,
             dout    => ditc_addr_t3_q );
 
-
+-- ********************************************************************************************
+--
+-- OUTBOX
+--
+-- ********************************************************************************************
 
 ex4_mtdp_val_gated <= ex4_mtdp_val_q and not my_ex4_stg_flush;
 
 
+--**********************************************************************************************
+-- increment outbox buffer write pointer when message buffer complete reg is written valid
+-- there is one buffer pointer per thread
+--**********************************************************************************************
 
 ob0_wrt_entry_ptr_d <= std_ulogic_vector(unsigned(ob0_wrt_entry_ptr_q) + 1)  when ob0_set_val='1'   else
                        std_ulogic_vector(unsigned(ob0_wrt_entry_ptr_q) - 1)  when (ex5_ob0_flushed xor ex6_ob0_flushed)='1'   else
@@ -1902,6 +1932,18 @@ ob3_wrt_entry_ptr_d <= std_ulogic_vector(unsigned(ob3_wrt_entry_ptr_q) + 1)  whe
                        std_ulogic_vector(unsigned(ob3_wrt_entry_ptr_q) - 2)  when (ex5_ob3_flushed and ex6_ob3_flushed)='1'   else
                        ob3_wrt_entry_ptr_q(0 to 1);
 
+--**********************************************************************************************************
+-- Dealing with flushed ops:
+--
+-- In order to deal with flushed ops up until ex5, these pointers will be pipeline staged until ex5.
+-- If the op is flushed in ex5, the new pointer will be loaded from the staged ex5 pointer.
+-- An additional bit for each message buffer complete reg will get set in ex5 if the op is not flushed.
+-- Before the buffer is eligible to be sent to node, both the valid and committed bits must be set (could
+-- probably just look at the committed bit which will not be set unless the valid is on).  If the
+-- committed bit is not set in ex5 because of a flush, then the messge buffer complete reg should be
+-- cleared.
+-- Probably have to stage the thread ID until ex5 too so that I know which buffer to use in ex5.
+--**********************************************************************************************************
 
 
 latch_ob0_wrt_entry_ptr : tri_rlmreg_p
@@ -1976,11 +2018,15 @@ latch_ob3_wrt_entry_ptr : tri_rlmreg_p
             din     => ob3_wrt_entry_ptr_d(0 to 1),
             dout    => ob3_wrt_entry_ptr_q(0 to 1) );
 
+--****************************************************************************
+-- write to the data port message buffer complete register when BA = 10001
+-- since ba(3:4)=01 the rotator will put the data on word 1
+--****************************************************************************
 
-ob_status_reg_newdata(0 to 17) <= xu_bx_ex4_256st_data(32) &               
-                                  xu_bx_ex4_256st_data(33 to 34) &         
-                                  xu_bx_ex4_256st_data(49 to 55) &         
-                                  xu_bx_ex4_256st_data(56 to 63);          
+ob_status_reg_newdata(0 to 17) <= xu_bx_ex4_256st_data(32) &               -- valid bit
+                                  xu_bx_ex4_256st_data(33 to 34) &         -- length
+                                  xu_bx_ex4_256st_data(49 to 55) &         -- dest node
+                                  xu_bx_ex4_256st_data(56 to 63);          -- dest thread
 
 wrt_ob0_buf0_status <= not ob0_buf0_status_avail and ex4_mtdp_val_gated and (ex4_ipc_thrd_q = "00") and (ex4_ipc_ba_q = "10001") and (ob0_wrt_entry_ptr_q = "00");
 wrt_ob0_buf1_status <= not ob0_buf1_status_avail and ex4_mtdp_val_gated and (ex4_ipc_thrd_q = "00") and (ex4_ipc_ba_q = "10001") and (ob0_wrt_entry_ptr_q = "01");
@@ -2004,6 +2050,7 @@ ob1_set_val <= wrt_ob1_buf0_status or wrt_ob1_buf1_status or wrt_ob1_buf2_status
 ob2_set_val <= wrt_ob2_buf0_status or wrt_ob2_buf1_status or wrt_ob2_buf2_status or wrt_ob2_buf3_status;
 ob3_set_val <= wrt_ob3_buf0_status or wrt_ob3_buf1_status or wrt_ob3_buf2_status or wrt_ob3_buf3_status;
 
+-- remember which status reg written last cycle
 
 ex4_wrt_ob_status(0 to 15) <=  wrt_ob0_buf0_status & wrt_ob0_buf1_status & wrt_ob0_buf2_status & wrt_ob0_buf3_status &
                                wrt_ob1_buf0_status & wrt_ob1_buf1_status & wrt_ob1_buf2_status & wrt_ob1_buf3_status &
@@ -2561,7 +2608,7 @@ latch_ob_buf_status_avail : tri_rlmreg_p
             din     => ob_buf_status_avail_d,
             dout    => ob_buf_status_avail_q );
 
-ob0_buf0_status_val <= ob_buf_status_avail_q(0) and not ex6_ob0_buf0_flushed;  
+ob0_buf0_status_val <= ob_buf_status_avail_q(0) and not ex6_ob0_buf0_flushed;  -- buffer ready to go out to node if not flushed
 ob0_buf1_status_val <= ob_buf_status_avail_q(1) and not ex6_ob0_buf1_flushed;
 ob0_buf2_status_val <= ob_buf_status_avail_q(2) and not ex6_ob0_buf2_flushed;
 ob0_buf3_status_val <= ob_buf_status_avail_q(3) and not ex6_ob0_buf3_flushed;
@@ -2579,6 +2626,9 @@ ob3_buf2_status_val <= ob_buf_status_avail_q(14) and not ex6_ob3_buf2_flushed;
 ob3_buf3_status_val <= ob_buf_status_avail_q(15) and not ex6_ob3_buf3_flushed;
 
 
+--****************************************************************************
+-- outbox array write address
+--****************************************************************************
 
 with ex4_ipc_thrd_q(0 to 1) select 
    ob_wrt_entry_ptr(0 to 1) <= ob0_wrt_entry_ptr_q(0 to 1)   when "00",
@@ -2588,6 +2638,9 @@ with ex4_ipc_thrd_q(0 to 1) select
 
 ob_wrt_addr(0 to 5) <= ex4_ipc_thrd_q(0 to 1) & ob_wrt_entry_ptr(0 to 1) & ex4_ipc_ba_q(1 to 2);
 
+--****************************************************************************
+-- outbox array write enable
+--****************************************************************************
 ob_buf_status_val <= (ob0_buf0_status_avail and (ex4_ipc_thrd_q="00") and ob0_wrt_entry_ptr_q="00") or
                      (ob0_buf1_status_avail and (ex4_ipc_thrd_q="00") and ob0_wrt_entry_ptr_q="01") or
                      (ob0_buf2_status_avail and (ex4_ipc_thrd_q="00") and ob0_wrt_entry_ptr_q="10") or
@@ -2619,6 +2672,9 @@ ob_wen(3) <= ex4_mtdp_val_gated and not ob_buf_status_val and ex4_ipc_ba_q(0)='0
                (ex4_ipc_ba_q(3 to 4)="10" and ex4_ipc_sz_q="01")    );
 
 
+--****************************************************************************
+-- determine pass/fail CR status of mtdp
+--****************************************************************************
 
 ex3_ob_buf_status_val <= (ob0_buf0_status_avail and (ex3_ipc_thrd_q="00") and ob0_wrt_entry_ptr_d="00") or
                          (ob0_buf1_status_avail and (ex3_ipc_thrd_q="00") and ob0_wrt_entry_ptr_d="01") or
@@ -2638,7 +2694,7 @@ ex3_ob_buf_status_val <= (ob0_buf0_status_avail and (ex3_ipc_thrd_q="00") and ob
                          (ob3_buf3_status_avail and (ex3_ipc_thrd_q="11") and ob3_wrt_entry_ptr_d="11");
 
 
-ex3_mtdp_cr_status <= ex3_mtdp_val and (not ex3_ob_buf_status_val or (ex3_ipc_ba_q = "10000"));   
+ex3_mtdp_cr_status <= ex3_mtdp_val and (not ex3_ob_buf_status_val or (ex3_ipc_ba_q = "10000"));   -- 1=mtdp passed, 0=mtdp failed
 
 latch_ex4_mtdp_cr_status : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)
@@ -2661,6 +2717,7 @@ latch_ex4_mtdp_cr_status : tri_rlmreg_p
 bx_xu_ex4_mtdp_cr_status <= ex4_mtdp_cr_status;
 
 
+-- latch data for ecc gen before writing array
 latch_ob_wrt_data : tri_rlmreg_p
   generic map (width => ob_ary_wrt_data_l2'length, init => 0, expand_type => expand_type)  
   port map (nclk    => nclk,
@@ -2715,6 +2772,8 @@ latch_ob_ary_wrt_addr : tri_rlmreg_p
             din     => ob_wrt_addr,
             dout    => ob_ary_wrt_addr_l2 );
 
+-- setting check bits to 1s causes the ecc bits to be inverted which will cause the downstream
+-- ecccgen to produce an inverted syn which is what eccchk wants.
 ob_di_eccgen0:  entity work.xuq_eccgen(xuq_eccgen)
    generic map ( regsize => 32 )
    port map(din(0 to 31)  => ob_ary_wrt_data_l2(0 to 31),
@@ -2740,6 +2799,9 @@ ob_di_eccgen3:  entity work.xuq_eccgen(xuq_eccgen)
             syn           => ob_datain_ecc3  );
 
 
+--****************************************************************************
+-- outbox error inject
+--****************************************************************************
 
 latch_ob_err_inj : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)
@@ -2761,10 +2823,14 @@ latch_ob_err_inj : tri_rlmreg_p
 
 ob_ary_wrt_data_0 <= ob_ary_wrt_data_l2(0) xor ob_err_inj_q;
 
+--****************************************************************************
+-- outbox array
+--****************************************************************************
 
 ob_array:  entity tri.tri_64x42_4w_1r1w(tri_64x42_4w_1r1w)
   generic map ( expand_type => expand_type )
   port map(
+-- functional ports
     wr_way               => ob_ary_wen_l2(0 to 3),
     wr_adr               => ob_ary_wrt_addr_l2(0 to 5),
 
@@ -2803,6 +2869,7 @@ ob_array:  entity tri.tri_64x42_4w_1r1w(tri_64x42_4w_1r1w)
     do0(158 to 164)      => ob_rd_data_ecc3(0 to 6),
     do0(165 to 167)      => unused(9 to 11),
 
+   -- ABIST
    abist_di              => abist_di_0,
    abist_bw_odd          => abist_g8t_bw_1,
    abist_bw_even         => abist_g8t_bw_0,
@@ -2816,6 +2883,7 @@ ob_array:  entity tri.tri_64x42_4w_1r1w(tri_64x42_4w_1r1w)
    abist_raw_dc_b        => pc_bx_abist_raw_dc_b,
    obs0_abist_cmp        => abist_g8t_dcomp,
 
+   -- BOLT-ON
    lcb_bolt_sl_thold_0   => bolt_sl_thold_0,
    pc_bo_enable_2        => bolt_enable_2,
    pc_bo_reset           => pc_bx_bo_reset,
@@ -2831,6 +2899,7 @@ ob_array:  entity tri.tri_64x42_4w_1r1w(tri_64x42_4w_1r1w)
    tri_lcb_clkoff_dc_b  => clkoff_dc_b,
    tri_lcb_act_dis_dc   => tidn,
 
+-- pervasive ports
     gnd                 => gnd,
     vdd                 => vdd,
     vcs                 => vcs,
@@ -2867,6 +2936,9 @@ ob_array:  entity tri.tri_64x42_4w_1r1w(tri_64x42_4w_1r1w)
 );
 
 
+--****************************************************************************
+-- Latch output of array
+--****************************************************************************
 
 latch_ob_rd_data1 : tri_rlmreg_p
   generic map (width => ob_rd_data1_l2'length, init => 0, expand_type => expand_type)  
@@ -2958,6 +3030,9 @@ latch_ob_rd_data_ecc3 : tri_rlmreg_p
             din     => ob_rd_data_ecc3(0 to 6),
             dout    => ob_rd_data_ecc3_l2 );
 
+--****************************************************************************
+-- Check OB data for ECC error
+--****************************************************************************
 
 
 
@@ -3083,6 +3158,7 @@ latch_ob_rd_data_cor : tri_rlmreg_p
             din     => ob_rd_data_cor(0 to 127),
             dout    => ob_rd_data_cor_l2 );
 
+-- latch parity error and send to pervasive
 
 
 latch_outbox_ecc_err : tri_rlmreg_p
@@ -3135,6 +3211,10 @@ latch_outbox_ue : tri_rlmreg_p
       , err_out(1)      => bx_pc_err_outbox_ue
      );
 
+--****************************************************************************
+-- increment outbox buffer read pointer when message buffer complete reg valid is reset
+-- there is one buffer pointer per thread
+--****************************************************************************
 
 ob0_rd_entry_ptr_d <= std_ulogic_vector(unsigned(ob0_rd_entry_ptr_q) + 1)  when ob0_buf_done='1'      else
                       ob0_rd_entry_ptr_q(0 to 1);
@@ -3220,6 +3300,9 @@ latch_ob3_rd_entry_ptr : tri_rlmreg_p
             din     => ob3_rd_entry_ptr_d(0 to 1),
             dout    => ob3_rd_entry_ptr_q(0 to 1) );
 
+--****************************************************************************
+-- use read pointer to select message buffer complete reg for each thread
+--****************************************************************************
 
 with ob0_rd_entry_ptr_q(0 to 1) select
    ob0_to_nd_status_reg <= ob0_buf0_status_val & ob0_buf0_status_q(1 to 17)   when "00",
@@ -3245,7 +3328,59 @@ with ob3_rd_entry_ptr_q(0 to 1) select
                            ob3_buf2_status_val & ob3_buf2_status_q(1 to 17)   when "10",
                            ob3_buf3_status_val & ob3_buf3_status_q(1 to 17)   when others;
 
+--****************************************************************************
+-- Determine which thread gets selected to send to node
+--
+-- This logic is best described with this table macro
+-- the AND OR equations from the table are written below
+--****************************************************************************
 
+--
+-- ?TABLE ob_to_node_sel LISTING(final) OPTIMIZE PARMS(ON-SET,OFF-SET);
+-- *INPUTS*=================================================*OUTPUTS*=====================*
+-- |                                                        |                             |
+-- | ob0_to_nd_status_reg                                   | ob_to_node_sel_d            |
+-- | | ob1_to_nd_status_reg                                 | |                           |
+-- | | | ob2_to_nd_status_reg                               | |                           |
+-- | | | | ob3_to_nd_status_reg                             | |                           |
+-- | | | | |  ob_to_node_sel_q                              | |         ob_to_nd_val      |
+-- | | | | |  |     send_ob_idle                            | |         |                 |
+-- | | | | |  |     |                                       | |         |                 |
+-- | 0 0 0 0  0123  |                                       | 0123      |                 |
+-- *TYPE*===================================================+=============================+
+-- | . . . .  ....  .                                       | ....      .                 |
+-- *OPTIMIZE*---------------------------------------------->| AAAA      B                 |
+-- *TERMS*==================================================+=============================+
+-- | 0 0 0 0  0001  -                                       | 0001      0                 |
+-- | 0 0 0 0  0010  -                                       | 0010      0                 |
+-- | 0 0 0 0  0100  -                                       | 0100      0                 |
+-- | 0 0 0 0  1000  -                                       | 1000      0                 |
+-- | - - - -  0001  0                                       | 0001      0                 |
+-- | - - - -  0010  0                                       | 0010      0                 |
+-- | - - - -  0100  0                                       | 0100      0                 |
+-- | - - - -  1000  0                                       | 1000      0                 |
+-- *========================================================+=============================+
+-- | 1 - - -  0001  1                                       | 1000      1                 |
+-- | 0 1 - -  0001  1                                       | 0100      1                 |
+-- | 0 0 1 -  0001  1                                       | 0010      1                 |
+-- | 0 0 0 1  0001  1                                       | 0001      1                 |
+-- *========================================================+=============================+
+-- | - 1 - -  1000  1                                       | 0100      1                 |
+-- | - 0 1 -  1000  1                                       | 0010      1                 |
+-- | - 0 0 1  1000  1                                       | 0001      1                 |
+-- | 1 0 0 0  1000  1                                       | 1000      1                 |
+-- *========================================================+=============================+
+-- | - - 1 -  0100  1                                       | 0010      1                 |
+-- | - - 0 1  0100  1                                       | 0001      1                 |
+-- | 1 - 0 0  0100  1                                       | 1000      1                 |
+-- | 0 1 0 0  0100  1                                       | 0100      1                 |
+-- *========================================================+=============================+
+-- | - - - 1  0010  1                                       | 0001      1                 |
+-- | 1 - - 0  0010  1                                       | 1000      1                 |
+-- | 0 1 - 0  0010  1                                       | 0100      1                 |
+-- | 0 0 1 0  0010  1                                       | 0010      1                 |
+-- *END*====================================================+=============================+
+-- ?TABLE END ob_to_node_sel ;
 
 ob_to_nd_status_reg_vals(0 to 3) <= ob0_to_nd_status_reg(0) &
                                     ob1_to_nd_status_reg(0) & 
@@ -3278,6 +3413,7 @@ ob_to_node_sel_d(3) <= (ob_to_nd_status_reg_vals(3) and ob_to_node_sel_q(2)) or
                        (ob_to_node_sel_q(3) and ob_to_nd_status_reg_vals(0 to 3)="0000" );
 
 
+-- latch the outbox to node select
 
 latch_ob_to_node_sel : tri_rlmreg_p
   generic map (width => ob_to_node_sel_q'length, init => 1, expand_type => expand_type)
@@ -3330,7 +3466,29 @@ ob_to_nd_val_t2 <= send_ob_idle and ob2_to_nd_status_reg(0) and ob_to_node_sel_q
 ob_to_nd_val_t3 <= send_ob_idle and ob3_to_nd_status_reg(0) and ob_to_node_sel_q(3);
 
 
+-- delay the ipc outbox command 1 cycle so that it lines up with the data
+--latch_ipc_ob_cmd : tri_rlmreg_p
+--  generic map (width => ipc_ob_cmd_q'length, init => 0, expand_type => expand_type)
+--  port map (nclk    => nclk,
+--            act     => '1',
+--            forcee   => func_sl_force,
+--            d_mode  => d_mode_dc,
+--            delay_lclkr => delay_lclkr_dc,
+--            mpw1_b  => mpw1_dc_b,
+--            mpw2_b  => mpw2_dc_b,
+--            thold_b => func_sl_thold_0_b,
+--            sg      => sg_0,
+--            vd      => vdd,
+--            gd      => gnd,
+--            sreset  => func_sl_thold_0_b,
+--            scin    => siv(ipc_ob_cmd_offset to ipc_ob_cmd_offset + ipc_ob_cmd_q'length-1),
+--            scout   => sov(ipc_ob_cmd_offset to ipc_ob_cmd_offset + ipc_ob_cmd_q'length-1),
+--            din     => ob_to_node_status_reg(0 to 18),
+--            dout    => ipc_ob_cmd_q(0 to 18) );
 
+--****************************************************************************
+-- LSU interface
+--****************************************************************************
 
 latch_lsu_cmd_avail : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)  
@@ -3387,6 +3545,18 @@ latch_lsu_cmd_stall : tri_rlmreg_p
             dout(0) => lsu_cmd_stall_q );
 
 
+--****************************************************************************
+-- outbox data transfer stall counter:  Counts OB commands that have been
+-- sent from the LSU and keeps track of which one needs to be resent when
+-- the LSU stalls.
+--
+-- 000 -> no transfers sent from LSU,            resend the 2nd data beat on a stall
+-- 001 -> count the 1st transfer sent from LSU,  resend the 3rd data beat on a stall
+-- 010 -> count the 2nd transfer sent from LSU,  resend the 4rd data beat on a stall
+-- 011 -> count the 3rd transfer sent from LSU,  resend the DITC on a stall
+-- 100 -> count the 4th transfer sent from LSU,  LSU already has DITC - don't need to resend
+-- 101 -> count the DITC transfer sent from LSU, OB message is done
+--****************************************************************************
 
 ob_cmd_sent_count_d(0 to 2) <= "000"                                                 when ob_to_nd_done_d = '1' else
                                std_ulogic_vector(unsigned(ob_cmd_sent_count_q) + 1)  when lsu_cmd_sent_q  = '1' else
@@ -3411,15 +3581,18 @@ latch_ob_cmd_sent_count : tri_rlmreg_p
             din     => ob_cmd_sent_count_d(0 to 2),
             dout    => ob_cmd_sent_count_q(0 to 2) );
 
+--****************************************************************************
+-- State machine for sending packet from outbox to node
+--****************************************************************************
 
 ob_to_nd_ready <= ((ob_to_nd_val_t0 and ob_credit_t0) or
                    (ob_to_nd_val_t1 and ob_credit_t1) or 
                    (ob_to_nd_val_t2 and ob_credit_t2) or 
                    (ob_to_nd_val_t3 and ob_credit_t3)) and lsu_cmd_avail_q;
 
-ob_lsu_complete <= (((ob_cmd_sent_count_q = "100") and (ob_to_node_status_reg(1 to 2) = "11")) or    
-                    ((ob_cmd_sent_count_q = "011") and (ob_to_node_status_reg(1 to 2) = "10")) or    
-                    ((ob_cmd_sent_count_q = "010") and (ob_to_node_status_reg(1 to 2) = "01")) or    
+ob_lsu_complete <= (((ob_cmd_sent_count_q = "100") and (ob_to_node_status_reg(1 to 2) = "11")) or    -- len is 64B
+                    ((ob_cmd_sent_count_q = "011") and (ob_to_node_status_reg(1 to 2) = "10")) or    -- len is 48B
+                    ((ob_cmd_sent_count_q = "010") and (ob_to_node_status_reg(1 to 2) = "01")) or    -- len is 32B
                     ((ob_cmd_sent_count_q = "001") and (ob_to_node_status_reg(1 to 2) = "00")))    and lsu_cmd_sent_q;
 
 send_ob_idle  <= send_ob_state_q(6);
@@ -3453,7 +3626,7 @@ send_ob_state_mach:  process(send_ob_idle, send_ob_data1, send_ob_data2, send_ob
       if  ob_ary_ue_or = '1' then
          send_ob_nxt_idle <= '1';
          ob_to_nd_done_d <= '1';
-      elsif ob_to_node_status_reg(1 to 2) = "00" then     
+      elsif ob_to_node_status_reg(1 to 2) = "00" then     -- length of transfer is 16B
          send_ob_nxt_ditc <= '1';
       else 
          send_ob_nxt_data2 <= '1';
@@ -3465,12 +3638,12 @@ send_ob_state_mach:  process(send_ob_idle, send_ob_data1, send_ob_data2, send_ob
          send_ob_nxt_idle <= '1';
          ob_to_nd_done_d <= '1';
       elsif lsu_cmd_stall_q = '0' then 
-         if ob_to_node_status_reg(1 to 2) = "01" then     
+         if ob_to_node_status_reg(1 to 2) = "01" then     -- length of transfer is 32B
             send_ob_nxt_ditc <= '1';
          else 
             send_ob_nxt_data3 <= '1';
          end if;
-      else   
+      else   -- stall = 1
          send_ob_nxt_data2 <= '1';
       end if;
    end if;
@@ -3480,12 +3653,12 @@ send_ob_state_mach:  process(send_ob_idle, send_ob_data1, send_ob_data2, send_ob
          send_ob_nxt_idle <= '1';
          ob_to_nd_done_d <= '1';
       elsif lsu_cmd_stall_q = '0' then 
-         if ob_to_node_status_reg(1 to 2) = "10" then     
+         if ob_to_node_status_reg(1 to 2) = "10" then     -- length of transfer is 48B
             send_ob_nxt_ditc <= '1';
          else 
             send_ob_nxt_data4 <= '1';
          end if;
-      else   
+      else   -- stall = 1
          send_ob_nxt_data3 <= '1';
       end if;
    end if;
@@ -3496,7 +3669,7 @@ send_ob_state_mach:  process(send_ob_idle, send_ob_data1, send_ob_data2, send_ob
          ob_to_nd_done_d <= '1';
       elsif lsu_cmd_stall_q = '0' then 
             send_ob_nxt_ditc <= '1';
-      else   
+      else   -- stall = 1
          send_ob_nxt_data4 <= '1';
       end if;
    end if;
@@ -3507,7 +3680,7 @@ send_ob_state_mach:  process(send_ob_idle, send_ob_data1, send_ob_data2, send_ob
          ob_to_nd_done_d <= '1';
       elsif lsu_cmd_stall_q = '0' then
          send_ob_nxt_wait <= '1';
-      else   
+      else   -- stall = 1
          send_ob_nxt_ditc <= '1';
       end if;
    end if;
@@ -3523,7 +3696,7 @@ send_ob_state_mach:  process(send_ob_idle, send_ob_data1, send_ob_data2, send_ob
          else
             send_ob_nxt_wait <= '1';
          end if;
-      else  
+      else  -- stall = 1
          if ob_cmd_sent_count_q = "000" then 
             send_ob_nxt_data2 <= '1';
          elsif ob_cmd_sent_count_q = "001" then 
@@ -3532,7 +3705,7 @@ send_ob_state_mach:  process(send_ob_idle, send_ob_data1, send_ob_data2, send_ob
             send_ob_nxt_data4 <= '1';
          elsif ob_cmd_sent_count_q = "011" then
             send_ob_nxt_ditc <= '1';
-         else  
+         else  -- count = 100
             send_ob_nxt_wait <= '1';
          end if;
       end if;
@@ -3592,6 +3765,9 @@ ob3_buf2_done <= ob_to_nd_done_d and ob_to_node_sel_sav_q(3) and ob3_rd_entry_pt
 ob3_buf3_done <= ob_to_nd_done_d and ob_to_node_sel_sav_q(3) and ob3_rd_entry_ptr_q(0 to 1)="11";
 
 
+--****************************************************************************
+-- determine outbox array read pointer
+--****************************************************************************
 
 ob_to_node_selected_thrd(0) <= ob_to_node_sel_sav_q(2) or ob_to_node_sel_sav_q(3);
 ob_to_node_selected_thrd(1) <= ob_to_node_sel_sav_q(1) or ob_to_node_sel_sav_q(3);
@@ -3604,14 +3780,17 @@ ob_to_node_selected_rd_ptr(0 to 1) <= gate_and(ob_to_node_sel_sav_q(0) , ob0_rd_
 send_ob_seq_ptr(0) <= send_ob_data3 or send_ob_data4;
 send_ob_seq_ptr(1) <= send_ob_data2 or send_ob_data4;
 
-ob_to_node_data_ptr(0 to 1) <= send_ob_seq_ptr(0 to 1)       when lsu_cmd_stall_q = '0'       else  
-                               "01"                          when ob_cmd_sent_count_q = "000" else  
-                               "10"                          when ob_cmd_sent_count_q = "001" else  
-                               "11";                      
+ob_to_node_data_ptr(0 to 1) <= send_ob_seq_ptr(0 to 1)       when lsu_cmd_stall_q = '0'       else  -- send data pointed to by state machine
+                               "01"                          when ob_cmd_sent_count_q = "000" else  -- resend 2nd data beat
+                               "10"                          when ob_cmd_sent_count_q = "001" else  -- resend 3rd data beat
+                               "11";                      -- when ob_cmd_sent_count_q = "010" else  -- resend 4th data beat
 
 ob_ary_rd_addr(0 to 5) <= ob_to_node_selected_thrd & ob_to_node_selected_rd_ptr & ob_to_node_data_ptr;
 
 
+--****************************************************************************
+-- send command to the lsu
+--****************************************************************************
 
 send_ob_data_val <= ((send_ob_data1 or send_ob_data2 or send_ob_data3 or send_ob_data4) and not lsu_cmd_stall_q);
 
@@ -3821,7 +4000,11 @@ latch_bxlsu_ob_dest : tri_rlmreg_p
 
 bx_lsu_ob_data <= ob_rd_data_cor_l2;
 
+--****************************************************************************
+-- nd interface credit counter for outbox
+--****************************************************************************
 
+-- latch the pop signal from the node interface
 
 latch_st_pop : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)  
@@ -3964,14 +4147,22 @@ latch_ob_cmd_count_t3 : tri_rlmreg_p
             din     => ob_cmd_count_t3_d(0 to 1),
             dout    => ob_cmd_count_t3_q(0 to 1) );
 
-ob_credit_t0 <= not ob_cmd_count_t0_q(0);   
-ob_credit_t1 <= not ob_cmd_count_t1_q(0);   
-ob_credit_t2 <= not ob_cmd_count_t2_q(0);   
-ob_credit_t3 <= not ob_cmd_count_t3_q(0);   
+ob_credit_t0 <= not ob_cmd_count_t0_q(0);   -- when cmd count gets to 2, there are no credits left
+ob_credit_t1 <= not ob_cmd_count_t1_q(0);   -- when cmd count gets to 2, there are no credits left
+ob_credit_t2 <= not ob_cmd_count_t2_q(0);   -- when cmd count gets to 2, there are no credits left
+ob_credit_t3 <= not ob_cmd_count_t3_q(0);   -- when cmd count gets to 2, there are no credits left
 
 
+-- ********************************************************************************************
+--
+-- INBOX
+--
+-- ********************************************************************************************
 
-
+--****************************************************************************
+-- write to the input data port status register when BA = 10000
+-- since ba(3:4)=00 the rotator will put the data on word 0
+--****************************************************************************
 
 wrt_ib0_buf0_status <= ex4_mtdp_val_gated and (ex4_ipc_thrd_q = "00") and (ex4_ipc_ba_q = "10000") and (ib0_rd_entry_ptr_dly_q = "00");
 wrt_ib0_buf1_status <= ex4_mtdp_val_gated and (ex4_ipc_thrd_q = "00") and (ex4_ipc_ba_q = "10000") and (ib0_rd_entry_ptr_dly_q = "01");
@@ -3990,11 +4181,12 @@ wrt_ib3_buf1_status <= ex4_mtdp_val_gated and (ex4_ipc_thrd_q = "11") and (ex4_i
 wrt_ib3_buf2_status <= ex4_mtdp_val_gated and (ex4_ipc_thrd_q = "11") and (ex4_ipc_ba_q = "10000") and (ib3_rd_entry_ptr_dly_q = "10");
 wrt_ib3_buf3_status <= ex4_mtdp_val_gated and (ex4_ipc_thrd_q = "11") and (ex4_ipc_ba_q = "10000") and (ib3_rd_entry_ptr_dly_q = "11");
 
-ib0_incr_ptr <= ex3_mtdp_val and (ex3_ipc_thrd_q = "00") and (ex3_ipc_ba_q = "10000");   
+ib0_incr_ptr <= ex3_mtdp_val and (ex3_ipc_thrd_q = "00") and (ex3_ipc_ba_q = "10000");   -- used to update entry ptr
 ib1_incr_ptr <= ex3_mtdp_val and (ex3_ipc_thrd_q = "01") and (ex3_ipc_ba_q = "10000");
 ib2_incr_ptr <= ex3_mtdp_val and (ex3_ipc_thrd_q = "10") and (ex3_ipc_ba_q = "10000");
 ib3_incr_ptr <= ex3_mtdp_val and (ex3_ipc_thrd_q = "11") and (ex3_ipc_ba_q = "10000");
 
+-- remember which status reg written last cycle
 
 ex4_wrt_ib_status(0 to 15) <=  wrt_ib0_buf0_status & wrt_ib0_buf1_status & wrt_ib0_buf2_status & wrt_ib0_buf3_status &
                                wrt_ib1_buf0_status & wrt_ib1_buf1_status & wrt_ib1_buf2_status & wrt_ib1_buf3_status &
@@ -4089,6 +4281,10 @@ ex6_ib2_flushed <= ex6_ib2_buf0_flushed or ex6_ib2_buf1_flushed or ex6_ib2_buf2_
 ex6_ib3_flushed <= ex6_ib3_buf0_flushed or ex6_ib3_buf1_flushed or ex6_ib3_buf2_flushed or ex6_ib3_buf3_flushed;
 
 
+-- **************************************************************************
+-- return credit to node/L2 for the IPC inbox (one credit counter per thread)
+-- when inbox status register is written to invalid
+-- **************************************************************************
 ib_t0_pop_d <= (ex6_wrt_ib_status_q(0) or ex6_wrt_ib_status_q(1) or ex6_wrt_ib_status_q(2) or ex6_wrt_ib_status_q(3)) and
                not my_ex6_stg_flush;
 
@@ -4685,6 +4881,12 @@ latch_quiesce : tri_rlmreg_p
 
 
 
+--**********************************************************************************************
+-- increment inbox buffer read pointer when the status register is written in-valid
+-- there is one buffer pointer per thread
+-- the entry pointer gets updated in ex3 even though the status reg is written in ex4
+-- this allows the logic to use the latched version of the entry pointer
+--**********************************************************************************************
 
 ib0_decr_ptr     <= (ex4_ib0_flushed & ex5_ib0_flushed & ex6_ib0_flushed = "100") or 
                     (ex4_ib0_flushed & ex5_ib0_flushed & ex6_ib0_flushed = "010") or
@@ -4894,7 +5096,9 @@ latch_ib3_rd_entry_ptr_dly : tri_rlmreg_p
             din     => ib3_rd_entry_ptr_q(0 to 1),
             dout    => ib3_rd_entry_ptr_dly_q(0 to 1) );
 
-
+--**********************************************************************************************
+-- use thread id to select one of the inbox read pointers to use in the inbox array read address
+--**********************************************************************************************
 
 with ex2_ipc_thrd_q(0 to 1) select 
    ib_rd_entry_ptr(0 to 1) <= ib0_rd_entry_ptr_d(0 to 1)   when "00",
@@ -4905,6 +5109,9 @@ with ex2_ipc_thrd_q(0 to 1) select
 ib_ary_rd_addr(0 to 5) <= ex2_ipc_thrd_q(0 to 1) & ib_rd_entry_ptr(0 to 1) & xu_bx_ex2_ipc_ba(1 to 2);
 
 
+--****************************************************************************
+-- inbox error inject
+--****************************************************************************
 
 latch_ib_err_inj : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)
@@ -4926,10 +5133,14 @@ latch_ib_err_inj : tri_rlmreg_p
 
 lat_reld_data_0 <= lat_reld_data(0) xor ib_err_inj_q;
 
+--****************************************************************************
+-- inbox array
+--****************************************************************************
 
 ib_array:  entity tri.tri_64x42_4w_1r1w(tri_64x42_4w_1r1w)
   generic map ( expand_type => expand_type )
   port map(
+-- functional ports
     wr_way               => ib_ary_wen(0 to 3),
     wr_adr               => ib_ary_wrt_addr(0 to 5),
 
@@ -4968,6 +5179,7 @@ ib_array:  entity tri.tri_64x42_4w_1r1w(tri_64x42_4w_1r1w)
     do0(158 to 164)      => ib_rd_data_ecc3(0 to 6),
     do0(165 to 167)      => unused(21 to 23),
 
+   -- ABIST
    abist_di              => abist_di_0,
    abist_bw_odd          => abist_g8t_bw_1,
    abist_bw_even         => abist_g8t_bw_0,
@@ -4981,6 +5193,7 @@ ib_array:  entity tri.tri_64x42_4w_1r1w(tri_64x42_4w_1r1w)
    abist_raw_dc_b        => pc_bx_abist_raw_dc_b,
    obs0_abist_cmp        => abist_g8t_dcomp,
 
+   -- BOLT-ON
    lcb_bolt_sl_thold_0   => bolt_sl_thold_0,
    pc_bo_enable_2        => bolt_enable_2,
    pc_bo_reset           => pc_bx_bo_reset,
@@ -4996,6 +5209,7 @@ ib_array:  entity tri.tri_64x42_4w_1r1w(tri_64x42_4w_1r1w)
    tri_lcb_clkoff_dc_b  => clkoff_dc_b,
    tri_lcb_act_dis_dc   => tidn,
 
+-- pervasive ports
     gnd                 => gnd,
     vdd                 => vdd,
     vcs                 => vcs,
@@ -5034,10 +5248,6 @@ ib_array:  entity tri.tri_64x42_4w_1r1w(tri_64x42_4w_1r1w)
 
 
 
-
-
-
-
 ib_do_eccgen0:  entity work.xuq_eccgen(xuq_eccgen)
    generic map ( regsize => 32 )
    port map(din(0 to 31)  => ex4_inbox_data(0 to 31),
@@ -5061,11 +5271,6 @@ ib_do_eccgen3:  entity work.xuq_eccgen(xuq_eccgen)
    port map(din(0 to 31)  => ex4_inbox_data(96 to 127),
             din(32 to 38) => ex4_ib_data_ecc3,
             syn           => ib_rd_data_nsyn3  );
-
-
-
-
-
 
 
 ib_di_eccchk0:  entity work.xuq_eccchk(xuq_eccchk)
@@ -5162,8 +5367,7 @@ ib_ary_sbe_or <= (ib_ary_sbe_q(0) or ib_ary_sbe_q(1) or ib_ary_sbe_q(2) or ib_ar
 
 ib_ary_ue_or <= (ib_ary_ue_q(0) or ib_ary_ue_q(1) or ib_ary_ue_q(2) or ib_ary_ue_q(3)) and ex5_ib_ecc_val;
 
-
-
+-- latch read address(0:1) (thread select bits) to use for parity error detection
 
 
 latch_inbox_ecc_err : tri_rlmreg_p
@@ -5216,6 +5420,9 @@ latch_inbox_ue : tri_rlmreg_p
       , err_out(1)      => bx_pc_err_inbox_ue
      );
 
+--****************************************************************************
+-- use read pointer to select status register for each thread
+--****************************************************************************
 
 with ib0_rd_entry_ptr_q(0 to 1) select
    ib0_rd_val_reg <= (ib0_buf0_val_q and not ib0_buf0_reset_val)   when "00",
@@ -5242,6 +5449,9 @@ with ib3_rd_entry_ptr_q(0 to 1) select
                      (ib3_buf3_val_q and not ib3_buf3_reset_val)   when others;
 
 
+--****************************************************************************
+-- stage thread and ba to ex4 for mfdp status reg mux controls
+--****************************************************************************
 
 
 latch_ex4_ipc_thrd : tri_rlmreg_p
@@ -5334,6 +5544,9 @@ latch_ex4_ipc_sz : tri_rlmreg_p
             din     => ex3_ipc_sz_q(0 to 1),
             dout    => ex4_ipc_sz_q(0 to 1) );
 
+--****************************************************************************
+-- use thread id to select which threads status reg to return
+--****************************************************************************
 
 with ex4_ipc_thrd_q(0 to 1) select 
    ex4_ib_rd_status_reg <= ib0_rd_val_reg    when "00",
@@ -5342,6 +5555,9 @@ with ex4_ipc_thrd_q(0 to 1) select
                            ib3_rd_val_reg    when others;
 
 
+--****************************************************************************
+-- return data to the processor on a mfdp op
+--****************************************************************************
 ex3_data_w0_sel(0) <= (ex3_ipc_sz_q="00" and ex3_ipc_ba_q(3 to 4)="00" and ex3_ipc_ba_q(0)='0') or ex3_ipc_sz_q="10" or
                       (ex3_ipc_sz_q="01" and ex3_ipc_ba_q(3)='0');
 ex3_data_w0_sel(1) <=  ex3_ipc_sz_q="00" and ex3_ipc_ba_q(3 to 4)="01";
@@ -5415,6 +5631,7 @@ ex3_ib_data_ecc3(0 to 6)<= gate_and(ex3_data_w3_sel(0), ib_rd_data_ecc0(0  to 6)
                            gate_and(ex3_data_w3_sel(2), ib_rd_data_ecc2(0  to 6)) or
                            gate_and(ex3_data_w3_sel(3), ib_rd_data_ecc3(0  to 6));
 
+-- latch data before returning it to xu
 
 latch_ex4_dp_data : tri_rlmreg_p
   generic map (width => ex4_inbox_data'length, init => 0, expand_type => expand_type)
@@ -5509,7 +5726,7 @@ latch_ex4_ib_data_ecc3 : tri_rlmreg_p
 
 bx_xu_ex5_dp_data(0 to 127) <= ex5_inbox_data_cor(0 to 127);
 
-ex3_mfdp_cr_status <= ex3_mfdp_val_q and ( (ib0_rd_val_reg and ex3_ipc_thrd_q="00") or      
+ex3_mfdp_cr_status <= ex3_mfdp_val_q and ( (ib0_rd_val_reg and ex3_ipc_thrd_q="00") or      -- 1=mfdp pass, 0=mfdp fail
                                            (ib1_rd_val_reg and ex3_ipc_thrd_q="01") or 
                                            (ib2_rd_val_reg and ex3_ipc_thrd_q="10") or 
                                            (ib3_rd_val_reg and ex3_ipc_thrd_q="11"));
@@ -5535,7 +5752,7 @@ latch_ex4_mfdp_cr_status : tri_rlmreg_p
 bx_xu_ex4_mfdp_cr_status <= ex4_mfdp_cr_status_i;
 
 
-ex4_ib_ecc_val <= ex4_mfdp_cr_status_i and not ex4_ipc_ba_q(0);  
+ex4_ib_ecc_val <= ex4_mfdp_cr_status_i and not ex4_ipc_ba_q(0);  -- mfdp valid and not status reg (data from array)
 
 latch_ex5_ib_ecc_val : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)
@@ -5556,6 +5773,9 @@ latch_ex5_ib_ecc_val : tri_rlmreg_p
             dout(0) => ex5_ib_ecc_val );
 
 
+--**********************************************************************************************
+-- latch the inputs from the node/L2
+--**********************************************************************************************
 
 latch_reld_data_val_dminus2 : tri_rlmreg_p
   generic map (width => 1, init => 0, expand_type => expand_type)
@@ -5811,6 +6031,9 @@ latch_reld_data : tri_rlmreg_p
             din     => lsu_reld_data,
             dout    => lat_reld_data );
 
+--****************************************************************************
+-- Generate ECC for IB array write data
+--****************************************************************************
 
 
 ib_di_eccgen0:  entity work.xuq_eccgen(xuq_eccgen)
@@ -5837,6 +6060,10 @@ ib_di_eccgen3:  entity work.xuq_eccgen(xuq_eccgen)
             din(32 to 38) => "1111111",
             syn           => ib_datain_ecc3  );
 
+--**********************************************************************************************
+-- increment inbox buffer write pointer when the status register is written valid from nd_to_ib
+-- there is one buffer pointer per thread
+--**********************************************************************************************
 
 ib0_wrt_entry_ptr_minus1 <= std_ulogic_vector(unsigned(ib0_wrt_entry_ptr_q) - 1);
 ib1_wrt_entry_ptr_minus1 <= std_ulogic_vector(unsigned(ib1_wrt_entry_ptr_q) - 1);
@@ -5949,6 +6176,9 @@ ib2_wrt_entry_ptr <= ib2_wrt_entry_ptr_q        when dec_ib2_wrt_entry_ptr='0' e
 ib3_wrt_entry_ptr <= ib3_wrt_entry_ptr_q        when dec_ib3_wrt_entry_ptr='0' else
                      ib3_wrt_entry_ptr_minus1;
 
+--****************************************************************************
+-- Count data beats for each thread's inbox
+--****************************************************************************
 
 ib0_wrt_data_ctr_d(0 to 1) <= std_ulogic_vector(unsigned(ib0_wrt_data_ctr_q) + 1)   when (reld_data_val_dminus1='1' and reld_core_tag_dminus1="00") else
                               ib0_wrt_data_ctr_q;
@@ -6035,8 +6265,10 @@ latch_ib3_wrt_data_ctr : tri_rlmreg_p
             dout    => ib3_wrt_data_ctr_q(0 to 1));
 
 
+-- select thread id for node to inbox command
 ib_wrt_thrd(0 to 1) <= reld_core_tag(3 to 4);
 
+-- use thread to select write pointer
 with ib_wrt_thrd select
    ib_wrt_entry_pointer <= ib0_wrt_entry_ptr   when "00",
                            ib1_wrt_entry_ptr   when "01",
@@ -6044,6 +6276,7 @@ with ib_wrt_thrd select
                            ib3_wrt_entry_ptr   when others;
 
 
+-- assemble inbox array write address
 ib_ary_wrt_addr(0 to 5) <= ib_wrt_thrd & ib_wrt_entry_pointer & reld_qw(58 to 59);
 
 ib_wen <= reld_data_val;
@@ -6134,6 +6367,7 @@ latch_ib3_ecc_err : tri_rlmreg_p
             din(0)  => ib3_ecc_err_d,
             dout(0) => ib3_ecc_err_q );
 
+-- detemine which threads and buffers to set valid
 ib0_set_val <= ib0_wrt_data_ctr_q="11" and reld_data_val and ib_wrt_thrd="00" and not (ib0_ecc_err_q or (reld_data_val_dplus1 and lat_reld_ecc_err and reld_core_tag_dplus1="00"));
 ib1_set_val <= ib1_wrt_data_ctr_q="11" and reld_data_val and ib_wrt_thrd="01" and not (ib1_ecc_err_q or (reld_data_val_dplus1 and lat_reld_ecc_err and reld_core_tag_dplus1="01"));
 ib2_set_val <= ib2_wrt_data_ctr_q="11" and reld_data_val and ib_wrt_thrd="10" and not (ib2_ecc_err_q or (reld_data_val_dplus1 and lat_reld_ecc_err and reld_core_tag_dplus1="10"));
@@ -6246,7 +6480,9 @@ latch_ib3_set_val : tri_rlmreg_p
             din(0)  => ib3_set_val,
             dout(0) => ib3_set_val_q );
 
-
+-------------------------------------------------
+-- Debug
+-------------------------------------------------
 
 dbg_group0_d <= ob_status_reg_newdata;
 
@@ -6290,7 +6526,7 @@ dbg_group0 <= my_ex3_flush &
               ob3_rd_entry_ptr_q &
               ob_to_node_data_ptr &
               ob_to_node_sel_q &
-              ob_to_node_sel_sav_q & 
+              ob_to_node_sel_sav_q & -- 8
               bx_slowspr_val_q &
               ditc_addr_sel &
               bx_slowspr_rw_q &
@@ -6432,6 +6668,7 @@ trg_group3 <= ex5_ib0_flushed &
               lat_reld_ditc &
               lat_reld_core_tag ;
 
+-- latch one set of debug input signals to represent that latches that may be needed when the real signals are used
 latch_debug_dbg_group0 : tri_rlmreg_p
   generic map (width => dbg_group0_q'length, init => 0, expand_type => expand_type)
   port map (nclk    => nclk,
@@ -6547,6 +6784,9 @@ latch_trigger_mux_out : tri_rlmreg_p
             din     => trigger_mux_out_d(0 to 11),
             dout    => trigger_data_out(0 to 11));
 
+-------------------------------------------------
+-- Pervasive
+-------------------------------------------------
 
 perv_3to2_reg: tri_plat
   generic map (width => 11, expand_type => expand_type)
@@ -6718,6 +6958,7 @@ port map (
 
 gptr_scan_out <= int1_gptr_scan_out and an_ac_scan_dis_dc_b;
 
+-- LCBs for scan only staging latches
 slat_force        <= sg_0;
 time_slat_thold_b <= NOT time_sl_thold_0;
 
@@ -6773,6 +7014,7 @@ perv_repr_stg: tri_slat_scan
 
 repr_scan_out <= repr_scan_out_q and an_ac_scan_dis_dc_b;
 
+-- ABIST timing latches
 ab_reg: tri_rlmreg_p   generic map (init => 0, expand_type => expand_type, width => 25, needs_sreset => 0)
 port map (nclk    => nclk,
           act     => pc_bx_abist_ena_dc,
@@ -6806,6 +7048,8 @@ port map (nclk    => nclk,
           dout(21 to 24) => abist_g8t_dcomp(0 to 3)    );
 
 
+-- *********************************************************************************
+-- Spare latches
 
 latch_spare0 : tri_rlmreg_p
   generic map (width => spare0_l2'length, init => 0, expand_type => expand_type)
@@ -6844,6 +7088,7 @@ latch_spare1 : tri_rlmreg_p
             dout    => spare1_l2 );
 
 
+-- scan in and scan out connections
 siv(0 to scan_right0-1)  <= sov(1 to  scan_right0-1) & func_scan_in(0);
 func_scan_out(0) <= sov(0) and an_ac_scan_dis_dc_b;
 
@@ -6854,4 +7099,3 @@ ab_reg_si(0 to 24) <= ab_reg_so(1 to 24) & ib_abst_scan_out;
 abst_scan_out <= ab_reg_so(0) and an_ac_scan_dis_dc_b;
 
 end bxq;
-

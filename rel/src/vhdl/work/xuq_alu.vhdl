@@ -27,8 +27,10 @@ entity xuq_alu is
         dc_size                                     : natural := 14;
         fxu_synth                                   : integer := 0);
     port(
+        -- Clocks
         nclk                                        : in clk_logic;
 
+        -- Pervasive
         d_mode_dc                                   : in  std_ulogic;
         delay_lclkr_dc                              : in  std_ulogic;
         mpw1_dc_b                                   : in  std_ulogic;
@@ -39,11 +41,14 @@ entity xuq_alu is
         scan_in                                     : in  std_ulogic_vector(0 to 1);
         scan_out                                    : out std_ulogic_vector(0 to 1);
 
+        -- Power
         vdd                                         : inout power_logic;
         gnd                                         : inout power_logic;
 
+        -- MSR[CM] Need to do 64 bit math
         spr_msr_cm                                  : in  std_ulogic_vector(0 to threads-1);
 
+        -- Decode Inputs
         dec_alu_rf1_act                             : in  std_ulogic;
         dec_alu_ex1_act                             : in  std_ulogic;        
         dec_alu_rf1_sel                             : in  std_ulogic_vector(0 to 3);
@@ -69,6 +74,8 @@ entity xuq_alu is
         dec_alu_rf1_select_64bmode                  : in std_ulogic;
         fxa_fxb_ex1_hold_ctr_flush                  : in  std_ulogic;
 
+        ----- Source Data -----
+        -- GPR Sources from Bypass
         byp_alu_ex1_rs0                             : in  std_ulogic_vector(64-(2**regmode) to 63);
         byp_alu_ex1_rs1                             : in  std_ulogic_vector(64-(2**regmode) to 63);
         byp_alu_ex1_mulsrc_0                        : in  std_ulogic_vector(64-(2**regmode) to 63);
@@ -76,9 +83,11 @@ entity xuq_alu is
         byp_alu_ex1_divsrc_0                        : in  std_ulogic_vector(64-(2**regmode) to 63);
         byp_alu_ex1_divsrc_1                        : in  std_ulogic_vector(64-(2**regmode) to 63);
 
+        -- Effective Addresses
         xu_ex1_eff_addr_int                         : out std_ulogic_vector(64-(dc_size-3) to 63);
         xu_ex2_eff_addr                             : out std_ulogic_vector(64-(2**regmode) to 63);
 
+        -- Target Data
         alu_byp_ex5_mul_rt                          : out std_ulogic_vector(64-(2**regmode) to 63);
         alu_byp_ex3_div_rt                          : out std_ulogic_vector(64-(2**regmode) to 63);
         alu_ex2_div_done                            : out std_ulogic;
@@ -91,6 +100,7 @@ entity xuq_alu is
         alu_byp_ex2_rt                              : out std_ulogic_vector(64-(2**regmode) to 63);
         alu_byp_ex1_log_rt                          : out std_ulogic_vector(64-(2**regmode) to 63);
 
+        -- BYP XER
         dec_alu_rf1_xer_ov_update                   : in  std_ulogic;
         dec_alu_rf1_xer_ca_update                   : in  std_ulogic;
         dec_alu_rf1_sh_right                        : in  std_ulogic;                    
@@ -123,6 +133,7 @@ entity xuq_alu is
         alu_byp_ex5_xer_mul                         : out std_ulogic_vector(0 to 3);
         alu_byp_ex3_xer_div                         : out std_ulogic_vector(0 to 3);
 
+        -- CR Result to bypass
         alu_byp_ex2_cr_recform                      : out std_ulogic_vector(0 to 3);
         alu_byp_ex5_cr_mul                          : out std_ulogic_vector(0 to 4);
         alu_byp_ex3_cr_div                          : out std_ulogic_vector(0 to 4)
@@ -153,15 +164,21 @@ architecture xuq_alu of xuq_alu is
     signal rf1_sel_rot_log                          : std_ulogic;
     signal byp_alu_ex1_rs0_b, byp_alu_ex1_rs1_b     : std_ulogic_vector(64-(2**regmode) to 63);
 
-    signal ex1_xer_ov_update_q                      : std_ulogic;           
+    ---------------------------------------------------------------------
+    -- Latch Signals
+    ---------------------------------------------------------------------
+    signal ex1_xer_ov_update_q                      : std_ulogic;           -- Valids for XER[OV], XER[CA]
     signal ex2_xer_ov_update_q, ex2_xer_ov_update_d : std_ulogic;
     signal ex1_xer_ca_update_q                      : std_ulogic;
     signal ex2_xer_ca_update_q, ex2_xer_ca_update_d : std_ulogic;
-    signal ex1_is_add_op_q                          : std_ulogic;           
+    signal ex1_is_add_op_q                          : std_ulogic;           -- Unit valids
     signal ex1_is_rot_op_q                          : std_ulogic;
     signal ex2_is_rot_op_q                          : std_ulogic;
     signal spr_msr_cm_q                             : std_ulogic_vector(0 to threads-1);
 
+    ---------------------------------------------------------------------
+    -- Scanchain
+    ---------------------------------------------------------------------
     constant ex1_xer_ov_update_offset               : integer := 3;
     constant ex2_xer_ov_update_offset               : integer := ex1_xer_ov_update_offset       + 1;
     constant ex1_xer_ca_update_offset               : integer := ex2_xer_ov_update_offset       + 1;
@@ -179,9 +196,15 @@ architecture xuq_alu of xuq_alu is
 
 begin
 
+    ---------------------------------------------------------------------
+    -- Source Buffering
+    ---------------------------------------------------------------------
     u_s0i:     byp_alu_ex1_rs0_b      <= not byp_alu_ex1_rs0;
     u_s1i:     byp_alu_ex1_rs1_b      <= not byp_alu_ex1_rs1;
 
+    ---------------------------------------------------------------------
+    --
+    ---------------------------------------------------------------------
     ex2_spr_msr_cm          <= or_reduce(spr_msr_cm_q and dec_ex2_tid);
     ex4_spr_msr_cm          <= or_reduce(spr_msr_cm_q and dec_ex4_tid);
 
@@ -194,6 +217,9 @@ begin
     alu_dec_ex1_ipb_ba      <= byp_alu_ex1_rs0(59 to 63);
     alu_dec_ex1_ipb_sz      <= byp_alu_ex1_rs0(50 to 51);
 
+    ---------------------------------------------------------------------
+    -- XER Update
+    ---------------------------------------------------------------------
 
     ex2_xer_ca_update_d    <= ex1_xer_ca_update_q and (ex1_is_add_op_q or ex1_is_rot_op_q);
     ex2_xer_ov_update_d    <= ex1_xer_ov_update_q and  ex1_is_add_op_q;
@@ -207,6 +233,9 @@ begin
 
     alu_byp_ex2_cr_recform  <= ex2_cr_recform(0 to 2) & (ex2_cr_recform(3) and ex2_xer_ov_update_q);
 
+    ---------------------------------------------------------------------
+    -- Add
+    ---------------------------------------------------------------------
     xu_alu_add : entity work.xuq_alu_add(xuq_alu_add)
     generic map(
         expand_type                     => expand_type,
@@ -245,6 +274,9 @@ begin
         ex2_add_xer_ov                  => ex2_add_xer_ov,
         ex2_add_xer_ca                  => ex2_add_xer_ca);
 
+    ---------------------------------------------------------------------
+    -- Multiply
+    ---------------------------------------------------------------------
     xu_alu_mult : entity work.xuq_alu_mult(xuq_alu_mult)
     generic map(
         expand_type                     => expand_type,
@@ -282,6 +314,9 @@ begin
         alu_byp_ex5_xer_mul             => alu_byp_ex5_xer_mul,
         alu_byp_ex5_cr_mul              => alu_byp_ex5_cr_mul);
 
+    ---------------------------------------------------------------------
+    -- Divide
+    ---------------------------------------------------------------------
     xuq_alu_div : entity work.xuq_alu_div(xuq_alu_div)
     generic map(
         expand_type                     => expand_type,
@@ -317,6 +352,9 @@ begin
         alu_byp_ex3_cr_div              => alu_byp_ex3_cr_div,
         ex2_spr_msr_cm                  => ex2_spr_msr_cm);
 
+    ---------------------------------------------------------------------
+    -- MRG
+    ---------------------------------------------------------------------
     xuq_alu_mrg : entity work.xuq_alu_mrg(xuq_alu_mrg)
     generic map(
         expand_type                     => expand_type)
@@ -372,6 +410,9 @@ begin
         
         
                 mark_unused(dec_alu_rf1_sel(2));
+    ---------------------------------------------------------------------
+    -- Latches
+    ---------------------------------------------------------------------
     ex1_xer_ov_update_latch : tri_rlmlatch_p
         generic map (init => 0, expand_type => expand_type, needs_sreset => 1)
         port map (nclk          => nclk,

@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU LSU Data Rotator
+--
 
 library ibm, ieee, work, tri, support;
 use ibm.std_ulogic_support.all;
@@ -17,14 +19,23 @@ use ieee.numeric_std.all;
 use tri.tri_latches_pkg.all;
 use support.power_logic_pkg.all;
 
+-- ##########################################################################################
+-- VHDL Contents
+-- 1) 32 Byte Reload Bus
+-- 2) 32 Byte Unaligned Rotator
+-- 3) Little Endian Support for 2,4,8,16,32 Byte Operations
+-- 4) Execution Pipe Store data rotation
+-- 5) Byte Enable Generation
+-- ##########################################################################################
 entity xuq_lsu_data is
-generic(expand_type     : integer := 2;                 
-        regmode         : integer := 6;                 
-        dc_size         : natural := 14;                
-        cl_size         : natural := 6;                 
-        l_endian_m      : integer := 1);		
+generic(expand_type     : integer := 2;                 -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
+        regmode         : integer := 6;                 -- Register Mode 5 = 32bit, 6 = 64bit
+        dc_size         : natural := 14;                -- 2^14 = 16384 Bytes L1 D$
+        cl_size         : natural := 6;                 -- 2^6 = 64 Bytes CacheLines
+        l_endian_m      : integer := 1);		-- 1 = little endian mode enabled, 0 = little endian mode disabled
 port(
 
+     -- Execution Pipe
      xu_lsu_rf1_data_act        :in  std_ulogic;
      xu_lsu_rf1_axu_ldst_falign :in  std_ulogic;
      xu_lsu_ex1_store_data      :in  std_ulogic_vector(64-(2**REGMODE) to 63);
@@ -42,14 +53,15 @@ port(
      ex1_sdp_instr              :in  std_ulogic;
      ex1_stgpr_instr            :in  std_ulogic;
 
-     fu_xu_ex2_store_data_val   :in  std_ulogic;                        
-     fu_xu_ex2_store_data       :in  std_ulogic_vector(0 to 255);       
+     fu_xu_ex2_store_data_val   :in  std_ulogic;                        -- EX2 AXU Data is Valid
+     fu_xu_ex2_store_data       :in  std_ulogic_vector(0 to 255);       -- EX2 AXU Data
 
-     ex3_algebraic              :in  std_ulogic;                        
-     ex3_data_swap              :in  std_ulogic;                        
-     ex3_thrd_id                :in  std_ulogic_vector(0 to 3);         
-     ex5_dp_data                :in  std_ulogic_vector(0 to 127);       
+     ex3_algebraic              :in  std_ulogic;                        -- EX3 Instruction is a Load Algebraic
+     ex3_data_swap              :in  std_ulogic;                        -- EX3 little-endian or byte reversal valid
+     ex3_thrd_id                :in  std_ulogic_vector(0 to 3);         -- EX3 Thread ID
+     ex5_dp_data                :in  std_ulogic_vector(0 to 127);       -- EX5 dp data
 
+     -- Debug Data Compare
      ex4_load_op_hit            :in  std_ulogic;
      ex4_store_hit              :in  std_ulogic;
      ex4_axu_op_val             :in  std_ulogic;
@@ -58,46 +70,55 @@ port(
      spr_dvc1_dbg               :in  std_ulogic_vector(64-(2**regmode) to 63);
      spr_dvc2_dbg               :in  std_ulogic_vector(64-(2**regmode) to 63);
 
+     -- Update Data Array Valid
      rel_upd_dcarr_val          :in  std_ulogic;
 
-     xu_lsu_ex4_flush           :in  std_ulogic_vector(0 to 3);         
-     xu_lsu_ex4_flush_local     :in  std_ulogic_vector(0 to 3);         
-     xu_lsu_ex5_flush           :in  std_ulogic_vector(0 to 3);         
+     -- Instruction Flush
+     xu_lsu_ex4_flush           :in  std_ulogic_vector(0 to 3);         -- EX4 Flush Stage
+     xu_lsu_ex4_flush_local     :in  std_ulogic_vector(0 to 3);         -- EX4 Local Flush Stage
+     xu_lsu_ex5_flush           :in  std_ulogic_vector(0 to 3);         -- EX5 Flush Stage
 
+     -- Error Inject
      xu_pc_err_dcache_parity    :out std_ulogic;
      pc_xu_inj_dcache_parity    :in  std_ulogic;
 
+     -- Config Bits
      xu_lsu_spr_xucr0_dcdis     :in  std_ulogic;
      spr_xucr0_clkg_ctl_b0      :in  std_ulogic;
 
+     -- Reload Pipe
      ldq_rel_data_val_early     :in  std_ulogic;
-     ldq_rel_algebraic          :in  std_ulogic;                        
-     ldq_rel_data_val           :in  std_ulogic;                        
-     ldq_rel_ci                 :in  std_ulogic;                        
-     ldq_rel_thrd_id            :in  std_ulogic_vector(0 to 3);         
-     ldq_rel_axu_val            :in  std_ulogic;                        
-     ldq_rel_data               :in  std_ulogic_vector(0 to 255);       
-     ldq_rel_rot_sel            :in  std_ulogic_vector(0 to 4);         
-     ldq_rel_op_size            :in  std_ulogic_vector(0 to 5);         
-     ldq_rel_le_mode            :in  std_ulogic;                        
-     ldq_rel_dvc1_en            :in  std_ulogic;                        
-     ldq_rel_dvc2_en            :in  std_ulogic;                        
-     ldq_rel_beat_crit_qw       :in  std_ulogic;                        
-     ldq_rel_beat_crit_qw_block :in  std_ulogic;                        
-     ldq_rel_addr               :in  std_ulogic_vector(64-(dc_size-3) to 58);   
+     ldq_rel_algebraic          :in  std_ulogic;                        -- Reload requires sign extension
+     ldq_rel_data_val           :in  std_ulogic;                        -- Reload Data is Valid
+     ldq_rel_ci                 :in  std_ulogic;                        -- Reload Data is for a cache-inhibited request
+     ldq_rel_thrd_id            :in  std_ulogic_vector(0 to 3);         -- Reload Thread ID for DVC
+     ldq_rel_axu_val            :in  std_ulogic;                        -- Reload Data is the correct Quadword
+     ldq_rel_data               :in  std_ulogic_vector(0 to 255);       -- Reload Data
+     ldq_rel_rot_sel            :in  std_ulogic_vector(0 to 4);         -- Rotator Select
+     ldq_rel_op_size            :in  std_ulogic_vector(0 to 5);         -- Reload Size of Original Request
+     ldq_rel_le_mode            :in  std_ulogic;                        -- Reload requires Little Endian Swap
+     ldq_rel_dvc1_en            :in  std_ulogic;                        -- Debug Data Value Compare1 Enable
+     ldq_rel_dvc2_en            :in  std_ulogic;                        -- Debug Data Value Compare2 Enable
+     ldq_rel_beat_crit_qw       :in  std_ulogic;                        -- Reload Data is the correct Quadword
+     ldq_rel_beat_crit_qw_block :in  std_ulogic;                        -- Reload Data had an ECC error
+     ldq_rel_addr               :in  std_ulogic_vector(64-(dc_size-3) to 58);   -- Reload Array Address
 
-     dcarr_up_way_addr          :in  std_ulogic_vector(0 to 2);         
+     -- Data Cache Update
+     dcarr_up_way_addr          :in  std_ulogic_vector(0 to 2);         -- Upper Address of Data Cache
 
-     ex4_256st_data             :out std_ulogic_vector(0 to 255);       
-     ex6_ld_par_err             :out std_ulogic;                        
-     lsu_xu_ex6_datc_par_err    :out std_ulogic;                        
+     -- Execution Pipe Outputs
+     ex4_256st_data             :out std_ulogic_vector(0 to 255);       -- EX4 Store Data
+     ex6_ld_par_err             :out std_ulogic;                        -- EX6 Parity Error Detected on the Load Data
+     lsu_xu_ex6_datc_par_err    :out std_ulogic;                        -- EX6 Parity Error Detected per thread
 
+     --Rotated Data
      ex6_xu_ld_data_b           :out std_ulogic_vector(64-(2**regmode) to 63);
      rel_xu_ld_data             :out std_ulogic_vector(64-(2**regmode) to 64+((2**regmode)/8)-1);
      xu_fu_ex6_load_data        :out std_ulogic_vector(0 to 255);
-     xu_fu_ex5_load_le          :out std_ulogic;                        
+     xu_fu_ex5_load_le          :out std_ulogic;                        -- AXU load/reload was little endian swapped
 
-     lsu_xu_rel_dvc_thrd_id     :out std_ulogic_vector(0 to 3);         
+     -- Debug Data Compare
+     lsu_xu_rel_dvc_thrd_id     :out std_ulogic_vector(0 to 3);         -- DVC compared to a Threads Reload
      lsu_xu_ex2_dvc1_st_cmp     :out std_ulogic_vector(0 to ((2**regmode)/8)-1);
      lsu_xu_ex8_dvc1_ld_cmp     :out std_ulogic_vector(0 to ((2**regmode)/8)-1);
      lsu_xu_rel_dvc1_en         :out std_ulogic;
@@ -107,12 +128,14 @@ port(
      lsu_xu_rel_dvc2_en         :out std_ulogic;
      lsu_xu_rel_dvc2_cmp        :out std_ulogic_vector(0 to ((2**regmode)/8)-1);
 
+     -- Debug Bus IO
      pc_xu_trace_bus_enable     :in  std_ulogic;
      lsudat_debug_mux_ctrls     :in  std_ulogic_vector(0 to 1);
      lsu_xu_data_debug0         :out std_ulogic_vector(0 to 87);
      lsu_xu_data_debug1         :out std_ulogic_vector(0 to 87);
      lsu_xu_data_debug2         :out std_ulogic_vector(0 to 87);
 
+     --pervasive
      vdd                        :inout power_logic;
      gnd                        :inout power_logic;
      vcs                        :inout power_logic;
@@ -141,6 +164,7 @@ port(
      an_ac_scan_dis_dc_b        :in  std_ulogic;
      an_ac_scan_diag_dc         :in  std_ulogic;
 
+     -- G6T ABIST Control
      an_ac_lbist_ary_wrt_thru_dc :in std_ulogic;
      pc_xu_abist_ena_dc         :in  std_ulogic;
      pc_xu_abist_g6t_bw         :in  std_ulogic_vector(0 to 1);
@@ -158,6 +182,7 @@ port(
      xu_pc_bo_fail              :out std_ulogic_vector(5 to 6);
      xu_pc_bo_diagout           :out std_ulogic_vector(5 to 6);
 
+     -- SCAN Ports
      abst_scan_in               :in  std_ulogic_vector(0 to 1);
      time_scan_in               :in  std_ulogic;
      repr_scan_in               :in  std_ulogic;
@@ -173,9 +198,16 @@ port(
 -- synopsys translate_on
 
 end xuq_lsu_data;
+----
 architecture xuq_lsu_data of xuq_lsu_data is
 
+----------------------------
+-- components
+----------------------------
 
+----------------------------
+-- constants
+----------------------------
 constant rot_max_size                   :std_ulogic_vector(0 to 5) := "100000";
 constant byte16_size                    :std_ulogic_vector(0 to 5) := "010000";
 constant uprCClassBit                   :natural := 64-(dc_size-3);
@@ -290,6 +322,9 @@ constant dat_debug_mux_ctrls_offset     :natural := trace_bus_enable_offset + 1;
 constant dat_dbg_st_dat_offset          :natural := dat_debug_mux_ctrls_offset + 2;
 constant scan_right1                    :natural := dat_dbg_st_dat_offset + 64 - 1;
 
+----------------------------
+-- signals
+----------------------------
 signal op_size                  :std_ulogic_vector(0 to 5);
 signal ex3_opsize_d             :std_ulogic_vector(0 to 5);
 signal ex3_opsize_q             :std_ulogic_vector(0 to 5);
@@ -728,6 +763,9 @@ begin
 tiup <= '1';
 tidn <= '0';
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Act Signals going to all Latches
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 ex1_stg_act_d  <= xu_lsu_rf1_data_act or clkg_ctl_override_q;
 ex2_stg_act_d  <= ex1_stg_act_q;
@@ -748,6 +786,9 @@ rel2_ex2_stg_act <= rel2_ex2_stg_act_q;
 rel3_ex3_stg_act <= rel3_ex3_stg_act_q;
 rel4_ex4_stg_act <= rel4_ex4_stg_act_q;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Inputs
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 rel_algebraic_d        <= ldq_rel_algebraic;
 rel_data_d             <= ldq_rel_data;     
@@ -772,6 +813,8 @@ rel_le_mode     <= rel_le_mode_q;
 
 inj_dcache_parity_d <= pc_xu_inj_dcache_parity;
 
+-- Staging out Data Cache Array Write
+-- Cache-Inhibit or Cacheable Reload
 rel_data_rot_sel        <= rel_ci_q or rel_data_val_stg_q;
 rel_data_val_wren       <= rel_data_val_stg_q and not spr_xucr0_dcdis_q;
 rel_data_val_d(0 to 7)  <= (others=>rel_data_val_wren);
@@ -829,6 +872,7 @@ with ex1_op_size(2 to 5) select
 
 ex2_xu_cmp_val_d <= gate(ex1_st_byte_mask((64-(2**regmode))/8 to 7), (not ex1_axu_op_val and ex1_store_instr));
 
+-- Forcing Alignment
 frc_p_addr_d(58) <= xu_lsu_ex1_eff_addr(58);
 frc_p_addr_d(59) <= xu_lsu_ex1_eff_addr(59) and not  ex1_frc_align32;
 frc_p_addr_d(60) <= xu_lsu_ex1_eff_addr(60) and not (ex1_frc_align32 or ex1_frc_align16);
@@ -841,6 +885,13 @@ axu_rel_val_stg2_d <= axu_rel_val_stg1_q and rel_upd_gpr_q;
 axu_rel_val_stg3_d <= axu_rel_val_stg2_q;
 axu_rel_upd_d      <= (others=>axu_rel_val_stg3_q);
 
+-- Table of op_size, Should be 1-hot enabled
+-- op_size(0) => size32
+-- op_size(1) => size16
+-- op_size(2) => size8
+-- op_size(3) => size4
+-- op_size(4) => size2
+-- op_size(5) => size1
 op_size       <= ex2_optype32_q & ex2_optype16_q & ex2_optype8_q & ex2_optype4_q & ex2_optype2_q & ex2_optype1_q;
 rot_addr      <= frc_p_addr_q(58 to 63);
 ex3_le_mode   <= ex3_data_swap and not (ex3_ovrd_rot_q or rel_data_val(0));
@@ -849,10 +900,15 @@ ex4_le_mode_sel_d(0 to 15) <= (others=>ex3_le_mode);
 ex4_be_mode_sel_d(0 to 15) <= (others=>ex3_be_mode);
 ex4_le_mode_d <= ex3_le_mode;
 
+-- Execution/Reload Pipe Rotator Control Calculations
 rot_size        <= std_ulogic_vector(unsigned(rot_addr) + unsigned(op_size));
 rot_sel_non_le  <= std_ulogic_vector(unsigned(rot_max_size) - unsigned(rot_size));
 
+-- STORE PATH LITTLE ENDIAN ROTATOR SELECT CALCULATION
+-- st_rot_size = rot_addr + op_size
+-- st_rot_sel = (rot_max_size or le_op_size) - rot_size
 
+-- Little Endian Support Store Data Rotate Select
 rot_addr_le   <= std_ulogic_vector(unsigned(rot_addr)     + unsigned(byte16_size));
 rot_size_le   <= std_ulogic_vector(unsigned(rot_max_size) - unsigned(rot_addr_le));
 
@@ -862,22 +918,31 @@ with op_size(0) select
 
 be_st_rot_sel <= rot_sel_non_le(1 to 5);
 
+-- Select between Rotate Select Override and D$ rotate select
 with ex2_ovrd_rot select
     st_ovrd_rot_sel <= ex2_ovrd_rot_sel_q when '1',
                             be_st_rot_sel when others;
 
 ex3_st_rot_sel_d <= st_ovrd_rot_sel;
 
+-- LOAD PATH LITTLE ENDIAN ROTATOR SELECT CALCULATION
+-- ld_rot_size   = rot_addr + op_size
+-- ld_rot_sel_le = rot_addr
+-- ld_rot_sel    = rot_max_size - ld_rot_size
+-- ld_rot_sel    = ld_rot_sel_le  => le_mode = 1
+--               = ld_rot_sel     => le_mode = 0
 
 rot_addr_d           <= rot_addr(1 to 5);
 ex4_rot_addr_d       <= rot_addr_q;
 rot_sel_non_le_d     <= rot_sel_non_le(1 to 5);
 ex4_rot_sel_non_le_d <= rot_sel_non_le_q;
 
+-- Little Endian Support Load Data Rotate Select
 with ex4_le_mode_q select
     ex4_ld_rot_sel <=       ex4_rot_addr_q(1 to 5) when '1',
                       ex4_rot_sel_non_le_q(1 to 5) when others;
 
+-- Algebraic Mux select for little-endian
 alg_bit_le_sel          <= std_ulogic_vector(unsigned(rot_size) - "000001");
 ld_alg_le_sel_d(1 to 5) <= alg_bit_le_sel(1 to 5);
 ex4_ld_alg_le_sel_d     <= ld_alg_le_sel_q;
@@ -903,6 +968,10 @@ with ex2_fu_data_val select
     rel_ex2_data <= fu_ex2_store_data when '1',
                           rel_xu_data when others;
 
+-- Splitting Out Bits of Store Data
+-- Grouping Common Bits together, i.e all bit0's of every byte are grouped and so on
+-- should now have all upper nibbles of bytes in the first half of data (0:127)
+-- and have the lower nibbles of bytes in the second half of data (128:255)
 stDataFrmtBit : for bit in 0 to 7 generate begin
       stDataFrmtByte : for byte in 0 to 31 generate begin
             rel_ex3_data_d((bit*32)+byte) <= rel_ex2_data((byte*8)+bit);
@@ -910,8 +979,7 @@ stDataFrmtBit : for bit in 0 to 7 generate begin
 end generate stDataFrmtBit;
 
 
-
-
+-- Timing Fixes to Data Cache Array Write Enable
 ex4_store_hit_early_gate <= ex4_store_hit and not ex7_ld_par_err(0);
 rel_ex4_store_hit        <= ex4_store_hit_early_gate or rel_upd_dcarr_val;
 ex4_thrd_id_mask         <= gate(ex4_thrd_id_q, not rel_upd_dcarr_val);
@@ -925,22 +993,29 @@ ex4Flush01b: ex4_flush_t01_b  <= not (ex4_stg_flush_lcl_b(0) and ex4_stg_flush_l
 ex4Flush23b: ex4_flush_t23_b  <= not (ex4_stg_flush_lcl_b(2) and ex4_stg_flush_lcl_b(3));
 relex4UpdEn: rel_ex4_upd_en   <= not (ex4_flush_t01_b or ex4_flush_t23_b);
 
+-- EX4 Instruction Flush
 ex4_stg_flush <= (xu_lsu_ex4_flush(0) and ex4_thrd_id_q(0)) or
                  (xu_lsu_ex4_flush(1) and ex4_thrd_id_q(1)) or
                  (xu_lsu_ex4_flush(2) and ex4_thrd_id_q(2)) or
                  (xu_lsu_ex4_flush(3) and ex4_thrd_id_q(3));
 
+-- EX5 Instruction Flush
 ex5_stg_flush <= (xu_lsu_ex5_flush(0) and ex5_thrd_id_q(0)) or
                  (xu_lsu_ex5_flush(1) and ex5_thrd_id_q(1)) or
                  (xu_lsu_ex5_flush(2) and ex5_thrd_id_q(2)) or
                  (xu_lsu_ex5_flush(3) and ex5_thrd_id_q(3));
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Move To AXU/XU/BOX Instructions
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- Move Float To GPR and Move GPR to Float instruction Data
 ex2_ovrd_rot      <= ex2_saxu_instr_q or ex2_stgpr_instr_q;
 ex3_ovrd_rot_d    <= ex2_ovrd_rot;
 ex3_stgpr_instr_d <= ex2_stgpr_instr_q;
 ex4_stgpr_instr_d <= ex3_stgpr_instr_q;
 
+-- Grabbing bits to form bytes
 stDataFixUp : for byte in 0 to 31 generate
     ex4_256st_dataFixUp(byte*8 to (byte*8)+7) <= st_256data(byte)     & st_256data(byte+32)  & st_256data(byte+64)  & st_256data(byte+96) &
                                                  st_256data(byte+128) & st_256data(byte+160) & st_256data(byte+192) & st_256data(byte+224);
@@ -952,6 +1027,9 @@ ex3_sdp_instr_d  <= ex2_sdp_instr_q;
 ex4_sdp_instr_d  <= ex3_sdp_instr_q;
 ex5_sdp_instr_d  <= ex4_sdp_instr_q;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Execution Pipe Data Parity Generation
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 pargen : for t in 0 to 31 generate begin
       rel_ex2_par_gen(t) <= xor_reduce(rel_ex2_data(t*8 to (t*8)+7));
@@ -959,7 +1037,11 @@ end generate pargen;
 
 rel_ex3_par_gen_d <= rel_ex2_par_gen;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Reload Algebraic Mask Generation
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 non_le_byte_bit0 <= rel_data(0)   & rel_data(8)   & rel_data(16)  & rel_data(24)  & rel_data(32)  & rel_data(40)  & rel_data(48)  & rel_data(56)  &
                     rel_data(64)  & rel_data(72)  & rel_data(80)  & rel_data(88)  & rel_data(96)  & rel_data(104) & rel_data(112) & rel_data(120) &
@@ -971,10 +1053,12 @@ le_byte_bit0 <= rel_data(248) & rel_data(240) & rel_data(232) & rel_data(224) & 
                 rel_data(120) & rel_data(112) & rel_data(104) & rel_data(96)  & rel_data(88)  & rel_data(80)  & rel_data(72)  & rel_data(64)  &
                 rel_data(56)  & rel_data(48)  & rel_data(40)  & rel_data(32)  & rel_data(24)  & rel_data(16)  & rel_data(8)   & rel_data(0);
 
+-- Select between little endian data or big-endian data
 with rel_le_mode select
     alg_byte <=     le_byte_bit0 when '1',
                 non_le_byte_bit0 when others;
 
+-- Calculate Mux control
 alg_bit_sel <= std_ulogic_vector(unsigned(rel_rot_sel) - unsigned(rel_op_size(1 to 5)));
 
 with alg_bit_sel select
@@ -1013,6 +1097,9 @@ with alg_bit_sel select
 
 rel_alg_bit_d <= algebraic_bit;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Store Data Rotator
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 l1dcst: entity work.xuq_lsu_data_st(xuq_lsu_data_st)
 GENERIC MAP(expand_type         => expand_type,
@@ -1020,6 +1107,7 @@ GENERIC MAP(expand_type         => expand_type,
             l_endian_m          => l_endian_m)
 PORT MAP(
 
+     -- Acts to latches
      ex2_stg_act                => ex2_stg_act_q,
      ex3_stg_act                => ex3_stg_act_q,
      rel2_stg_act               => rel2_stg_act_q,
@@ -1027,6 +1115,7 @@ PORT MAP(
      rel2_ex2_stg_act           => rel2_ex2_stg_act,
      rel3_ex3_stg_act           => rel3_ex3_stg_act,
 
+     -- Reload Pipe
      rel_data_rot_sel           => rel_data_rot_sel,
      ldq_rel_rot_sel            => rel_rot_sel,
      ldq_rel_op_size            => rel_op_size,
@@ -1035,6 +1124,7 @@ PORT MAP(
      ldq_rel_data_val           => rel_data_val,
      rel_alg_bit                => rel_alg_bit_q,
 
+     -- Execution Pipe Store Data Rotator/BE_Gen Controls
      ex2_opsize                 => op_size,
      ex2_rot_sel                => st_ovrd_rot_sel,
      ex2_rot_sel_le             => le_st_rot_sel,
@@ -1042,9 +1132,11 @@ PORT MAP(
      ex4_le_mode_sel            => ex4_le_mode_sel_q,
      ex4_be_mode_sel            => ex4_be_mode_sel_q,
 
+     -- Reload/EX3 Data that needs rotating
      rel_ex3_data               => rel_ex3_data_q,
      rel_ex3_par_gen            => rel_ex3_par_gen_q,
 
+     -- Rotated Data
      rel_256ld_data             => rel_256ld_data,
      rel_64ld_data              => rel_64ld_data,
      rel_xu_ld_par              => rel_xu_ld_par,
@@ -1054,6 +1146,7 @@ PORT MAP(
      rel_axu_le_mode            => rel_axu_le_mode,
      rel_dvc_byte_mask          => rel_dvc_byte_mask,
 
+     -- Pervasive
      vdd                        => vdd,
      gnd                        => gnd,
      nclk                       => nclk,
@@ -1070,17 +1163,22 @@ PORT MAP(
      scan_out                   => func_scan_out_int(2)
 );
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- L1 D-Cache Array
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 l1dcarr : entity work.xuq_lsu_dc_arr(xuq_lsu_dc_arr)
-generic map(expand_type => expand_type,         
-            dc_size     => dc_size)             
+generic map(expand_type => expand_type,         -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
+            dc_size     => dc_size)             -- 2^14 = 16384 Bytes L1 D$
 port map(
 
+     -- Acts to latches
      ex3_stg_act                => ex3_stg_act_q,
      ex4_stg_act                => ex4_stg_act_q,
      rel3_stg_act               => rel3_stg_act_q,
      rel4_stg_act               => rel4_stg_act_q,
 
+     -- XUOP Signals
      ex3_p_addr                 => ex3_p_addr_q(uprCClassBit to 58),
      ex3_byte_en                => ex3_byte_en,
      ex4_256st_data             => st_256data,
@@ -1088,8 +1186,10 @@ port map(
      ex4_load_hit               => ex4_load_hit,
      ex5_stg_flush              => ex5_stg_flush,
 
+     -- Parity Error Inject
      inj_dcache_parity          => inj_dcache_parity_q,
 
+     -- Reload Signals
      ldq_rel_data_val           => rel_data_val(0),
      ldq_rel_addr               => rel_addr_q,
 
@@ -1099,10 +1199,12 @@ port map(
      dcarr_wr_data              => dcarr_wr_data,
      dcarr_bw_dly               => dcarr_bw_dly,
 
+     -- Execution Pipe
      ex5_ld_data                => ex5_ld_data,
      ex5_ld_data_par            => ex5_ld_data_par,
      ex6_par_chk_val            => ex6_par_chk_val,
 
+     --pervasive
      vdd                        => vdd,
      gnd                        => gnd,
      nclk                       => nclk,
@@ -1119,6 +1221,9 @@ port map(
      scan_out                   => sov1(l1dcar_offset)
 );
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Array
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 dcArrWenb: dcarr_wren_b <= not (rel_ex4_store_hit and rel_ex4_upd_en);
 dcArrWen:  dcarr_wren   <= not (dcarr_wren_b);
@@ -1129,17 +1234,19 @@ dat_dbg_arr_d <= ex4_store_hit     & (not rel_ex4_upd_en) & rel_upd_dcarr_val & 
 
 dc16K: if (2**dc_size) = 16384 generate
     tridcarr: entity tri.tri_512x288_9(tri_512x288_9)       
-      GENERIC Map(addressable_ports   => 512,                 
-                  addressbus_width    => 6,                   
-                  port_bitwidth       => 288,                 
-                  bit_write_type      => 9,                   
-                  ways                => 1,                   
-                  expand_type         => expand_type)         
+      GENERIC Map(addressable_ports   => 512,                 -- number of addressable register in this array
+                  addressbus_width    => 6,                   -- width of the bus to address all ports (2^portadrbus_width >= addressable_ports)
+                  port_bitwidth       => 288,                 -- bitwidth of ports (per way)
+                  bit_write_type      => 9,                   -- gives the number of bits that shares one write-enable
+                  ways                => 1,                   -- number of ways
+                  expand_type         => expand_type)         -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
       PORT Map(
+               -- POWER PINS
                vcs                        => vcs,
                vdd                        => vdd,
                gnd                        => gnd,
 
+               -- CLOCK AND CLOCKCONTROL PORTS
                nclk                       => nclk,
                act                        => rel4_ex4_stg_act,
                sg_0                       => sg_0,
@@ -1165,6 +1272,7 @@ dc16K: if (2**dc_size) = 16384 generate
                aodo_lcb_mpw1_dc_b         => g6t_mpw1_dc_b(3),
                aodo_lcb_mpw2_dc_b         => g6t_mpw2_dc_b,
 
+               -- ABIST
                bitw_abist                 => pc_xu_abist_g6t_bw_q,
                tc_lbist_ary_wrt_thru_dc   => an_ac_lbist_ary_wrt_thru_dc,
                abist_en_1                 => pc_xu_abist_ena_dc, 
@@ -1175,6 +1283,7 @@ dc16K: if (2**dc_size) = 16384 generate
                addr_abist                 => pc_xu_abist_raddr_0_q,
                r_wb_abist                 => pc_xu_abist_g6t_r_wb_q,
 
+               -- SCAN PORTS
                abst_scan_in(0)            => abist_siv(0),
                abst_scan_in(1)            => abst_scan_in_q(1),
                time_scan_in               => time_scan_in_q,
@@ -1184,6 +1293,7 @@ dc16K: if (2**dc_size) = 16384 generate
                time_scan_out              => time_scan_out_int,
                repr_scan_out              => repr_scan_out_int,
 
+               -- BOLT-ON
                lcb_bolt_sl_thold_0        => bolt_sl_thold_0,
                pc_bo_enable_2             => bo_enable_2,
                pc_bo_reset                => pc_xu_bo_reset,
@@ -1200,6 +1310,7 @@ dc16K: if (2**dc_size) = 16384 generate
                tri_lcb_act_dis_dc         => tidn,
 
 
+               -- FUNCITONAL PORTS
                write_enable               => dcarr_wren,
                bw                         => dcarr_bw,
                arr_up_addr                => dcarr_up_way_addr,
@@ -1211,17 +1322,19 @@ end generate dc16K;
 
 dc32K: if (2**dc_size) = 32768 generate
     tridcarr: entity tri.tri_512x288_9(tri_512x288_9)       
-      GENERIC Map(addressable_ports   => 1024,                
-                  addressbus_width    => 7,                   
-                  port_bitwidth       => 288,                 
-                  bit_write_type      => 9,                   
-                  ways                => 1,                   
-                  expand_type         => expand_type)         
+      GENERIC Map(addressable_ports   => 1024,                -- number of addressable register in this array
+                  addressbus_width    => 7,                   -- width of the bus to address all ports (2^portadrbus_width >= addressable_ports)
+                  port_bitwidth       => 288,                 -- bitwidth of ports (per way)
+                  bit_write_type      => 9,                   -- gives the number of bits that shares one write-enable
+                  ways                => 1,                   -- number of ways
+                  expand_type         => expand_type)         -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
       PORT Map(
+               -- POWER PINS
                vcs                        => vcs,
                vdd                        => vdd,
                gnd                        => gnd,
 
+               -- CLOCK AND CLOCKCONTROL PORTS
                nclk                       => nclk,
                act                        => rel4_ex4_stg_act,
                sg_0                       => sg_0,
@@ -1247,6 +1360,7 @@ dc32K: if (2**dc_size) = 32768 generate
                aodo_lcb_mpw1_dc_b         => g6t_mpw1_dc_b(3),
                aodo_lcb_mpw2_dc_b         => g6t_mpw2_dc_b,
 
+               -- ABIST
                bitw_abist                 => pc_xu_abist_g6t_bw_q,
                tc_lbist_ary_wrt_thru_dc   => an_ac_lbist_ary_wrt_thru_dc,
                abist_en_1                 => pc_xu_abist_ena_dc, 
@@ -1257,6 +1371,7 @@ dc32K: if (2**dc_size) = 32768 generate
                addr_abist                 => pc_xu_abist_raddr_0_q,
                r_wb_abist                 => pc_xu_abist_g6t_r_wb_q,
 
+               -- SCAN PORTS
                abst_scan_in(0)            => abist_siv(0),
                abst_scan_in(1)            => abst_scan_in_q(1),
                time_scan_in               => time_scan_in_q,
@@ -1266,6 +1381,7 @@ dc32K: if (2**dc_size) = 32768 generate
                time_scan_out              => time_scan_out_int,
                repr_scan_out              => repr_scan_out_int,
 
+               -- BOLT-ON
                lcb_bolt_sl_thold_0        => bolt_sl_thold_0,
                pc_bo_enable_2             => bo_enable_2,
                pc_bo_reset                => pc_xu_bo_reset,
@@ -1281,6 +1397,7 @@ dc32K: if (2**dc_size) = 32768 generate
                tri_lcb_clkoff_dc_b        => clkoff_dc_b,
                tri_lcb_act_dis_dc         => tidn,
                
+               -- FUNCITONAL PORTS
                write_enable               => dcarr_wren,
                bw                         => dcarr_bw,
                arr_up_addr                => dcarr_up_way_addr,
@@ -1290,6 +1407,9 @@ dc32K: if (2**dc_size) = 32768 generate
                );      
 end generate dc32K;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Load Rotator
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ex3_opsize_d  <= op_size;
 
 rel_axu_le_val_d      <= rel_axu_le_mode and rel_upd_gpr_q;
@@ -1297,15 +1417,17 @@ rel_axu_le_val_stg1_d <= rel_axu_le_val_q;
 ex5_rel_le_mode_d     <= (ex4_le_mode_q and not rel_axu_le_val_stg1_q) or rel_axu_le_val_stg1_q;
 
 l1dcld: entity work.xuq_lsu_data_ld(xuq_lsu_data_ld)
-GENERIC MAP(expand_type         => expand_type,		
+GENERIC MAP(expand_type         => expand_type,		-- 0 = ibm, 1 = xilinx
             regmode             => regmode,
-            l_endian_m          => l_endian_m)          
+            l_endian_m          => l_endian_m)          -- 1 = little endian mode enabled, 0 = little endian mode disabled
 PORT MAP(
 
+     -- Acts to latches
      ex3_stg_act                => ex3_stg_act_q,
      ex4_stg_act                => ex4_stg_act_q,
      ex5_stg_act                => ex5_stg_act_q,
 
+     -- Execution Pipe Load Data Rotator Controls
      ex3_opsize                 => ex3_opsize_q,
      ex3_algebraic              => ex3_algebraic,
      ex4_ld_rot_sel             => ex4_ld_rot_sel,
@@ -1315,10 +1437,12 @@ PORT MAP(
      ex5_ld_data_par            => ex5_ld_data_par,
      ex6_par_chk_val            => ex6_par_chk_val,
 
+     -- Debug Bus
      trace_bus_enable           => trace_bus_enable_q,
      dat_debug_mux_ctrls        => dat_debug_mux_ctrls_q,
      dat_dbg_ld_dat             => dat_dbg_ld_dat,
 
+     -- Rotated Data
      ld_swzl_data (0 to 255)               => ld_swzl_data(0 to 255)  ,
      ex6_ld_alg_bit(0 to  5)               => ex6_ld_alg_bit(0 to  5)  ,
      ex6_ld_dvc_byte_mask       => ex6_ld_dvc_byte_mask,
@@ -1327,6 +1451,7 @@ PORT MAP(
      ex6_ld_par_err             => ex6_ld_par_err_int,
      ex7_ld_par_err             => ex7_ld_par_err,
 
+     -- Pervasive
      vdd                        => vdd,
      gnd                        => gnd,
      nclk                       => nclk,
@@ -1343,6 +1468,9 @@ PORT MAP(
      scan_out                   => sov1(l1dcld_offset)
 );
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Debug Bus
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 stDbgData : for byte in 0 to 7 generate begin
       rel_ex3_store_data0(byte*8 to (byte*8)+7) <= rel_ex3_data_q(byte+0)   & rel_ex3_data_q(byte+32)  & rel_ex3_data_q(byte+64)  & rel_ex3_data_q(byte+96) &
@@ -1362,9 +1490,24 @@ with dat_debug_mux_ctrls_q select
                         rel_ex3_store_data3 when others;
 
 
+-- Debug Bus0
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- ex4_saxu_instr_q             1
+-- ex4_sdp_instr_q              1
+-- ex4_stgpr_instr_q            1
+-- ex4_axu_op_val_q             1
+-- ex4_algebraic_q              1
+-- ex4_le_mode_q                1
+-- ex4_ld_rot_sel               5
+-- ex4_p_addr_q                 11
 
+-- ex7_load_hit_q               1
+-- ex7_ld_par_err               1
+-- dat_dbg_ld_dat(0:19)         20
 
+-- dat_dbg_ld_dat(20:41)        22
 
+-- dat_dbg_ld_dat(42:63)        22
 
 lsu_xu_data_debug0(0 to 21)  <= ex4_saxu_instr_q & ex4_sdp_instr_q & ex4_stgpr_instr_q & ex4_axu_op_val_q &
                                 ex4_algebraic_q  & ex4_le_mode_q   & ex4_ld_rot_sel    & ex4_p_addr_q;
@@ -1372,9 +1515,24 @@ lsu_xu_data_debug0(22 to 43) <= ex7_load_hit_q & ex7_ld_par_err(1) & dat_dbg_ld_
 lsu_xu_data_debug0(44 to 65) <= dat_dbg_ld_dat(20 to 41);
 lsu_xu_data_debug0(66 to 87) <= dat_dbg_ld_dat(42 to 63);
 
+-- Debug Bus1
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- dcarr_wren_q                 1
+-- rel_ci_dly_q                 1
+-- ex4_saxu_instr_q             1
+-- ex4_stgpr_instr_q            1
+-- ex3_fu_st_val_q              1
+-- ex4_le_mode_q                1
+-- ex3_st_rot_sel_q             5
+-- ex4_p_addr_q                 11
 
+-- ex7_load_hit_q               1
+-- ex7_ld_par_err               1
+-- dat_dbg_st_dat(0:19)         20
 
+-- dat_dbg_st_dat(20:41)        22
 
+-- dat_dbg_st_dat(42:63)        22
 
 lsu_xu_data_debug1(0 to 21)  <= dcarr_wren_q    & rel_ci_dly_q  & ex4_saxu_instr_q & ex4_stgpr_instr_q &
                                 ex3_fu_st_val_q & ex4_le_mode_q & ex3_st_rot_sel_q & ex4_p_addr_q;
@@ -1382,16 +1540,32 @@ lsu_xu_data_debug1(22 to 43) <= ex3_store_instr_q & rel_data_val_stg_dly_q & dat
 lsu_xu_data_debug1(44 to 65) <= dat_dbg_st_dat_q(20 to 41);
 lsu_xu_data_debug1(66 to 87) <= dat_dbg_st_dat_q(42 to 63);
 
+-- Debug Bus2
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- ex4_store_hit                1
+-- ex4_blk_store                1
+-- rel_upd_dcarr_val            1
+-- dcarr_up_way_addr            3
+-- dcarr_addr                   6
+-- dcarr_bw_dly(0:9)            10
 
+-- dcarr_bw_dly(10:31)          22
 
+-- rel4_ex4_stg_act             1
+-- dat_dbg_st_dat(21:41)        21
 
+-- dat_dbg_st_dat(42:63)        22
          
 lsu_xu_data_debug2(0 to 21)  <= dat_dbg_arr_q(0 to 2) & dat_dbg_arr_q(4 to 12) & dcarr_bw_dly(0 to 9);
 lsu_xu_data_debug2(22 to 43) <= dcarr_bw_dly(10 to 31);
 lsu_xu_data_debug2(44 to 65) <= dat_dbg_arr_q(3) & dat_dbg_st_dat_q(21 to 41);
 lsu_xu_data_debug2(66 to 87) <= dat_dbg_st_dat_q(42 to 63);
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- DEBUG Data Compare
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- Store Data Compare
 dvcCmpSt : for t in (64-(2**regmode))/8 to 7 generate begin
       ex2_st_dvc1_cmp_d(t) <= (xu_lsu_ex1_store_data(t*8 to (t*8)+7) =
                                       spr_dvc1_dbg_q(t*8 to (t*8)+7));
@@ -1399,6 +1573,7 @@ dvcCmpSt : for t in (64-(2**regmode))/8 to 7 generate begin
                                       spr_dvc2_dbg_q(t*8 to (t*8)+7));
 end generate dvcCmpSt;
 
+-- Load Data Compare
 ex5_dvc1_en_d <= ex4_load_hit and not ex4_axu_op_val;
 ex5_dvc2_en_d <= ex4_load_hit and not ex4_axu_op_val;
 ex6_dvc1_en_d <= ex5_dvc1_en_q;
@@ -1413,6 +1588,8 @@ dvcCmpLd : for t in (64-(2**regmode))/8 to 7 generate begin
                                                     spr_dvc2_dbg_q(t*8 to (t*8)+7));
 end generate dvcCmpLd;
 
+-- Reload Data Compare
+-- Need to gate dvc enables with not an axu reload
 rel_dvc1_val_d      <= rel_dvc1_en_q and not rel_axu_val_q;
 rel_dvc1_val_stg_d  <= rel_upd_gpr_q and rel_dvc1_val_q and not ldq_rel_beat_crit_qw_block;
 rel_dvc1_val_stg2_d <= rel_dvc1_val_stg_q;
@@ -1430,11 +1607,16 @@ dvcCmpRl : for t in (64-(2**regmode))/8 to 7 generate begin
                            spr_dvc2_dbg_q(t*8 to (t*8)+7)) and rel_dvc_byte_mask(t);
 end generate dvcCmpRl;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Return Data Muxing
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- Mux between move from GPR, move to GPR, and Move from DITC
 ex6_stgpr_dp_data_d(0 to 127-(2**regmode))   <= ex5_dp_data(0 to 127-(2**regmode));
 ex6_stgpr_dp_data_d(128-(2**regmode) to 127) <= gate(ex5_dp_data(128-(2**regmode) to 127), ex5_sdp_instr_q) or
                                                 gate(ex5_stgpr_data_q(64-(2**regmode) to 63), not ex5_sdp_instr_q);
 
+-- Creating 1-hot mux selects for AXU Data Muxing Control
 axu_data_sel <= (ex4_sdp_instr_q or ex4_stgpr_instr_q) & axu_rel_val_stg2_q;
 
 with axu_data_sel select
@@ -1449,7 +1631,10 @@ end generate selGen;
 ex5_stgpr_dp_instr_d <= ex4_sdp_instr_q or ex4_stgpr_instr_q;
 ex6_stgpr_dp_instr_d <= ex5_stgpr_dp_instr_q;
 
+-- AXU Data
+-- Mux between move from GPR, move to GPR, Move from DITC, load hit data, and reload data
 
+-- Staging out AXU Reload Data
 rel_256ld_data_stg1_d <= rel_256ld_data;
 rel_256ld_data_stg2_d <= rel_256ld_data_stg1_q;
 
@@ -1463,9 +1648,11 @@ rel_256ld_data_stg2_d <= rel_256ld_data_stg1_q;
  end generate axuldreldata;
 
 axuRelGpr : for byte in 0 to 15 generate
+    -- Muxing between stagedReloadData and MoveRegisterOps
     ex6_axu_rel_gpr_data(8*byte to (8*byte)+7) <= gate(ex6_stgpr_dp_data_q(8*byte to (8*byte)+7), ex6_axu_data_sel_q((byte*3))) or
                                                   gate(rel_256ld_data_stg2_q(128+(8*byte) to 128+(8*byte)+7), ex6_axu_data_sel_q((byte*3)+1));
 
+    -- Muxing between loadHitData and stagedReloadData/MoveRegisterOps
     ex6_axu_rel_gpr_data_sel(byte)   <= not ex6_axu_data_sel_q((byte*3)+2);
     ex6_rot_sel(16 + byte)           <=     ex6_axu_data_sel_q((byte*3)+2);
 
@@ -1513,6 +1700,8 @@ end generate axuRelGpr;
 
  u_axu_dati:     xu_fu_ex6_load_data  (0 to 255) <= ex6_fdat(0 to 255);
 
+-- XU Data
+-- Mux between move from GPR, move to GPR, Move from DITC, and load hit data
 
  ex6_stgpr_dp_instr_q_b <= not ex6_stgpr_dp_instr_q ;
 
@@ -1606,6 +1795,9 @@ ex7_xld_data_d <= dont_do_this(64-(2**regmode) to 63);
 
 ex6_xu_ld_data_b(0 to 63) <= ex6_xld_data_b(0 to 63);
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- FIR Error Reporting
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 DCPerr: tri_direct_err_rpt
 generic map(width => 1, expand_type => expand_type)
@@ -1618,11 +1810,19 @@ port map(
 
 ex8_ld_par_err_d <= ex7_ld_par_err(0);
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Spare Latches
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 my_spare_latches_d     <= not my_spare_latches_q;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Outputs
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- D$ Parity Error Detected
 xu_pc_err_dcache_parity <= dcache_parity(0);
 
+-- Debug Data Compare Outputs
 lsu_xu_ex2_dvc1_st_cmp <= ex2_st_dvc1_cmp_q and ex2_xu_cmp_val_q;
 lsu_xu_ex2_dvc2_st_cmp <= ex2_st_dvc2_cmp_q and ex2_xu_cmp_val_q;
 lsu_xu_ex8_dvc1_ld_cmp <= gate(ex8_ld_dvc1_cmp_q, not ex8_ld_par_err_q);
@@ -1633,14 +1833,18 @@ lsu_xu_rel_dvc2_en     <= rel_dvc2_val_stg2_q;
 lsu_xu_rel_dvc2_cmp    <= rel_dvc2_cmp_q;
 lsu_xu_rel_dvc_thrd_id <= rel_dvc_tid_stg2_q;
 
+-- L2CMDQ signals
 ex4_256st_data <= ex4_256st_dataFixUp;
 
+-- XU data
 rel_xu_ld_data          <= rel_64ld_data(64-(2**regmode) to 63) & rel_xu_ld_par(0 to ((2**regmode)/8)-1);
 lsu_xu_ex6_datc_par_err <= ex6_ld_par_err_int;
 ex6_ld_par_err          <= ex6_ld_par_err_int;
 
+-- AXU data
 xu_fu_ex5_load_le   <= ex5_rel_le_mode_q;
 
+-- SCAN OUT Gate
 abst_scan_out    <= gate(abst_scan_out_q, an_ac_scan_dis_dc_b);
 time_scan_out    <= time_scan_out_q    and an_ac_scan_dis_dc_b;
 repr_scan_out    <= repr_scan_out_q    and an_ac_scan_dis_dc_b;
@@ -1648,6 +1852,9 @@ func_scan_out(0) <= func_scan_out_2_q(0) and an_ac_scan_dis_dc_b;
 func_scan_out(1) <= func_scan_out_2_q(1) and an_ac_scan_dis_dc_b;
 func_scan_out(2) <= func_scan_out_2_q(2) and an_ac_scan_dis_dc_b;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Registers
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ex3_opsize_reg: tri_rlmreg_p
   generic map (width => 6, init => 0, expand_type => expand_type, needs_sreset => 1)
 port map (vd      => vdd,
@@ -1894,6 +2101,7 @@ port map (vd      => vdd,
             din     => ex5_axu_data_sel_d,
             dout    => ex5_axu_data_sel_q);
 
+-- Non Scannable Latch
 rel_ex3_data_reg: tri_regk
   generic map (width => 256, init => 0, expand_type => expand_type, needs_sreset => 1)
 port map (vd      => vdd,
@@ -1924,6 +2132,7 @@ port map (vd      => vdd,
             din(0)  => rel_alg_bit_d,
             dout(0) => rel_alg_bit_q);
 
+-- Non Scannable Latch
 ex5_stgpr_data_reg: tri_regk
   generic map (width => (2**regmode), init => 0, expand_type => expand_type, needs_sreset => 1)
 port map (vd      => vdd,
@@ -3598,6 +3807,9 @@ port map (vd      => vdd,
             d       => my_spare_latches_d,
             qb      => my_spare_latches_q);
 
+-----------------------------------------------------------------------
+-- Func_Scan1 latches
+-----------------------------------------------------------------------
 rel_data_reg: tri_rlmreg_p
 generic map (width => 256, init => 0, expand_type => expand_type, needs_sreset => 1)
 port map (vd      => vdd,
@@ -3949,6 +4161,9 @@ port map (vd      => vdd,
             din     => dat_dbg_st_dat_d,
             dout    => dat_dbg_st_dat_q);
 
+-----------------------------------------------------------------------
+-- abist latches
+-----------------------------------------------------------------------
 abist_reg: tri_rlmreg_p
   generic map (init => 0, expand_type => expand_type, width => 21, needs_sreset => 0)
   port map (vd             => vdd,
@@ -3977,6 +4192,9 @@ abist_reg: tri_rlmreg_p
             dout(11 to 19) => pc_xu_abist_raddr_0_q,
             dout(20)       => pc_xu_abist_g6t_r_wb_q);
 
+-------------------------------------------------
+-- Pervasive
+-------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 9, expand_type => expand_type)
 port map (vd          => vdd,
@@ -4054,6 +4272,7 @@ perv_lcbor_abst_sl: tri_lcbor
             forcee => abst_sl_force,
             thold_b     => abst_sl_thold_0_b);
 
+-- LCBs for scan only staging latches
 slat_force        <= sg_0;
 abst_slat_thold_b <= NOT abst_sl_thold_0;
 time_slat_thold_b <= NOT time_sl_thold_0;
@@ -4183,4 +4402,3 @@ abist_siv            <= abist_sov(1 to abist_sov'right) & abst_scan_in_q(0);
 abst_scan_out_int(0) <= abist_sov(0);
 
 end xuq_lsu_data;
-
