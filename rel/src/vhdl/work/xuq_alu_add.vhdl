@@ -24,11 +24,14 @@ entity xuq_alu_add is
         regsize                         : integer := 64;
         fxu_synth                       : integer := 0);
     port(
+        -- Clocks
         nclk                            : in clk_logic;
 
+        -- Power
         vdd                             : inout power_logic;
         gnd                             : inout power_logic;
 
+        -- Pervasive
         dec_alu_rf1_add_act             : in std_ulogic;
         d_mode_dc                       : in std_ulogic;
         delay_lclkr_dc                  : in std_ulogic;
@@ -40,28 +43,36 @@ entity xuq_alu_add is
         scan_in                         : in std_ulogic;
         scan_out                        : out std_ulogic;
 
+        -- MSR[CM]
         dec_alu_rf1_select_64bmode      : in std_ulogic;
 
+        -- Decode Inputs
         dec_alu_rf1_add_rs0_inv         : in std_ulogic_vector(64-regsize to 63);
         dec_alu_rf1_add_ci              : in std_ulogic;
         dec_alu_rf1_is_cmpl             : in std_ulogic;
         dec_alu_rf1_tw_cmpsel           : in std_ulogic_vector(0 to 5);
         dec_alu_ex1_is_cmp              : in std_ulogic;
 
+        -- Source Data
         byp_alu_ex1_rs0                 : in std_ulogic_vector(64-regsize to 63);
         byp_alu_ex1_rs1                 : in std_ulogic_vector(64-regsize to 63);
 
+        -- RS0 and RS1 are Equal
         log_add_ex2_rt                  :in  std_ulogic_vector(64-regsize to 63);
         alu_byp_ex2_rt                  :out std_ulogic_vector(64-regsize to 63);
 
+        -- Target Data
         add_log_ex1_add_rt              : out std_ulogic_vector(64-regsize to 63);
         ex2_cr_recform                  : out std_ulogic_vector(0 to 3);
 
+        -- Effective address
         xu_ex1_eff_addr_int             : out std_ulogic_vector(64-(dc_size-3) to 63);
         xu_ex2_eff_addr                 : out std_ulogic_vector(64-regsize to 63);
 
+        -- Trap
         ex3_trap_val                    : out std_ulogic;
 
+        -- Carry/Overflow
         ex2_add_xer_ov                  : out std_ulogic;
         ex2_add_xer_ca                  : out std_ulogic
     );
@@ -93,6 +104,7 @@ architecture xuq_alu_add of xuq_alu_add is
     signal ex3_trap_val_q,      ex3_trap_val_d      : std_ulogic;
     signal ex1_select_64bmode_q                     : std_ulogic;
     signal ex2_select_32bcmp_q, ex1_select_32bcmp   : std_ulogic;
+    -- Scanchains
     constant ex1_add_act_offset                     : integer := 0;
     constant ex1_rs0_inv_offset                     : integer := ex1_add_act_offset         + 1;
     constant ex1_add_ci_offset                      : integer := ex1_rs0_inv_offset         + ex1_rs0_inv_q'length;
@@ -112,6 +124,7 @@ architecture xuq_alu_add of xuq_alu_add is
     constant scan_right                             : integer := ex2_select_32bcmp_offset   + 1;
     signal siv                                      : std_ulogic_vector(0 to scan_right-1);
     signal sov                                      : std_ulogic_vector(0 to scan_right-1);
+    -- Signals
     signal ex1_lclk_int                             : clk_logic;
     signal ex1_d1clk_int, ex1_d2clk_int             : std_ulogic;
     signal ex2_lclk_int                             : clk_logic;
@@ -148,12 +161,6 @@ architecture xuq_alu_add of xuq_alu_add is
 
 
 
-
-
-
-
-
-
 begin
 
 
@@ -162,9 +169,9 @@ begin
     aop_rep_b <= not( byp_alu_ex1_rs0 ) ;
     bop_rep_b <= not( byp_alu_ex1_rs1 ) ;
 
-    u_aop_xor:    ex1_x_b    <= aop_rep_b xor ex1_rs0_inv_q ; 
-    u_bop_i:      ex1_y      <= not bop_rep_b ; 
-    u_bop_ii:     ex1_y_b    <= not ex1_y     ; 
+    u_aop_xor:    ex1_x_b    <= aop_rep_b xor ex1_rs0_inv_q ; -- xor2_x2m --w=12
+    u_bop_i:      ex1_y      <= not bop_rep_b ; -- inv_x1m --w=4
+    u_bop_ii:     ex1_y_b    <= not ex1_y     ; -- inv_x2m --w=4
     u_aop_slow00: ex1_aop_00 <= not ex1_x_b(msb);                               
     u_aop_slow32: ex1_aop_32 <= not ex1_x_b(32) ;                               
     u_bop_slow00: ex1_bop_00 <= not ex1_y_b(msb);                               
@@ -180,6 +187,7 @@ begin
          cout_32                => ex1_cout_32,
          cout_0                 => ex1_cout_00);
 
+    -- Overflow occurs when the sign bit of the inputs differs from the sign of the result
     ex1_sgn00_32 <= not ex1_select_64bmode_q and not ex1_aop_32 and not ex1_bop_32  ; 
     ex1_sgn11_32 <= not ex1_select_64bmode_q and     ex1_aop_32 and     ex1_bop_32  ; 
     ex1_sgn00_64 <=     ex1_select_64bmode_q and not ex1_aop_00 and not ex1_bop_00  ; 
@@ -199,6 +207,9 @@ begin
                            
     ex2_add_xer_ov      <= ex2_overflow_q;
 
+    ---------------------------------------------------------------------
+    -- Compare to 0 for record forms / compare instructions
+    ---------------------------------------------------------------------
     
     
 add_64b_compare : if regsize = 64 generate
@@ -236,17 +247,19 @@ add_32b_compare : if regsize = 32 generate
     ex2_rt_msb          <= log_add_ex2_rt(32);
 end generate;
 
+    -- If the signs are different, then we immediately know if one is bigger than the other, but only look at this in case of cmp
     ex2_diff_sign  <= (ex2_rs0_msb_q xor ex2_rs1_msb_q) and ex2_is_cmp_q;
 
+    -- In case the sigs are not different, we need some more logic
     with ex2_is_cmp_q select
-        ex2_sign_cmp    <= ex2_add_xer_ca_q         when '1',       
-                           ex2_rt_msb               when others;    
+        ex2_sign_cmp    <= ex2_add_xer_ca_q         when '1',       -- Look at carry out for compares (need to be able to check over flow case)
+                           ex2_rt_msb               when others;    -- Look at sign bit for record forms (overflow is ignored, ie two positives equal a negative.)
 
-    ex2_rslt_gt_s       <= ((ex2_rs1_msb_q and ex2_diff_sign) or (not ex2_sign_cmp and not ex2_diff_sign)) and not ex2_cmp0_eq;    
-    ex2_rslt_lt_s       <= ((ex2_rs0_msb_q and ex2_diff_sign) or (    ex2_sign_cmp and not ex2_diff_sign)) and not ex2_cmp0_eq;    
+    ex2_rslt_gt_s       <= ((ex2_rs1_msb_q and ex2_diff_sign) or (not ex2_sign_cmp and not ex2_diff_sign)) and not ex2_cmp0_eq;    -- RS1 < RS0
+    ex2_rslt_lt_s       <= ((ex2_rs0_msb_q and ex2_diff_sign) or (    ex2_sign_cmp and not ex2_diff_sign)) and not ex2_cmp0_eq;    -- RS1 > RS0
 
-    ex2_rslt_gt_u       <= ((ex2_rs0_msb_q and ex2_diff_sign) or (not ex2_sign_cmp and not ex2_diff_sign)) and not ex2_cmp0_eq;    
-    ex2_rslt_lt_u       <= ((ex2_rs1_msb_q and ex2_diff_sign) or (    ex2_sign_cmp and not ex2_diff_sign)) and not ex2_cmp0_eq;    
+    ex2_rslt_gt_u       <= ((ex2_rs0_msb_q and ex2_diff_sign) or (not ex2_sign_cmp and not ex2_diff_sign)) and not ex2_cmp0_eq;    -- RS1 < RS0
+    ex2_rslt_lt_u       <= ((ex2_rs1_msb_q and ex2_diff_sign) or (    ex2_sign_cmp and not ex2_diff_sign)) and not ex2_cmp0_eq;    -- RS1 > RS0
 
     ex2_cmp_eq          <= ex2_cmp0_eq;
     ex2_cmp_gt          <= (not ex2_is_cmpl_q and ex2_rslt_gt_s) or (ex2_is_cmpl_q and ex2_rslt_gt_u);
@@ -263,6 +276,7 @@ end generate;
 
     ex3_trap_val        <= ex3_trap_val_q;
 
+    -- Determine Carry
     with ex1_select_32bcmp select
         ex2_add_xer_ca_d    <= ex1_cout_32                  when '1',
                                ex1_cout_00                  when others;
@@ -278,6 +292,9 @@ add_32b_retval : if regsize = 32 generate
     ex2_eff_addr_d      <= ex1_add_rslt(32 to 63);
 end generate;
 
+    -- Send out eff addr signals
+    -- Do a seperate add for the DATA rlm.
+    -- The ALU add is slow on these bits, and we  don't want extra loads.
     u_eff0_inv1: eff0_b <= not byp_alu_ex1_rs0(64-(dc_size-3) to 63) ;
     u_eff0_inv2: eff0   <= not eff0_b ;                               
     u_eff1_inv1: eff1_b <= not byp_alu_ex1_rs1(64-(dc_size-3) to 63) ;
@@ -287,6 +304,9 @@ end generate;
     
     xu_ex2_eff_addr     <= ex2_eff_addr_q;
 
+    ---------------------------------------------------------------------
+    -- Latch instances
+    ---------------------------------------------------------------------
     ex1_add_act_latch : tri_rlmlatch_p
         generic map (init => 0, expand_type => expand_type, needs_sreset => 1)
         port map (nclk          => nclk,

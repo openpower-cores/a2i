@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XUQ FXU B Top
+--
 LIBRARY ieee;       USE ieee.std_logic_1164.all;
 LIBRARY support;    
                     USE support.power_logic_pkg.all;
@@ -23,15 +25,21 @@ entity xuq_fxu_b is
         a2mode                          : integer := 1;
         hvmode                          : integer := 1;
         dc_size                         : natural := 14;
-        cl_size                         : natural := 6;             
+        cl_size                         : natural := 6;             -- 2^6 = 64 Bytes CacheLines
         real_data_add                   : integer := 42;
         fxu_synth                       : integer := 0);
     port(
+        ---------------------------------------------------------------------
+        -- Clocks & Power
+        ---------------------------------------------------------------------
         nclk                            : in clk_logic;
         vdd                             : inout power_logic;
         gnd                             : inout power_logic;
         vcs                             : inout power_logic;
 
+        ---------------------------------------------------------------------
+        -- Pervasive
+        ---------------------------------------------------------------------
         func_scan_in                        : in     std_ulogic_vector(54 to 58);
         func_scan_out                       : out    std_ulogic_vector(54 to 58);
         an_ac_scan_dis_dc_b                 : in     std_ulogic;
@@ -98,6 +106,9 @@ entity xuq_fxu_b is
         gptr_scan_in                        : in     std_ulogic;
         gptr_scan_out                       : out    std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Interface with FXU A
+        ---------------------------------------------------------------------
         fxa_fxb_rf0_val                     : in  std_ulogic_vector(0 to threads-1);
         fxa_fxb_rf0_issued                  : in  std_ulogic_vector(0 to threads-1);
         fxa_fxb_rf0_ucode_val               : in  std_ulogic_vector(0 to threads-1);
@@ -151,6 +162,9 @@ entity xuq_fxu_b is
         fxa_fxb_rf1_do1                     : in  std_ulogic_vector(64-regsize to 63);
         fxa_fxb_rf1_do2                     : in  std_ulogic_vector(64-regsize to 63);
 
+        ---------------------------------------------------------------------
+        -- Interface with LSU
+        ---------------------------------------------------------------------
         xu_lsu_rf0_act                      : out std_ulogic;
         xu_lsu_rf1_cache_acc                : out std_ulogic;
         xu_lsu_rf1_thrd_id                  : out std_ulogic_vector(0 to threads-1);
@@ -224,9 +238,9 @@ entity xuq_fxu_b is
         xu_lsu_rf1_cmd_act                  : out std_ulogic;
         xu_lsu_rf1_data_act                 : out std_ulogic;
         xu_lsu_rf1_mtspr_trace              : out std_ulogic;
-        lsu_xu_ex5_wren                     : in  std_ulogic;                        
-        lsu_xu_rel_wren                     : in  std_ulogic;                        
-        lsu_xu_rel_ta_gpr                   : in  std_ulogic_vector(0 to 7);         
+        lsu_xu_ex5_wren                     : in  std_ulogic;                        -- FXU Load Hit Write is Valid in EX5
+        lsu_xu_rel_wren                     : in  std_ulogic;                        -- FXU Reload is Valid
+        lsu_xu_rel_ta_gpr                   : in  std_ulogic_vector(0 to 7);         -- FXU Reload Target Register
         lsu_xu_need_hole                    : in  std_ulogic;
         lsu_xu_rot_ex6_data_b               : in  std_ulogic_vector(64-(2**regmode) to 63);
         lsu_xu_rot_rel_data                 : in  std_ulogic_vector(64-(2**regmode) to 63);
@@ -244,8 +258,14 @@ entity xuq_fxu_b is
         xu_lsu_ex1_add_src0                 : out std_ulogic_vector(64-regsize to 63);
         xu_lsu_ex1_add_src1                 : out std_ulogic_vector(64-regsize to 63);
 
+        ---------------------------------------------------------------------
+        -- Effective Address
+        ---------------------------------------------------------------------
         xu_ex1_eff_addr_int                 : out std_ulogic_vector(64-(dc_size-3) to 63);
 
+        ---------------------------------------------------------------------
+        -- TLB ops interface
+        ---------------------------------------------------------------------
         xu_iu_rf1_val                       : out std_ulogic_vector(0 to threads-1);
         xu_rf1_val                          : out std_ulogic_vector(0 to threads-1);
         xu_rf1_is_tlbre                     : out std_ulogic;
@@ -272,20 +292,35 @@ entity xuq_fxu_b is
         lsu_xu_ex4_tlb_data                 : in  std_ulogic_vector(64-(2**regmode) to 63);
         iu_xu_ex4_tlb_data                  : in  std_ulogic_vector(64-(2**regmode) to 63);
 
+        ---------------------------------------------------------------------
+        -- D-ERAT Req Interface
+        ---------------------------------------------------------------------
         xu_mm_derat_epn                     : out std_ulogic_vector(62-eff_ifar to 51);
 
+        ---------------------------------------------------------------------
+        -- Back Invalidate
+        ---------------------------------------------------------------------
         lsu_xu_is2_back_inv                 : in std_ulogic;
         lsu_xu_is2_back_inv_addr            : in std_ulogic_vector(64-real_data_add to 63-cl_size);
 
+        ---------------------------------------------------------------------
+        -- TLBRE
+        ---------------------------------------------------------------------
         mm_xu_mmucr0_0_tlbsel               : in  std_ulogic_vector(4 to 5);
         mm_xu_mmucr0_1_tlbsel               : in  std_ulogic_vector(4 to 5);
         mm_xu_mmucr0_2_tlbsel               : in  std_ulogic_vector(4 to 5);
         mm_xu_mmucr0_3_tlbsel               : in  std_ulogic_vector(4 to 5);
 
+        ---------------------------------------------------------------------
+        -- TLBSX./TLBSRX.
+        ---------------------------------------------------------------------
         xu_mm_rf1_is_tlbsxr                 : out std_ulogic;
         mm_xu_cr0_eq_valid                  : in  std_ulogic_vector(0 to threads-1);
         mm_xu_cr0_eq                        : in  std_ulogic_vector(0 to threads-1);
 
+        ---------------------------------------------------------------------
+        -- FU CR Write
+        ---------------------------------------------------------------------
         fu_xu_ex4_cr_val                    : in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex4_cr_noflush                : in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex4_cr0                       : in  std_ulogic_vector(0 to 3);
@@ -297,8 +332,14 @@ entity xuq_fxu_b is
         fu_xu_ex4_cr3                       : in  std_ulogic_vector(0 to 3);
         fu_xu_ex4_cr3_bf                    : in  std_ulogic_vector(0 to 2);
 
+        ---------------------------------------------------------------------
+        -- RAM
+        ---------------------------------------------------------------------
         xu_pc_ram_data                      : out std_ulogic_vector(64-(2**regmode) to 63);
 
+        ---------------------------------------------------------------------
+        -- Interface with IU
+        ---------------------------------------------------------------------
         xu_iu_ex5_val                       : out std_ulogic;
         xu_iu_ex5_tid                       : out std_ulogic_vector(0 to threads-1);
         xu_iu_ex5_br_update                 : out std_ulogic;
@@ -315,13 +356,22 @@ entity xuq_fxu_b is
         xu_iu_ex5_gshare                    : out std_ulogic_vector(0 to 3);
         xu_iu_ex5_getNIA                    : out std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- L2 STCX complete
+        ---------------------------------------------------------------------
         an_ac_stcx_complete                 : in  std_ulogic_vector(0 to threads-1);
         an_ac_stcx_pass                     : in  std_ulogic_vector(0 to threads-1);
 
+        ---------------------------------------------------------------------
+        -- icswx. interface
+        ---------------------------------------------------------------------
         an_ac_back_inv                      : in  std_ulogic;
         an_ac_back_inv_addr                 : in  std_ulogic_vector(58 to 63);
         an_ac_back_inv_target_bit3          : in  std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Slow SPR Bus
+        ---------------------------------------------------------------------
         slowspr_val_in                      : in  std_ulogic;
         slowspr_rw_in                       : in  std_ulogic;
         slowspr_etid_in                     : in  std_ulogic_vector(0 to 1);
@@ -329,6 +379,9 @@ entity xuq_fxu_b is
         slowspr_data_in                     : in  std_ulogic_vector(64-(2**regmode) to 63);
         slowspr_done_in                     : in  std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- DCR Bus
+        ---------------------------------------------------------------------
         an_ac_dcr_act                       : in  std_ulogic;
         an_ac_dcr_val                       : in  std_ulogic;
         an_ac_dcr_read                      : in  std_ulogic;
@@ -337,12 +390,21 @@ entity xuq_fxu_b is
         an_ac_dcr_done                      : in  std_ulogic;
         an_ac_dcr_ack                       : out std_ulogic;
         
+        ---------------------------------------------------------------------
+        -- MT/MFDCR CR
+        ---------------------------------------------------------------------
         lsu_xu_ex4_mtdp_cr_status           : in  std_ulogic;
         lsu_xu_ex4_mfdp_cr_status           : in  std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- ldawx/wchkall
+        ---------------------------------------------------------------------
         lsu_xu_ex4_cr_upd                   : in std_ulogic;
         lsu_xu_ex5_cr_rslt                  : in std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Interface with CPL
+        ---------------------------------------------------------------------
         dec_cpl_ex3_mult_coll               : out std_ulogic;
         dec_cpl_ex3_axu_instr_type          : out std_ulogic_vector(0 to 2);
         dec_cpl_ex3_instr_hypv              : out std_ulogic;
@@ -373,6 +435,9 @@ entity xuq_fxu_b is
         dec_cpl_ex3_ddmh_en                 : out std_ulogic;
         dec_cpl_ex3_back_inv                : out std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Flushes
+        ---------------------------------------------------------------------
         xu_rf1_flush                        : in  std_ulogic_vector(0 to threads-1);
         xu_ex1_flush                        : in  std_ulogic_vector(0 to threads-1);
         xu_ex2_flush                        : in  std_ulogic_vector(0 to threads-1);
@@ -380,6 +445,9 @@ entity xuq_fxu_b is
         xu_ex4_flush                        : in  std_ulogic_vector(0 to threads-1);
         xu_ex5_flush                        : in  std_ulogic_vector(0 to threads-1);
 
+        ---------------------------------------------------------------------
+        -- Interface with SPR
+        ---------------------------------------------------------------------
         dec_spr_ex4_val                     : out std_ulogic_vector(0 to threads-1);
         mux_spr_ex2_rt                      : out std_ulogic_vector(64-(2**regmode) to 63);
         fxu_spr_ex1_rs0                     : out std_ulogic_vector(52 to 63);
@@ -401,15 +469,24 @@ entity xuq_fxu_b is
         dec_spr_rf1_val                     : out std_ulogic_vector(0 to threads-1);
         fxu_spr_ex1_rs2                     : out std_ulogic_vector(42 to 55);
 
+        ---------------------------------------------------------------------
+        -- Perf Events
+        ---------------------------------------------------------------------
         cpl_perf_tx_events                  : in  std_ulogic_vector(0 to 75);
         spr_perf_tx_events                  : in  std_ulogic_vector(0 to 8*threads-1);
         fxa_perf_muldiv_in_use              : in  std_ulogic;
         xu_pc_event_data                    : out std_ulogic_vector(0 to 7);
 
+        ---------------------------------------------------------------------
+        -- PC Control Interface
+        ---------------------------------------------------------------------
         pc_xu_event_bus_enable              : in  std_ulogic;
         pc_xu_event_count_mode              : in  std_ulogic_vector(0 to 2);
         pc_xu_event_mux_ctrls               : in  std_ulogic_vector(0 to 47);
 
+        ---------------------------------------------------------------------
+        -- Debug Ramp & Controls
+        ---------------------------------------------------------------------
         pc_xu_trace_bus_enable              : in  std_ulogic;
         pc_xu_instr_trace_mode              : in  std_ulogic;
         pc_xu_instr_trace_tid               : in  std_ulogic_vector(0 to 1);
@@ -427,6 +504,9 @@ entity xuq_fxu_b is
         lsu_xu_data_debug1                  : in  std_ulogic_vector(0 to 87);
         lsu_xu_data_debug2                  : in  std_ulogic_vector(0 to 87);
 
+        ---------------------------------------------------------------------
+        -- DAC
+        ---------------------------------------------------------------------
         fxu_cpl_ex3_dac1r_cmpr_async        : out std_ulogic_vector(0 to threads-1);
         fxu_cpl_ex3_dac2r_cmpr_async        : out std_ulogic_vector(0 to threads-1);
         fxu_cpl_ex3_dac1r_cmpr              : out std_ulogic_vector(0 to threads-1);
@@ -438,6 +518,9 @@ entity xuq_fxu_b is
         fxu_cpl_ex3_dac3w_cmpr              : out std_ulogic_vector(0 to threads-1);
         fxu_cpl_ex3_dac4w_cmpr              : out std_ulogic_vector(0 to threads-1);
 
+        ---------------------------------------------------------------------
+        -- SPR Bits
+        ---------------------------------------------------------------------
         spr_bit_act                         : in  std_ulogic;
         spr_msr_gs                          : in  std_ulogic_vector(0 to threads-1);
         spr_msr_ds                          : in  std_ulogic_vector(0 to threads-1);
@@ -459,6 +542,7 @@ architecture xuq_fxu_b of xuq_fxu_b is
     constant tiup                           : std_ulogic := '1';
     constant tidn                           : std_ulogic := '0';
 
+    -- Signals
     signal sg_2_b                                : std_ulogic_vector(0 to 3);
     signal fce_2_b                               : std_ulogic_vector(0 to 1);
     signal func_sl_thold_2_b                     : std_ulogic_vector(0 to 3);
@@ -494,14 +578,16 @@ architecture xuq_fxu_b of xuq_fxu_b is
     signal      so_force                    : std_ulogic;
     signal func_so_thold_0_b                : std_ulogic;
 
+    -- temp
     signal dec_spr_ex1_is_mfspr             : std_ulogic;
     signal dec_spr_ex1_is_mtspr             : std_ulogic;
 
+    -- Inter-Unit Signals
     signal byp_alu_ex1_rs0                  : std_ulogic_vector(64-regsize to 63);
     signal byp_alu_ex1_rs1                  : std_ulogic_vector(64-regsize to 63);
     signal alu_byp_ex2_rt                   : std_ulogic_vector(64-regsize to 63);
     signal alu_byp_ex2_rt_b                   : std_ulogic_vector(64-regsize to 63);
-    signal alu_byp_ex1_log_rt               : std_ulogic_vector(64-regsize to 63);     
+    signal alu_byp_ex1_log_rt               : std_ulogic_vector(64-regsize to 63);     -- ALU Logicals
     signal byp_spr_ex6_rt                   : std_ulogic_vector(64-regsize to 63);
     signal byp_alu_ex1_mulsrc_0             : std_ulogic_vector(64-regsize to 63);
     signal byp_alu_ex1_mulsrc_1             : std_ulogic_vector(64-regsize to 63);
@@ -532,7 +618,7 @@ architecture xuq_fxu_b of xuq_fxu_b is
     signal dec_alu_rf1_div_size             : std_ulogic;
     signal dec_alu_rf1_div_extd             : std_ulogic;
     signal dec_alu_rf1_div_recform          : std_ulogic;
-    signal dec_alu_rf1_sel                  : std_ulogic_vector(0 to 3); 
+    signal dec_alu_rf1_sel                  : std_ulogic_vector(0 to 3); -- ADD,ROT,LOG,CMPB
     signal dec_alu_rf1_add_rs0_inv          : std_ulogic_vector(64-regsize to 63);
     signal dec_alu_rf1_add_ci               : std_ulogic;
     signal dec_alu_rf1_is_cmpl              : std_ulogic;
@@ -615,11 +701,13 @@ architecture xuq_fxu_b of xuq_fxu_b is
     signal dec_alu_rf1_act                  : std_ulogic;
     signal dec_alu_ex1_act                  : std_ulogic;        
     
+    -- Scan
     signal siv_54, sov_54                   : std_ulogic_vector(0 to 2);
     signal siv_55, sov_55                   : std_ulogic_vector(0 to 2);
     signal siv_56, sov_56                   : std_ulogic_vector(0 to 4);
     signal siv_57, sov_57                   : std_ulogic_vector(0 to 3);
     signal siv_58, sov_58                   : std_ulogic_vector(0 to 2);
+    -- SPR bits
     signal byp_xer_si                       : std_ulogic_vector(0 to 7*threads-1);
     signal gpr_we0_debug                    : std_ulogic_vector(0 to 87);
     signal byp_grp0_debug                   : std_ulogic_vector(0 to 87);
@@ -653,6 +741,9 @@ begin
     mpw1_dc_b <= mpw1_dc_b_b;
     mpw2_dc_b <= mpw2_dc_b_b;
 
+    -------------------------------------------------
+    -- Pervasive
+    -------------------------------------------------
     perv_2to1_reg: tri_plat
         generic map (width => 6, expand_type => expand_type)
         port map (vd        => vdd,
@@ -731,13 +822,22 @@ begin
                   
         so_force           <= sg_0;   
    func_so_thold_0_b       <= not func_sl_thold_0;
+    ---------------------------------------------------------------------
+    -- TEMP
+    ---------------------------------------------------------------------
     dec_alu_rf1_mul_val         <= fxa_fxb_rf1_mul_val;
     dec_alu_rf1_div_val         <= fxa_fxb_rf1_div_val;
 
+    ---------------------------------------------------------------------
+    -- Multi-drops
+    ---------------------------------------------------------------------
     xu_iu_spr_xer                   <= byp_xer_si;
     dec_cpl_ex2_is_any_store_dac    <= ex2_is_any_store_dac;
     dec_cpl_ex2_is_any_load_dac     <= ex2_is_any_load_dac;
 
+    ---------------------------------------------------------------------
+    -- Bypass
+    ---------------------------------------------------------------------
     xu_byp : entity work.xuq_byp(xuq_byp)
     generic map(
         threads                         => threads,
@@ -902,6 +1002,9 @@ begin
         byp_grp8_debug                  => byp_grp8_debug
         );
 
+    -------------------------------------------------------------------------------
+    -- Decode
+    -------------------------------------------------------------------------------
     xu_dec_b : entity work.xuq_dec_b(xuq_dec_b)
     generic map(
         expand_type                         => expand_type,
@@ -1245,6 +1348,9 @@ begin
         dec_grp1_debug                      => dec_grp1_debug
         );
 
+    ---------------------------------------------------------------------
+    -- ALU
+    ---------------------------------------------------------------------
     xu_alu : entity work.xuq_alu(xuq_alu)
     generic map(
         expand_type                     => expand_type,
@@ -1346,9 +1452,15 @@ begin
         alu_byp_ex1_log_rt              => alu_byp_ex1_log_rt, 
         alu_byp_ex2_rt                  => alu_byp_ex2_rt);
 
+    ---------------------------------------------------------------------
+    -- SPR
+    ---------------------------------------------------------------------
     mux_spr_ex2_rt              <= alu_byp_ex2_rt;
     alu_byp_ex2_rt_b <= alu_byp_ex2_rt;
 
+    ---------------------------------------------------------------------
+    -- Pervasive
+    ---------------------------------------------------------------------
     xu_perv : entity work.xuq_perv(xuq_perv)
     generic map(
          expand_type => expand_type)
@@ -1428,6 +1540,9 @@ begin
          gptr_scan_out              => gptr_scan_out
     );
 
+    ---------------------------------------------------------------------
+    -- Perf
+    ---------------------------------------------------------------------
     xu_perf : entity work.xuq_perf(xuq_perf)
     generic map(
        expand_type                      => expand_type)
@@ -1453,9 +1568,13 @@ begin
        xu_pc_event_data                 => xu_pc_event_data,
        spr_msr_gs                       => spr_msr_gs,
        spr_msr_pr                       => spr_msr_pr,
+       -- Power
        vdd                              => vdd,
        gnd                              => gnd);
 
+    ---------------------------------------------------------------------
+    -- Debug
+    ---------------------------------------------------------------------
     
     xu_fxu_debug : entity work.xuq_debug(xuq_debug)
     generic map(
@@ -1538,6 +1657,9 @@ begin
    mark_unused(gpr_we0_debug);
    mark_unused(dec_grp0_debug);
 
+    ---------------------------------------------------------------------
+    -- SPR
+    ---------------------------------------------------------------------
     xu_fxu_spr : entity work.xuq_fxu_spr(xuq_fxu_spr)
     generic map (
        hvmode                           => hvmode,
@@ -1602,6 +1724,7 @@ begin
        gnd                              => gnd
     );
 
+-- Scan Repower
 func_scan_rpwr_54i_latch : tri_regs
   generic map (width => 1, init => 0, expand_type => expand_type, needs_sreset => 1)
   port map (nclk    => nclk, vd => vdd, gd => gnd,
@@ -1709,3 +1832,4 @@ func_scan_out(58)                      <= sov_58(0) and an_ac_scan_dis_dc_b;
 
 
 end architecture xuq_fxu_b;
+

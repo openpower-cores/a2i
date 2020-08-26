@@ -15,16 +15,16 @@ library ibm;
   use ibm.std_ulogic_ao_support.all; 
   use ibm.std_ulogic_mux_support.all; 
 
+-- input phase is important
+-- (change X (B) by switching xor/xnor )
 
 entity xuq_agen_lo is port(
-     x_b         :in  std_ulogic_vector(0 to 11) ; 
+     x_b         :in  std_ulogic_vector(0 to 11) ; -- after xor
      y_b         :in  std_ulogic_vector(0 to 11) ;
      sum         :out std_ulogic_vector(0 to 11) ; 
      sum_arr     :out std_ulogic_vector(1 to  5) ;
-     dir_ig_57_b :in std_ulogic 
+     dir_ig_57_b :in std_ulogic -- when this is low , bit 57 becomes "1" .
  );
-
-
 
 
 END                                 xuq_agen_lo;
@@ -47,45 +47,27 @@ ARCHITECTURE xuq_agen_lo  OF xuq_agen_lo  IS
    signal t04   :std_ulogic_vector(1 to 7);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 BEGIN
 
+  --####################################################################
+  --# propagate, generate, transmit
+  --####################################################################
 
     u_g01:    g01  (1 to 11) <= not( x_b(1 to 11) or   y_b(1 to 11) );
     u_t01:    t01  (1 to 10) <= not( x_b(1 to 10) and  y_b(1 to 10) );
     u_p01b:   p01_b(0 to 11) <= not( x_b(0 to 11) xor  y_b(0 to 11) );
     u_p01:    p01  (0 to 11) <= not( p01_b(0 to 11) );
 
+  --####################################################################
+  --# final sum and drive
+  --####################################################################
 
     u_sumx:      sum_x(0 to 10)  <= p01(0 to 10) xor c(1 to 11);
     u_sumx11b:   sum_x_11_b <= not( p01(11) );
     u_sumx11:    sum_x(11)  <= not( sum_x_11_b );
 
+      -- 00 01 02 03 04 05 06 07 08 09 10 11
+      -- 52 53 54 55 56 57 58 59 60 61 62 63
 
     u_sum_b:     sum_b  (0 to 11) <= not( sum_x(0 to 11) );
     u_sum:       sum    (0 to 11) <= not( sum_b(0 to 11) );
@@ -93,8 +75,11 @@ BEGIN
     u_sum_arr2:  sum_arr(2)       <= not( sum_b(2) );
     u_sum_arr3:  sum_arr(3)       <= not( sum_b(3) );
     u_sum_arr4:  sum_arr(4)       <= not( sum_b(4) );
-    u_sum_arr5:  sum_arr(5)       <= not( sum_b(5) and dir_ig_57_b ); 
+    u_sum_arr5:  sum_arr(5)       <= not( sum_b(5) and dir_ig_57_b ); -- OR with negative inputs
 
+  --####################################################################
+  --# carry path is cogge-stone
+  --####################################################################
 
 
     u_g02_1:  g02_b( 1) <= not( g01( 1) or ( t01( 1) and g01( 2) ) );
@@ -190,5 +175,4 @@ BEGIN
 
 
 
-END; 
-
+END; -- ARCH xuq_agen_lo

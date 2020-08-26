@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Divide
+--
 library ieee,ibm,support,tri,work;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -20,11 +22,14 @@ entity xuq_alu_div is
         expand_type                     : integer := 2;
         regsize                         : integer := 64);
     port(
+        -- Clocks
         nclk                            : in clk_logic;
 
+        -- Power
         vdd                             : inout power_logic;
         gnd                             : inout power_logic;
 
+        -- Pervasive
         d_mode_dc                       : in std_ulogic;
         delay_lclkr_dc                  : in std_ulogic;
         mpw1_dc_b                       : in std_ulogic;
@@ -35,28 +40,35 @@ entity xuq_alu_div is
         scan_in                         : in std_ulogic;
         scan_out                        : out std_ulogic;
 
+        -- Decode Inputs
         fxa_fxb_rf1_div_ctr             : in std_ulogic_vector(0 to 7);
         dec_alu_rf1_div_val             : in std_ulogic;
-        dec_alu_rf1_div_sign            : in std_ulogic;                            
-        dec_alu_rf1_div_size            : in std_ulogic;                            
-        dec_alu_rf1_div_extd            : in std_ulogic;                            
+        dec_alu_rf1_div_sign            : in std_ulogic;                            -- 0: Unsigned, 1: Signed
+        dec_alu_rf1_div_size            : in std_ulogic;                            -- 0: 32x32, 1: 64x64
+        dec_alu_rf1_div_extd            : in std_ulogic;                            -- 0: regular, 1: extended
         dec_alu_rf1_div_recform         : in std_ulogic;
         dec_alu_rf1_xer_ov_update       : in std_ulogic;
 
-        byp_alu_ex1_divsrc_0            : in std_ulogic_vector(64-regsize to 63);   
-        byp_alu_ex1_divsrc_1            : in std_ulogic_vector(64-regsize to 63);   
+        -- Source Data
+        byp_alu_ex1_divsrc_0            : in std_ulogic_vector(64-regsize to 63);   -- NUM/DIVIDEND/RA
+        byp_alu_ex1_divsrc_1            : in std_ulogic_vector(64-regsize to 63);   -- DEN/DIVISOR /RB
 
+        -- Flush cycle counter
         fxa_fxb_ex1_hold_ctr_flush      : in std_ulogic;
 
+        -- Target Data
         alu_dec_div_need_hole           : out std_ulogic;
         alu_byp_ex3_div_rt              : out std_ulogic_vector(64-regsize to 63);
         alu_ex2_div_done                : out std_ulogic;
 
+        -- Overflow
         ex3_div_xer_ov                  : out std_ulogic;
         ex3_div_xer_ov_update           : out std_ulogic;
 
+        -- Record form
         alu_byp_ex3_cr_div              : out std_ulogic_vector(0 to 4);
 
+        -- CM
         ex2_spr_msr_cm                  : in std_ulogic
     );
 -- synopsys translate_off
@@ -65,8 +77,9 @@ entity xuq_alu_div is
 end xuq_alu_div;
 
 architecture xuq_alu_div of xuq_alu_div is
-   constant msb                                          : integer := 64-regsize; 
+   constant msb                                          : integer := 64-regsize; -- 0 in 64 bit core, 32 in 32 bit core
    subtype s2                                            is std_ulogic_vector(0 to 1);
+   -- Latches
    signal                      ex1_div_ctr_q             : std_ulogic_vector(0 to 7);
    signal                      ex1_div_val_q             : std_ulogic;
    signal                      ex1_div_sign_q            : std_ulogic;
@@ -103,6 +116,7 @@ architecture xuq_alu_div of xuq_alu_div is
    signal ex2_div_ovf_cond3,   ex3_div_ovf_cond3_q       : std_ulogic;
    signal                      ex3_spr_msr_cm_q          : std_ulogic;
    signal need_hole_q,         need_hole_d               : std_ulogic;
+   -- Scanchains
    constant ex1_div_ctr_offset                           : integer := 0;
    constant ex1_div_val_offset                           : integer := ex1_div_ctr_offset                 + ex1_div_ctr_q'length;
    constant ex1_div_sign_offset                          : integer := ex1_div_val_offset                 + 1;
@@ -141,6 +155,7 @@ architecture xuq_alu_div of xuq_alu_div is
    constant need_hole_offset                             : integer := ex3_spr_msr_cm_offset              + 1;
    constant scan_right                                   : integer := need_hole_offset                   + 1;
    signal sov,siv                                        : std_ulogic_vector(0 to scan_right-1);
+   -- Signals
    signal ex2_denom_shift                                : std_ulogic_vector(msb to 63);
    signal ex2_denom_shift_ctrl                           : std_ulogic;
    signal ex2_sub_or_restore                             : std_ulogic_vector(msb to 64);
@@ -185,14 +200,50 @@ architecture xuq_alu_div of xuq_alu_div is
    
 begin
 
+--     def divide(num,den,size):
+--         q = 0
+--         m = pow(2,size)-1
+--         cycle = size+1
+--
+--         # Normalize
+--         p = m
+--
+--         while cycle>0:
+--             r = den & p
+--             if r == 0:
+--                 break
+--             den = rotR1(den,size)
+--             p = p>>1
+--             cycle -= 1
+--
+--         den = ((~den + 1) & m) | 2**size
+--         size = size + 1
+--         m = pow(2,size)-1
+--
+--         # Divide
+--         while cycle>0:
+--             # Subtract
+--             a = (num+den) & m
+--             if signbit(a,size)==0:    # Positive
+--                 q = rotL1(q,size,m) | 1     # 0b...x | 0b0001 = 0b...1
+--                 num = rotL1(a,size,m)
+--             else:
+--                 q = rotL1(q,size,m) & -2    # 0b...x & 0b1110 = 0b...0
+--                 num = rotL1(num,size,m)
+--             cycle -= 1
+--     return q
 
 tiup <= '1';
 tidn <= '0';
 
+---------------------------------------------------------------------
+-- Initialize cycle counter
+---------------------------------------------------------------------
 with ex1_div_val_q select
    ex2_cycles_din    <= ex1_div_ctr_q                                    when '1',
                         std_ulogic_vector(unsigned(ex2_cycles_q) - 1)    when others;
 
+-- Clear counter if the divide was flushed
 ex2_cycles_d         <= gate(ex2_cycles_din,not(fxa_fxb_ex1_hold_ctr_flush));
 
 ex1_cycle_act        <= ex1_div_val_q or (ex2_cycle_act_q and or_reduce(ex2_cycles_q));
@@ -203,9 +254,13 @@ ex1_div_done         <= ex1_div_cnt_done and not fxa_fxb_ex1_hold_ctr_flush;
 
 alu_ex2_div_done     <= ex2_div_done_q;
 
+---------------------------------------------------------------------
+-- 2's complement negative operands for signed divide
+---------------------------------------------------------------------
 ex1_divsrc_0_2s      <= std_ulogic_vector(unsigned(not byp_alu_ex1_divsrc_0) + 1);
 ex1_divsrc_1_2s      <= std_ulogic_vector(unsigned(not byp_alu_ex1_divsrc_1) + 1);
 
+-- Need to 2's complement the result if one of the operands is negative
 div_64b_2scomp : if regsize = 64 generate
    with ex1_div_size_q select
       ex1_2s_rslt    <= (byp_alu_ex1_divsrc_0(0)  xor byp_alu_ex1_divsrc_1(0) ) and ex1_div_sign_q    when '1',
@@ -235,6 +290,9 @@ with (ex1_div_sign_q and ex1_src1_sign) select
                         byp_alu_ex1_divsrc_1       when others;
 
 
+---------------------------------------------------------------------
+-- Fixup Operands for Word/DW Mode
+---------------------------------------------------------------------
 div_setup_64b : if regsize = 64 generate
 
    with ex1_div_size_q select
@@ -254,6 +312,7 @@ div_setup_64b : if regsize = 64 generate
    mask              <= (0 to 31=>tiup) & (32 to 63=>ex1_div_size_q);
    
    
+   -- Rotate just the upper 32 for word mode
    with ex1_div_size_q select
       ex2_denom_rot(0)  <= ex2_denom_q(63)               when '1',
                            ex2_denom_q(31)               when others;
@@ -273,10 +332,15 @@ div_setup_32b : if regsize = 32 generate
      
 end generate;
 
+---------------------------------------------------------------------
+-- Normalize Denominator
+---------------------------------------------------------------------
+-- Grab denominator from bypass, shift until normalized, then hold.
 with ex1_div_val_q select
    ex2_denom_d       <= ex1_denom         when '1',
                         ex2_denom_shift   when others;
 
+-- Mask
 with ex1_div_val_q select
    ex2_dmask_d       <= mask                                            when '1',
                         '0' & ex2_dmask_q(msb to 62)                    when others;
@@ -290,6 +354,9 @@ with ex2_denom_shift_ctrl select
                            
 ex2_denom_act        <= ex1_div_val_q or ex2_denom_shift_ctrl;
 
+---------------------------------------------------------------------
+-- Work on Numerator
+---------------------------------------------------------------------
 with ex1_div_val_q select
    ex2_numer_d          <= '0' & ex1_numer            when '1',
                            ex2_sub_or_restore         when others;
@@ -297,10 +364,16 @@ with ex1_div_val_q select
 
 ex2_numer_act        <= ex1_div_val_q or ex1_cycle_act;
 
+---------------------------------------------------------------------
+-- Adder
+---------------------------------------------------------------------
 ex2_sub_rslt   <= std_ulogic_vector(unsigned(ex2_numer_q) - unsigned('0' & ex2_denom_q));
 
 
 
+---------------------------------------------------------------------
+-- Decide to subtract or restore
+---------------------------------------------------------------------
 ex2_sub_rslt_shift      <= ex2_sub_rslt(msb+1  to 64) & '0';
 ex2_numer_shift         <= ex2_numer_q(msb+1 to 64)   & ex2_numer_q(msb);
 
@@ -312,17 +385,27 @@ with ex2_sub_or_restore_ctrl select
                            ex2_numer_shift      when "11",
                            ex2_numer_q          when others;
 
+---------------------------------------------------------------------
+-- Quotient
+---------------------------------------------------------------------
 ex2_quot_pushbit        <= not ex2_denom_shift_ctrl and not ex2_sub_rslt(msb);
 
 with ex2_div_val_q select
    ex3_quotient_d       <= (msb to 63=>tidn)                               when '1',
                            ex3_quotient_q(msb+1 to 63) & ex2_quot_pushbit  when others;
 
+-- 2's complement quotient if necessary for signed divide
 ex3_quotient_2s         <= std_ulogic_vector(unsigned(not ex3_quotient_q) + 1);
 
+---------------------------------------------------------------------
+-- Assert done signal to clear barrier, get hole
+---------------------------------------------------------------------
 need_hole_d             <= '1' when ex2_cycles_q = "00000111" else '0';
 alu_dec_div_need_hole   <= need_hole_q;
 
+---------------------------------------------------------------------
+-- Return quotient
+---------------------------------------------------------------------
 with ex3_2s_rslt_q select
    ex3_div_rt_d         <= ex3_quotient_2s      when '1',
                            ex3_quotient_q       when others;
@@ -331,6 +414,7 @@ with ex2_div_size_q select
    ex2_rslt_sign       <= ex3_div_rt_d(msb)     when '1',
                           ex3_div_rt_d(32)      when others;
 
+-- Return Zero for all undefined cases
 div_rslt_64b : if regsize = 64 generate    
    ex3_div_rt(0  to 31)    <= gate(ex3_div_rt_q(0  to 31),not(ex3_div_ovf_q or not ex3_div_size_q));
 end generate;
@@ -339,6 +423,22 @@ end generate;
 alu_byp_ex3_div_rt         <= ex3_div_rt;
 
 
+--                   Divide Undefined/Overflow Conditions
+-- ------------------------------------------------------------------------------
+--        |     Cond 1     |     Cond 2     |    Cond 3     |    Cond 4         |
+-- -----------------------------------------------------------------------------+
+--        | 0x8000... / -1 | <anything> / 0 |   RA >= RB    | Result doesn't    |
+--        |                |                |               | fit in 32/64 bits |
+-- -----------------------------------------------------------------------------+
+-- divw   |        X       |       X        |               |                   |
+-- divwu  |                |       X        |               |                   |
+-- divwe  |        X       |       X        |               |       X           |
+-- divweu |                |       X        |      X        |                   |
+-- divd   |        X       |       X        |               |                   |
+-- divdu  |                |       X        |               |                   |
+-- divde  |        X       |       X        |               |       X           |
+-- divdeu |                |       X        |      X        |                   |
+-- -----------------------------------------------------------------------------+
 
    ex1_num_cmp0_lo_nomsb   <= not or_reduce(byp_alu_ex1_divsrc_0(33 to 63));
    ex1_den_cmp0_lo         <= not or_reduce(byp_alu_ex1_divsrc_1(32 to 63));
@@ -379,10 +479,13 @@ ex1_div_ovf_cond2       <= ex1_den_cmp0_lo and (ex1_den_cmp0_hi or not ex1_div_s
 ex1_div_ovf             <= (ex1_div_ovf_cond1 and ex1_div_sign_q) or
                             ex1_div_ovf_cond2;
 
+-- Condition 3
 ex2_den_eq_num          <= and_reduce(ex2_denom_q xnor ex2_numer_q(msb+1 to 64));
 ex2_den_gte_num         <= not(ex2_sub_rslt(msb)) or ex2_den_eq_num;
 ex2_div_ovf_cond3       <= ex2_den_gte_num and not ex2_div_sign_q and ex2_div_extd_q;
 
+-- Condition 4
+-- Need to watch quotient for first 65 cycles of divde, 33 cycles of divwe
 ex2_cycles_gt_64        <= '1' when (unsigned(ex2_cycles_q) > 64) else '0';
 ex2_cycles_gt_32        <= '1' when (unsigned(ex2_cycles_q) > 32) else '0';
 
@@ -390,21 +493,25 @@ with ex2_div_size_q select
    ex3_cycle_watch_d    <= ex2_cycles_gt_64     when '1',
                            ex2_cycles_gt_32     when others;
 
+-- If any bit is pushed during the watch period, flag overflow
 ex3_quot_watch_d        <= (ex3_quot_watch_q or (ex3_cycle_watch_q and ex3_quotient_q(63))) and not ex3_div_val_q;
 
 ex2_numer_eq_zero_d     <= ex1_num_cmp0_lo and (ex1_num_cmp0_hi or not ex1_div_size_q);
 
-ex2_div_ovf_cond4       <= ex3_quot_watch_q or                                               
-                         ((ex2_rslt_sign xor ex2_2s_rslt_q) and not ex2_numer_eq_zero_q) or  
-                         ( ex2_rslt_sign                    and     ex2_numer_eq_zero_q);    
+ex2_div_ovf_cond4       <= ex3_quot_watch_q or                                               -- overflow out of 32/64 bits
+                         ((ex2_rslt_sign xor ex2_2s_rslt_q) and not ex2_numer_eq_zero_q) or  -- result sign differs from expected, numerator not equal to zero
+                         ( ex2_rslt_sign                    and     ex2_numer_eq_zero_q);    -- result sign is negative , numerator equal to zero
 
 ex3_div_ovf_d           <= ex2_div_ovf_q or ex3_div_ovf_cond3_q or (ex2_div_ovf_cond4 and (ex2_div_sign_q and ex2_div_extd_q));
 
 ex3_div_xer_ov_update   <= ex3_xer_ov_update_q and ex3_div_done_q;
 ex3_div_xer_ov          <= ex3_div_ovf_q;
 
-ex3_cmp0_undef          <=     ex3_div_ovf_q or                      
-                          (not ex3_div_size_q and ex3_spr_msr_cm_q); 
+---------------------------------------------------------------------
+-- Record forms
+---------------------------------------------------------------------
+ex3_cmp0_undef          <=     ex3_div_ovf_q or                      -- Overflow Cases
+                          (not ex3_div_size_q and ex3_spr_msr_cm_q); -- Word op in 64b mode
 
 with ex3_spr_msr_cm_q select
    ex3_lt               <= ex3_div_rt_q(msb)            when '1',
@@ -418,6 +525,9 @@ ex3_cmp0_gt             <= not ex3_lt and not ex3_cmp0_eq and not ex3_cmp0_undef
 
 alu_byp_ex3_cr_div      <= ex3_cmp0_lt & ex3_cmp0_gt & ex3_cmp0_eq & (ex3_div_ovf_q and ex3_xer_ov_update_q) & (ex3_div_recform_q and ex3_div_done_q);
 
+---------------------------------------------------------------------
+-- Latches
+---------------------------------------------------------------------
    ex1_div_ctr_latch : tri_rlmreg_p
      generic map (width => ex1_div_ctr_q'length, init => 0, expand_type => expand_type, needs_sreset => 1)
      port map (nclk          => nclk,

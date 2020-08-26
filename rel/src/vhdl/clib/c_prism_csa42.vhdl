@@ -35,6 +35,7 @@ ENTITY c_prism_csa42 IS
 -- synopsys translate_off
 
 
+  -- The following will be used by synthesis for unrolling the vector:
    ATTRIBUTE PIN_BIT_INFORMATION of c_prism_csa42 : entity is
      (
        1  => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
@@ -70,8 +71,3 @@ BEGIN
 
 
 END;
-
-
-
-
-

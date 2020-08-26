@@ -8,6 +8,10 @@
 -- license is available.
 
 			
+--********************************************************************
+--* TITLE: Data Side Effective to Real Address Translation
+--* NAME: xuq_lsu_derat.vhdl
+--*********************************************************************
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -246,6 +250,7 @@ end xuq_lsu_derat;
 ARCHITECTURE XUQ_LSU_DERAT
           OF XUQ_LSU_DERAT
           IS
+--@@  Signal Declarations
 SIGNAL CAM_MASK_BITS_PT                  : STD_ULOGIC_VECTOR(1 TO 19)  := 
 (OTHERS=> 'U');
 SIGNAL EX2_FIRST_HIT_ENTRY_PT            : STD_ULOGIC_VECTOR(1 TO 31)  := 
@@ -258,6 +263,10 @@ SIGNAL LRU_SET_RESET_VEC_PT              : STD_ULOGIC_VECTOR(1 TO 161)  :=
 (OTHERS=> 'U');
 SIGNAL LRU_WAY_ENCODE_PT                 : STD_ULOGIC_VECTOR(1 TO 31)  := 
 (OTHERS=> 'U');
+----------------------------
+-- components
+----------------------------
+-- Data ERAT CAM/Array, 32-entry
 component tri_cam_32x143_1r1w1c
   generic (expand_type : integer := 2);  
   port (
@@ -330,6 +339,7 @@ component tri_cam_32x143_1r1w1c
    entry_valid                    :  out  std_ulogic_vector(0 to 31);
    rd_cam_data                    :  out  std_ulogic_vector(0 to cam_data_width-1);
 
+----- new ports for IO plus -----------------------
   bypass_mux_enab_np1   :  in  std_ulogic;		   
   bypass_attr_np1       :  in  std_ulogic_vector(0 to 20); 
   attr_np2	        :  out std_ulogic_vector(0 to 20);
@@ -364,6 +374,9 @@ component tri_cam_parerr_mac
    np2_cmp_data_parerr_rpn      :out std_ulogic 
   );
 END component;
+----------------------------
+-- constants
+----------------------------
 constant MMU_Mode_Value : std_ulogic := '0';
 constant TlbSel_Tlb : std_ulogic_vector(0 to 1) := "00";
 constant TlbSel_IErat : std_ulogic_vector(0 to 1) := "10";
@@ -410,10 +423,36 @@ constant PorSeq_Stg6 : std_ulogic_vector(0 to 2) := "101";
 constant PorSeq_Stg7 : std_ulogic_vector(0 to 2) := "111";
 constant Por_Wr_Entry_Num1   : std_ulogic_vector(0 to num_entry_log2-1) := "11110";
 constant Por_Wr_Entry_Num2   : std_ulogic_vector(0 to num_entry_log2-1) := "11111";
+-- wr_cam_data
+--  0:51  - EPN
+--  52  - X
+--  53:55  - SIZE
+--  56  - V
+--  57:60  - ThdID
+--  61:62  - Class
+--  63:64  - ExtClass | TID_NZ
+--  65  - TGS
+--  66  - TS
+--  67:74  - TID
+--  75:78  - epn_cmpmasks:  34_39, 40_43, 44_47, 48_51
+--  79:82  - xbit_cmpmasks: 34_51, 40_51, 44_51, 48_51
+--  83  - parity for 75:82
 constant Por_Wr_Cam_Data1   : std_ulogic_vector(0 to 83) := "0000000000000000000000000000000011111111111111111111" &
                                    '0' & "001" & '1' & "1111" & "00" & "00" & "00" & "00000000" & "11110000" & '0';
 constant Por_Wr_Cam_Data2   : std_ulogic_vector(0 to 83) := "0000000000000000000000000000000000000000000000000000" &
                                    '0' & "001" & '1' & "1111" & "00" & "10" & "00" & "00000000" & "11110000" & '0';
+-- 16x143 version, 42b RA
+-- wr_array_data
+--  0:29  - RPN
+--  30:31  - R,C
+--  32:35  - ResvAttr
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
+--  51:60  - CAM parity
+--  61:67  - Array parity
 constant Por_Wr_Array_Data1 : std_ulogic_vector(0 to 67) := "111111111111111111111111111111" &
                                    "00" & "0000" & "0000" & "01010" & "01" & "00" & "01" & "0000001000" & "0000000";
 constant Por_Wr_Array_Data2 : std_ulogic_vector(0 to 67) := "000000000000000000000000000000" &
@@ -563,6 +602,10 @@ constant spare_b_offset  : natural := an_ac_grffence_en_dc_offset + 1;
 constant scan_right_1               : natural := spare_b_offset + 16 -1;
 constant bcfg_offset           : natural := 0;
 constant boot_scan_right       : natural := bcfg_offset + bcfg_width - 1;
+----------------------------
+-- signals
+----------------------------
+-- Latch signals
 signal rf1_valid_d, rf1_valid_q          : std_ulogic_vector(0 to thdid_width-1);
 signal rf1_ttype_d, rf1_ttype_q          : std_ulogic_vector(10 to 11);
 signal ex1_valid_d           : std_ulogic_vector(0 to thdid_width-1);
@@ -731,6 +774,7 @@ signal ccr2_notlb_q, xucr4_mmu_mchk_q         : std_ulogic;
 signal mchk_flash_inv_d, mchk_flash_inv_q    : std_ulogic_vector(0 to 3);
 signal mchk_flash_inv_enab  : std_ulogic;
 signal bcfg_q, bcfg_q_b : std_ulogic_vector(0 to bcfg_width-1);
+-- logic signals
 signal por_wr_cam_val           :  std_ulogic_vector(0 to 1);
 signal por_wr_array_val         :  std_ulogic_vector(0 to 1);
 signal por_wr_cam_data           :  std_ulogic_vector(0 to cam_data_width-1);
@@ -778,8 +822,11 @@ signal tlb_rel_maskpar  : std_ulogic;
 signal ex6_data_cmpmask  : std_ulogic_vector(0 to 3);
 signal ex6_data_xbitmask  : std_ulogic_vector(0 to 3);
 signal ex6_data_maskpar  : std_ulogic;
+-- CAM/Array signals
+-- Read Port
 signal   rd_val                         :  std_ulogic;
 signal   rw_entry                       :  std_ulogic_vector(0 to 4);
+-- Write Port
 signal   wr_array_par                   :  std_ulogic_vector(51 to 67);
 signal   wr_array_data_nopar            :  std_ulogic_vector(0 to array_data_width-1-10-7);
 signal   wr_array_data                  :  std_ulogic_vector(0 to array_data_width-1);
@@ -787,6 +834,7 @@ signal   wr_cam_data                    :  std_ulogic_vector(0 to cam_data_width
 signal   wr_array_val                   :  std_ulogic_vector(0 to 1);
 signal   wr_cam_val                     :  std_ulogic_vector(0 to 1);
 signal   wr_val_early                   :  std_ulogic;
+-- CAM Port
 signal   comp_request                   :  std_ulogic;
 signal   comp_addr                      :  std_ulogic_vector(0 to 51);
 signal   addr_enable                    :  std_ulogic_vector(0 to 1);
@@ -804,8 +852,10 @@ signal   comp_pid                       :  std_ulogic_vector(0 to 7);
 signal   pid_enable                     :  std_ulogic;
 signal   comp_invalidate                :  std_ulogic;
 signal   flash_invalidate               :  std_ulogic;
+-- Array Outputs
 signal   array_cmp_data                 :  std_ulogic_vector(0 to array_data_width-1);
 signal   rd_array_data                  :  std_ulogic_vector(0 to array_data_width-1);
+-- CAM Outputs
 signal   cam_cmp_data                   :  std_ulogic_vector(0 to cam_data_width-1);
 signal   cam_hit                        :  std_ulogic;
 signal   cam_hit_entry                  :  std_ulogic_vector(0 to 4);
@@ -820,6 +870,7 @@ signal bypass_mux_enab_np1 : std_ulogic;
 signal bypass_attr_np1     : std_ulogic_vector(0 to 20);
 signal attr_np2            : std_ulogic_vector(0 to 20);
 signal rpn_np2             : std_ulogic_vector(22 to 51);
+-- Pervasive
 signal pc_sg_1         : std_ulogic;
 signal pc_sg_0         : std_ulogic;
 signal pc_func_sl_thold_1        : std_ulogic;
@@ -865,10 +916,14 @@ signal siv_1                      : std_ulogic_vector(0 to scan_right_1);
 signal sov_1                      : std_ulogic_vector(0 to scan_right_1);
 signal bsiv                     : std_ulogic_vector(0 to boot_scan_right);
 signal bsov                     : std_ulogic_vector(0 to boot_scan_right);
+-- cam component scan chains
 signal   func_si_cam_int, func_so_cam_int     : std_ulogic;
 signal tiup                     : std_ulogic;
-  BEGIN 
+  BEGIN --@@ START OF EXECUTABLE CODE FOR XUQ_LSU_DERAT
 
+-----------------------------------------------------------------------
+-- ACT Generation
+-----------------------------------------------------------------------
 clkg_ctl_override_d  <=  spr_xucr0_clkg_ctl_b1;
 rf1_stg_act_d  <=  or_reduce(xu_derat_rf0_val) or clkg_ctl_override_q;
 ex1_stg_act_d  <=  rf1_stg_act_q or xu_derat_rf1_act or xu_derat_rf1_ra_eq_ea;
@@ -891,12 +946,17 @@ lru_update_act  <=  ex6_stg_act_q or ex7_stg_act_q or lru_update_event_q(8) or l
 snoop_act  <=  snoop_act_q or clkg_ctl_override_q;
 notlb_grffence_act  <=  (not(ccr2_notlb_q) or clkg_ctl_override_q) and not(an_ac_grffence_en_dc);
 debug_grffence_act  <=   trace_bus_enable_q and not(an_ac_grffence_en_dc);
+-----------------------------------------------------------------------
+-- Logic
+-----------------------------------------------------------------------
 tiup  <=  '1';
 init_alias  <=  pc_xu_init_reset_q;
+-- timing latches for the reloads
 tlb_rel_val_d   <=  mm_xu_derat_rel_val;
 tlb_rel_data_d  <=  mm_xu_derat_rel_data;
 tlb_rel_act_d   <=  mm_xu_derat_rel_data(eratpos_relsoon);
 tlb_rel_act     <=  (tlb_rel_act_q and not(ccr2_notlb_q)) or clkg_ctl_override_q;
+-- timing latches for the ifrat delusional paranoia real mode
 ccr2_frat_paranoia_d(0 TO 8) <=   xu_derat_spr_ccr2_dfratsc;
 ccr2_frat_paranoia_d(9) <=   xu_derat_spr_ccr2_dfrat;
 ccr2_frat_paranoia_d(10) <=   xu_derat_rf1_ra_eq_ea;
@@ -952,6 +1012,8 @@ rf1_pid  <=  (mm_xu_derat_pid0 and (0 to 13 => rf1_valid_q(0))) or
            (mm_xu_derat_pid1 and (0 to 13 => rf1_valid_q(1))) or
            (mm_xu_derat_pid2 and (0 to 13 => rf1_valid_q(2))) or
            (mm_xu_derat_pid3 and (0 to 13 => rf1_valid_q(3)));
+---------------------------------------
+-- ttype <= 0-eratre 1-eratwe 2-eratsx 3-eratilx 4-load 5-store 6-csync 7-isync 8-icbtlslc 9-touch 10-extload 11-extstore
 ex1_valid_d  <=  rf1_valid_q and not(xu_derat_rf1_n_flush);
 ex1_ttype_d  <=  xu_derat_rf1_is_eratre & xu_derat_rf1_is_eratwe & xu_derat_rf1_is_eratsx & xu_derat_rf1_is_eratilx &
                 xu_derat_rf1_is_load & xu_derat_rf1_is_store & '0' & '0' & 
@@ -959,6 +1021,7 @@ ex1_ttype_d  <=  xu_derat_rf1_is_eratre & xu_derat_rf1_is_eratwe & xu_derat_rf1_
 ex1_ws_d  <=  xu_derat_rf1_ws;
 ex1_rs_is_d  <=  (others => '0');
 ex1_ra_entry_d  <=  (others => '0');
+-- state: 0:pr 1:gs 2:ds 3:cm
 ex1_state_d(0) <=  rf1_eplc_epr when rf1_ttype_q(10)='1' 
               else rf1_epsc_epr when rf1_ttype_q(11)='1'
               else or_reduce(xu_derat_msr_pr and rf1_valid_q);
@@ -971,6 +1034,7 @@ ex1_state_d(2) <=  rf1_eplc_eas when rf1_ttype_q(10)='1'
               else rf1_mmucr0_ts when xu_derat_rf1_is_eratsx='1'
               else or_reduce(xu_derat_msr_ds and rf1_valid_q);
 ex1_state_d(3) <=  or_reduce(xu_derat_msr_cm and rf1_valid_q);
+-- mmucr0: 0:1-ECL|TID_NZ, 2:3-tgs/ts, 4:5-tlbsel, 6:19-tid,
 ex1_extclass_d  <=  mm_xu_derat_mmucr0_1(0 to 1) when rf1_valid_q(1)='1' 
              else mm_xu_derat_mmucr0_2(0 to 1) when rf1_valid_q(2)='1'
               else mm_xu_derat_mmucr0_3(0 to 1) when rf1_valid_q(3)='1'
@@ -986,6 +1050,7 @@ ex1_pid_d  <=  rf1_eplc_epid when rf1_ttype_q(10)='1'
 ex1_deratre  <=  or_reduce(ex1_valid_q) and ex1_ttype_q(0) and ex1_tlbsel_q(0) and ex1_tlbsel_q(1);
 ex1_deratwe  <=  or_reduce(ex1_valid_q) and ex1_ttype_q(1) and ex1_tlbsel_q(0) and ex1_tlbsel_q(1);
 ex1_deratsx  <=  or_reduce(ex1_valid_q) and ex1_ttype_q(2) and ex1_tlbsel_q(0) and ex1_tlbsel_q(1);
+---------------------------------------
 ex2_valid_d  <=  ex1_valid_q and not(xu_derat_ex1_n_flush);
 ex2_ttype_d(0 TO ttype_width-7) <=  ex1_ttype_q(0 to ttype_width-7);
 ex2_ttype_d(ttype_width-6 TO ttype_width-5) <=  xu_derat_ex1_is_csync & xu_derat_ex1_is_isync;
@@ -997,6 +1062,8 @@ ex2_state_d  <=  ex1_state_q;
 ex2_pid_d  <=  ex1_pid_q;
 ex2_extclass_d  <=  ex1_extclass_q;
 ex2_tlbsel_d  <=  ex1_tlbsel_q;
+---------------------------------------
+-- ttype <= 0-eratre 1-eratwe 2-eratsx 3-eratilx 4-load 5-store 6-csync 7-isync 8-icbtlslc 9-touch 10-extload 11-extstore
 ex3_valid_d  <=  ex2_valid_q and not(xu_derat_ex2_n_flush);
 ex3_ttype_d  <=  ex2_ttype_q;
 ex3_ws_d  <=  ex2_ws_q;
@@ -1004,6 +1071,7 @@ ex3_rs_is_d  <=  ex2_rs_is_q;
 ex3_ra_entry_d  <=  ex2_ra_entry_q;
 ex3_tlbsel_d  <=  ex2_tlbsel_q;
 ex3_extclass_d  <=  ex2_extclass_q;
+-- state: 0:pr 1:gs 2:ds 3:cm
 ex3_state_d  <=  ex2_state_q;
 ex3_pid_d  <=   ex2_pid_q;
 ex3_lpid_d(0 TO lpid_width-1) <=  
@@ -1022,35 +1090,47 @@ ex4_ws_d  <=  ex3_ws_q;
 ex4_rs_is_d  <=  ex3_rs_is_q;
 ex4_ra_entry_d  <=  ex3_first_hit_entry when ex3_ttype_q(2 to 5)/="0000" else ex3_ra_entry_q;
 ex4_tlbsel_d  <=  ex3_tlbsel_q;
+-- muxes for tlbre and sending mmucr0 ExtClass,State,TID
 ex4_extclass_d  <=  rd_cam_data(63 to 64) when (ex3_valid_q/="0000" and ex3_ttype_q(0)='1' and ex3_ws_q="00")  
          else ex3_extclass_q;
+-- state: 0:pr 1:gs 2:ds 3:cm
 ex4_state_d  <=  ex3_state_q(0) & rd_cam_data(65 to 66) & ex3_state_q(3) when (ex3_valid_q/="0000" and ex3_ttype_q(0)='1' and ex3_ws_q="00")  
          else ex3_state_q;
 ex4_pid_d  <=  rd_cam_data(61 to 62) & rd_cam_data(57 to 60) & rd_cam_data(67 to 74)  
                when (ex3_valid_q/="0000" and ex3_ttype_q(0)='1' and ex3_ws_q="00")  
          else ex3_pid_q;
 ex4_deratwe  <=  or_reduce(ex4_valid_q) and ex4_ttype_q(1) and ex4_tlbsel_q(0) and ex4_tlbsel_q(1);
+---------------------------------------
 ex5_valid_d  <=  ex4_valid_q and not(xu_derat_ex4_n_flush);
 ex5_ws_d  <=  ex4_ws_q;
 ex5_rs_is_d  <=  ex4_rs_is_q;
 ex5_ra_entry_d  <=  ex4_ra_entry_q;
 ex5_ttype_d  <=  ex4_ttype_q;
 ex5_extclass_d  <=  ex4_extclass_q;
+-- state: 0:pr 1:gs 2:ds 3:cm
 ex5_state_d  <=  ex4_state_q;
 ex5_pid_d  <=   ex4_pid_q;
 ex5_tlbsel_d  <=  ex4_tlbsel_q;
 ex5_data_in_d  <=  xu_derat_ex4_rs_data;
 ex5_deratwe  <=  or_reduce(ex5_valid_q) and ex5_ttype_q(1) and ex5_tlbsel_q(0) and ex5_tlbsel_q(1);
+---------------------------------------
 ex6_valid_d  <=  ex5_valid_q and not(xu_derat_ex5_n_flush);
 ex6_ws_d  <=  ex5_ws_q;
 ex6_rs_is_d  <=  ex5_rs_is_q;
 ex6_ra_entry_d  <=  ex5_ra_entry_q;
+-- mmucr1: 0-DRRE, 1-REE, 2-CEE,
+--         3-Disable any context sync inst from invalidating extclass=0 erat entries,
+--         4-Disable isync inst from invalidating extclass=0 erat entries,
+--         5:6-PEI, 7:8-DCTID|DTTID, 9-DCCD
+-- ttype <= 0-eratre & 1-eratwe & 2-eratsx & 3-eratilx & 4-load & 5-store &
+--          6-csync & 7-isync & 8-icbtlslc & 9-touch & 10-extload & 11-extstore;
 ex6_ttype_d(0 TO 5) <=  ex5_ttype_q(0 to 5);
 ex6_ttype_d(6) <=  '1' when (ex5_ttype_q(6)='1' and mmucr1_q(3)='0' and ccr2_notlb_q=MMU_Mode_Value)  
               else '0';
 ex6_ttype_d(7) <=  '1' when (ex5_ttype_q(7)='1' and mmucr1_q(4)='0' and ccr2_notlb_q=MMU_Mode_Value)  
               else '0';
 ex6_ttype_d(8 TO ttype_width-1) <=  ex5_ttype_q(8 to ttype_width-1);
+-- mmucr0: 0:1-ECL|TID_NZ, 2:3-tgs/ts, 4:5-tlbsel, 6:19-tid,
 ex6_extclass_d  <=  mm_xu_derat_mmucr0_0(0 to 1) 
                  when (ex5_valid_q="1000" and ex5_ttype_q(1)='1' and ex5_ws_q="00")  
                  else mm_xu_derat_mmucr0_1(0 to 1) 
@@ -1060,6 +1140,7 @@ ex6_extclass_d  <=  mm_xu_derat_mmucr0_0(0 to 1)
                  else mm_xu_derat_mmucr0_3(0 to 1) 
                  when (ex5_valid_q="0001" and ex5_ttype_q(1)='1' and ex5_ws_q="00")  
        else ex5_extclass_q;
+-- state: 0:pr 1:gs 2:ds 3:cm
 ex6_state_d  <=  xu_derat_msr_pr(0) & mm_xu_derat_mmucr0_0(2 to 3) & xu_derat_msr_cm(0) 
                  when (ex5_valid_q="1000" and ex5_ttype_q(1)='1' and ex5_ws_q="00")  
                  else xu_derat_msr_pr(1) & mm_xu_derat_mmucr0_1(2 to 3) & xu_derat_msr_cm(1) 
@@ -1089,11 +1170,65 @@ ex6_tlbsel_d  <=  mm_xu_derat_mmucr0_0(4 to 5)
        else ex5_tlbsel_q;
 ex6_data_in_d  <=  ex5_data_in_q;
 ex6_deratwe  <=  or_reduce(ex6_valid_q) and ex6_ttype_q(1) and ex6_tlbsel_q(0) and ex6_tlbsel_q(1);
+---------------------------------------
+-- for flushing
 ex7_valid_d  <=  ex6_valid_q;
 ex7_ttype_d  <=  ex6_ttype_q;
 ex7_tlbsel_d  <=  ex6_tlbsel_q;
 ex7_deratwe  <=  or_reduce(ex7_valid_q) and ex7_ttype_q(1) and ex7_tlbsel_q(0) and ex7_tlbsel_q(1);
 mmucr1_d  <=  mm_xu_derat_mmucr1;
+-- formation of ex2 phase multihit complement signal
+--
+-- Final Table Listing
+--      *INPUTS*==============================*OUTPUTS*==========*
+--      |                                     |                  |
+--      | entry_match                         |  ex2_multihit_b  |
+--      | |                                   |  |               |
+--      | |                                   |  |               |
+--      | |                                   |  |               |
+--      | |         1111111111222222222233    |  |               |
+--      | 01234567890123456789012345678901    |  |               |
+--      *TYPE*================================+==================+
+--      | PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP    |  P               |
+--      *POLARITY*--------------------------->|  +               |
+--      *PHASE*------------------------------>|  T               |
+--      *OPTIMIZE*--------------------------->|   A                |
+--      *TERMS*===============================+==================+
+--    1 | -0000000000000000000000000000000    |  1               |
+--    2 | 0-000000000000000000000000000000    |  1               |
+--    3 | 00-00000000000000000000000000000    |  1               |
+--    4 | 000-0000000000000000000000000000    |  1               |
+--    5 | 0000-000000000000000000000000000    |  1               |
+--    6 | 00000-00000000000000000000000000    |  1               |
+--    7 | 000000-0000000000000000000000000    |  1               |
+--    8 | 0000000-000000000000000000000000    |  1               |
+--    9 | 00000000-00000000000000000000000    |  1               |
+--   10 | 000000000-0000000000000000000000    |  1               |
+--   11 | 0000000000-000000000000000000000    |  1               |
+--   12 | 00000000000-00000000000000000000    |  1               |
+--   13 | 000000000000-0000000000000000000    |  1               |
+--   14 | 0000000000000-000000000000000000    |  1               |
+--   15 | 00000000000000-00000000000000000    |  1               |
+--   16 | 000000000000000-0000000000000000    |  1               |
+--   17 | 0000000000000000-000000000000000    |  1               |
+--   18 | 00000000000000000-00000000000000    |  1               |
+--   19 | 000000000000000000-0000000000000    |  1               |
+--   20 | 0000000000000000000-000000000000    |  1               |
+--   21 | 00000000000000000000-00000000000    |  1               |
+--   22 | 000000000000000000000-0000000000    |  1               |
+--   23 | 0000000000000000000000-000000000    |  1               |
+--   24 | 00000000000000000000000-00000000    |  1               |
+--   25 | 000000000000000000000000-0000000    |  1               |
+--   26 | 0000000000000000000000000-000000    |  1               |
+--   27 | 00000000000000000000000000-00000    |  1               |
+--   28 | 000000000000000000000000000-0000    |  1               |
+--   29 | 0000000000000000000000000000-000    |  1               |
+--   30 | 00000000000000000000000000000-00    |  1               |
+--   31 | 000000000000000000000000000000-0    |  1               |
+--   32 | 0000000000000000000000000000000-    |  1               |
+--      *========================================================*
+--
+-- Table EX2_MULTIHIT_B Signal Assignments for Product Terms
 MQQ1:EX2_MULTIHIT_B_PT(1) <=
     Eq(( ENTRY_MATCH(1) & ENTRY_MATCH(2) & 
     ENTRY_MATCH(3) & ENTRY_MATCH(4) & 
@@ -1638,6 +1773,7 @@ MQQ32:EX2_MULTIHIT_B_PT(32) <=
     ENTRY_MATCH(26) & ENTRY_MATCH(27) & 
     ENTRY_MATCH(28) & ENTRY_MATCH(29) & 
     ENTRY_MATCH(30) ) , STD_ULOGIC_VECTOR'("0000000000000000000000000000000"));
+-- Table EX2_MULTIHIT_B Signal Assignments for Outputs
 MQQ33:EX2_MULTIHIT_B <= 
     (EX2_MULTIHIT_B_PT(1) OR EX2_MULTIHIT_B_PT(2)
      OR EX2_MULTIHIT_B_PT(3) OR EX2_MULTIHIT_B_PT(4)
@@ -1659,6 +1795,57 @@ MQQ33:EX2_MULTIHIT_B <=
 
 ex3_multihit_b_pt_d  <=  ex2_multihit_b_pt;
 ex3_multihit_enab  <=  not or_reduce(ex3_multihit_b_pt_q);
+-- Encoder for the ex2 phase first hit entry number
+--
+-- Final Table Listing
+--      *INPUTS*==============================*OUTPUTS*==============*
+--      |                                     |                      |
+--      | entry_match                         |  ex2_first_hit_entry |
+--      | |                                   |  |                   |
+--      | |                                   |  |                   |
+--      | |                                   |  |                   |
+--      | |         1111111111222222222233    |  |                   |
+--      | 01234567890123456789012345678901    |  01234               |
+--      *TYPE*================================+======================+
+--      | PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP    |  PPPPP               |
+--      *POLARITY*--------------------------->|  +++++               |
+--      *PHASE*------------------------------>|  TTTTT               |
+--      *OPTIMIZE*--------------------------->|   AAAAA                |
+--      *TERMS*===============================+======================+
+--    1 | 00000000000000000000000000000001    |  11111               |
+--    2 | 0000000000000000000000000000001-    |  1111.               |
+--    3 | 000000000000000000000000000001--    |  111.1               |
+--    4 | 00000000000000000000000000001---    |  111..               |
+--    5 | 0000000000000000000000000001----    |  11.11               |
+--    6 | 000000000000000000000000001-----    |  11.1.               |
+--    7 | 00000000000000000000000001------    |  11..1               |
+--    8 | 0000000000000000000000001-------    |  11...               |
+--    9 | 000000000000000000000001--------    |  1.111               |
+--   10 | 00000000000000000000001---------    |  1.11.               |
+--   11 | 0000000000000000000001----------    |  1.1.1               |
+--   12 | 000000000000000000001-----------    |  1.1..               |
+--   13 | 00000000000000000001------------    |  1..11               |
+--   14 | 0000000000000000001-------------    |  1..1.               |
+--   15 | 000000000000000001--------------    |  1...1               |
+--   16 | 00000000000000001---------------    |  1....               |
+--   17 | 0000000000000001----------------    |  .1111               |
+--   18 | 000000000000001-----------------    |  .111.               |
+--   19 | 00000000000001------------------    |  .11.1               |
+--   20 | 0000000000001-------------------    |  .11..               |
+--   21 | 000000000001--------------------    |  .1.11               |
+--   22 | 00000000001---------------------    |  .1.1.               |
+--   23 | 0000000001----------------------    |  .1..1               |
+--   24 | 000000001-----------------------    |  .1...               |
+--   25 | 00000001------------------------    |  ..111               |
+--   26 | 0000001-------------------------    |  ..11.               |
+--   27 | 000001--------------------------    |  ..1.1               |
+--   28 | 00001---------------------------    |  ..1..               |
+--   29 | 0001----------------------------    |  ...11               |
+--   30 | 001-----------------------------    |  ...1.               |
+--   31 | 01------------------------------    |  ....1               |
+--      *============================================================*
+--
+-- Table EX2_FIRST_HIT_ENTRY Signal Assignments for Product Terms
 MQQ34:EX2_FIRST_HIT_ENTRY_PT(1) <=
     Eq(( ENTRY_MATCH(0) & ENTRY_MATCH(1) & 
     ENTRY_MATCH(2) & ENTRY_MATCH(3) & 
@@ -1977,6 +2164,7 @@ MQQ63:EX2_FIRST_HIT_ENTRY_PT(30) <=
 MQQ64:EX2_FIRST_HIT_ENTRY_PT(31) <=
     Eq(( ENTRY_MATCH(0) & ENTRY_MATCH(1)
      ) , STD_ULOGIC_VECTOR'("01"));
+-- Table EX2_FIRST_HIT_ENTRY Signal Assignments for Outputs
 MQQ65:EX2_FIRST_HIT_ENTRY(0) <= 
     (EX2_FIRST_HIT_ENTRY_PT(1) OR EX2_FIRST_HIT_ENTRY_PT(2)
      OR EX2_FIRST_HIT_ENTRY_PT(3) OR EX2_FIRST_HIT_ENTRY_PT(4)
@@ -2075,6 +2263,7 @@ ex3_first_hit_entry(4) <=
      or ex3_first_hit_entry_pt_q(25) or ex3_first_hit_entry_pt_q(27)
      or ex3_first_hit_entry_pt_q(29) or ex3_first_hit_entry_pt_q(31)
     );
+-- ttype <= 0-eratre 1-eratwe 2-eratsx 3-eratilx 4-load 5-store 6-csync 7-isync 8-icbtlslc 9-touch 10-extload 11-extstore
 ex3_miss_d  <=  (ex2_valid_q and not(xu_derat_ex2_n_flush) and not(ex2_n_flush_req_q)) 
                   when (cam_hit='0' and ex2_ttype_q(4 to 5) /= "00" and ex2_ttype_q(9)='0' and ccr2_frat_paranoia_q(9)='0') 
       else (others => '0');
@@ -2086,40 +2275,52 @@ ex3_tlbreq_d  <=  '1' when ((ex2_valid_q and not(xu_derat_ex2_n_flush) and not(e
                               and ex2_ttype_q(4 to 5) /= "00" and ex2_ttype_q(9)='0' and cam_hit='0' and ccr2_notlb_q=MMU_Mode_Value
                                and ccr2_frat_paranoia_q(9)='0') 
           else '0';
+-- Cancel Hold Request
 hold_req_reset_d(0) <=  ccr2_frat_paranoia_q(9) or xu_derat_ex2_n_flush(0)   or xu_derat_ex3_n_flush(0)   or xu_derat_ex4_n_flush(0)   or 
                         (tlb_rel_val_q(0)   and (ccr2_notlb_q=MMU_Mode_Value));
+-- Hold Request due to ERAT MISS
 hold_req_pot_set_d(0) <=  ex2_valid_q(0)   and not xu_derat_ex2_n_flush(0)   and not ex2_n_flush_req_q(0)   and
                           (ex2_ttype_q(4 to 5)/="00") and not ex2_ttype_q(9) and (ccr2_notlb_q=MMU_Mode_Value);
+-- Hold Request due to POR
 hold_req_por_d(0) <=  por_hold_req(0);
 hold_req_set(0) <=  (hold_req_pot_set_q(0)   and not ex3_cam_hit_q);
 hold_req(0) <=  '1' when hold_req_por_q(0)   = '1'   else
                  '0' when hold_req_reset_q(0)   = '1' else
                  '1' when hold_req_set(0)   = '1'     else
                   hold_req_q(0);
+-- Cancel Hold Request
 hold_req_reset_d(1) <=  ccr2_frat_paranoia_q(9) or xu_derat_ex2_n_flush(1)   or xu_derat_ex3_n_flush(1)   or xu_derat_ex4_n_flush(1)   or 
                         (tlb_rel_val_q(1)   and (ccr2_notlb_q=MMU_Mode_Value));
+-- Hold Request due to ERAT MISS
 hold_req_pot_set_d(1) <=  ex2_valid_q(1)   and not xu_derat_ex2_n_flush(1)   and not ex2_n_flush_req_q(1)   and
                           (ex2_ttype_q(4 to 5)/="00") and not ex2_ttype_q(9) and (ccr2_notlb_q=MMU_Mode_Value);
+-- Hold Request due to POR
 hold_req_por_d(1) <=  por_hold_req(1);
 hold_req_set(1) <=  (hold_req_pot_set_q(1)   and not ex3_cam_hit_q);
 hold_req(1) <=  '1' when hold_req_por_q(1)   = '1'   else
                  '0' when hold_req_reset_q(1)   = '1' else
                  '1' when hold_req_set(1)   = '1'     else
                   hold_req_q(1);
+-- Cancel Hold Request
 hold_req_reset_d(2) <=  ccr2_frat_paranoia_q(9) or xu_derat_ex2_n_flush(2)   or xu_derat_ex3_n_flush(2)   or xu_derat_ex4_n_flush(2)   or 
                         (tlb_rel_val_q(2)   and (ccr2_notlb_q=MMU_Mode_Value));
+-- Hold Request due to ERAT MISS
 hold_req_pot_set_d(2) <=  ex2_valid_q(2)   and not xu_derat_ex2_n_flush(2)   and not ex2_n_flush_req_q(2)   and
                           (ex2_ttype_q(4 to 5)/="00") and not ex2_ttype_q(9) and (ccr2_notlb_q=MMU_Mode_Value);
+-- Hold Request due to POR
 hold_req_por_d(2) <=  por_hold_req(2);
 hold_req_set(2) <=  (hold_req_pot_set_q(2)   and not ex3_cam_hit_q);
 hold_req(2) <=  '1' when hold_req_por_q(2)   = '1'   else
                  '0' when hold_req_reset_q(2)   = '1' else
                  '1' when hold_req_set(2)   = '1'     else
                   hold_req_q(2);
+-- Cancel Hold Request
 hold_req_reset_d(3) <=  ccr2_frat_paranoia_q(9) or xu_derat_ex2_n_flush(3)   or xu_derat_ex3_n_flush(3)   or xu_derat_ex4_n_flush(3)   or 
                         (tlb_rel_val_q(3)   and (ccr2_notlb_q=MMU_Mode_Value));
+-- Hold Request due to ERAT MISS
 hold_req_pot_set_d(3) <=  ex2_valid_q(3)   and not xu_derat_ex2_n_flush(3)   and not ex2_n_flush_req_q(3)   and
                           (ex2_ttype_q(4 to 5)/="00") and not ex2_ttype_q(9) and (ccr2_notlb_q=MMU_Mode_Value);
+-- Hold Request due to POR
 hold_req_por_d(3) <=  por_hold_req(3);
 hold_req_set(3) <=  (hold_req_pot_set_q(3)   and not ex3_cam_hit_q);
 hold_req(3) <=  '1' when hold_req_por_q(3)   = '1'   else
@@ -2143,6 +2344,10 @@ tlb_req_inprogress_d(3) <=  '0' when (ccr2_frat_paranoia_q(9)='1' or por_hold_re
          else  '0' when (xu_derat_ex3_n_flush(3)='0'   and ex3_valid_q(3)='1'   and hold_req(3)='0')    
          else  '1' when (ex3_tlbreq_q='1' and ex3_valid_q(3)='1'   and ccr2_notlb_q=MMU_Mode_Value) 
          else tlb_req_inprogress_q(3);
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--ttype: 0-eratre,   1-eratwe, 2-eratsx,   3-eratilx,
+--       4-load,     5-store,  6-csync,    7-isync,
+--       8-icbtlslc, 9-touch, 10-extload, 11-extstore
 ex3_multihit_d  <=  (ex2_valid_q and not(xu_derat_ex2_n_flush) and not(ex2_n_flush_req_q)) when 
                       (cam_hit='1' and ex2_ttype_q(4 to 5) /= "00" and ex2_ttype_q(9)='0' and ccr2_frat_paranoia_q(9)='0') 
       else (others => '0');
@@ -2152,6 +2357,7 @@ ex3_parerr_d(thdid_width+1) <=  (cam_hit and ex2_ttype_q(2) and ex2_tlbsel_q(0) 
                                   and not(ex3_deratwe or ex4_deratwe or ex5_deratwe or ex6_deratwe or ex7_deratwe));
 ex3_parerr_enab  <=  ((ex3_parerr_q(thdid_width) and (ex3_cmp_data_parerr_epn or ex3_cmp_data_parerr_rpn)) or
                    (ex3_parerr_q(thdid_width+1) and ex3_cmp_data_parerr_epn)) and not ex3_multihit_enab;
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ex4_rd_array_data_d  <=  rd_array_data;
 ex4_rd_cam_data_d    <=  rd_cam_data;
 ex4_parerr_d(0 TO thdid_width-1) <=  (ex3_valid_q and not(xu_derat_ex3_n_flush) and not(ex3_n_flush_req_q));
@@ -2194,6 +2400,18 @@ ex6_hit_d  <=  ex5_hit_q when or_reduce(ex5_valid_q and not(xu_derat_ex5_n_flush
       else '0';
 barrier_done_d  <=  ex6_valid_q when (ex6_ttype_q(0)='1') 
       else (others => '0');
+-- 16x143 version, 42b RA
+-- wr_array_data
+--  0:29  - RPN
+--  30:31  - R,C
+--  32:35  - ResvAttr
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
+--  51:60  - CAM parity
+--  61:67  - Array parity
 ex2_dsi_d(0) <=  (ex1_ttype_q(5) and not ex1_ttype_q(8) and not ex1_ttype_q(9) and ex1_state_q(0) and not ccr2_frat_paranoia_q(9));
 ex2_dsi_d(1) <=  (ex1_ttype_q(4) and not ex1_ttype_q(8) and not ex1_ttype_q(9) and ex1_state_q(0) and not ccr2_frat_paranoia_q(9));
 ex2_dsi_d(2) <=  (ex1_ttype_q(4) and ex1_ttype_q(8) and not ex1_ttype_q(9) and ex1_state_q(0) and not ccr2_frat_paranoia_q(9));
@@ -2227,6 +2445,7 @@ ex2_noop_touch_d(7) <=  (ex1_ttype_q(4) and ex1_ttype_q(8) and ex1_ttype_q(9));
 ex2_noop_touch_d(8 TO 11) <=  (ex1_valid_q and not(xu_derat_ex1_n_flush) and not(ex2_n_flush_req_d));
 ex2_noop_touch_d(12 TO 15) <=  (ex1_valid_q and not(xu_derat_ex1_n_flush) and not(ex2_n_flush_req_d));
 ex3_noop_touch_d(0) <=  ex2_noop_touch_q(0) and not cam_hit;
+--  bits 2:3 used to be multihit/parerr, but not needed for noop_touch because they are flushed by xu regardless of noop_touch
 ex3_noop_touch_d(1) <=  ex2_noop_touch_q(1) and mmucr1_q(1);
 ex3_noop_touch_d(2) <=  ex2_noop_touch_q(2) and mmucr1_q(2);
 ex3_noop_touch_d(3 TO 7) <=  ex2_noop_touch_q(3 to 7);
@@ -2242,11 +2461,14 @@ ex3_noop_touch_d(8 TO 11) <=  (ex2_noop_touch_q(8 to 11) and not(xu_derat_ex2_n_
 ex3_noop_touch_d(12 TO 15) <=  (ex2_noop_touch_q(12 to 15) and not(xu_derat_ex2_n_flush) and not(ex2_n_flush_req_q));
 ex3_noop_touch_enab  <=  or_reduce(ex3_noop_touch(0 to 7));
 ex3_attr_d  <=  array_cmp_data(45 to 50) or (0 to 5 => ccr2_frat_paranoia_q(9));
+--  This function is controlled by XUCR4.MMU_MCHK and CCR2.NOTLB  bits.
 mchk_flash_inv_d(0) <=  ex3_parerr_q(thdid_width) and (ex3_cmp_data_parerr_epn or ex3_cmp_data_parerr_rpn);
 mchk_flash_inv_d(1) <=  ex3_parerr_q(thdid_width) and ex3_multihit_enab;
 mchk_flash_inv_d(2) <=  (mchk_flash_inv_q(0) or mchk_flash_inv_q(1)) and or_reduce(ex4_parerr_q(0 to thdid_width-1) and not(xu_derat_ex4_n_flush));
 mchk_flash_inv_d(3) <=  mchk_flash_inv_enab;
 mchk_flash_inv_enab  <=  mchk_flash_inv_q(2) and not(ccr2_notlb_q) and not(xucr4_mmu_mchk_q);
+--       0        1        2        3         4      5       6       7       8
+--ttype: eratre & eratwe & eratsx & eratilx & load & store & csync & isync & icbtlslc;
 ex2_n_flush_req_d    <=  ex1_valid_q and not(xu_derat_ex1_n_flush) 
                          when ( (tlb_rel_val_q(0 to 3)/="0000" and tlb_rel_val_q(4)='1') 
                               or ((epsc_wr_q(8)='1' or eplc_wr_q(8)='1') and mmucr1_q(7)='0')  
@@ -2256,6 +2478,12 @@ ex2_n_flush_req_d    <=  ex1_valid_q and not(xu_derat_ex1_n_flush)
                           and ex6_ws_q="00" and ex6_tlbsel_q=TlbSel_DErat)  
                   else ex1_valid_q when ((ex6_valid_q/="0000" and ex6_ttype_q(6 to 7)/="00") or mchk_flash_inv_enab='1' or mchk_flash_inv_q(3)='1')  
                   else (others => '0');
+--       0        1        2        3         4      5       6       7       8
+--ttype: eratre & eratwe & eratsx & eratilx & load & store & csync & isync & icbtlslc;
+-- ex3 flush conditions:
+--  ex2 flush
+--  tlbwe followed by tlbre, to same hw structure, within 4 cycs
+--  tlbwe followed by tlbsx, to same hw structure, within 5 cycs
 ex3_n_flush_req_d  <=  (ex2_valid_q and not(xu_derat_ex2_n_flush)) 
                             when ex2_n_flush_req_q /= "0000"  or
                                      (ex3_valid_q /= "0000" and ex3_ttype_q(1)='1' and 
@@ -2444,6 +2672,7 @@ end generate gen32_holdreg;
 ex6_deratwe_ws3    <=  or_reduce(ex6_valid_q) and ex6_ttype_q(1) and Eq(ex6_ws_q,"11") and Eq(ex6_tlbsel_q,TlbSel_DErat);
 watermark_d    <=  ex6_data_in_q(64-watermark_width to 63) when ex6_deratwe_ws3='1'  
                   else watermark_q;
+-- entry pointer for round-robin mode
 eptr_d  <=  (others => '0') when (ex6_deratwe_ws3='1' and mmucr1_q(0)='1') 
     else  (others => '0') when (eptr_q="11111" or eptr_q=watermark_q) and 
                           ( (ex6_valid_q /= "0000" and ex6_ttype_q(1)='1' and 
@@ -2488,6 +2717,17 @@ eptr_p1  <=  "00001" when eptr_q="00000"
       else "11111" when eptr_q="11110"
       else "00000";
 ex2_epn_d   <=   xu_derat_ex1_epn_nonarr(52-ex2_epn_width to 51);
+-- lru_update_event
+-- 0: tlb reload
+-- 1: invalidate snoop
+-- 2: csync or isync enabled
+-- 3: eratwe WS=0
+-- 4: load or store hit
+-- 5: ex3 cam write type events
+-- 6: ex3 cam invalidate type events
+-- 7: ex3 cam translation type events
+-- 8: superset, ex2
+-- 9: superset, delayed to ex3
 lru_update_event_d(0) <=  (tlb_rel_data_q(eratpos_wren) and or_reduce(tlb_rel_val_q(0 to 3)) and tlb_rel_val_q(4));
 lru_update_event_d(1) <=  (snoop_val_q(0) and snoop_val_q(1));
 lru_update_event_d(2) <=  (or_reduce(ex6_valid_q) and or_reduce(ex6_ttype_q(6 to 7)));
@@ -2504,6 +2744,9 @@ lru_update_event_d(8) <=  (tlb_rel_data_q(eratpos_wren) and or_reduce(tlb_rel_va
                            and Eq(ex6_ws_q,"00") and Eq(ex6_tlbsel_q,TlbSel_DErat) and Eq(lru_way_encode,ex6_ra_entry_q))  
                      or  (or_reduce(ex6_valid_q) and or_reduce(ex6_ttype_q(4 to 5)) and ex6_hit_q );
 lru_update_event_d(9) <=  lru_update_event_q(8);
+-- LRU next state.. update bits for which override is zero (Op=0)
+--   effective LRU is what is used to choose entry to update
+--     lru new value is valid 2 clocks after reload, invalidate, eratwe, or fetch hit
 lru_d(1) <=  '0' when ((ex6_deratwe_ws3='1' and mmucr1_q(0)='0') or flash_invalidate='1') 
         else  '0' when lru_reset_vec(1)='1'   and lru_op_vec(1)='0'   and lru_update_event_q(9)='1' and mmucr1_q(0)='0'
         else  '1' when lru_set_vec(1)='1'   and lru_op_vec(1)='0'   and lru_update_event_q(9)='1' and mmucr1_q(0)='0'
@@ -2659,6 +2902,7 @@ lru_d(31) <=  '0' when ((ex6_deratwe_ws3='1' and mmucr1_q(0)='0') or flash_inval
         else  '1' when lru_set_vec(31)='1'  and lru_op_vec(31)='0'  and lru_update_event_q(9)='1' and mmucr1_q(0)='0'
         else lru_q(31);
 lru_eff(31) <=  (lru_vp_vec(31)  and lru_op_vec(31))  or (lru_q(31)  and not lru_op_vec(31));
+-- RMT override enable:  Op= OR(all RMT entries below and left of p) XOR OR(all RMT entries below and right of p)
 lru_op_vec(1) <=  (lru_rmt_vec(0) or lru_rmt_vec(1) or lru_rmt_vec(2) or lru_rmt_vec(3) or 
                     lru_rmt_vec(4) or lru_rmt_vec(5) or lru_rmt_vec(6) or lru_rmt_vec(7) or 
                       lru_rmt_vec(8) or lru_rmt_vec(9) or lru_rmt_vec(10) or lru_rmt_vec(11) or 
@@ -2707,6 +2951,7 @@ lru_op_vec(28) <=  lru_rmt_vec(24) xor lru_rmt_vec(25);
 lru_op_vec(29) <=  lru_rmt_vec(26) xor lru_rmt_vec(27);
 lru_op_vec(30) <=  lru_rmt_vec(28) xor lru_rmt_vec(29);
 lru_op_vec(31) <=  lru_rmt_vec(30) xor lru_rmt_vec(31);
+-- RMT override value: Vp= OR(all RMT entries below and right of p)
 lru_vp_vec(1) <=  (lru_rmt_vec(16) or lru_rmt_vec(17) or lru_rmt_vec(18) or lru_rmt_vec(19) or 
                     lru_rmt_vec(20) or lru_rmt_vec(21) or lru_rmt_vec(22) or lru_rmt_vec(23) or 
                       lru_rmt_vec(24) or lru_rmt_vec(25) or lru_rmt_vec(26) or lru_rmt_vec(27) or 
@@ -2743,6 +2988,155 @@ lru_vp_vec(28) <=  lru_rmt_vec(25);
 lru_vp_vec(29) <=  lru_rmt_vec(27);
 lru_vp_vec(30) <=  lru_rmt_vec(29);
 lru_vp_vec(31) <=  lru_rmt_vec(31);
+-- mmucr1_q: 0-DRRE, 1-REE, 2-CEE, 3-csync, 4-isync, 5:6-DPEI, 7:8-DCTID/DTTID, 9-DCCD
+-- Encoder for the LRU watermark psuedo-RMT
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--?TABLE lru_rmt_vec LISTING(final) OPTIMIZE PARMS(ON-SET, OFF-SET);
+--*INPUTS*===================*OUTPUTS*============================*
+--|                          |                                    |
+--| mmucr1_q                 |  lru_rmt_vec                       |
+--| |         watermark_q    |  |                                 |
+--| |         |              |  |                                 |
+--| |         |              |  |                                 |
+--| |         |              |  |         1111111111222222222233  |
+--| 012345678 01234          |  01234567890123456789012345678901  |
+--*TYPE*=====================+====================================+
+--| PPPPPPPPP PPPPP          |  PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP  |
+--*OPTIMIZE*---------------->|  AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA  |
+--*TERMS*====================+====================================+
+--| 1-------- -----          |  11111111111111111111111111111111  |  round-robin enabled
+--| 0-------- 00000          |  10000000000000000000000000000000  |
+--| 0-------- 00001          |  11000000000000000000000000000000  |
+--| 0-------- 00010          |  11100000000000000000000000000000  |
+--| 0-------- 00011          |  11110000000000000000000000000000  |
+--| 0-------- 00100          |  11111000000000000000000000000000  |
+--| 0-------- 00101          |  11111100000000000000000000000000  |
+--| 0-------- 00110          |  11111110000000000000000000000000  |
+--| 0-------- 00111          |  11111111000000000000000000000000  |
+--| 0-------- 01000          |  11111111100000000000000000000000  |
+--| 0-------- 01001          |  11111111110000000000000000000000  |
+--| 0-------- 01010          |  11111111111000000000000000000000  |
+--| 0-------- 01011          |  11111111111100000000000000000000  |
+--| 0-------- 01100          |  11111111111110000000000000000000  |
+--| 0-------- 01101          |  11111111111111000000000000000000  |
+--| 0-------- 01110          |  11111111111111100000000000000000  |
+--| 0-------- 01111          |  11111111111111110000000000000000  |
+--| 0-------- 10000          |  11111111111111111000000000000000  |
+--| 0-------- 10001          |  11111111111111111100000000000000  |
+--| 0-------- 10010          |  11111111111111111110000000000000  |
+--| 0-------- 10011          |  11111111111111111111000000000000  |
+--| 0-------- 10100          |  11111111111111111111100000000000  |
+--| 0-------- 10101          |  11111111111111111111110000000000  |
+--| 0-------- 10110          |  11111111111111111111111000000000  |
+--| 0-------- 10111          |  11111111111111111111111100000000  |
+--| 0-------- 11000          |  11111111111111111111111110000000  |
+--| 0-------- 11001          |  11111111111111111111111111000000  |
+--| 0-------- 11010          |  11111111111111111111111111100000  |
+--| 0-------- 11011          |  11111111111111111111111111110000  |
+--| 0-------- 11100          |  11111111111111111111111111111000  |
+--| 0-------- 11101          |  11111111111111111111111111111100  |
+--| 0-------- 11110          |  11111111111111111111111111111110  |
+--| 0-------- 11111          |  11111111111111111111111111111111  |
+--*END*======================+====================================+
+--?TABLE END lru_rmt_vec;
+--?TABLE lru_watermark_mask LISTING(final) OPTIMIZE PARMS(ON-SET, OFF-SET);
+--*INPUTS*===================*OUTPUTS*============================*
+--|                          |                                    |
+--| mmucr1_q                 |  lru_watermark_mask                |
+--| |         watermark_q    |  |                                 |
+--| |         |              |  |                                 |
+--| |         |              |  |                                 |
+--| |         |              |  |         1111111111222222222233  |
+--| 012345678 01234          |  01234567890123456789012345678901  |
+--*TYPE*=====================+====================================+
+--| PPPPPPPPP PPPPP          |  PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP  |
+--*OPTIMIZE*---------------->|  AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA  |
+--*TERMS*====================+====================================+
+--| --------- 00000          |  01111111111111111111111111111111  |
+--| --------- 00001          |  00111111111111111111111111111111  |
+--| --------- 00010          |  00011111111111111111111111111111  |
+--| --------- 00011          |  00001111111111111111111111111111  |
+--| --------- 00100          |  00000111111111111111111111111111  |
+--| --------- 00101          |  00000011111111111111111111111111  |
+--| --------- 00110          |  00000001111111111111111111111111  |
+--| --------- 00111          |  00000000111111111111111111111111  |
+--| --------- 01000          |  00000000011111111111111111111111  |
+--| --------- 01001          |  00000000001111111111111111111111  |
+--| --------- 01010          |  00000000000111111111111111111111  |
+--| --------- 01011          |  00000000000011111111111111111111  |
+--| --------- 01100          |  00000000000001111111111111111111  |
+--| --------- 01101          |  00000000000000111111111111111111  |
+--| --------- 01110          |  00000000000000011111111111111111  |
+--| --------- 01111          |  00000000000000001111111111111111  |
+--| --------- 10000          |  00000000000000000111111111111111  |
+--| --------- 10001          |  00000000000000000011111111111111  |
+--| --------- 10010          |  00000000000000000001111111111111  |
+--| --------- 10011          |  00000000000000000000111111111111  |
+--| --------- 10100          |  00000000000000000000011111111111  |
+--| --------- 10101          |  00000000000000000000001111111111  |
+--| --------- 10110          |  00000000000000000000000111111111  |
+--| --------- 10111          |  00000000000000000000000011111111  |
+--| --------- 11000          |  00000000000000000000000001111111  |
+--| --------- 11001          |  00000000000000000000000000111111  |
+--| --------- 11010          |  00000000000000000000000000011111  |
+--| --------- 11011          |  00000000000000000000000000001111  |
+--| --------- 11100          |  00000000000000000000000000000111  |
+--| --------- 11101          |  00000000000000000000000000000011  |
+--| --------- 11110          |  00000000000000000000000000000001  |
+--| --------- 11111          |  00000000000000000000000000000000  |
+--*END*======================+====================================+
+--?TABLE END lru_watermark_mask;
+--
+-- Final Table Listing
+--      *INPUTS*=========*OUTPUTS*============================*
+--      |                |                                    |
+--      |                |  lru_rmt_vec_d                     |
+--      | watermark_d    |  |                                 |
+--      | |              |  |                                 |
+--      | |              |  |                                 |
+--      | |              |  |         1111111111222222222233  |
+--      | 01234          |  01234567890123456789012345678901  |
+--      *TYPE*===========+====================================+
+--      | PPPPP          |  PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP  |
+--      *POLARITY*------>|  ++++++++++++++++++++++++++++++++  |
+--      *PHASE*--------->|  TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT  |
+--      *OPTIMIZE*------>|   AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA   |
+--      *TERMS*==========+====================================+
+--    1 | 11111          |  ...............................1  |
+--    2 | -1111          |  ...............1................  |
+--    3 | 1-111          |  .......................1........  |
+--    4 | --111          |  .......1........................  |
+--    5 | 11-11          |  ...........................1....  |
+--    6 | -1-11          |  ...........1....................  |
+--    7 | 1--11          |  ...................1............  |
+--    8 | ---11          |  ...1............................  |
+--    9 | 111-1          |  .............................1..  |
+--   10 | -11-1          |  .............1..................  |
+--   11 | 1-1-1          |  .....................1..........  |
+--   12 | --1-1          |  .....1..........................  |
+--   13 | 11--1          |  .........................1......  |
+--   14 | -1--1          |  .........1......................  |
+--   15 | 1---1          |  .................1..............  |
+--   16 | ----1          |  .1..............................  |
+--   17 | 1111-          |  .............................11.  |
+--   18 | -111-          |  .............11.................  |
+--   19 | 1-11-          |  .....................11.........  |
+--   20 | --11-          |  .....11.........................  |
+--   21 | 11-1-          |  .........................11.....  |
+--   22 | -1-1-          |  .........11.....................  |
+--   23 | 1--1-          |  .................11.............  |
+--   24 | ---1-          |  .11.............................  |
+--   25 | 111--          |  .........................1111...  |
+--   26 | -11--          |  .........1111...................  |
+--   27 | 1-1--          |  .................1111...........  |
+--   28 | --1--          |  .1111...........................  |
+--   29 | 11---          |  .................11111111.......  |
+--   30 | -1---          |  .11111111.......................  |
+--   31 | 1----          |  .1111111111111111...............  |
+--   32 | -----          |  1...............................  |
+--      *=====================================================*
+--
+-- Table LRU_RMT_VEC_D Signal Assignments for Product Terms
 MQQ70:LRU_RMT_VEC_D_PT(1) <=
     Eq(( WATERMARK_D(0) & WATERMARK_D(1) & 
     WATERMARK_D(2) & WATERMARK_D(3) & 
@@ -2839,6 +3233,7 @@ MQQ100:LRU_RMT_VEC_D_PT(31) <=
     Eq(( WATERMARK_D(0) ) , STD_ULOGIC'('1'));
 MQQ101:LRU_RMT_VEC_D_PT(32) <=
     '1';
+-- Table LRU_RMT_VEC_D Signal Assignments for Outputs
 MQQ102:LRU_RMT_VEC_D(0) <= 
     (LRU_RMT_VEC_D_PT(32));
 MQQ103:LRU_RMT_VEC_D(1) <= 
@@ -2939,7 +3334,203 @@ MQQ133:LRU_RMT_VEC_D(31) <=
 mmucr1_b0_cpy_d     <=  mmucr1_d(0);
 lru_rmt_vec         <=  lru_rmt_vec_q;
 lru_watermark_mask  <=  not lru_rmt_vec_q;
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 entry_valid_watermarked  <=  entry_valid_q or lru_watermark_mask;
+-- lru_update_event
+-- 0: tlb reload
+-- 1: invalidate snoop
+-- 2: csync or isync enabled
+-- 3: eratwe WS=0
+-- 4: load or store hit
+-- 5: cam write type events
+-- 6: cam invalidate type events
+-- 7: cam translation type events
+-- 8: superset, ex2
+-- 9: superset, delayed to ex3
+-- logic for the LRU reset and set bit vectors
+-- ?TABLE lru_set_reset_vec LISTING(final) OPTIMIZE PARMS(ON-SET, OFF-SET);
+--
+-- Final Table Listing
+--      *INPUTS*========================================================================================================*OUTPUTS*=============================================================*
+--      |                                                                                                               |                                                                     |
+--      | lru_update_event_q                                                                                            |  lru_reset_vec                                                      |
+--      | |         entry_valid_watermarked                                                                             |  |                                 lru_set_vec                      |
+--      | |         |                                lru_q                                                              |  |                                 |                                |
+--      | |         |                                |                               entry_match_q                      |  |                                 |                                |
+--      | |         |                                |                               |                                  |  |                                 |                                |
+--      | |         |                                |                               |                                  |  |                                 |                                |
+--      | |         |         1111111111222222222233 |        1111111111222222222233 |         1111111111222222222233   |  |        1111111111222222222233   |        1111111111222222222233  |
+--      | 012345678 01234567890123456789012345678901 1234567890123456789012345678901 01234567890123456789012345678901   |  1234567890123456789012345678901   1234567890123456789012345678901  |
+--      *TYPE*==========================================================================================================+=====================================================================+
+--      | PPPPPPPPP PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP   |  PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP   PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP  |
+--      *POLARITY*----------------------------------------------------------------------------------------------------->|  +++++++++++++++++++++++++++++++   +++++++++++++++++++++++++++++++  |
+--      *PHASE*-------------------------------------------------------------------------------------------------------->|  TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT   TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT  |
+--      *OPTIMIZE*----------------------------------------------------------------------------------------------------->|   AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA   BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB   |
+--      *TERMS*=========================================================================================================+=====================================================================+
+--    1 | -----001- 11111111111111111111111111111111 ------------------------------- 00000000000000000000000000000001   |  1.1...1.......1...............1   ...............................  |
+--    2 | -----001- 11111111111111111111111111111111 ------------------------------- 0000000000000000000000000000001-   |  1.1...1.......1................   ...............................  |
+--    3 | -----001- 1111111111111111111111111111111- ------------------------------- 0000000000000000000000000000001-   |  ...............................   ..............................1  |
+--    4 | -----001- 11111111111111111111111111111111 ------------------------------- 000000000000000000000000000001--   |  1.1...1......................1.   ...............................  |
+--    5 | -----001- 111111111111111111111111111111-- ------------------------------- 0000000000000000000000000000-1--   |  ...............................   ..............1................  |
+--    6 | -----001- 11111111111111111111111111111111 ------------------------------- 00000000000000000000000000001---   |  1.1...1........................   ..............1..............1.  |
+--    7 | -----001- 11111111111111111111111111111111 ------------------------------- 0000000000000000000000000001----   |  1.1..........1..............1..   ...............................  |
+--    8 | -----001- 1111111111111111111111111111---- ------------------------------- 000000000000000000000000---1----   |  ...............................   ......1........................  |
+--    9 | -----001- 11111111111111111111111111111111 ------------------------------- 000000000000000000000000001-----   |  1.1..........1.................   ......1.....................1..  |
+--   10 | -----001- 11111111111111111111111111111111 ------------------------------- 00000000000000000000000001------   |  1.1........................1...   ...............................  |
+--   11 | -----001- 11111111111111111111111111111111 ------------------------------- 000000000000000000000000-1------   |  ...............................   ......1......1.................  |
+--   12 | -----001- 11111111111111111111111111111111 ------------------------------- 0000000000000000000000001-------   |  1.1............................   ......1......1.............1...  |
+--   13 | -----001- 11111111111111111111111111111111 ------------------------------- 000000000000000000000001--------   |  1....1......1.............1....   ...............................  |
+--   14 | -----001- 111111111111111111111111-------- ------------------------------- 0000000000000000-------1--------   |  ...............................   ..1............................  |
+--   15 | -----001- 11111111111111111111111111111111 ------------------------------- 00000000000000000000001---------   |  1....1......1..................   ..1.......................1....  |
+--   16 | -----001- 11111111111111111111111111111111 ------------------------------- 0000000000000000000001----------   |  1....1...................1.....   ...............................  |
+--   17 | -----001- 11111111111111111111111111111111 ------------------------------- 00000000000000000000-1----------   |  ...............................   ..1.........1..................  |
+--   18 | -----001- 11111111111111111111111111111111 ------------------------------- 000000000000000000001-----------   |  1....1.........................   ..1.........1............1.....  |
+--   19 | -----001- 11111111111111111111111111111111 ------------------------------- 00000000000000000001------------   |  1..........1............1......   ...............................  |
+--   20 | -----001- 11111111111111111111111111111111 ------------------------------- 0000000000000000---1------------   |  ...............................   ..1..1.........................  |
+--   21 | -----001- 11111111111111111111111111111111 ------------------------------- 0000000000000000001-------------   |  1..........1...................   ..1..1..................1......  |
+--   22 | -----001- 11111111111111111111111111111111 ------------------------------- 000000000000000001--------------   |  1......................1.......   ...............................  |
+--   23 | -----001- 11111111111111111111111111111111 ------------------------------- 0000000000000000-1--------------   |  ...............................   ..1..1.....1...................  |
+--   24 | -----001- 11111111111111111111111111111111 ------------------------------- 00000000000000001---------------   |  ...............................   ..1..1.....1...........1.......  |
+--   25 | -----001- ----------------1111111111111111 ------------------------------- 00000000000000001---------------   |  1..............................   ...............................  |
+--   26 | -----001- 11111111111111111111111111111111 ------------------------------- 0000000000000001----------------   |  .1..1.....1...........1........   ...............................  |
+--   27 | -----001- 1111111111111111---------------- ------------------------------- ---------------1----------------   |  ...............................   1..............................  |
+--   28 | -----001- 11111111111111111111111111111111 ------------------------------- 000000000000001-----------------   |  .1..1.....1....................   1.....................1........  |
+--   29 | -----001- 11111111111111111111111111111111 ------------------------------- 00000000000001------------------   |  .1..1................1.........   ...............................  |
+--   30 | -----001- 11111111111111111111111111111111 ------------------------------- 000000000000-1------------------   |  ...............................   1.........1....................  |
+--   31 | -----001- 11111111111111111111111111111111 ------------------------------- 0000000000001-------------------   |  .1..1..........................   1.........1..........1.........  |
+--   32 | -----001- 11111111111111111111111111111111 ------------------------------- 000000000001--------------------   |  .1.......1..........1..........   ...............................  |
+--   33 | -----001- 11111111111111111111111111111111 ------------------------------- 00000000---1--------------------   |  ...............................   1...1..........................  |
+--   34 | -----001- 11111111111111111111111111111111 ------------------------------- 00000000001---------------------   |  .1.......1.....................   1...1...............1..........  |
+--   35 | -----001- 11111111111111111111111111111111 ------------------------------- 0000000001----------------------   |  .1.................1...........   ...............................  |
+--   36 | -----001- 11111111111111111111111111111111 ------------------------------- 00000000-1----------------------   |  ...............................   1...1....1.....................  |
+--   37 | -----001- 11111111111111111111111111111111 ------------------------------- 000000001-----------------------   |  ...............................   1...1....1.........1...........  |
+--   38 | -----001- --------111111111111111111111111 ------------------------------- 000000001-----------------------   |  .1.............................   ...............................  |
+--   39 | -----001- 11111111111111111111111111111111 ------------------------------- 00000001------------------------   |  ...1....1.........1............   ...............................  |
+--   40 | -----001- 11111111111111111111111111111111 ------------------------------- -------1------------------------   |  ...............................   11.............................  |
+--   41 | -----001- 11111111111111111111111111111111 ------------------------------- 0000001-------------------------   |  ...1....1......................   11................1............  |
+--   42 | -----001- 11111111111111111111111111111111 ------------------------------- 000001--------------------------   |  ...1.............1.............   ...............................  |
+--   43 | -----001- 11111111111111111111111111111111 ------------------------------- 0000-1--------------------------   |  ...............................   11......1......................  |
+--   44 | -----001- 11111111111111111111111111111111 ------------------------------- 00001---------------------------   |  ...............................   11......1........1.............  |
+--   45 | -----001- ----1111111111111111111111111111 ------------------------------- 00001---------------------------   |  ...1...........................   ...............................  |
+--   46 | -----001- 11111111111111111111111111111111 ------------------------------- 0001----------------------------   |  .......1........1..............   ...............................  |
+--   47 | -----001- 11111111111111111111111111111111 ------------------------------- ---1----------------------------   |  ...............................   11.1...........................  |
+--   48 | -----001- 11111111111111111111111111111111 ------------------------------- 001-----------------------------   |  ...............................   11.1............1..............  |
+--   49 | -----001- --111111111111111111111111111111 ------------------------------- 001-----------------------------   |  .......1.......................   ...............................  |
+--   50 | -----001- -1111111111111111111111111111111 ------------------------------- 01------------------------------   |  ...............1...............   ...............................  |
+--   51 | -----001- 11111111111111111111111111111111 ------------------------------- -1------------------------------   |  ...............................   11.1...1.......................  |
+--   52 | -----001- 11111111111111111111111111111111 ------------------------------- 1-------------------------------   |  ...............................   11.1...1.......1...............  |
+--   53 | -----1--- 1111111111111111111111111111111- 1-1---1-------1---------------0 --------------------------------   |  ...............................   ..............................1  |
+--   54 | -----1--- 111111111111111111111111111111-1 1-1---1-------1---------------1 --------------------------------   |  ..............................1   ...............................  |
+--   55 | -----1--- 11111111111111111111111111111-11 1-1---1-------0--------------0- --------------------------------   |  ...............................   .............................1.  |
+--   56 | -----1--- 1111111111111111111111111111-111 1-1---1-------0--------------1- --------------------------------   |  .............................1.   ...............................  |
+--   57 | -----1--- 111111111111111111111111111-1111 1-1---0------1--------------0-- --------------------------------   |  ...............................   ............................1..  |
+--   58 | -----1--- 11111111111111111111111111-11111 1-1---0------1--------------1-- --------------------------------   |  ............................1..   ...............................  |
+--   59 | -----1--- 1111111111111111111111111-111111 1-1---0------0-------------0--- --------------------------------   |  ...............................   ...........................1...  |
+--   60 | -----1--- 111111111111111111111111-1111111 1-1---0------0-------------1--- --------------------------------   |  ...........................1...   ...............................  |
+--   61 | -----1--- 11111111111111111111111-11111111 1-0--1------1-------------0---- --------------------------------   |  ...............................   ..........................1....  |
+--   62 | -----1--- 1111111111111111111111-111111111 1-0--1------1-------------1---- --------------------------------   |  ..........................1....   ...............................  |
+--   63 | -----1--- 111111111111111111111-1111111111 1-0--1------0------------0----- --------------------------------   |  ...............................   .........................1.....  |
+--   64 | -----1--- 11111111111111111111-11111111111 1-0--1------0------------1----- --------------------------------   |  .........................1.....   ...............................  |
+--   65 | -----1--- 1111111111111111111-111111111111 1-0--0-----1------------0------ --------------------------------   |  ...............................   ........................1......  |
+--   66 | -----1--- 111111111111111111-1111111111111 1-0--0-----1------------1------ --------------------------------   |  ........................1......   ...............................  |
+--   67 | -----1--- 11111111111111111-11111111111111 1-0--0-----0-----------0------- --------------------------------   |  ...............................   .......................1.......  |
+--   68 | -----1--- 1111111111111111-111111111111111 1-0--0-----0-----------1------- --------------------------------   |  .......................1.......   ...............................  |
+--   69 | -----1--- 111111111111111-1111111111111111 01--1-----1-----------0-------- --------------------------------   |  ...............................   ......................1........  |
+--   70 | -----1--- 11111111111111-11111111111111111 01--1-----1-----------1-------- --------------------------------   |  ......................1........   ...............................  |
+--   71 | -----1--- 1111111111111-111111111111111111 01--1-----0----------0--------- --------------------------------   |  ...............................   .....................1.........  |
+--   72 | -----1--- 111111111111-1111111111111111111 01--1-----0----------1--------- --------------------------------   |  .....................1.........   ...............................  |
+--   73 | -----1--- 11111111111-11111111111111111111 01--0----1----------0---------- --------------------------------   |  ...............................   ....................1..........  |
+--   74 | -----1--- 1111111111-111111111111111111111 01--0----1----------1---------- --------------------------------   |  ....................1..........   ...............................  |
+--   75 | -----1--- 111111111-1111111111111111111111 01--0----0---------0----------- --------------------------------   |  ...............................   ...................1...........  |
+--   76 | -----1--- 11111111-11111111111111111111111 01--0----0---------1----------- --------------------------------   |  ...................1...........   ...............................  |
+--   77 | -----1--- 1111111-111111111111111111111111 00-1----1---------0------------ --------------------------------   |  ...............................   ..................1............  |
+--   78 | -----1--- 111111-1111111111111111111111111 00-1----1---------1------------ --------------------------------   |  ..................1............   ...............................  |
+--   79 | -----1--- 11111-11111111111111111111111111 00-1----0--------0------------- --------------------------------   |  ...............................   .................1.............  |
+--   80 | -----1--- 1111-111111111111111111111111111 00-1----0--------1------------- --------------------------------   |  .................1.............   ...............................  |
+--   81 | -----1--- 111-1111111111111111111111111111 00-0---1--------0-------------- --------------------------------   |  ...............................   ................1..............  |
+--   82 | -----1--- 11-11111111111111111111111111111 00-0---1--------1-------------- --------------------------------   |  ................1..............   ...............................  |
+--   83 | -----1--- 1-111111111111111111111111111111 00-0---0-------0--------------- --------------------------------   |  ...............................   ...............1...............  |
+--   84 | -----1--- -1111111111111111111111111111111 00-0---0-------1--------------- --------------------------------   |  ...............1...............   ...............................  |
+--   85 | -----1--- 111111111111111111111111111111-- 1-1---1-------0---------------- --------------------------------   |  ...............................   ..............1................  |
+--   86 | -----1--- 1111111111111111111111111111--11 1-1---1-------1---------------- --------------------------------   |  ..............1................   ...............................  |
+--   87 | -----1--- 11111111111111111111111111--1111 1-1---0------0----------------- --------------------------------   |  ...............................   .............1.................  |
+--   88 | -----1--- 111111111111111111111111--111111 1-1---0------1----------------- --------------------------------   |  .............1.................   ...............................  |
+--   89 | -----1--- 1111111111111111111111--11111111 1-0--1------0------------------ --------------------------------   |  ...............................   ............1..................  |
+--   90 | -----1--- 11111111111111111111--1111111111 1-0--1------1------------------ --------------------------------   |  ............1..................   ...............................  |
+--   91 | -----1--- 111111111111111111--111111111111 1-0--0-----0------------------- --------------------------------   |  ...............................   ...........1...................  |
+--   92 | -----1--- 1111111111111111--11111111111111 1-0--0-----1------------------- --------------------------------   |  ...........1...................   ...............................  |
+--   93 | -----1--- 11111111111111--1111111111111111 01--1-----0-------------------- --------------------------------   |  ...............................   ..........1....................  |
+--   94 | -----1--- 111111111111--111111111111111111 01--1-----1-------------------- --------------------------------   |  ..........1....................   ...............................  |
+--   95 | -----1--- 1111111111--11111111111111111111 01--0----0--------------------- --------------------------------   |  ...............................   .........1.....................  |
+--   96 | -----1--- 11111111--1111111111111111111111 01--0----1--------------------- --------------------------------   |  .........1.....................   ...............................  |
+--   97 | -----1--- 111111--111111111111111111111111 00-1----0---------------------- --------------------------------   |  ...............................   ........1......................  |
+--   98 | -----1--- 1111--11111111111111111111111111 00-1----1---------------------- --------------------------------   |  ........1......................   ...............................  |
+--   99 | -----1--- 11--1111111111111111111111111111 00-0---0----------------------- --------------------------------   |  ...............................   .......1.......................  |
+--   100 | -----1--- --111111111111111111111111111111 00-0---1----------------------- --------------------------------   |  .......1.......................   ...............................  |
+--   101 | -----1--- 1111111111111111111111111111---- 1-1---0------------------------ --------------------------------   |  ...............................   ......1........................  |
+--   102 | -----1--- 111111111111111111111111----1111 1-1---1------------------------ --------------------------------   |  ......1........................   ...............................  |
+--   103 | -----1--- 11111111111111111111----11111111 1-0--0------------------------- --------------------------------   |  ...............................   .....1.........................  |
+--   104 | -----1--- 1111111111111111----111111111111 1-0--1------------------------- --------------------------------   |  .....1.........................   ...............................  |
+--   105 | -----1--- 111111111111----1111111111111111 01--0-------------------------- --------------------------------   |  ...............................   ....1..........................  |
+--   106 | -----1--- 11111111----11111111111111111111 01--1-------------------------- --------------------------------   |  ....1..........................   ...............................  |
+--   107 | -----1--- 1111----111111111111111111111111 00-0--------------------------- --------------------------------   |  ...............................   ...1...........................  |
+--   108 | -----1--- ----1111111111111111111111111111 00-1--------------------------- --------------------------------   |  ...1...........................   ...............................  |
+--   109 | -----1--- 111111111111111111111111-------- 1-0---------------------------- --------------------------------   |  ...............................   ..1............................  |
+--   110 | -----1--- 1111111111111111--------11111111 1-1---------------------------- --------------------------------   |  ..1............................   ...............................  |
+--   111 | -----1--- 11111111--------1111111111111111 00----------------------------- --------------------------------   |  ...............................   .1.............................  |
+--   112 | -----1--- --------111111111111111111111111 01----------------------------- --------------------------------   |  .1.............................   ...............................  |
+--   113 | -----1--- 1111111111111111---------------- 0------------------------------ --------------------------------   |  ...............................   1..............................  |
+--   114 | -----1--- ----------------1111111111111111 1------------------------------ --------------------------------   |  1..............................   ...............................  |
+--   115 | --------- 11111111111111111111111111111110 ------------------------------- --------------------------------   |  ...............................   1.1...1.......1...............1  |
+--   116 | --------- 1111111111111111111111111111110- ------------------------------- --------------------------------   |  ..............................1   1.1...1.......1................  |
+--   117 | --------- 111111111111111111111111111110-- ------------------------------- --------------------------------   |  ...............................   1.1...1......................1.  |
+--   118 | --------- 1111111111111111111111111111-0-- ------------------------------- --------------------------------   |  ..............1................   ...............................  |
+--   119 | --------- 11111111111111111111111111110--- ------------------------------- --------------------------------   |  ..............1..............1.   1.1...1........................  |
+--   120 | --------- 1111111111111111111111111110---- ------------------------------- --------------------------------   |  ...............................   1.1..........1..............1..  |
+--   121 | --------- 111111111111111111111111---0---- ------------------------------- --------------------------------   |  ......1........................   ...............................  |
+--   122 | --------- 111111111111111111111111110----- ------------------------------- --------------------------------   |  ......1.....................1..   1.1..........1.................  |
+--   123 | --------- 11111111111111111111111110------ ------------------------------- --------------------------------   |  ...............................   1.1........................1...  |
+--   124 | --------- 111111111111111111111111-0------ ------------------------------- --------------------------------   |  ......1......1.................   ...............................  |
+--   125 | --------- 1111111111111111111111110------- ------------------------------- --------------------------------   |  ......1......1.............1...   1.1............................  |
+--   126 | --------- 111111111111111111111110-------- ------------------------------- --------------------------------   |  ...............................   1....1......1.............1....  |
+--   127 | --------- 1111111111111111-------0-------- ------------------------------- --------------------------------   |  ..1............................   ...............................  |
+--   128 | --------- 11111111111111111111110--------- ------------------------------- --------------------------------   |  ..1.......................1....   1....1......1..................  |
+--   129 | --------- 1111111111111111111110---------- ------------------------------- --------------------------------   |  ...............................   1....1...................1.....  |
+--   130 | --------- 11111111111111111111-0---------- ------------------------------- --------------------------------   |  ..1.........1..................   ...............................  |
+--   131 | --------- 111111111111111111110----------- ------------------------------- --------------------------------   |  ..1.........1............1.....   1....1.........................  |
+--   132 | --------- 11111111111111111110------------ ------------------------------- --------------------------------   |  ...............................   1..........1............1......  |
+--   133 | --------- 1111111111111111---0------------ ------------------------------- --------------------------------   |  ..1..1.........................   ...............................  |
+--   134 | --------- 1111111111111111110------------- ------------------------------- --------------------------------   |  ..1..1..................1......   1..........1...................  |
+--   135 | --------- 111111111111111110-------------- ------------------------------- --------------------------------   |  ...............................   1......................1.......  |
+--   136 | --------- 1111111111111111-0-------------- ------------------------------- --------------------------------   |  ..1..1.....1...................   ...............................  |
+--   137 | --------- 11111111111111110--------------- ------------------------------- --------------------------------   |  ..1..1.....1...........1.......   1..............................  |
+--   138 | --------- 1111111111111110---------------- ------------------------------- --------------------------------   |  ...............................   .1..1.....1...........1........  |
+--   139 | --------- ---------------0---------------- ------------------------------- --------------------------------   |  1..............................   ...............................  |
+--   140 | --------- 111111111111110----------------- ------------------------------- --------------------------------   |  1.....................1........   .1..1.....1....................  |
+--   141 | --------- 11111111111110------------------ ------------------------------- --------------------------------   |  ...............................   .1..1................1.........  |
+--   142 | --------- 111111111111-0------------------ ------------------------------- --------------------------------   |  1.........1....................   ...............................  |
+--   143 | --------- 1111111111110------------------- ------------------------------- --------------------------------   |  1.........1..........1.........   .1..1..........................  |
+--   144 | --------- 111111111110-------------------- ------------------------------- --------------------------------   |  ...............................   .1.......1..........1..........  |
+--   145 | --------- 11111111---0-------------------- ------------------------------- --------------------------------   |  1...1..........................   ...............................  |
+--   146 | --------- 11111111110--------------------- ------------------------------- --------------------------------   |  1...1...............1..........   .1.......1.....................  |
+--   147 | --------- 1111111110---------------------- ------------------------------- --------------------------------   |  ...............................   .1.................1...........  |
+--   148 | --------- 11111111-0---------------------- ------------------------------- --------------------------------   |  1...1....1.....................   ...............................  |
+--   149 | --------- 111111110----------------------- ------------------------------- --------------------------------   |  1...1....1.........1...........   .1.............................  |
+--   150 | --------- 11111110------------------------ ------------------------------- --------------------------------   |  ...............................   ...1....1.........1............  |
+--   151 | --------- -------0------------------------ ------------------------------- --------------------------------   |  11.............................   ...............................  |
+--   152 | --------- 1111110------------------------- ------------------------------- --------------------------------   |  11................1............   ...1....1......................  |
+--   153 | --------- 111110-------------------------- ------------------------------- --------------------------------   |  ...............................   ...1.............1.............  |
+--   154 | --------- 1111-0-------------------------- ------------------------------- --------------------------------   |  11......1......................   ...............................  |
+--   155 | --------- 11110--------------------------- ------------------------------- --------------------------------   |  11......1........1.............   ...1...........................  |
+--   156 | --------- 1110---------------------------- ------------------------------- --------------------------------   |  ...............................   .......1........1..............  |
+--   157 | --------- ---0---------------------------- ------------------------------- --------------------------------   |  11.1...........................   ...............................  |
+--   158 | --------- 110----------------------------- ------------------------------- --------------------------------   |  11.1............1..............   .......1.......................  |
+--   159 | --------- 10------------------------------ ------------------------------- --------------------------------   |  ...............................   ...............1...............  |
+--   160 | --------- -0------------------------------ ------------------------------- --------------------------------   |  11.1...1.......................   ...............................  |
+--   161 | --------- 0------------------------------- ------------------------------- --------------------------------   |  11.1...1.......1...............   ...............................  |
+--      *=====================================================================================================================================================================================*
+--
+-- Table LRU_SET_RESET_VEC Signal Assignments for Product Terms
 MQQ134:LRU_SET_RESET_VEC_PT(1) <=
     Eq(( LRU_UPDATE_EVENT_Q(5) & LRU_UPDATE_EVENT_Q(6) & 
     LRU_UPDATE_EVENT_Q(7) & ENTRY_VALID_WATERMARKED(0) & 
@@ -5924,6 +6515,7 @@ MQQ293:LRU_SET_RESET_VEC_PT(160) <=
     Eq(( ENTRY_VALID_WATERMARKED(1) ) , STD_ULOGIC'('0'));
 MQQ294:LRU_SET_RESET_VEC_PT(161) <=
     Eq(( ENTRY_VALID_WATERMARKED(0) ) , STD_ULOGIC'('0'));
+-- Table LRU_SET_RESET_VEC Signal Assignments for Outputs
 MQQ295:LRU_RESET_VEC(1) <= 
     (LRU_SET_RESET_VEC_PT(1) OR LRU_SET_RESET_VEC_PT(2)
      OR LRU_SET_RESET_VEC_PT(4) OR LRU_SET_RESET_VEC_PT(6)
@@ -6209,6 +6801,57 @@ MQQ356:LRU_SET_VEC(31) <=
     (LRU_SET_RESET_VEC_PT(3) OR LRU_SET_RESET_VEC_PT(53)
      OR LRU_SET_RESET_VEC_PT(115));
 
+-- Encoder for the LRU selected entry
+--
+-- Final Table Listing
+--      *INPUTS*=======================================*OUTPUTS*==========*
+--      |                                              |                  |
+--      | mmucr1_q                                     |  lru_way_encode  |
+--      | |         lru_eff                            |  |               |
+--      | |         |                                  |  |               |
+--      | |         |                                  |  |               |
+--      | |         |        1111111111222222222233    |  |               |
+--      | 012345678 1234567890123456789012345678901    |  01234           |
+--      *TYPE*=========================================+==================+
+--      | PPPPPPPPP PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP    |  PPPPP           |
+--      *POLARITY*------------------------------------>|  +++++           |
+--      *PHASE*--------------------------------------->|  TTTTT           |
+--      *OPTIMIZE*------------------------------------>|   AAAAA            |
+--      *TERMS*========================================+==================+
+--    1 | --------- 1-1---1-------1---------------1    |  ....1           |
+--    2 | --------- 1-1---1-------0--------------1-    |  ....1           |
+--    3 | --------- 1-1---0------1--------------1--    |  ....1           |
+--    4 | --------- 1-1---0------0-------------1---    |  ....1           |
+--    5 | --------- 1-0--1------1-------------1----    |  ....1           |
+--    6 | --------- 1-0--1------0------------1-----    |  ....1           |
+--    7 | --------- 1-0--0-----1------------1------    |  ....1           |
+--    8 | --------- 1-0--0-----0-----------1-------    |  ....1           |
+--    9 | --------- 01--1-----1-----------1--------    |  ....1           |
+--   10 | --------- 01--1-----0----------1---------    |  ....1           |
+--   11 | --------- 01--0----1----------1----------    |  ....1           |
+--   12 | --------- 01--0----0---------1-----------    |  ....1           |
+--   13 | --------- 00-1----1---------1------------    |  ....1           |
+--   14 | --------- 00-1----0--------1-------------    |  ....1           |
+--   15 | --------- 00-0---1--------1--------------    |  ....1           |
+--   16 | --------- 00-0---0-------1---------------    |  ....1           |
+--   17 | --------- 1-1---1-------1----------------    |  ...1.           |
+--   18 | --------- 1-1---0------1-----------------    |  ...1.           |
+--   19 | --------- 1-0--1------1------------------    |  ...1.           |
+--   20 | --------- 1-0--0-----1-------------------    |  ...1.           |
+--   21 | --------- 01--1-----1--------------------    |  ...1.           |
+--   22 | --------- 01--0----1---------------------    |  ...1.           |
+--   23 | --------- 00-1----1----------------------    |  ...1.           |
+--   24 | --------- 00-0---1-----------------------    |  ...1.           |
+--   25 | --------- 1-1---1------------------------    |  ..1..           |
+--   26 | --------- 1-0--1-------------------------    |  ..1..           |
+--   27 | --------- 01--1--------------------------    |  ..1..           |
+--   28 | --------- 00-1---------------------------    |  ..1..           |
+--   29 | --------- 1-1----------------------------    |  .1...           |
+--   30 | --------- 01-----------------------------    |  .1...           |
+--   31 | --------- 1------------------------------    |  1....           |
+--      *=================================================================*
+--
+-- Table LRU_WAY_ENCODE Signal Assignments for Product Terms
 MQQ357:LRU_WAY_ENCODE_PT(1) <=
     Eq(( LRU_EFF(1) & LRU_EFF(3) & 
     LRU_EFF(7) & LRU_EFF(15) & 
@@ -6325,6 +6968,7 @@ MQQ386:LRU_WAY_ENCODE_PT(30) <=
      ) , STD_ULOGIC_VECTOR'("01"));
 MQQ387:LRU_WAY_ENCODE_PT(31) <=
     Eq(( LRU_EFF(1) ) , STD_ULOGIC'('1'));
+-- Table LRU_WAY_ENCODE Signal Assignments for Outputs
 MQQ388:LRU_WAY_ENCODE(0) <= 
     (LRU_WAY_ENCODE_PT(31));
 MQQ389:LRU_WAY_ENCODE(1) <= 
@@ -6351,6 +6995,7 @@ MQQ392:LRU_WAY_ENCODE(4) <=
      OR LRU_WAY_ENCODE_PT(15) OR LRU_WAY_ENCODE_PT(16)
     );
 
+-- power-on reset sequencer to load initial erat entries
 Por_Sequencer: PROCESS (por_seq_q, init_alias, bcfg_q(0 to 106))
 BEGIN
 por_wr_cam_val  <=  (others => '0');
@@ -6376,6 +7021,18 @@ CASE por_seq_q IS
           por_wr_cam_val <= (others => '1'); por_wr_array_val <= (others => '1');
           por_wr_entry <= Por_Wr_Entry_Num1;  
           por_wr_cam_data <= bcfg_q(0 to 51) & Por_Wr_Cam_Data1(52 to 83); 
+-- 16x143 version, 42b RA
+-- wr_array_data
+--  0:29  - RPN
+--  30:31  - R,C
+--  32:35  - ResvAttr
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
+--  51:60  - CAM parity
+--  61:67  - Array parity
           por_wr_array_data <= bcfg_q(52 to 81) & Por_Wr_Array_Data1(30 to 35) & bcfg_q(82 to 85) & 
                                 Por_Wr_Array_Data1(40 to 43) & bcfg_q(86) & Por_Wr_Array_Data1(45 to 67); 
           por_hold_req <= (others => '1');
@@ -6418,6 +7075,7 @@ CASE por_seq_q IS
           por_seq_d <=  PorSeq_Idle;  
     END CASE;
 END PROCESS Por_Sequencer;
+-- page size 4b to 3b swizzles for cam write
 cam_pgsize(0 TO 2) <=  (CAM_PgSize_1GB  and (0 to 2 => Eq(ex6_data_in_q(56 to 59),WS0_PgSize_1GB)))
                   or (CAM_PgSize_16MB and (0 to 2 => Eq(ex6_data_in_q(56 to 59),WS0_PgSize_16MB)))
                   or (CAM_PgSize_1MB  and (0 to 2 => Eq(ex6_data_in_q(56 to 59),WS0_PgSize_1MB)))
@@ -6426,11 +7084,13 @@ cam_pgsize(0 TO 2) <=  (CAM_PgSize_1GB  and (0 to 2 => Eq(ex6_data_in_q(56 to 59
                                                         Eq(ex6_data_in_q(56 to 59),WS0_PgSize_16MB) or 
                                                         Eq(ex6_data_in_q(56 to 59),WS0_PgSize_1MB) or 
                                                         Eq(ex6_data_in_q(56 to 59),WS0_PgSize_64KB))));
+-- page size 3b to 4b swizzles for cam read
 ws0_pgsize(0 TO 3) <=  (WS0_PgSize_1GB  and (0 to 3 => Eq(rd_cam_data(53 to 55),CAM_PgSize_1GB)))
                    or (WS0_PgSize_16MB and (0 to 3 => Eq(rd_cam_data(53 to 55),CAM_PgSize_16MB)))
                    or (WS0_PgSize_1MB  and (0 to 3 => Eq(rd_cam_data(53 to 55),CAM_PgSize_1MB)))
                    or (WS0_PgSize_64KB and (0 to 3 => Eq(rd_cam_data(53 to 55),CAM_PgSize_64KB)))
                    or (WS0_PgSize_4KB  and (0 to 3 => Eq(rd_cam_data(53 to 55),CAM_PgSize_4KB)));
+-- CAM control signal assignments
 rd_val             <=  or_reduce(ex2_valid_q) and ex2_ttype_q(0) and Eq(ex2_tlbsel_q, TlbSel_DErat);
 rw_entry           <=  ( por_wr_entry and (0 to 4 => or_reduce(por_seq_q)) )
                or (  eptr_q         and (0 to 4 => (or_reduce(tlb_rel_val_q(0 to 3)) and tlb_rel_val_q(4) and mmucr1_q(0))) )  
@@ -6438,15 +7098,73 @@ rw_entry           <=  ( por_wr_entry and (0 to 4 => or_reduce(por_seq_q)) )
                or (  eptr_q         and (0 to 4 => (or_reduce(ex6_valid_q) and ex6_ttype_q(1) and Eq(ex6_tlbsel_q, TlbSel_DErat) and not tlb_rel_val_q(4) and mmucr1_q(0))) )  
                or (  ex6_ra_entry_q and (0 to 4 => (or_reduce(ex6_valid_q) and ex6_ttype_q(1) and Eq(ex6_tlbsel_q, TlbSel_DErat) and not tlb_rel_val_q(4) and not mmucr1_q(0))) )  
                or (  ex2_ra_entry_q and (0 to 4 => (or_reduce(ex2_valid_q) and ex2_ttype_q(0) and not(or_reduce(ex6_valid_q) and ex6_ttype_q(1) and Eq(ex6_tlbsel_q, TlbSel_DErat)) and not tlb_rel_val_q(4))) );
+-- Write Port
 wr_cam_val     <=  por_wr_cam_val  when por_seq_q/=PorSeq_Idle 
            else (others => '0') when (ex6_valid_q/="0000" and ex6_ttype_q(6 to 7)/="00")  
            else  (others => tlb_rel_data_q(eratpos_wren)) when (tlb_rel_val_q(0 to 3)/="0000" and tlb_rel_val_q(4)='1')  
            else  (others => '1') when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' and ex6_ws_q="00" and ex6_tlbsel_q=TlbSel_DErat)  
             else (others => '0');
+-- write port act pin
 wr_val_early        <=  or_reduce(por_seq_q) or 
                       or_reduce(tlb_req_inprogress_q) or 
                        (or_reduce(ex5_valid_q) and ex5_ttype_q(1) and Eq(ex5_ws_q,"00") and Eq(ex5_tlbsel_q,TlbSel_DErat)) or  
                        (or_reduce(ex6_valid_q) and ex6_ttype_q(1) and Eq(ex6_ws_q,"00") and Eq(ex6_tlbsel_q,TlbSel_DErat));
+-- state <= PR & GS or mmucr0(8) & IS or mmucr0(9) & CM
+-- tlb_low_data
+--  0:51  - EPN
+--  52:55  - SIZE (4b)
+--  56:59  - ThdID
+--  60:61  - Class
+--  62  - ExtClass
+--  63  - TID_NZ
+--  64:65  - reserved (2b)
+--  66:73  - 8b for LPID
+--  74:83  - parity 10bits
+-- wr_ws0_data (LO)
+--  0:51  - EPN
+--  52:53  - Class
+--  54  - V
+--  55  - X
+--  56:59  - SIZE
+--  60:63  - ThdID
+-- wr_cam_data
+--  0:51  - EPN
+--  52  - X
+--  53:55  - SIZE
+--  56  - V
+--  57:60  - ThdID
+--  61:62  - Class
+--  63:64  - ExtClass | TID_NZ
+--  65  - TGS
+--  66  - TS
+--  67:74  - TID
+--  75:78  - epn_cmpmasks:  34_39, 40_43, 44_47, 48_51
+--  79:82  - xbit_cmpmasks: 34_51, 40_51, 44_51, 48_51
+--  83  - parity for 75:82
+----------- this is what the erat expects on reload bus
+--  0:51  - EPN
+--  52  - X
+--  53:55  - SIZE
+--  56  - V
+--  57:60  - ThdID
+--  61:62  - Class
+--  63:64  - ExtClass | TID_NZ
+--  65  - write enable
+--  0:3 66:69 - reserved RPN
+--  4:33 70:99 - RPN
+--  34:35 100:101 - R,C
+--  36 102 - reserved
+--  37:38 103:104 - WLC
+--  39 105 - ResvAttr
+--  40 106 - VF
+--  41:44 107:110 - U0-U3
+--  45:49 111:115 - WIMGE
+--  50:51 116:117 - UX,SX
+--  52:53 118:119 - UW,SW
+--  54:55 120:121 - UR,SR
+--  56 122 - GS
+--  57 123 - TS
+--  58:65 124:131 - TID lsbs
 gen64_wr_cam_data: if rs_data_width = 64 generate
 wr_cam_data         <=  ( por_wr_cam_data and (0 to 83 => (por_seq_q(0) or por_seq_q(1) or por_seq_q(2))) )
                 or ( (tlb_rel_data_q(0 to 64) & tlb_rel_data_q(122 to 131) & 
@@ -6471,6 +7189,61 @@ wr_cam_data        <=  ( por_wr_cam_data and (0 to 83 => (por_seq_q(0) or por_se
                                    and (0 to 83 => ((ex6_valid_q(0) or ex6_valid_q(1) or ex6_valid_q(2) or ex6_valid_q(3)) 
                                          and ex6_ttype_q(1) and not ex6_ws_q(0) and not ex6_ws_q(1) and not tlb_rel_val_q(4))) );
 end generate gen32_wr_cam_data;
+--        wr_cam_data(75)   (76)    (77)   (78)           (79)   (80)   (81)   (82)
+--             cmpmask(0)    (1)     (2)    (3)    xbitmask(0)    (1)    (2)    (3)
+--   xbit  pgsize      34_39  40_43  44_47  48_51           34_39  40_43  44_47  48_51    size
+--    0     001          1      1      1      1               0      0      0      0       4K
+--    0     011          1      1      1      0               0      0      0      0       64K
+--    0     101          1      1      0      0               0      0      0      0       1M
+--    0     111          1      0      0      0               0      0      0      0       16M
+--    0     110          0      0      0      0               0      0      0      0       1G
+--    1     001          1      1      1      1               0      0      0      0       4K
+--    1     011          1      1      1      0               0      0      0      1       64K
+--    1     101          1      1      0      0               0      0      1      0       1M
+--    1     111          1      0      0      0               0      1      0      0       16M
+--    1     110          0      0      0      0               1      0      0      0       1G
+-- Encoder for the cam compare mask bits write data
+--
+-- Final Table Listing
+--      *INPUTS*==================*OUTPUTS*===================================*
+--      |                         |                                           |
+--      | tlb_rel_data_q          |  tlb_rel_cmpmask                          |
+--      | |    ex6_data_in_q      |  |    tlb_rel_xbitmask                    |
+--      | |    |                  |  |    |    tlb_rel_maskpar                |
+--      | |    |                  |  |    |    |  ex6_data_cmpmask            |
+--      | |    |                  |  |    |    |  |    ex6_data_xbitmask      |
+--      | |    |                  |  |    |    |  |    |    ex6_data_maskpar  |
+--      | |    |                  |  |    |    |  |    |    |                 |
+--      | 5555 55555              |  |    |    |  |    |    |                 |
+--      | 2345 56789              |  0123 0123 |  0123 0123 |                 |
+--      *TYPE*====================+===========================================+
+--      | PPPP PPPPP              |  PPPP PPPP P  PPPP PPPP P                 |
+--      *POLARITY*--------------->|  ++++ ++++ +  ++++ ++++ +                 |
+--      *PHASE*------------------>|  TTTT TTTT T  TTTT TTTT T                 |
+--      *OPTIMIZE*--------------->|   AAAA AAAA A  AAAA AAAA A                  |
+--      *TERMS*===================+===========================================+
+--    1 | ---- 11010              |  .... .... .  .... 1... 1                 |
+--    2 | ---- -0--0              |  .... .... .  1111 .... .                 |
+--    3 | ---- 10101              |  .... .... .  .... ..1. 1                 |
+--    4 | ---- 10011              |  .... .... .  1... ...1 .                 |
+--    5 | ---- 10111              |  .... .... .  1... .1.. .                 |
+--    6 | ---- 00-11              |  .... .... .  1... .... 1                 |
+--    7 | ---- -1--1              |  .... .... .  1111 .... .                 |
+--    8 | ---- --00-              |  .... .... .  ..11 .... .                 |
+--    9 | ---- ---0-              |  .... .... .  11.. .... .                 |
+--   10 | ---- -00--              |  .... .... .  .11. .... .                 |
+--   11 | ---- -11--              |  .... .... .  1111 .... .                 |
+--   12 | 1--0 -----              |  .... 1... 1  .... .... .                 |
+--   13 | 1111 -----              |  1... .1.. .  .... .... .                 |
+--   14 | 0-11 -----              |  1... .... 1  .... .... .                 |
+--   15 | -00- -----              |  ...1 .... .  .... .... .                 |
+--   16 | 110- -----              |  .... ..1. 1  .... .... .                 |
+--   17 | --0- -----              |  11.. .... .  .... .... .                 |
+--   18 | 101- -----              |  1... ...1 .  .... .... .                 |
+--   19 | -0-- -----              |  .11. .... .  .... .... .                 |
+--      *=====================================================================*
+--
+-- Table CAM_MASK_BITS Signal Assignments for Product Terms
 MQQ393:CAM_MASK_BITS_PT(1) <=
     Eq(( EX6_DATA_IN_Q(55) & EX6_DATA_IN_Q(56) & 
     EX6_DATA_IN_Q(57) & EX6_DATA_IN_Q(58) & 
@@ -6531,6 +7304,7 @@ MQQ410:CAM_MASK_BITS_PT(18) <=
     TLB_REL_DATA_Q(54) ) , STD_ULOGIC_VECTOR'("101"));
 MQQ411:CAM_MASK_BITS_PT(19) <=
     Eq(( TLB_REL_DATA_Q(53) ) , STD_ULOGIC'('0'));
+-- Table CAM_MASK_BITS Signal Assignments for Outputs
 MQQ412:TLB_REL_CMPMASK(0) <= 
     (CAM_MASK_BITS_PT(13) OR CAM_MASK_BITS_PT(14)
      OR CAM_MASK_BITS_PT(17) OR CAM_MASK_BITS_PT(18)
@@ -6589,6 +7363,51 @@ wr_array_val        <=  por_wr_array_val  when por_seq_q/=PorSeq_Idle
                   else  (others => '1') when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                               and ex6_ws_q="00" and ex6_tlbsel_q=TlbSel_DErat)  
                    else  (others => '0');
+-- tlb_high_data
+--  84       -  0      - X-bit
+--  85:87    -  1:3    - reserved (3b)
+--  88:117   -  4:33   - RPN (30b)
+--  118:119  -  34:35  - R,C
+--  120:121  -  36:37  - WLC (2b)
+--  122      -  38     - ResvAttr
+--  123      -  39     - VF
+--  124      -  40     - IND
+--  125:128  -  41:44  - U0-U3
+--  129:133  -  45:49  - WIMGE
+--  134:136  -  50:52  - UX,UW,UR
+--  137:139  -  53:55  - SX,SW,SR
+--  140      -  56  - GS
+--  141      -  57  - TS
+--  142:143  -  58:59  - reserved (2b)
+--  144:149  -  60:65  - 6b TID msbs
+--  150:157  -  66:73  - 8b TID lsbs
+--  158:167  -  74:83  - parity 10bits
+-- 16x143 version, 42b RA
+-- wr_array_data
+--  0:29  - RPN
+--  30:31  - R,C
+--  32:35  - ResvAttr
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
+--  51:60  - CAM parity
+--  61:67  - Array parity
+-- wr_ws1_data (HI)
+--  0:7  - unused
+--  8:9  - WLC
+--  10  - ResvAttr
+--  11  - unused
+--  12:15  - U0-U3
+--  16:17  - R,C
+--  18:21  - unused
+--  22:51  - RPN
+--  52:56  - WIMGE
+--  57  - VF
+--  58:59  - UX,SX
+--  60:61  - UW,SW
+--  62:63  - UR,SR
 wr_array_data_nopar       <=  ( por_wr_array_data(0 to 50) and (0 to 50 => (por_seq_q(0) or por_seq_q(1) or por_seq_q(2))) )
                   or ( (tlb_rel_data_q(70 to 101) & tlb_rel_data_q(103 to 121)) 
                           and (0 to 50 => ((tlb_rel_val_q(0) or tlb_rel_val_q(1) or tlb_rel_val_q(2) or tlb_rel_val_q(3)) and tlb_rel_val_q(4))) )   
@@ -6629,6 +7448,7 @@ wr_array_data(51 TO 67) <=  (wr_array_par(51 to 60) & wr_array_par(61 to 67))
                             (wr_array_par(61) xor mmucr1_q(6)) & wr_array_par(62 to 67))
                                    when (ex6_valid_q(0 to 3)/="0000" and ex6_ttype_q(1)='1' and ex6_ws_q="00")   
                       else (others => '0');
+-- Parity Checking
 ex4_rd_data_calc_par(50) <=  xor_reduce(ex4_rd_cam_data_q(75 to 82));
 ex4_rd_data_calc_par(51) <=  xor_reduce(ex4_rd_cam_data_q(0 to 7));
 ex4_rd_data_calc_par(52) <=  xor_reduce(ex4_rd_cam_data_q(8 to 15));
@@ -6663,6 +7483,9 @@ parerr_gen3: if check_parity = 1 generate
 ex4_rd_data_parerr_epn      <=  or_reduce(ex4_rd_data_calc_par(50 to 60) xor (ex4_rd_cam_data_q(83) & ex4_rd_array_data_q(51 to 60)));
 ex4_rd_data_parerr_rpn      <=  or_reduce(ex4_rd_data_calc_par(61 to 67) xor ex4_rd_array_data_q(61 to 67));
 end generate parerr_gen3;
+-- ttype <= 0-eratre 1-eratwe 2-eratsx 3-eratilx 4-load 5-store 6-csync 7-isync 8-icbtlslc 9-touch 10-extload 11-extstore
+-- end of parity checking
+-- epsc waits for tlb_reloads
 epsc_wr_d(0 TO thdid_width-1) <=  xu_derat_epsc_wr and (0 to thdid_width-1 => not bcfg_q(108));
 epsc_wr_d(thdid_width TO 2*thdid_width-1) <=  (epsc_wr_q(0 to thdid_width-1) or epsc_wr_q(thdid_width to 2*thdid_width-1)) 
                                                 when or_reduce(tlb_rel_val_q(0 to 4))='1'   
@@ -6670,6 +7493,7 @@ epsc_wr_d(thdid_width TO 2*thdid_width-1) <=  (epsc_wr_q(0 to thdid_width-1) or 
 epsc_wr_d(2*thdid_width) <=  (or_reduce(epsc_wr_q(0 to thdid_width-1)) or epsc_wr_q(2*thdid_width)) 
                                                when or_reduce(tlb_rel_val_q(0 to 4))='1'   
                           else or_reduce(epsc_wr_q(0 to thdid_width-1));
+-- eplc waits for tlb_reloads and epsc accesses
 eplc_wr_d(0 TO thdid_width-1) <=  xu_derat_eplc_wr and (0 to thdid_width-1 => not bcfg_q(109));
 eplc_wr_d(thdid_width TO 2*thdid_width-1) <=  (eplc_wr_q(0 to thdid_width-1) or eplc_wr_q(thdid_width to 2*thdid_width-1)) 
                                                 when (or_reduce(tlb_rel_val_q(0 to 4))='1' or epsc_wr_q(2*thdid_width)='1')   
@@ -6677,6 +7501,7 @@ eplc_wr_d(thdid_width TO 2*thdid_width-1) <=  (eplc_wr_q(0 to thdid_width-1) or 
 eplc_wr_d(2*thdid_width) <=  (or_reduce(eplc_wr_q(0 to thdid_width-1)) or eplc_wr_q(2*thdid_width)) 
                                                when (or_reduce(tlb_rel_val_q(0 to 4))='1' or epsc_wr_q(2*thdid_width)='1')   
                           else or_reduce(eplc_wr_q(0 to thdid_width-1));
+-- CAM Port
 flash_invalidate                <=  Eq(por_seq_q,PorSeq_Stg1) or mchk_flash_inv_enab;
 comp_invalidate                 <=  '1' when (ex6_valid_q/="0000" and ex6_ttype_q(6 to 7)/="00")  
                              else '0' when (tlb_rel_val_q(0 to 3)/="0000" and tlb_rel_val_q(4)='1')
@@ -6699,6 +7524,24 @@ comp_addr        <=   (0 to 31 => '0') & xu_derat_ex1_epn_arr(32 to 51);
 snoop_addr       <=  (0 to 31 => '0') & snoop_addr_q(32 to 51);
 snoop_addr_sel   <=  snoop_val_q(0) and snoop_val_q(1);
 end generate gen32_comp_addr;
+-- ex1_rs_is(0 to 9) from erativax instr.
+--   RS(55)    -> ex1_rs_is(0)   -> snoop_attr(0)     -> Local
+--   RS(56:57) -> ex1_rs_is(1:2) -> snoop_attr(0:1)   -> IS
+--   RS(58:59) -> ex1_rs_is(3:4) -> snoop_attr(2:3)   -> Class
+--   n/a       ->  n/a           -> snoop_attr(4:5)   -> State
+--   n/a       ->  n/a           -> snoop_attr(6:13)  -> TID(6:13)
+--   RS(60:63) -> ex1_rs_is(5:8) -> snoop_attr(14:17) -> Size
+--   n/a       ->  n/a           -> snoop_attr(20:25) -> TID(0:5)
+-- snoop_attr:
+--          0 -> Local
+--        1:3 -> IS/Class: 0=all, 1=tid, 2=gs, 3=epn, 4=class0, 5=class1, 6=class2, 7=class3
+--        4:5 -> GS/TS
+--       6:13 -> TID(6:13)
+--      14:17 -> Size
+--      18    -> reserved for tlb, extclass_enable(0) for erats
+--      19    -> mmucsr0.tlb0fi for tlb, or TID_NZ for erats
+--      20:25 -> TID(0:5)
+-- ttype <= 0-eratre 1-eratwe 2-eratsx 3-eratilx 4-load 5-store 6-csync 7-isync 8-icbtlslc 9-touch 10-extload 11-extstore
 addr_enable                     <=  "00" when (ex6_valid_q/="0000" and ex6_ttype_q(6 to 7)/="00")  
                              else "00" when (epsc_wr_q(8)='1' or eplc_wr_q(8)='1') 
                              else "00" when (snoop_val_q(0 to 1)="11" and snoop_attr_q(1 to 3)/="011") 
@@ -6716,6 +7559,8 @@ pgsize_enable                   <=  '0' when (ex6_valid_q/="0000" and ex6_ttype_
                              else '0' when (epsc_wr_q(8)='1' or eplc_wr_q(8)='1') 
                              else '1' when (snoop_val_q(0 to 1)="11" and snoop_attr_q(0 to 3)="0011") 
                              else '0';
+-- ttype <= 0-eratre 1-eratwe 2-eratsx 3-eratilx 4-load 5-store 6-csync 7-isync 8-icbtlslc 9-touch 10-extload 11-extstore
+--  mmucr1_q: 0-DRRE, 1-REE, 2-CEE, 3-csync, 4-isync, 5:6-DPEI, 7:8-DCTID/DTTID, 9:DCCD
 comp_class        <=   "11" when (epsc_wr_q(8)='1' and mmucr1_q(7)='0')  
                 else "10" when (epsc_wr_q(8)='0' and eplc_wr_q(8)='1' and mmucr1_q(7)='0')  
                 else snoop_attr_q(20 to 21) when (snoop_val_q(0 to 1)="11" and mmucr1_q(7)='1') 
@@ -6737,12 +7582,27 @@ class_enable(1) <=  '0' when (mmucr1_q(7)='1')
                 else '0';
 class_enable(2) <=  '0' when (mmucr1_q(7)='0')  
                 else pid_enable;
+-- snoop_attr:
+--          0 -> Local
+--        1:3 -> IS/Class: 0=all, 1=tid, 2=gs, 3=epn, 4=class0, 5=class1, 6=class2, 7=class3
+--        4:5 -> GS/TS
+--       6:13 -> TID(6:13)
+--      14:17 -> Size
+--      18    -> reserved for tlb, extclass_enable(0) for erats
+--      19    -> mmucsr0.tlb0fi for tlb, or TID_NZ for erats
+--      20:25 -> TID(0:5)
+--extclass_enable                <=  10  when (ex6_valid_q/= 0000  and ex6_ttype_q(6 to 7)/= 00 )  -- csync or isync enabled
+--                             else  10  when (epsc_wr_q(8)='1' or eplc_wr_q(8)='1') -- write to epsc or eplc
+--                             else  10  when (snoop_val_q(0 to 1)= 11 ) -- any invalidate snoop
+--                             else  00 ; -- std_ulogic;
 comp_extclass(0) <=  '0';
 comp_extclass(1) <=  snoop_attr_q(19);
 extclass_enable(0) <=  ( or_reduce(ex6_valid_q) and or_reduce(ex6_ttype_q(6 to 7)) )  
                                or ( (eplc_wr_q(8) or epsc_wr_q(8)) and not mmucr1_q(7) )  
                                or ( snoop_val_q(0) and snoop_attr_q(18) );
 extclass_enable(1) <=  ( snoop_val_q(0) and not snoop_attr_q(1) and snoop_attr_q(3) );
+-- state: 0:pr 1:gs 2:is 3:cm
+-- cam state bits are 0:HS, 1:AS
 comp_state                      <=  snoop_attr_q(4 to 5) when (snoop_val_q(0 to 1)="11" and snoop_attr_q(1 to 2)="01") 
                              else ex1_state_q(1 to 2);
 state_enable                    <=  "00" when (ex6_valid_q/="0000" and ex6_ttype_q(6 to 7)/="00")  
@@ -6753,6 +7613,7 @@ state_enable                    <=  "00" when (ex6_valid_q/="0000" and ex6_ttype
                              else "11" when (ex1_valid_q/="0000" and ex1_ttype_q(2)='1' and ex1_tlbsel_q=TlbSel_DErat) 
                              else "11" when (ex1_valid_q/="0000" and ex1_ttype_q(4 to 5)/="00" )  
                              else "00";
+--  mmucr1_q: 0-DRRE, 1-REE, 2-CEE, 3-csync, 4-isync, 5:6-DPEI, 7:8-DCTID/DTTID, 9-DCCD
 comp_thdid         <=  snoop_attr_q(22 to 25) when (snoop_val_q(0 to 1)="11" and mmucr1_q(8)='1') 
                 else ex1_pid_q(pid_width-12 to pid_width-9) when (mmucr1_q(8)='1')  
                 else epsc_wr_q(4 to 7) when (epsc_wr_q(8)='1' and mmucr1_q(8)='0')  
@@ -6779,6 +7640,62 @@ pid_enable                      <=  '0' when (ex6_valid_q/="0000" and ex6_ttype_
                              else '1' when (ex1_valid_q/="0000" and ex1_ttype_q(2)='1' and ex1_tlbsel_q=TlbSel_DErat) 
                              else '1' when (ex1_valid_q/="0000" and ex1_ttype_q(4 to 5)/="00" )  
                              else '0';
+-- wr_cam_data
+--  0:51  - EPN
+--  52  - X
+--  53:55  - SIZE
+--  56  - V
+--  57:60  - ThdID
+--  61:62  - Class
+--  63:64  - ExtClass | TID_NZ
+--  65  - TGS
+--  66  - TS
+--  67:74  - TID
+--  75:78  - epn_cmpmasks:  34_39, 40_43, 44_47, 48_51
+--  79:82  - xbit_cmpmasks: 34_51, 40_51, 44_51, 48_51
+--  83  - parity for 75:82
+-- 16x143 version, 42b RA
+-- wr_array_data
+--  0:29  - RPN
+--  30:31  - R,C
+--  32:35  - ResvAttr
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
+--  51:60  - CAM parity
+--  61:67  - Array parity
+-- wr_ws0_data (LO)
+--  0:51  - EPN
+--  52:53  - Class
+--  54  - V
+--  55  - X
+--  56:59  - SIZE
+--  60:63  - ThdID
+-- CAM.ExtClass - MMUCR ExtClass
+-- CAM.TS - MMUCR TS
+-- CAM.TID - MMUCR TID
+-- wr_ws1_data (HI)
+--  0:7  - unused
+--  8:9  - WLC
+--  10  - ResvAttr
+--  11  - unused
+--  12:15  - U0-U3
+--  16:17  - R,C
+--  18:21  - unused
+--  22:51  - RPN
+--  52:56  - WIMGE
+--  57  - VF
+--  58:59  - UX,SX
+--  60:61  - UW,SW
+--  62:63  - UR,SR
+-- state: 0:pr 1:gs 2:ds 3:cm
+-- ttype <= 0-eratre 1-eratwe 2-eratsx 3-eratilx 4-load 5-store 6-csync 7-isync 8-icbtlslc 9-touch 10-extload 11-extstore
+--                EPN                    Class                   V
+--                 X                 SIZE                 ThdID
+--                Unused      ResvAttr                  U0-U3                       R,C
+--                 RPN                      WIMGE                     Unused   UX,SW,UW,SW,UR,SR
 gen64_data_out: if data_out_width = 64 generate
 ex4_data_out_d  <=  ( ((0 to 31 => '0') & rd_cam_data(32 to 51) & rd_cam_data(61 to 62) & rd_cam_data(56) & 
                    rd_cam_data(52) & ws0_pgsize(0 to 3) & rd_cam_data(57 to 60)) 
@@ -6817,7 +7734,11 @@ ex4_data_out_d  <=  ( (rd_cam_data(32 to 51) & rd_cam_data(61 to 62) & rd_cam_da
             or   ( ((32 to 49 => '0') & ex3_eratsx_data(0 to 1) & (52 to 58 => '0') & ex3_eratsx_data(2 to 2+num_entry_log2-1))
                  and (64-data_out_width to 63 => (or_reduce(ex3_valid_q) and ex3_ttype_q(2))) );
 end generate gen32_data_out;
+-- ERAT outputs
 derat_xu_ex2_miss           <=  ex2_valid_q and (0 to thdid_width-1 => (not cam_hit and or_reduce(ex2_ttype_q(4 to 5)) and not ex2_ttype_q(9) and not ccr2_frat_paranoia_q(9)));
+-- 16x143 version
+-- pass thru epn offset bits depending on page size from cam entry
+-- adding frat paranoia bypass bit 9 for ra=ea... bit 10 also bypass ra=ea for other xu reasons
 gen_mcompar_breaks_timing_1: if ex2_epn_width = rpn_width generate
 derat_xu_ex2_rpn(22 TO 33) <=  ( ex2_epn_q(22 to 33) and (22 to 33 => (ccr2_frat_paranoia_q(9) or ccr2_frat_paranoia_q(11))) ) or
                                        ( array_cmp_data(0 to 11) and (0 to 11 => (not ccr2_frat_paranoia_q(9) and not ccr2_frat_paranoia_q(11))) );
@@ -6851,6 +7772,16 @@ derat_xu_ex2_wimge          <=  array_cmp_data(40 to 44);
 derat_xu_ex2_wlc            <=  array_cmp_data(32 to 33);
 derat_xu_ex2_vf             <=  array_cmp_data(35);
 end generate gen_no_frat_1;
+-- new cam _np2  bypass attributes (bit numbering per array)
+--  30:31  - R,C
+--  32:33  - WLC
+--  34  - ResvAttr
+--  35  - VF
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
 bypass_mux_enab_np1  <=  (ccr2_frat_paranoia_q(9) or ccr2_frat_paranoia_q(11) or an_ac_grffence_en_dc);
 bypass_attr_np1(0 TO 5) <=  (others => '0');
 bypass_attr_np1(6 TO 9) <=  ccr2_frat_paranoia_q(5 to 8);
@@ -6882,6 +7813,10 @@ xu_mm_derat_mmucr0_we        <=  ex6_valid_q when (ex6_ttype_q(0)='1' and ex6_ws
                              else (others => '0');
 xu_mm_derat_mmucr1           <=  ex6_deen_q(1 to num_entry_log2);
 xu_mm_derat_mmucr1_we        <=  ex6_deen_q(0);
+-- NOTE: example parity generation/checks in iuq_ic_dir.vhdl or xuq_lsu_dc_arr.vhdl.
+-----------------------------------------------------------------------
+-- CAM Instantiation
+-----------------------------------------------------------------------
 derat_cam: entity tri.tri_cam_32x143_1r1w1c
   generic map (expand_type => expand_type)
   port map (
@@ -6958,6 +7893,7 @@ derat_cam: entity tri.tri_cam_32x143_1r1w1c
    rd_cam_data                    => rd_cam_data,   
 
 
+----- new ports for IO plus -----------------------
 bypass_mux_enab_np1            =>  bypass_mux_enab_np1,   
    bypass_attr_np1                =>  bypass_attr_np1,       
    attr_np2	                  =>  attr_np2,              
@@ -6992,12 +7928,23 @@ derat_cmp_parerr_mac: entity tri.tri_cam_parerr_mac
    np2_cmp_data_parerr_rpn  => ex3_cmp_data_parerr_rpn_mac  
 
   );
+-- bypass attributes (bit numbering per array)
+--  30:31  - R,C
+--  32:33  - WLC
+--  34  - ResvAttr
+--  35  - VF
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
 derat_xu_ex3_rpn            <=  rpn_np2;
 derat_xu_ex3_wimge          <=  attr_np2(10 to 14);
 derat_xu_ex3_u              <=  attr_np2(6 to 9);
 derat_xu_ex3_wlc            <=  attr_np2(2 to 3);
 derat_xu_ex3_attr           <=  attr_np2(15 to 20);
 derat_xu_ex3_vf             <=  attr_np2(5);
+-- debug bus outputs
 ex2_debug_d(0) <=  comp_request;
 ex2_debug_d(1) <=  comp_invalidate;
 ex2_debug_d(2) <=  ( or_reduce(ex6_valid_q) and or_reduce(ex6_ttype_q(6 to 7)) );
@@ -7063,6 +8010,7 @@ derat_xu_debug_group3(20) <=  '0';
 derat_xu_debug_group3(21 TO 51) <=  lru_q(1 to 31);
 derat_xu_debug_group3(52 TO 82) <=  lru_debug_q(5 to 35);
 derat_xu_debug_group3(83 TO 87) <=  lru_debug_q(36 to 40);
+-- unused spare signal assignments
 unused_dc(0) <=  or_reduce(LCB_DELAY_LCLKR_DC(1 TO 4));
 unused_dc(1) <=  or_reduce(LCB_MPW1_DC_B(1 TO 4));
 unused_dc(2) <=   '0';
@@ -7103,6 +8051,9 @@ unused_dc(36) <=  or_reduce(bcfg_q_b(87 to 102));
 unused_dc(37) <=  or_reduce(bcfg_q_b(103 to 106));
 unused_dc(38) <=  or_reduce(bcfg_q(110 to 122));
 unused_dc(39) <=  or_reduce(bcfg_q_b(107 to 122));
+-----------------------------------------------------------------------
+-- Latches
+-----------------------------------------------------------------------
 rf1_valid_latch: tri_rlmreg_p
   generic map (width => rf1_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -7290,6 +8241,7 @@ ex1_tlbsel_latch: tri_rlmreg_p
             scout   => sov_0(ex1_tlbsel_offset to ex1_tlbsel_offset+ex1_tlbsel_q'length-1),
             din     => ex1_tlbsel_d(0 to tlbsel_width-1),
             dout    => ex1_tlbsel_q(0 to tlbsel_width-1)  );
+-------------------------------------------------------------------------------
 ex2_valid_latch: tri_rlmreg_p
   generic map (width => ex2_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -7443,6 +8395,7 @@ ex2_tlbsel_latch: tri_rlmreg_p
             scout   => sov_0(ex2_tlbsel_offset to ex2_tlbsel_offset+ex2_tlbsel_q'length-1),
             din     => ex2_tlbsel_d(0 to tlbsel_width-1),
             dout    => ex2_tlbsel_q(0 to tlbsel_width-1)  );
+-------------------------------------------------------------------------------
 ex3_valid_latch: tri_rlmreg_p
   generic map (width => ex3_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -7613,6 +8566,7 @@ ex3_tlbsel_latch: tri_rlmreg_p
             scout   => sov_0(ex3_tlbsel_offset to ex3_tlbsel_offset+ex3_tlbsel_q'length-1),
             din     => ex3_tlbsel_d(0 to tlbsel_width-1),
             dout    => ex3_tlbsel_q(0 to tlbsel_width-1)  );
+-------------------------------------------------------------------------------
 ex4_valid_latch: tri_rlmreg_p
   generic map (width => ex4_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -7766,6 +8720,7 @@ ex4_tlbsel_latch: tri_rlmreg_p
             scout   => sov_0(ex4_tlbsel_offset to ex4_tlbsel_offset+ex4_tlbsel_q'length-1),
             din     => ex4_tlbsel_d(0 to tlbsel_width-1),
             dout    => ex4_tlbsel_q(0 to tlbsel_width-1)  );
+-------------------------------------------------------------------------------
 ex5_valid_latch: tri_rlmreg_p
   generic map (width => ex5_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -7919,6 +8874,7 @@ ex5_tlbsel_latch: tri_rlmreg_p
             scout   => sov_0(ex5_tlbsel_offset to ex5_tlbsel_offset+ex5_tlbsel_q'length-1),
             din     => ex5_tlbsel_d(0 to tlbsel_width-1),
             dout    => ex5_tlbsel_q(0 to tlbsel_width-1)  );
+--------------------------------------------------
 ex5_data_in_latch: tri_rlmreg_p
   generic map (width => ex5_data_in_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -7936,6 +8892,7 @@ ex5_data_in_latch: tri_rlmreg_p
             scout   => sov_0(ex5_data_in_offset to ex5_data_in_offset+ex5_data_in_q'length-1),
             din     => ex5_data_in_d(64-rs_data_width to 63),
             dout    => ex5_data_in_q(64-rs_data_width to 63)  );
+-------------------------------------------------------------------------------
 ex6_valid_latch: tri_rlmreg_p
   generic map (width => ex6_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -8089,6 +9046,7 @@ ex6_tlbsel_latch: tri_rlmreg_p
             scout   => sov_0(ex6_tlbsel_offset to ex6_tlbsel_offset+ex6_tlbsel_q'length-1),
             din     => ex6_tlbsel_d(0 to tlbsel_width-1),
             dout    => ex6_tlbsel_q(0 to tlbsel_width-1)  );
+--------------------------------------------------
 ex6_data_in_latch: tri_rlmreg_p
   generic map (width => ex6_data_in_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -8106,6 +9064,7 @@ ex6_data_in_latch: tri_rlmreg_p
             scout   => sov_0(ex6_data_in_offset to ex6_data_in_offset+ex6_data_in_q'length-1),
             din     => ex6_data_in_d(64-rs_data_width to 63),
             dout    => ex6_data_in_q(64-rs_data_width to 63)  );
+-------------------------------------------------------------------------------
 ex7_valid_latch: tri_rlmreg_p
   generic map (width => ex7_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -8157,6 +9116,7 @@ ex7_tlbsel_latch: tri_rlmreg_p
             scout   => sov_0(ex7_tlbsel_offset to ex7_tlbsel_offset+ex7_tlbsel_q'length-1),
             din     => ex7_tlbsel_d(0 to tlbsel_width-1),
             dout    => ex7_tlbsel_q(0 to tlbsel_width-1)  );
+--------------------------------------------------
 ex4_data_out_latch: tri_rlmreg_p
   generic map (width => ex4_data_out_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -9109,6 +10069,7 @@ pc_xu_init_reset_latch: tri_rlmlatch_p
             scout   => sov_1(pc_xu_init_reset_offset),
             din     => pc_xu_init_reset,
             dout    => pc_xu_init_reset_q);
+-- timing latches for reloads
 tlb_rel_val_latch: tri_rlmreg_p
   generic map (width => tlb_rel_val_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -9415,6 +10376,7 @@ snoop_act_latch: tri_rlmlatch_p
             scout   => sov_1(snoop_act_offset),
             din     => mm_xu_derat_snoop_coming,
             dout    => snoop_act_q);
+-- for debug trace bus latch act
 trace_bus_enable_latch: tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -9483,6 +10445,9 @@ spare_b_latch: tri_rlmreg_p
             scout   => sov_1(spare_b_offset to spare_b_offset+spare_b_q'length-1),
             din     => spare_b_q,
             dout    => spare_b_q  );
+--------------------------------------------------
+-- scan only latches for boot config
+--------------------------------------------------
 mpg_bcfg_gen: if expand_type /= 1 generate
 bcfg_epn_0to15_latch: tri_slat_scan
   generic map (width => 16, init => std_ulogic_vector( to_unsigned( bcfg_epn_0to15, 16 ) ), 
@@ -9795,6 +10760,9 @@ bcfg_spare_latch: tri_rlmreg_p
             din     => bcfg_q(107 to 122),
             dout    => bcfg_q(107 to 122)  );
 end generate fpga_bcfg_gen;
+--------------------------------------------------
+-- thold/sg latches
+--------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 4, expand_type => expand_type)
   port map (vd          => vdd,
@@ -9840,6 +10808,9 @@ perv_lcbor_func_slp_sl: tri_lcbor
             forcee => pc_func_slp_sl_force,
             thold_b     => pc_func_slp_sl_thold_0_b);
 mpg_bcfg_lcb_gen: if expand_type /= 1 generate
+--------------------------------------------------
+-- local clock buffer for boot config
+--------------------------------------------------
 bcfg_lcb: tri_lcbs
   generic map (expand_type => expand_type)
   port map (vd      => vdd,
@@ -9850,6 +10821,8 @@ bcfg_lcb: tri_lcbs
             thold_b     => pc_cfg_slp_sl_thold_0_b,
             dclk        => lcb_dclk,
             lclk        => lcb_lclk  );
+-- these terms in the absence of another lcbor component
+--  that drives the thold_b and force into the bcfg_lcb for slat's
 pc_cfg_slp_sl_thold_0_b  <=  NOT pc_cfg_slp_sl_thold_0;
 pc_cfg_slp_sl_force    <=  pc_sg_0;
 end generate mpg_bcfg_lcb_gen;
@@ -9863,6 +10836,9 @@ perv_lcbor_cfg_sl: tri_lcbor
             forcee => pc_cfg_slp_sl_force,
             thold_b     => pc_cfg_slp_sl_thold_0_b);
 end generate fpga_bcfg_lcb_gen;
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv_0(0 TO scan_right_0) <=  sov_0(1 to scan_right_0) & ac_func_scan_in(0);
 func_si_cam_int  <=  sov_0(0);
 ac_func_scan_out(0) <=  func_so_cam_int;
@@ -9871,4 +10847,3 @@ ac_func_scan_out(1) <=  sov_1(0);
 bsiv(0 TO boot_scan_right) <=  bsov(1 to boot_scan_right) & ac_ccfg_scan_in;
 ac_ccfg_scan_out  <=  bsov(0);
 END XUQ_LSU_DERAT;
-

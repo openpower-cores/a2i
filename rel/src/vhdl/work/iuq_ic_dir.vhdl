@@ -9,6 +9,13 @@
 
 			
 
+--********************************************************************
+--*
+--* TITLE: Instruction Cache Directory
+--*
+--* NAME: iuq_ic_dir.vhdl
+--*
+--*********************************************************************
 library ieee,ibm,support,tri,work;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -243,6 +250,7 @@ constant dir_ext_bits           : natural := 8 - ((52-REAL_IFAR'left+1) mod 8);
 constant dir_parity_width       : natural := (52-REAL_IFAR'left+1+dir_ext_bits)/8;
 constant dir_array_way_width    : natural := 36;
 constant dir_way_width          : natural := 52-REAL_IFAR'left+1+dir_parity_width;
+-- Chain 0
 constant dbg_dir_write_offset           : natural := 0;
 constant dbg_dir_rd_act_offset          : natural := dbg_dir_write_offset + 1;
 constant dbg_iu2_lru_rd_update_offset   : natural := dbg_dir_rd_act_offset + 1;
@@ -298,6 +306,7 @@ constant iu1_spr_idir_read_offset       : natural := spare_b_offset + 8;
 constant iu2_spr_idir_read_offset       : natural := iu1_spr_idir_read_offset + 1;
 constant iu2_spr_idir_lru_offset        : natural := iu2_spr_idir_read_offset + 1;
 constant scan0_right            : natural := iu2_spr_idir_lru_offset + 3 - 1;
+-- Chain 1
 constant scan1_left                     : natural := scan0_right + 1;
 constant iu2_dir_dataout_offset         : natural := scan1_left;
 constant iu2_dir_dataout_0_par_offset   : natural := iu2_dir_dataout_offset + 1;
@@ -442,6 +451,8 @@ subtype s11 is std_ulogic_vector(0 to 10);
 signal ZEROS                    : std_ulogic_vector(6 to 35);
 signal tidn                     : std_ulogic;
 signal tiup                     : std_ulogic;
+-- Latch inputs
+-- IU1 pipeline
 signal iu1_valid_d              : std_ulogic;
 signal iu1_valid_l2             : std_ulogic;
 signal iu1_tid_d                : std_ulogic_vector(0 to 3);
@@ -454,6 +465,7 @@ signal iu1_2ucode_d             : std_ulogic;
 signal iu1_2ucode_l2            : std_ulogic;
 signal iu1_2ucode_type_d        : std_ulogic;
 signal iu1_2ucode_type_l2       : std_ulogic;
+-- IU2 pipeline
 signal iu2_valid_d              : std_ulogic;
 signal iu2_valid_l2             : std_ulogic;
 signal iu2_tid_d                : std_ulogic_vector(0 to 3);
@@ -488,6 +500,7 @@ signal iu2_data_dataout_d       : std_ulogic_vector(0 to 162*ways-1);
 signal iu2_data_dataout_l2      : std_ulogic_vector(0 to 162*ways-1);
 signal xu_iu_ici_d              : std_ulogic;
 signal xu_iu_ici_l2             : std_ulogic;
+-- Dir val & LRU
 signal dir_row0_val_d           : std_ulogic_vector(0 to 3);
 signal dir_row0_val_l2          : std_ulogic_vector(0 to 3);
 signal dir_row0_lru_d           : std_ulogic_vector(0 to 2);
@@ -744,6 +757,7 @@ signal dir_row63_val_d          : std_ulogic_vector(0 to 3);
 signal dir_row63_val_l2         : std_ulogic_vector(0 to 3);
 signal dir_row63_lru_d          : std_ulogic_vector(0 to 2);
 signal dir_row63_lru_l2         : std_ulogic_vector(0 to 2);
+-- IU3 pipeline
 signal iu3_instr_valid_d        : std_ulogic_vector(0 to 3);
 signal iu3_instr_valid_l2       : std_ulogic_vector(0 to 3);
 signal iu3_tid_d                : std_ulogic_vector(0 to 3);
@@ -823,8 +837,10 @@ signal dbg_load_iu2_d                   : std_ulogic;
 signal dbg_load_iu2_l2                  : std_ulogic;
 signal spare_slp_l2                     : std_ulogic_vector(0 to 15);
 signal spare_l2                         : std_ulogic_vector(0 to 15);
+-- IFAR
 signal iu2_ci                   : std_ulogic;
 signal iu2_endian               : std_ulogic;
+-- IDIR
 signal dir_rd_act               : std_ulogic;
 signal dir_write                : std_ulogic;
 signal dir_way                  : std_ulogic_vector(0 to ways-1);
@@ -840,6 +856,7 @@ signal dir_dataout              : std_ulogic_vector(0 to dir_array_way_width*way
 signal dir_dataout_act          : std_ulogic;
 signal iu1_ifar_cacheline       : std_ulogic_vector(0 to 5);
 signal dir_rd_val               : std_ulogic_vector(0 to 3);
+-- IDATA
 signal data_write               : std_ulogic;
 signal data_way                 : std_ulogic_vector(0 to ways-1);
 signal data_addr                : std_ulogic_vector(0 to 7);
@@ -847,6 +864,7 @@ signal data_parity_in           : std_ulogic_vector(0 to 17);
 signal data_datain              : std_ulogic_vector(0 to 161);
 signal data_dataout             : std_ulogic_vector(0 to 162*ways-1);
 signal data_dataout_inj         : std_ulogic_vector(0 to 162*ways-1);
+-- Compare
 signal ierat_iu_iu2_rpn_noncmp  : std_ulogic_vector(22 to 51);
 signal iu2_rd_way_tag_hit       : std_ulogic_vector(0 to 3);
 signal iu2_rd_way_hit           : std_ulogic_vector(0 to 3);
@@ -1187,9 +1205,11 @@ signal dir_row63_val_d_part2_b  : std_ulogic_vector(0 to 3);
 -- synopsys translate_on
 signal dir_row_val_even_act         : std_ulogic;
 signal dir_row_val_odd_act          : std_ulogic;
+-- Check multihit
 signal iu2_multihit_err         : std_ulogic;
 signal iu3_multihit_err         : std_ulogic;
 signal iu2_pc_inj_icachedir_multihit : std_ulogic;
+-- Check parity
 signal ext_dir_dataout0         : std_ulogic_vector(0 to dir_parity_width*8-1);
 signal gen_dir_parity_out0      : std_ulogic_vector(0 to dir_parity_width-1);
 signal dir_parity_err_byte0     : std_ulogic_vector(0 to dir_parity_width-1);
@@ -1219,9 +1239,11 @@ signal gen_data_parity_out3     : std_ulogic_vector(0 to 17);
 signal data_parity_err_byte3    : std_ulogic_vector(0 to 17);
 signal data_parity_err          : std_ulogic;
 signal iu3_parity_act           : std_ulogic;
+-- Update Valid Bit
 signal lru_select               : std_ulogic_vector(0 to 5);
 signal return_lru               : std_ulogic_vector(0 to 2);
 signal return_val               : std_ulogic_vector(0 to 3);
+-- IU2
 signal iu2_rd_miss              : std_ulogic;
 signal iu3_rd_miss              : std_ulogic;
 signal iu2_miss_flush_prev      : std_ulogic_vector(0 to 3);
@@ -1238,6 +1260,7 @@ signal iu3_instr1_buf           : std_ulogic_vector(0 to 35);
 signal iu3_instr2_buf           : std_ulogic_vector(0 to 35);
 signal iu3_instr3_buf           : std_ulogic_vector(0 to 35);
 signal iu2_ifar_dec             : std_ulogic_vector(0 to 3);
+-- IU3
 signal uc_illegal               : std_ulogic;
 signal xnop                     : std_ulogic_vector(0 to 35);
 signal int_ic_bp_iu3_error      : std_ulogic_vector(0 to 2);
@@ -1246,11 +1269,13 @@ signal iu3_1_instr_rot          : std_ulogic_vector(0 to 35);
 signal iu3_2_instr_rot          : std_ulogic_vector(0 to 35);
 signal iu3_3_instr_rot          : std_ulogic_vector(0 to 35);
 signal int_ic_bp_iu3_flush      : std_ulogic;
+-- Performance Events
 signal iu2_instr_count          : std_ulogic_vector(0 to 2);
 signal perf_instr_count_t0_new:   std_ulogic_vector(0 to 2);
 signal perf_instr_count_t1_new:   std_ulogic_vector(0 to 2);
 signal perf_instr_count_t2_new:   std_ulogic_vector(0 to 2);
 signal perf_instr_count_t3_new:   std_ulogic_vector(0 to 2);
+-- abist
 signal stage_abist_g8t_wenb       : std_ulogic;
 signal stage_abist_g8t1p_renb_0   : std_ulogic;
 signal stage_abist_di_0           : std_ulogic_vector(0 to 3);
@@ -1265,6 +1290,7 @@ signal stage_abist_di_g6t_2r      : std_ulogic_vector(0 to 3);
 signal stage_abist_wl256_comp_ena : std_ulogic;
 signal stage_abist_dcomp_g6t_2r   : std_ulogic_vector(0 to 3);
 signal stage_abist_g6t_r_wb       : std_ulogic;
+-- scan
 signal siv                      : std_ulogic_vector(0 to scan_right);
 signal sov                      : std_ulogic_vector(0 to scan_right);
 signal abst_siv                 : std_ulogic_vector(0 to 42);
@@ -1277,7 +1303,7 @@ signal repr_slat_sl_thold_0_b   : std_ulogic;
 signal time_slat_sl_thold_0_b   : std_ulogic;
 -- synopsys translate_off
 -- synopsys translate_on
-  BEGIN 
+  BEGIN --@@ START OF EXECUTABLE CODE FOR IUQ_IC_DIR
 
 tidn  <=  '0';
 tiup  <=  '1';
@@ -1285,6 +1311,9 @@ ZEROS  <=  (others => '0');
 spr_ic_cls_d  <=  spr_ic_cls;
 spr_ic_idir_way_d  <=  spr_ic_idir_way;
 xu_iu_ici_d  <=  xu_iu_ici;
+-----------------------------------------------------------------------
+-- IU1 Latches
+-----------------------------------------------------------------------
 iu1_valid_d  <=  ics_icd_iu0_valid;
 iu1_tid_d    <=  ics_icd_iu0_tid;
 iu1_ifar_d   <=  ics_icd_iu0_ifar;
@@ -1298,9 +1327,15 @@ icd_ics_iu1_ifar   <=  iu1_ifar_l2;
 icd_ics_iu1_2ucode  <=  iu1_2ucode_l2;
 icd_ics_iu1_2ucode_type  <=  iu1_2ucode_type_l2;
 iu_ierat_iu1_back_inv  <=  iu1_inval_l2;
+-----------------------------------------------------------------------
+-- ERAT Output
+-----------------------------------------------------------------------
 iu2_ci  <=  ierat_iu_iu2_wimge(1);
 iu2_endian  <=  ierat_iu_iu2_wimge(4);
 iu2_ifar_eff_d  <=  iu1_ifar_l2;
+-----------------------------------------------------------------------
+-- Access IDIR, Valid, & LRU
+-----------------------------------------------------------------------
 dir_rd_act  <=  ics_icd_dir_rd_act;
 dir_write  <=  icm_icd_dir_write;
 dir_way  <=  icm_icd_dir_write_way;
@@ -1328,8 +1363,11 @@ way_datain(52-REAL_IFAR'left+1 TO 52-REAL_IFAR'left+1+dir_parity_width-1) <=  di
 ext: if (dir_way_width < way_datain'length) generate
 way_datain(52-REAL_IFAR'left+1+dir_parity_width TO way_datain'right) <=  (others => '0');
 end generate;
+-- Reverse bit ordering to get rid of wiring bowtie
 way_datain_rev  <=  reverse(way_datain);
 dir_datain_rev  <=  way_datain_rev & way_datain_rev & way_datain_rev & way_datain_rev;
+-- Only need 35 bits per way - array has extra bits
+-- 0:29 - tag, 30 - endianness, 31:34 - parity
 idir: entity tri.tri_64x36_4w_1r1w(tri_64x36_4w_1r1w)
   generic map ( expand_type => expand_type )
   port map(
@@ -1409,10 +1447,12 @@ iu2_dir_dataout_1_d(22 TO REAL_IFAR'left-1) <=  (others => '0');
 iu2_dir_dataout_2_d(22 TO REAL_IFAR'left-1) <=  (others => '0');
 iu2_dir_dataout_3_d(22 TO REAL_IFAR'left-1) <=  (others => '0');
 end generate;
+-- Parity
 iu2_dir_dataout_0_par_d  <=  dir_dataout(                      dir_way_width-dir_parity_width to                       dir_way_width-1);
 iu2_dir_dataout_1_par_d  <=  dir_dataout(  dir_array_way_width+dir_way_width-dir_parity_width to   dir_array_way_width+dir_way_width-1);
 iu2_dir_dataout_2_par_d  <=  dir_dataout(2*dir_array_way_width+dir_way_width-dir_parity_width to 2*dir_array_way_width+dir_way_width-1);
 iu2_dir_dataout_3_par_d  <=  dir_dataout(3*dir_array_way_width+dir_way_width-dir_parity_width to 3*dir_array_way_width+dir_way_width-1);
+-- Muxing the val for directory access
 iu1_ifar_cacheline  <=  iu1_ifar_l2(52 to 56) &
                      (iu1_ifar_l2(57) and not (spr_ic_cls_l2 and not iu1_spr_idir_read_l2));
 with iu1_ifar_cacheline select
@@ -1571,6 +1611,9 @@ ext_spr_parity: if (dir_parity_width < 4) generate
 begin ic_spr_idir_parity(dir_parity_width TO 3) <=  (others => '0');
 end generate;
 ic_spr_idir_done  <=  iu2_spr_idir_read_l2;
+-----------------------------------------------------------------------
+-- Access IData
+-----------------------------------------------------------------------
 data_write  <=  icm_icd_data_write;
 data_way  <=  icm_icd_reload_way;
 data_addr  <=  icm_icd_reload_addr(52 to 59) when data_write = '1'
@@ -1687,6 +1730,10 @@ iu2_2ucode_d  <=  iu1_2ucode_l2;
 iu2_2ucode_type_d  <=  iu1_2ucode_type_l2;
 iu2_inval_d  <=  iu1_inval_l2;
 iu2_spr_idir_read_d  <=  iu1_spr_idir_read_l2;
+-----------------------------------------------------------------------
+-- Check Multihit
+-----------------------------------------------------------------------
+-- Set if more than 1 way matches (not 0000, 0001, 0010, 0100, 1000)
 iu2_multihit_err  <=  (iu2_valid or iu2_inval_l2 or iu2_spr_idir_read_l2) and     
                     not (( iu2_rd_way_hit(0 to 2) = "000") or
                          ((iu2_rd_way_hit(0 to 1) & iu2_rd_way_hit(3)) = "000") or
@@ -1705,6 +1752,9 @@ err_icachedir_multihit: tri_direct_err_rpt
             err_in(0)   => iu3_multihit_err,
             err_out(0)  => iu_pc_err_icachedir_multihit
             );
+-----------------------------------------------------------------------
+-- Check Parity
+-----------------------------------------------------------------------
 calc_ext_dir_dataout0:   for i in ext_dir_datain'range generate
 begin
     R0:if(i <  52-REAL_IFAR'left+1) generate begin ext_dir_dataout0(i)   <= iu2_dir_dataout_0_noncmp(REAL_IFAR'left+i);
@@ -1773,6 +1823,7 @@ err_icachedir_parity: tri_direct_err_rpt
             err_in(0)   => err_icachedir_parity_l2,
             err_out(0)  => iu_pc_err_icachedir_parity
             );
+--Data
 data_parity_out0    <=  data_dataout_inj(144         to 144+data_parity_in'length-1);
 chk_data_parity0:   for i in data_parity_in'range generate
 begin
@@ -1822,6 +1873,10 @@ icd_ics_iu3_parity_flush  <=  gate_and(iu3_parity_flush, iu3_parity_flush_tid);
 iu3_parity_tag_d  <=  iu2_ifar_eff_l2(52 to 57);
 iu3_parity_act  <=  spr_ic_clockgate_dis or
     (iu2_valid or iu2_inval_l2 or iu2_spr_idir_read_l2) or or_reduce(iu3_any_parity_err_way);
+-----------------------------------------------------------------------
+-- Update LRU
+-----------------------------------------------------------------------
+-- update LRU in IU2 on read hit or icm_icd_lru_write
 dir_row0_lru_d    <=  dir_row0_lru_write   when (icm_icd_lru_write and (lru_write_cacheline(0 to 5) = "000000"))   = '1'
                else dir_row0_lru_read    when (iu2_lru_rd_update and iu2_ifar_eff_cacheline(0 to 5) = "000000")   = '1'
                else dir_row0_lru_l2;
@@ -2018,6 +2073,7 @@ dir_row_lru_even_act  <=  (icm_icd_lru_write and lru_write_cacheline(5) = '0') o
                         (iu2_valid_l2 and iu2_ifar_eff_cacheline(5) = '0');
 dir_row_lru_odd_act   <=  (icm_icd_lru_write and lru_write_cacheline(5) = '1') or
                         (iu2_valid_l2 and iu2_ifar_eff_cacheline(5) = '1');
+-- All erat errors except for erat parity error, for timing
 iu2_erat_err_lite  <=  ierat_iu_iu2_miss or ierat_iu_iu2_multihit or ierat_iu_iu2_isi;
 iu2_lru_rd_update  <=  iu2_valid and not iu2_erat_err_lite and or_reduce(iu2_rd_way_hit(0 to 3));
 dir_row0_lru_read    <=  gate_and(iu2_rd_way_hit(0), ("11" & dir_row0_lru_l2(2)))   or
@@ -2532,6 +2588,10 @@ dir_row63_lru_write   <=  gate_and(icm_icd_lru_write_way(0), ("11" & dir_row63_l
                         gate_and(icm_icd_lru_write_way(1), ("10" & dir_row63_lru_l2(2)))  or
                         gate_and(icm_icd_lru_write_way(2), ('0' & dir_row63_lru_l2(1)  & '1')) or
                         gate_and(icm_icd_lru_write_way(3), ('0' & dir_row63_lru_l2(1)  & '0'));
+-----------------------------------------------------------------------
+-- Update Valid Bits
+-----------------------------------------------------------------------
+-- For 128B cacheline mode, use even dir rows
 iu2_ifar_eff_cacheline  <=  iu2_ifar_eff_l2(52 to 56) &
                          (iu2_ifar_eff_l2(57) and not (spr_ic_cls_l2 and not iu2_spr_idir_read_l2));
 iu3_parity_tag_cacheline  <=  iu3_parity_tag_l2(52 to 56) & (iu3_parity_tag_l2(57) and not spr_ic_cls_l2);
@@ -3190,6 +3250,7 @@ dir_row_val_odd_act   <=  xu_iu_ici_l2 or
                        (icm_icd_any_checkecc and (ecc_inval_cacheline(5) = '1')) or
                        (iu2_inval_l2 and (iu2_ifar_eff_cacheline(5) = '1'));
 lru_select  <=  icm_icd_lru_addr(52 to 56) & (icm_icd_lru_addr(57) and not spr_ic_cls_l2);
+-- ic miss latches the location for data write to prevent data from moving around in Data cache
 with lru_select select
 return_lru  <=  dir_row0_lru_l2  when "000000",
               dir_row1_lru_l2    when "000001",
@@ -3322,6 +3383,10 @@ return_val  <=  dir_row0_val_l2  when "000000",
               dir_row62_val_l2   when "111110",
               dir_row63_val_l2 when others;
 icd_icm_row_val  <=  return_val;
+-----------------------------------------------------------------------
+-- IU2
+-----------------------------------------------------------------------
+-- IU2 Output
 mm_epn: for i in 0 to 51 generate
 begin
   R0:if(i <  EFF_IFAR'left) generate begin iu_mm_ierat_epn(i) <= '0';
@@ -3330,6 +3395,7 @@ R1:if(i >= EFF_IFAR'left) generate
 begin iu_mm_ierat_epn(i) <=  iu2_ifar_eff_l2(i);
 end generate;
 end generate;
+-- Handle Miss
 iu2_rd_miss  <=  iu2_valid and (iu2_dir_miss or iu2_ci);
 iu3_rd_parity_err_d  <=  iu2_valid and iu2_rd_parity_err and or_reduce(iu2_tid_l2 and not ics_icd_iu2_flush_tid) and not iu2_ci;
 iu3_rd_miss_d  <=  iu2_rd_miss and not or_reduce(iu2_tid_l2 and ics_icd_iu2_flush_tid);
@@ -3374,6 +3440,7 @@ iu2_erat_err  <=  (ierat_iu_iu2_error(0) and not load_iu2) &
                 (ierat_iu_iu2_error(1) and not load_iu2) &
                 (ierat_iu_iu2_error(2) and not load_iu2);
 iu3_erat_err_d  <=  iu2_erat_err;
+-- Mux data from cache
 iu2_data_dataout_0  <=  iu2_data_dataout_l2(  0 to 143);
 iu2_data_dataout_1  <=  iu2_data_dataout_l2(162 to 305);
 iu2_data_dataout_2  <=  iu2_data_dataout_l2(324 to 467);
@@ -3411,6 +3478,13 @@ insmux : entity work.iuq_ic_insmux
                                    "0001" when "011",
                                    "0000" when others;
 iu3_ifar_dec_d  <=  iu2_ifar_dec;
+-----------------------------------------------------------------------
+-- IU3
+-----------------------------------------------------------------------
+-- Force 2ucode to 0 if branch instructions or no-op.  No other
+-- instructions are legal when dynamically changing code.
+-- Note: This signal does not include all non-ucode ops - just the ones
+-- that will cause problems with flush_2ucode.
 uc_illegal  <=  iu3_0_instr_rot(32) or
               (iu3_0_instr_rot(0 to 5) = "011000");
 ic_bp_iu3_val  <=  iu3_instr_valid_l2;
@@ -3448,14 +3522,23 @@ ic_bp_iu3_flush  <=  int_ic_bp_iu3_flush;
 icd_ics_iu3_ifar  <=  iu3_ifar_l2;
 icd_ics_iu3_2ucode  <=  iu3_2ucode_l2;
 icd_ics_iu3_2ucode_type  <=  iu3_2ucode_type_l2;
+-----------------------------------------------------------------------
+-- Performance Events
+-----------------------------------------------------------------------
+-- IERAT Miss
+--      - IU2 ierat miss
 perf_event_t0_d(4) <=  iu2_valid and iu2_tid_l2(0)   and ierat_iu_iu2_miss;
 perf_event_t1_d(4) <=  iu2_valid and iu2_tid_l2(1)   and ierat_iu_iu2_miss;
 perf_event_t2_d(4) <=  iu2_valid and iu2_tid_l2(2)   and ierat_iu_iu2_miss;
 perf_event_t3_d(4) <=  iu2_valid and iu2_tid_l2(3)   and ierat_iu_iu2_miss;
+-- I-Cache Fetch
+--      - Number of times ICache is read for instruction
 perf_event_t0_d(5) <=  iu2_valid and iu2_tid_l2(0);
 perf_event_t1_d(5) <=  iu2_valid and iu2_tid_l2(1);
 perf_event_t2_d(5) <=  iu2_valid and iu2_tid_l2(2);
 perf_event_t3_d(5) <=  iu2_valid and iu2_tid_l2(3);
+-- Instructions Fetched
+--      - Number of instructions fetched, divided by 4.
  WITH s2'(iu2_ifar_eff_l2(60 to 61))  SELECT iu2_instr_count  <=  "100" when "00",
                    "011" when "01",
                    "010" when "10",
@@ -3480,13 +3563,19 @@ perf_instr_count_t3_new(0 TO 2) <=  std_ulogic_vector(
 perf_instr_count_t3_d(0 TO 1) <=  perf_instr_count_t3_new(1   to 2) when (iu2_valid and iu2_tid_l2(3))   = '1'
                               else perf_instr_count_t3_l2;
 perf_event_t3_d(6) <=  iu2_valid and iu2_tid_l2(3)   and perf_instr_count_t3_new(0);
+-- Events not per thread
+-- L2 Back Invalidates I-Cache
 perf_event_d(0) <=  iu2_inval_l2;
+-- L2 Back Invalidates I-Cache - Hits
 perf_event_d(1) <=  iu2_inval_l2 and or_reduce(iu2_rd_way_tag_hit and iu2_dir_rd_val_l2);
 ic_perf_event_t0    <=  perf_event_t0_l2;
 ic_perf_event_t1    <=  perf_event_t1_l2;
 ic_perf_event_t2    <=  perf_event_t2_l2;
 ic_perf_event_t3    <=  perf_event_t3_l2;
 ic_perf_event  <=  perf_event_l2;
+-----------------------------------------------------------------------
+-- Debug Bus
+-----------------------------------------------------------------------
 dbg_dir_write_d  <=  dir_write;
 dbg_dir_rd_act_d  <=  dir_rd_act;
 dbg_iu2_lru_rd_update_d  <=  iu2_lru_rd_update;
@@ -3550,6 +3639,10 @@ dir_dbg_trigger0(7) <=  iu3_instr_valid_l2(0);
 dir_dbg_trigger1(0 TO 9) <=  iu2_ifar_eff_l2(52 to 61);
 dir_dbg_trigger1(10) <=  iu2_valid_l2;
 dir_dbg_trigger1(11) <=  iu2_inval_l2;
+-----------------------------------------------------------------------
+-- Latches
+-----------------------------------------------------------------------
+-- IU1
 iu1_valid_latch: tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -3584,6 +3677,7 @@ iu1_tid_latch: tri_rlmreg_p
             scout   => sov(iu1_tid_offset to iu1_tid_offset + iu1_tid_l2'length-1),
             din     => iu1_tid_d,
             dout    => iu1_tid_l2);
+-- Note: Technically, only need REAL_IFAR range during sleep mode
 iu1_ifar_latch: tri_rlmreg_p
   generic map (width => iu1_ifar_l2'length, init => 0, needs_sreset => 0, expand_type => expand_type)
   port map (vd      => vdd,
@@ -3652,6 +3746,7 @@ iu1_2ucode_type_latch: tri_rlmlatch_p
             scout   => sov(iu1_2ucode_type_offset),
             din     => iu1_2ucode_type_d,
             dout    => iu1_2ucode_type_l2);
+-- IU2
 iu2_valid_latch: tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -3703,6 +3798,7 @@ iu2_ifar_eff_latch: tri_rlmreg_p
             scout   => sov(iu2_ifar_eff_offset to iu2_ifar_eff_offset + 52-EFF_IFAR'left-1),
             din     => iu2_ifar_eff_d(EFF_IFAR'left to 51),
             dout    => iu2_ifar_eff_l2(EFF_IFAR'left to 51));
+-- Only need 52:57 in sleep mode
 iu2_ifar_eff_slp_latch: tri_rlmreg_p
   generic map (width => 10, init => 0, needs_sreset => 0, expand_type => expand_type)
   port map (vd      => vdd,
@@ -3890,6 +3986,8 @@ xu_iu_ici_latch: tri_rlmlatch_p
             scout   => sov(xu_iu_ici_offset),
             din     => xu_iu_ici_d,
             dout    => xu_iu_ici_l2);
+-- Dir
+-- even & odd rows use separate acts for power savings in 128B cacheline mode
 dir_row0_val_latch:   tri_rlmreg_p
   generic map (width => dir_row0_val_l2'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -6066,6 +6164,7 @@ dir_row63_lru_latch:  tri_rlmreg_p
             scout   => sov(dir_row63_lru_offset  to dir_row63_lru_offset  + dir_row63_lru_l2'length-1),
             din     => dir_row63_lru_d,
             dout    => dir_row63_lru_l2);
+-- IU3
 iu3_instr_valid_latch: tri_rlmreg_p
   generic map (width => iu3_instr_valid_l2'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -6746,6 +6845,9 @@ spare_b_latch: tri_rlmreg_p
             scout   => sov(spare_b_offset to spare_b_offset + 7),
             din     => spare_l2(8 to 15),
             dout    => spare_l2(8 to 15));
+-----------------------------------------------------------------------
+-- abist latches
+-----------------------------------------------------------------------
 ab_reg: tri_rlmreg_p
   generic map (init => 0, expand_type => expand_type, width => 39, needs_sreset => 0)
   port map (vd                  => vdd,
@@ -6789,6 +6891,9 @@ ab_reg: tri_rlmreg_p
             dout(33      )      => stage_abist_wl256_comp_ena,
             dout(34 to 37)      => stage_abist_dcomp_g6t_2r,
             dout(38      )      => stage_abist_g6t_r_wb);
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 repr_slat_sl_thold_0_b  <=  not pc_iu_repr_sl_thold_0;
 time_slat_sl_thold_0_b  <=  not pc_iu_time_sl_thold_0;
 repr_scan_latch: entity tri.tri_regs
@@ -6819,10 +6924,13 @@ siv(0 TO scan0_right) <=  sov(1 to scan0_right) & func_scan_in(0);
 func_scan_out(0) <=  sov(0) and an_ac_scan_dis_dc_b;
 siv(scan1_left TO scan_right) <=  sov(scan1_left+1 to scan_right) & func_scan_in(1);
 func_scan_out(1) <=  sov(scan1_left) and an_ac_scan_dis_dc_b;
+-- Chain 0: WAY01 IDIR & IDATA
 abst_siv(0 TO 1) <=  abst_sov(1) & abst_scan_in(0);
 abst_scan_out(0) <=  abst_sov(0) and an_ac_scan_dis_dc_b;
+-- Chain 1: WAY23 IDIR & IDATA
 abst_siv(2 TO 3) <=  abst_sov(3) & abst_scan_in(1);
 abst_scan_out(1) <=  abst_sov(2) and an_ac_scan_dis_dc_b;
+-- Chain 2: AB_REG - tack on to BHT's scan chain
 abst_siv(4 TO abst_siv'right) <=  abst_sov(5 to abst_sov'right) & abst_scan_in(2);
 abst_scan_out(2) <=  abst_sov(4) and an_ac_scan_dis_dc_b;
 time_siv  <=  time_scan_in & time_sov(0 to 1);
@@ -6830,4 +6938,3 @@ time_scan_out  <=  time_sov(2) and an_ac_scan_dis_dc_b;
 repr_siv(1 TO 2) <=  repr_sov(0 to 1);
 repr_scan_out  <=  repr_sov(2) and an_ac_scan_dis_dc_b;
 END IUQ_IC_DIR;
-

@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_serial_scom2.vhdl
+-- *! DESCRIPTION : SCOM Satellite
+-- *!               Only supports 1:1 ratio
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
@@ -21,19 +26,20 @@ library tri; use tri.tri_latches_pkg.all;
 entity tri_serial_scom2 is
 
   generic (
-           width              : positive := 64;    
+           width              : positive := 64;    -- 64 is the maximum allowed
            internal_addr_decode: boolean := false;
            use_addr           : std_ulogic_vector := "1000000000000000000000000000000000000000000000000000000000000000";
            addr_is_rdable     : std_ulogic_vector := "1000000000000000000000000000000000000000000000000000000000000000";
            addr_is_wrable     : std_ulogic_vector := "1000000000000000000000000000000000000000000000000000000000000000";
            pipeline_addr_v    : std_ulogic_vector := "0000000000000000000000000000000000000000000000000000000000000000";
-           pipeline_paritychk : boolean  := false; 
-           satid_nobits       : positive := 4;     
+           pipeline_paritychk : boolean  := false; -- pipeline parcheck for timing
+           satid_nobits       : positive := 4;     -- should not be set by user
            regid_nobits       : positive := 6;
            ringid_nobits      : positive := 3;
-           expand_type        : integer := 1 );    
+           expand_type        : integer := 1 );    -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
 
   port (
+        -- clock, scan and misc interfaces
         nclk                 : in  clk_logic;
         vd                   : inout power_logic;
         gd                   : inout power_logic;
@@ -46,54 +52,92 @@ entity tri_serial_scom2 is
         d_mode_dc            : in  std_ulogic;
         delay_lclkr_dc       : in  std_ulogic;
 
+        --! scan chain should evaluate to 0:176 for WIDTH=64 and 6 regid_nobits (=64 SCOM addresses)
+        --! scan chain vector is longer than number of latches being used
+        --! scan chain should evaluate to 0:176 for WIDTH=64 and 6 regid_nobits (=64 SCOM addresses)
+        --! scan chain vector is longer than number of latches being used
+        --! due to vhdl generics formulation and shortings
         func_scan_in         : in  std_ulogic_vector(0 to
                              (((width+15)/16)*16)+2*(((((width+15)/16)*16)-1)/16+1)+(2**regid_nobits)+40 );
+        --                   |                  |
+        --                   data_shifter
+        --                                          |  par_nobits                 |
         func_scan_out        : out std_ulogic_vector(0 to
                              (((width+15)/16)*16)+2*(((((width+15)/16)*16)-1)/16+1)+(2**regid_nobits)+40 );
 
 
+        -- for mask slat inside of c_err_rpt
         dcfg_scan_dclk       : in  std_ulogic;
         dcfg_scan_lclk       : in  clk_logic;
 
-        dcfg_d1clk           : in  std_ulogic; 
-        dcfg_d2clk           : in  std_ulogic; 
-        dcfg_lclk            : in  clk_logic; 
+        --! for nlats inside of c_err_rpt
+        dcfg_d1clk           : in  std_ulogic; -- needed for one bit only, always or scom_local_act clocked dcfg
+        dcfg_d2clk           : in  std_ulogic; -- needed for one bit only, always or scom_local_act clocked dcfg
+        dcfg_lclk            : in  clk_logic; -- needed for one bit only, always or scom_local_act clocked dcfg
 
+        -- contains mask slat and hold nlat of c_err_rpt
         dcfg_scan_in         : in  std_ulogic_vector(0 to 1);
         dcfg_scan_out        : out std_ulogic_vector(0 to 1);
 
+        -- denotes SCOM sat active if set to '1', can be used for local clock gating
         scom_local_act       : out std_ulogic;
 
+        -----------------------------------------------------------------------
+        -- SCOM Interface
+        -----------------------------------------------------------------------
+        -- SCOM satellite ID tied to a specific pattern
         sat_id               : in std_ulogic_vector(0 to satid_nobits-1);
 
+        -- SCOM Data Channel input (carry both address and data)
         scom_dch_in          : in  std_ulogic;
 
+        -- SCOM Control Channel input
         scom_cch_in          : in  std_ulogic;
 
+        -- SCOM Data Channel output
         scom_dch_out         : out std_ulogic;
 
+        -- SCOM Control Channel output
         scom_cch_out         : out std_ulogic;
 
+        -----------------------------------------------------------------------
+        -- Interface between SCOM satellite and internal macro logic
+        -----------------------------------------------------------------------
+        -- denotes a request if asserted to '1', level
         sc_req               : out std_ulogic;
 
+        -- acknowledge a pending request with sc_ack_info+sc_rdata+sc_rparity
+        -- being valid
         sc_ack               : in  std_ulogic;
 
+        -- acknowledge information
+        -- 0: '1' if access violation, otherwise '0'
+        -- 1: '1' if register address invalid
         sc_ack_info          : in  std_ulogic_vector(0 to 1);
 
+        -- '1' if read access, '0' write access
         sc_r_nw              : out std_ulogic;
 
+        -- Register address, default 6 bits for up to 64 register addresses
         sc_addr              : out std_ulogic_vector(0 to regid_nobits-1);
 
+        -- one-hot address, valid only if INTERNAL_ADDR_DECODE=TRUE, else zeros
         addr_v               : out std_ulogic_vector(0 to use_addr'high);
 
+        -- Read data delivered by macro logic as response to a read request
         sc_rdata             : in  std_ulogic_vector(0 to width-1);
 
+        -- Write data delivered from SCOM satellite for a write request
         sc_wdata             : out std_ulogic_vector(0 to width-1);
 
+        -- Write data parity bit over sc_wdata, optional usage
         sc_wparity           : out std_ulogic;
 
+        -----------------------------------------------------------------------
+        -- parity error of fsm state vector, wire to next local fir
         scom_err             : out std_ulogic;
 
+        -- reset fsm (optional), tie to '0' if unused
         fsm_reset            : in  std_ulogic
 
         );
@@ -105,36 +149,38 @@ end tri_serial_scom2;
 
 architecture tri_serial_scom2 of tri_serial_scom2 is
 
-begin  
+begin  -- tri_serial_scom2
 
   a: if expand_type /= 2 generate
      constant state_width : positive := 5 ;
-     constant i_width     : positive := (((width+15)/16)*16);  
+     constant i_width     : positive := (((width+15)/16)*16);  -- width adjusted to 16-bit boundary
      constant par_nobits  : positive := (i_width-1)/16+1;
-     constant reg_nobits  : positive := regid_nobits;  
-     constant satid_regid_nobits : positive := satid_nobits + regid_nobits;  
-     constant rw_bit_index       : positive := satid_regid_nobits + 1;  
-     constant parbit_index       : positive := rw_bit_index + 1;  
+     constant reg_nobits  : positive := regid_nobits;  -- 6
+     constant satid_regid_nobits : positive := satid_nobits + regid_nobits;  -- 4 + 6 = 10
+     constant rw_bit_index       : positive := satid_regid_nobits + 1;  -- 11
+     constant parbit_index       : positive := rw_bit_index + 1;  -- 12
      constant head_width         : positive := parbit_index + 1;
      constant head_init          : std_ulogic_vector( 0 to head_width-1) := "0000000000000";
 
-     constant idle         : std_ulogic_vector(0 to state_width-1) := "00000";  
-     constant rec_head     : std_ulogic_vector(0 to state_width-1) := "00011";  
-     constant check_before : std_ulogic_vector(0 to state_width-1) := "00101";  
-     constant rec_wdata    : std_ulogic_vector(0 to state_width-1) := "00110";  
-     constant rec_wpar     : std_ulogic_vector(0 to state_width-1) := "01001";  
-     constant exe_cmd      : std_ulogic_vector(0 to state_width-1) := "01010";  
-     constant filler0      : std_ulogic_vector(0 to state_width-1) := "01100";  
-     constant filler1      : std_ulogic_vector(0 to state_width-1) := "01111";  
-     constant gen_ulinfo   : std_ulogic_vector(0 to state_width-1) := "10001";  
-     constant send_ulinfo  : std_ulogic_vector(0 to state_width-1) := "10010";  
-     constant send_rdata   : std_ulogic_vector(0 to state_width-1) := "10100";  
-     constant send_0       : std_ulogic_vector(0 to state_width-1) := "10111";  
-     constant send_1       : std_ulogic_vector(0 to state_width-1) := "11000";  
-     constant check_wpar   : std_ulogic_vector(0 to state_width-1) := "11011";  
-     constant not_selected : std_ulogic_vector(0 to state_width-1) := "11110";  
+                                                                     --0123Parity
+     constant idle         : std_ulogic_vector(0 to state_width-1) := "00000";  -- 0  = x00
+     constant rec_head     : std_ulogic_vector(0 to state_width-1) := "00011";  -- 1  = x03
+     constant check_before : std_ulogic_vector(0 to state_width-1) := "00101";  -- 2  = x05
+     constant rec_wdata    : std_ulogic_vector(0 to state_width-1) := "00110";  -- 3  = x06
+     constant rec_wpar     : std_ulogic_vector(0 to state_width-1) := "01001";  -- 4  = x09
+     constant exe_cmd      : std_ulogic_vector(0 to state_width-1) := "01010";  -- 5  = x0A
+     constant filler0      : std_ulogic_vector(0 to state_width-1) := "01100";  -- 6  = x0C
+     constant filler1      : std_ulogic_vector(0 to state_width-1) := "01111";  -- 7  = x0F
+     constant gen_ulinfo   : std_ulogic_vector(0 to state_width-1) := "10001";  -- 8  = x11
+     constant send_ulinfo  : std_ulogic_vector(0 to state_width-1) := "10010";  -- 9  = x12
+     constant send_rdata   : std_ulogic_vector(0 to state_width-1) := "10100";  -- 10 = x14
+     constant send_0       : std_ulogic_vector(0 to state_width-1) := "10111";  -- 11 = x17
+     constant send_1       : std_ulogic_vector(0 to state_width-1) := "11000";  -- 12 = x18
+     constant check_wpar   : std_ulogic_vector(0 to state_width-1) := "11011";  -- 13 = x1B
+                                                                                -- 14 = x1D
+     constant not_selected : std_ulogic_vector(0 to state_width-1) := "11110";  -- 15 = x1E
 
-     constant eof_wdata : positive := parbit_index-1+64; 
+     constant eof_wdata : positive := parbit_index-1+64; -- here max width, it is 64
      constant eof_wpar : positive := eof_wdata + 4;
 
      constant eof_wdata_n : positive := parbit_index-1+ i_width;
@@ -202,6 +248,7 @@ begin
 
      signal unused                            : std_ulogic_vector(0 to 1);
 
+     -- signal renaming and mapping to make it visible internally for debug
      signal scom_cch_in_int           : std_ulogic;
      signal scom_dch_in_int           : std_ulogic;
      signal scom_cch_input_in, scom_cch_input_lt   : std_ulogic;
@@ -265,16 +312,19 @@ begin
         forcee       => func_force,
         sg          => sg,
         thold_b     => func_thold_b,
+        ----------------------------
         d1clk       => d1clk,
         d2clk       => d2clk,
         lclk        => lclk
         );
 
+-------------------------------------------------------------------------------
    parity_err : entity tri.tri_err_rpt(tri_err_rpt)
       generic map (
-                 width           => 1     
-               , inline          => false 
-               , mask_reset_value=> "0"   
+                 width           => 1     -- use to bundle error reporting checkers of the same exact type
+               , inline          => false -- make hold latch be inline
+               , mask_reset_value=> "0"   -- do not report address and data parity errors by default
+                                                     -- since already reported to PCB through error reply
                , needs_sreset    => 1
                , expand_type => expand_type )
       port map ( vd             => vd,
@@ -293,14 +343,18 @@ begin
                  err_out(0)     => scom_err_in
                );
 
-   scom_err <= scom_err_lt;    
+   scom_err <= scom_err_lt;    -- drive this output with a latch
 
+-------------------------------------------------------------------------------
 
+-- fill spares of scan vector
    func_scan_out(state_width + i_width + 2*par_nobits+head_width+22+(2**regid_nobits) to func_scan_out'high) <=
      func_scan_in(state_width + i_width + 2*par_nobits+head_width+22+(2**regid_nobits) to func_scan_out'high) ;
 
+-------------------------------------------------------------------------------
 
   sat_id_net <= sat_id;
+  -- input lathes on cch and dch:
   scom_cch_input_in <= scom_cch_in;
   scom_cch_in_int <= scom_cch_input_lt;
   scom_dch_input_in <= scom_dch_in;
@@ -310,15 +364,15 @@ begin
 
   cch_in    <= scom_cch_in_int & cch_lt(0);
 
-  reset     <= (cch_lt(0) and not scom_cch_in_int)   
-               or fsm_reset                          
-               or scom_err_lt;                       
+  reset     <= (cch_lt(0) and not scom_cch_in_int)   -- with falling edge of scom_cch_in / scom_cch_in_int
+               or fsm_reset                          -- or with fsm_reset
+               or scom_err_lt;
 
-  local_act <= or_reduce(scom_cch_input_in & cch_lt);  
+  local_act <= or_reduce(scom_cch_input_in & cch_lt);  -- active with scom_cch_in and as long as cch_lt
 
-  local_act_int <= local_act or scom_local_act_lt;    
+  local_act_int <= local_act or scom_local_act_lt;
 
-  scom_local_act_in <= local_act;       
+  scom_local_act_in <= local_act;       -- drive this output with a latch
   scom_local_act <= scom_local_act_lt;
 
   scom_cch_out <= cch_lt(0);
@@ -332,10 +386,12 @@ begin
 
   scom_dch_out <= dch_out_internal_lt;
 
+-- copy the internal signals to ports
    sc_req  <= is_exe_cmd;
    sc_addr <= head_lt(satid_nobits+1 to satid_regid_nobits);
    sc_r_nw <= head_lt(rw_bit_index);
 
+-- copy the result of the deserializer to the output, take care of the fact that data shifter is multiple of 16 and not all is used as output
    copy2sc_wdata: if width<64 generate
      copy2sc_wdata_loop_1: for i in 0 to width-1 generate
        sc_wdata(i) <= data_shifter_lt(i);
@@ -351,6 +407,9 @@ begin
 
    sc_wparity <= xor_reduce(datapar_shifter_lt);
 
+-------------------------------------------------------------------------------
+   -- FSM: serial => parallel => serial state machine
+   --
    fsm_transition: process (state_lt, got_head, gor_eofwdata, got_eofwpar,
                             got_ulhead, sent_rdata, p0_err, any_ack_error,
                             match, do_write, do_read,
@@ -433,6 +492,7 @@ begin
 
       state_par_error <= xor_reduce(state_lt);
 
+-------------------------------------------------------------------------------
       is_idle         <= (state_lt=idle);
       is_rec_head     <= (state_lt=rec_head);
       is_check_before <= (state_lt=check_before);
@@ -447,6 +507,7 @@ begin
       is_filler_0     <= (state_lt=filler0);
       is_filler_1     <= (state_lt=filler1);
 
+-------------------------------------------------------------------------------
       enable_cnt <= is_rec_head
                     or is_check_before
                     or is_rec_wdata
@@ -472,8 +533,10 @@ begin
       cntgtheadpluswidth   <= (cnt_lt > eof_wdata_n);
       cntgteofwdataplusparity <= (cnt_lt > eof_wpar_m);
 
-      do_send_par         <= (cnt_lt > 79); 
+      do_send_par         <= (cnt_lt > 79); -- 78 bits = 15 ulhead + 64 data
 
+-------------------------------------------------------------------------------
+      -- shift downlink command (for this or any subsequent satellite) or uplink response (from previous satellite)
       head_in(head_width-2 to head_width-1) <= head_lt(head_width-1) & dch_lt when (is_rec_head or (is_idle and dch_lt))='1' else
                            head_lt(head_width-2 to head_width-1);
 
@@ -484,6 +547,7 @@ begin
                   tail_lt(0);
 
 
+      -- calculate parity P0 of uplink frame
       tail_in(4) <= xor_reduce ( parity_satid_regaddr_lt & tail_lt(0) & (wpar_err and do_write) & sc_ack_info_lt(0 to 1))
                                                                     when is_gen_ulinfo='1'and (internal_addr_decode=false) else
                     xor_reduce ( parity_satid_regaddr_lt & tail_lt(0) & (wpar_err and do_write) & (write_nvld or read_nvld) & addr_nvld )
@@ -492,38 +556,47 @@ begin
 
 
 
+      -- copy sampled ack_info coming from logic
       tail_in(2 to 3) <= sc_ack_info_lt(0 to 1)  when is_gen_ulinfo='1' and internal_addr_decode=false else
                          (write_nvld or read_nvld) & addr_nvld when is_gen_ulinfo='1' and internal_addr_decode=true else
-                         tail_lt(3 to 4)              when is_send_ulinfo='1' else 
+                         tail_lt(3 to 4)              when is_send_ulinfo='1' else -- shift out
                          tail_lt(2 to 3);
 
 
 
-      tail_in(1)      <= (wpar_err and do_write)   when is_gen_ulinfo='1' else 
-                         tail_lt(2) when is_send_ulinfo='1' else  
+      -- Write Data Parity error
+      tail_in(1)      <= (wpar_err and do_write)   when is_gen_ulinfo='1' else -- parity error on write operation
+                         tail_lt(2) when is_send_ulinfo='1' else  -- shift out
                          tail_lt(1);
 
-      tail_in(0)      <= not p0_err     when is_check_before='1' else 
-                         tail_lt(1) when is_send_ulinfo='1' else  
+      -- parity check of of downlink P0 yields error
+      tail_in(0)      <= not p0_err     when is_check_before='1' else -- set to '1' if a downlink parity error is detected by satellite, otherwise '0'
+                         tail_lt(1) when is_send_ulinfo='1' else  -- shift out
                          tail_lt(0);
 
+      -- sample and hold ack_info, one spare bit
       sc_ack_info_in <= sc_ack_info when (is_exe_cmd and sc_ack)='1' else
                         "00" when is_idle='1' else
                         sc_ack_info_lt;
 
+-------------------------------------------------------------------------------
 
       do_write <= not do_read;
       do_read  <= head_lt(rw_bit_index);
       match    <= (head_lt(1 to satid_nobits)=sat_id_net);
 
+      -- if downlink parity error then set p0_err
       p0_err_in <= '0' when (is_idle = '1') else
                    p0_err_lt xor head_in(parbit_index) when (is_rec_head = '1') else
                    p0_err_lt ;
       p0_err <= p0_err_lt;
+      -- p0_err   <= gate_and(is_check_before, xor_reduce (head_lt(1 to parbit_index)));
+      -------------------------------------------------------------------------
       parity_satid_regaddr_in   <= xor_reduce (sat_id_net & head_lt(satid_nobits+1 to satid_regid_nobits)); 
 
       any_ack_error <= or_reduce(sc_ack_info_lt);
 
+-------------------------------------------------------------------------------
 
       data_mux <= dch_lt when (is_check_before or is_rec_wdata)='1' else
                   '0';
@@ -543,12 +616,17 @@ begin
                          (sc_rdata(0 to width-1) & (width to i_width-1 =>'0')) when (is_exe_cmd and sc_ack and do_read)='1' else
                          data_shifter_lt;
       end generate data_shifter_in_2; 
+-------------------------------------------------------------------------------
+      -- parity handling
       par_mux <= dch_lt when (is_rec_wpar)='1' else
                  '0';
 
+      -- receiving parity: shift when receiving write data parity
+      -- sending parity of read data: shift when sending read data parity
+      -- latch generated parity of read data when read data is accepted
       datapar_shifter_in <= datapar_shifter_lt(1 to par_nobits-1) & par_mux when ((is_rec_wpar and not cntgteofwdataplusparity)or
                                                                                   (is_send_rdata and do_send_par))='1' else
-                            sc_rparity when (is_filler_1 ='1') else  
+                            sc_rparity when (is_filler_1 ='1') else  -- 1.33
                             datapar_shifter_lt;
 
 
@@ -566,6 +644,7 @@ begin
              data_shifter_lt_tmp(i_width to 63) <= (others=>'0');
           end generate data_shifter_padding_1;
       end generate data_shifter_move_2;
+-------------------------------------------------------------------------------
 
       wdata_par_check: for i in 0 to par_nobits-1 generate
         par_data_in(i) <= xor_reduce(data_shifter_lt_tmp(16*i to 16*(i+1)-1));
@@ -599,15 +678,24 @@ begin
       wpar_err_in   <= or_reduce(par_data_in xor datapar_shifter_in); 
       wpar_err <= wpar_err_lt;
 
+-------------------------------------------------------------------------------
       rdata_parity_gen: for i in 0 to par_nobits-1 generate
         sc_rparity(i) <= xor_reduce(data_shifter_lt_tmp(16*i to 16*(i+1)-1));
       end generate rdata_parity_gen;
+-------------------------------------------------------------------------------
+   -------------------------------------------------------------------
+   -- address decoding section
+   -- Generate onehot Address (binary to one-hot)
+   -------------------------------------------------------------------
 
    internal_addr_decoding: if internal_addr_decode=true generate
+     --------------------------------------------------------------------------
      foralladdresses : for i in use_addr'range generate
+       ------------------------------------------------------------------------
        addr_bit_set : if (use_addr(i) = '1') generate
          dec_addr_in(i) <= (head_lt(satid_nobits+1 to satid_regid_nobits) = tconv(i, reg_nobits));
 
+         -- generate latch to hold addr_v only if required
          latch_for_onehot : if pipeline_addr_v(i) = '1' generate
            dec_addr       : entity tri.tri_nlat(tri_nlat)
              generic map( width  => 1,
@@ -624,18 +712,22 @@ begin
                         scan_out => func_scan_out(state_width+i_width+2*par_nobits+head_width+22 +i) );
          end generate latch_for_onehot;
 
+         -- otherwise no latch
          no_latch_for_onehot : if pipeline_addr_v(i) = '0' generate
            func_scan_out(state_width+i_width+2*par_nobits+head_width+22 +i) <= func_scan_in(state_width+i_width+2*par_nobits+head_width+22 +i);
            dec_addr_q(i) <= dec_addr_in(i);
          end generate no_latch_for_onehot;
 
        end generate addr_bit_set;
-       addr_bit_notset : if (use_addr(i) /= '1') generate  
+       ------------------------------------------------------------------------
+       addr_bit_notset : if (use_addr(i) /= '1') generate  -- do not generate hardware for unused addresses
          func_scan_out(state_width+i_width+2*par_nobits+head_width+22+i) <= func_scan_in(state_width+i_width+2*par_nobits+head_width+22 +i);
          dec_addr_in(i)                                     <= '0';
          dec_addr_q(i)                                      <= dec_addr_in(i);
        end generate addr_bit_notset;
      end generate foralladdresses;
+     --------------------------------------------------------------------------
+   -- check writable and/or readable, 1.45: dec_addr_q changed to dec_addr_in
    read_valid    <=  or_reduce(dec_addr_in and addr_is_rdable);
    write_valid   <=  or_reduce(dec_addr_in and addr_is_wrable);
    addr_nvld     <=  not or_reduce(dec_addr_in);
@@ -652,8 +744,8 @@ begin
          dec_addr_in(i)                                     <= '0';
          dec_addr_q(i)                                      <= dec_addr_in(i);
      end generate foralladdresses;
-   read_valid <= '1';
-   write_valid<= '1';
+   read_valid <= '1';-- suppressing wrong error generation
+   write_valid<= '1';-- suppressing wrong error generation
    addr_nvld <= '0';
    write_nvld <= '0';
    read_nvld  <= '0';
@@ -669,6 +761,7 @@ begin
 
    addr_v <= dec_addr_q(0 to use_addr'high);
 
+-------------------------------------------------------------------------------
 
     state: entity tri.tri_nlat_scan(tri_nlat_scan)
     generic map( width => state_width, init => idle, needs_sreset => 1, expand_type => expand_type )
@@ -937,6 +1030,7 @@ begin
      , q(0)      => wpar_err_lt
      );
 
+-------------------------------------------------------------------------------
    unused_signals <= or_reduce ( is_filler_0 & is_filler_1
                      & spare_latch1_lt
                      & spare_latch2_lt
@@ -950,5 +1044,3 @@ begin
   end generate a;
 
 end tri_serial_scom2;
-
-

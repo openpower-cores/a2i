@@ -16,12 +16,13 @@ library ibm;
 library tri; use tri.tri_latches_pkg.all;
 
 entity tri_128x16_1r1w_1 is
-  generic (addressable_ports : positive := 128; 
-           addressbus_width : positive := 7;    
-           port_bitwidth : positive := 16;      
-           ways : positive := 1;                
-           expand_type : integer := 1);         
+  generic (addressable_ports : positive := 128; -- number of addressable register in this array
+           addressbus_width : positive := 7;    -- width of the bus to address all ports (2^addressbus_width >= addressable_ports)
+           port_bitwidth : positive := 16;      -- bitwidth of ports
+           ways : positive := 1;                -- number of ways
+           expand_type : integer := 1);         -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG), 3 = mpg latches
 port (
+  -- POWER PINS
     vdd                          : INOUT power_logic; 
     vcs                          : INOUT power_logic; 
     gnd                          : INOUT power_logic; 
@@ -31,6 +32,7 @@ port (
     rd_act                             : IN std_ulogic;
     wr_act            		       : IN std_ulogic;
 
+  -- DC TEST PINS
     lcb_d_mode_dc                : IN std_ulogic;
     lcb_clkoff_dc_b              : IN std_ulogic;
     lcb_mpw1_dc_b                : IN std_ulogic_vector(0 TO 4);
@@ -69,14 +71,15 @@ port (
     abist_raw_dc_b               : IN std_ulogic;
     obs0_abist_cmp               : IN std_ulogic_vector(0 TO 3);
 
+  -- BOLT-ON
     lcb_bolt_sl_thold_0         : in    std_ulogic;
-    pc_bo_enable_2              : in    std_ulogic; 
-    pc_bo_reset                 : in    std_ulogic; 
-    pc_bo_unload                : in    std_ulogic; 
-    pc_bo_repair                : in    std_ulogic; 
-    pc_bo_shdata                : in    std_ulogic; 
-    pc_bo_select                : in    std_ulogic; 
-    bo_pc_failout               : out   std_ulogic; 
+    pc_bo_enable_2              : in    std_ulogic; -- general bolt-on enable
+    pc_bo_reset                 : in    std_ulogic; -- reset
+    pc_bo_unload                : in    std_ulogic; -- unload sticky bits
+    pc_bo_repair                : in    std_ulogic; -- execute sticky bit decode
+    pc_bo_shdata                : in    std_ulogic; -- shift data for timing write and diag loop
+    pc_bo_select                : in    std_ulogic; -- select for mask and hier writes
+    bo_pc_failout               : out   std_ulogic; -- fail/no-fix reg
     bo_pc_diagloop              : out   std_ulogic;
     tri_lcb_mpw1_dc_b           : in    std_ulogic;
     tri_lcb_mpw2_dc_b           : in    std_ulogic;
@@ -267,7 +270,7 @@ a : if expand_type = 1 generate
 component RAMB16_S36_S36
 -- pragma translate_off
 	generic(
-		SIM_COLLISION_CHECK : string := "none"); 
+		SIM_COLLISION_CHECK : string := "none"); -- all, none, warning_only, GENERATE_X_ONLY
 -- pragma translate_on
 	port(
 		DOA : out std_logic_vector(31 downto 0);
@@ -291,16 +294,11 @@ component RAMB16_S36_S36
 end component;
 
 
-
--- pragma translate_off
--- pragma translate_on
-
-
-
 signal clk,clk2x                          : std_ulogic;
 signal b0addra,         b0addrb           : std_ulogic_vector(0 to 8);
 signal wea,             web               : std_ulogic;
 signal wren_a              : std_ulogic;
+-- Latches
 signal reset_q                            : std_ulogic;
 signal gate_fq,         gate_d            : std_ulogic;
 signal r_data_out_1_d,  r_data_out_1_fq   : std_ulogic_vector(0 to 35);
@@ -329,6 +327,9 @@ rlatch: process (clk) begin
     end if;
 end process;
 
+--
+--  NEW clk2x gate logic start
+--
 
 tlatch: process (nclk.clk,reset_q)
 begin
@@ -355,20 +356,18 @@ toggle2x_d <= toggle_q;
 
 gate_d <= not(toggle_q xor toggle2x_q);
 
-
-
-
-
 b0addra(2 to 8)   <= wr_adr;
 b0addrb(2 to 8)   <= rd_adr;
 
+-- Unused Address Bits
 b0addra(0 to 1) <= "00";
 b0addrb(0 to 1) <= "00";
 
 
 
+-- port a is a read-modify-write port
 wren_a <= '1' when bw /= "0000000000000000" else '0';
-wea         <= wren_a and not(gate_fq); 
+wea         <= wren_a and not(gate_fq); -- write in 2nd half of nclk
 web         <= '0';
 w_data_in_0(0) <= di(0) when bw(0)='1' else r_data_out_0_bram(0);
 w_data_in_0(1) <= di(1) when bw(1)='1' else r_data_out_0_bram(1);
@@ -443,5 +442,3 @@ end generate a;
 
 
 end architecture tri_128x16_1r1w_1;
-
-

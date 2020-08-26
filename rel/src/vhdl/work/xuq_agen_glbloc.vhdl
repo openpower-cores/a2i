@@ -25,7 +25,6 @@ entity xuq_agen_glbloc is port(
  );
 
 
-
 END                                 xuq_agen_glbloc;
 
 
@@ -38,13 +37,6 @@ ARCHITECTURE xuq_agen_glbloc  OF xuq_agen_glbloc  IS
  signal g02_b, t02_b :std_ulogic_vector(0 to 3);
  signal g04,   t04   :std_ulogic_vector(0 to 1);
  signal g08_b, t08_b :std_ulogic;
-
-
-
-
-
-
-
 
 
 BEGIN
@@ -94,9 +86,8 @@ BEGIN
 
 
 
-  u_g08_x: g08      <= not ( g08_b  ) ; 
+  u_g08_x: g08      <= not ( g08_b  ) ; -- output
 
-  u_t08_x: t08      <= not ( t08_b  ) ; 
+  u_t08_x: t08      <= not ( t08_b  ) ; -- output
 
-END; 
-
+END; -- ARCH xuq_agen_glbloc

@@ -18,7 +18,7 @@ library ibm;
 
 
 entity fuq_add_all1 is port(
-     ex3_inc_byt_c_b       :in  std_ulogic_vector(0 to 6); 
+     ex3_inc_byt_c_b       :in  std_ulogic_vector(0 to 6); -- from each byte section
      ex3_inc_byt_c_glb     :out std_ulogic_vector(1 to 6);
      ex3_inc_byt_c_glb_b   :out std_ulogic_vector(1 to 6);
      ex3_inc_all1          :out std_ulogic
@@ -42,15 +42,10 @@ ARCHITECTURE fuq_add_all1  OF fuq_add_all1  IS
   
 
 
-
-
-
-
-
-
 BEGIN
 
- ii:    ex3_inc_byt_g1(0 to 6)  <= not ex3_inc_byt_c_b(0 to 6);
+ ii:    ex3_inc_byt_g1(0 to 6)  <= not ex3_inc_byt_c_b(0 to 6);--expect some wire distance between latches
+                                                               -- drive to a common location
 
  g26:   ex3_inc_byt_g2_b(6) <= not( ex3_inc_byt_g1(6) );
  g25:   ex3_inc_byt_g2_b(5) <= not( ex3_inc_byt_g1(5) and ex3_inc_byt_g1(6) );
@@ -77,12 +72,12 @@ BEGIN
  g80:   ex3_inc_byt_g8_b(0) <= not( ex3_inc_byt_g4(0) and  ex3_inc_byt_g4(4) );
 
  all1:   ex3_inc_all1           <= not ex3_inc_byt_g8_b(0);
- iop1:   ex3_inc_byt_c_glb(1)   <= not ex3_inc_byt_g8_b(1); 
- iop2:   ex3_inc_byt_c_glb(2)   <= not ex3_inc_byt_g8_b(2); 
- iop3:   ex3_inc_byt_c_glb(3)   <= not ex3_inc_byt_g8_b(3); 
- iop4:   ex3_inc_byt_c_glb(4)   <= not ex3_inc_byt_g8_b(4); 
- iop5:   ex3_inc_byt_c_glb(5)   <= not ex3_inc_byt_g8_b(5); 
- iop6:   ex3_inc_byt_c_glb(6)   <= not ex3_inc_byt_g8_b(6); 
+ iop1:   ex3_inc_byt_c_glb(1)   <= not ex3_inc_byt_g8_b(1); -- drive back from common
+ iop2:   ex3_inc_byt_c_glb(2)   <= not ex3_inc_byt_g8_b(2); -- drive back from common
+ iop3:   ex3_inc_byt_c_glb(3)   <= not ex3_inc_byt_g8_b(3); -- drive back from common
+ iop4:   ex3_inc_byt_c_glb(4)   <= not ex3_inc_byt_g8_b(4); -- drive back from common
+ iop5:   ex3_inc_byt_c_glb(5)   <= not ex3_inc_byt_g8_b(5); -- drive back from common
+ iop6:   ex3_inc_byt_c_glb(6)   <= not ex3_inc_byt_g8_b(6); -- drive back from common
 
  ionn1:  ex3_inc_byt_g_glb_int(1) <= not ex3_inc_byt_g8_b(1); 
  ionn2:  ex3_inc_byt_g_glb_int(2) <= not ex3_inc_byt_g8_b(2); 
@@ -91,15 +86,13 @@ BEGIN
  ionn5:  ex3_inc_byt_g_glb_int(5) <= not ex3_inc_byt_g8_b(5); 
  ionn6:  ex3_inc_byt_g_glb_int(6) <= not ex3_inc_byt_g8_b(6); 
 
- ion1:  ex3_inc_byt_c_glb_b(1) <= not ex3_inc_byt_g_glb_int(1) ; 
- ion2:  ex3_inc_byt_c_glb_b(2) <= not ex3_inc_byt_g_glb_int(2) ; 
- ion3:  ex3_inc_byt_c_glb_b(3) <= not ex3_inc_byt_g_glb_int(3) ; 
- ion4:  ex3_inc_byt_c_glb_b(4) <= not ex3_inc_byt_g_glb_int(4) ; 
- ion5:  ex3_inc_byt_c_glb_b(5) <= not ex3_inc_byt_g_glb_int(5) ; 
- ion6:  ex3_inc_byt_c_glb_b(6) <= not ex3_inc_byt_g_glb_int(6) ; 
+ ion1:  ex3_inc_byt_c_glb_b(1) <= not ex3_inc_byt_g_glb_int(1) ; -- drive back from common
+ ion2:  ex3_inc_byt_c_glb_b(2) <= not ex3_inc_byt_g_glb_int(2) ; -- drive back from common
+ ion3:  ex3_inc_byt_c_glb_b(3) <= not ex3_inc_byt_g_glb_int(3) ; -- drive back from common
+ ion4:  ex3_inc_byt_c_glb_b(4) <= not ex3_inc_byt_g_glb_int(4) ; -- drive back from common
+ ion5:  ex3_inc_byt_c_glb_b(5) <= not ex3_inc_byt_g_glb_int(5) ; -- drive back from common
+ ion6:  ex3_inc_byt_c_glb_b(6) <= not ex3_inc_byt_g_glb_int(6) ; -- drive back from common
 
       
 
-END; 
-
-
+END; -- ARCH fuq_add_all1

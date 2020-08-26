@@ -7,6 +7,9 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU SPR - DAC Enable Component
+--
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -35,6 +38,7 @@ port(
 end xuq_spr_dacen;
 architecture xuq_spr_dacen of xuq_spr_dacen is
 
+-- Signals
 signal dac_ld_en,dac_st_en    : std_ulogic_vector(0 to threads-1);
 signal dac_us_en,dac_er_en    : std_ulogic_vector(0 to threads-1);
 

@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--
+--  Description: Pervasive Core LCB Staging
+--
+--*****************************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library support;
@@ -15,7 +20,7 @@ library tri;
 use tri.tri_latches_pkg.all;
 
 entity pcq_clks_stg is
-generic(expand_type             : integer := 2          
+generic(expand_type             : integer := 2          -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
 );         
 port(
     vdd                         : inout power_logic;
@@ -40,6 +45,7 @@ port(
     pc_pc_rtim_sl_thold_4       : in    std_ulogic;
     pc_pc_sg_4                  : in    std_ulogic_vector(0 to 1);
     pc_pc_fce_4                 : in    std_ulogic_vector(0 to 1);
+-- Thold + control from bolton frontend
     bolton_enable               : in    std_ulogic;
     bolton_fcshdata             : in    std_ulogic;
     bolton_fcreset              : in    std_ulogic;
@@ -51,6 +57,7 @@ port(
     bo_pc_time_sl_thold_4       : in    std_ulogic;
     bo_pc_repr_sl_thold_4       : in    std_ulogic;
     bo_pc_sg_4                  : in    std_ulogic;
+--  --Thold + control outputs to the units
     pc_xu_ccflush_dc            : out   std_ulogic;
     pc_xu_gptr_sl_thold_3       : out   std_ulogic;
     pc_xu_time_sl_thold_3       : out   std_ulogic;
@@ -182,6 +189,7 @@ begin
    unused_signals  <= pc_pc_rtim_sl_thold_4;
 
 
+-- Other units use ccflush signal gated for power-savings operation
    pc_xu_ccflush_dc <= pc_pc_ccflush_out_dc;
    pc_bx_ccflush_dc <= pc_pc_ccflush_out_dc;
    pc_iu_ccflush_dc <= pc_pc_ccflush_out_dc;
@@ -190,6 +198,9 @@ begin
    pc_pc_ccflush_dc <= pc_pc_ccflush_out_dc;
 
 
+--=====================================================================
+-- Gate in bolt-on thold/sg controls when bolt-on ABIST enabled
+--=====================================================================
 pc_pc_sg_4_int(0)              <= bo_pc_sg_4 or bolton_fcshdata when bolton_enable='1' else pc_pc_sg_4(0);
 pc_pc_sg_4_int(1)              <= bo_pc_sg_4 or bolton_fcshdata when bolton_enable='1' else pc_pc_sg_4(1);
 
@@ -220,6 +231,11 @@ pc_pc_ary_slp_nsl_thold_4_int  <= bo_pc_ary_nsl_thold_4 when bolton_enable='1' e
 pc_pc_bolt_sl_thold_4_int      <= bo_pc_bolt_sl_thold_4 when bolton_enable='1' else pc_pc_abst_sl_thold_4;
 
 
+--=====================================================================
+-- LCB control signals staged/redriven to other units
+--=====================================================================
+-- IU and MMU thold/SG/FCE exits PCQ at level 4.
+-- The Level 4 to level 3 staging has been moved to the IU RP unit for timing.
 pc_iu_gptr_sl_thold_4       <= pc_pc_gptr_sl_thold_4;
 pc_iu_time_sl_thold_4       <= pc_pc_time_sl_thold_4_int;
 pc_iu_repr_sl_thold_4       <= pc_pc_repr_sl_thold_4_int;
@@ -239,6 +255,7 @@ pc_iu_sg_4                  <= pc_pc_sg_4_int(1);
 pc_iu_fce_4                 <= pc_pc_fce_4(1);
 
 
+-- Start of XU thold/SG/FCE staging (level 4 to level 3)
 xu_func_stg4to3: tri_plat   
    generic map( width => 14, expand_type => expand_type)
    port map( vd      => vdd,
@@ -326,6 +343,7 @@ xu_arry_stg4to3: tri_plat
            ); 
 
 
+-- Start of BX thold/SG/FCE staging (level 4 to level 3)
 bx_ctrls_stg4to3: tri_plat   
    generic map( width => 10, expand_type => expand_type)
    port map( vd      => vdd,
@@ -355,6 +373,7 @@ bx_ctrls_stg4to3: tri_plat
            ); 
 
 
+-- Start of FU thold/SG/FCE staging (level 4 to level 3)
 fu_func_stg4to3: tri_plat   
    generic map( width => 8, expand_type => expand_type)
    port map( vd      => vdd,
@@ -418,6 +437,7 @@ fu_arry_stg4to3: tri_plat
            ); 
 
 
+-- Start of PC thold/SG staging (level 4 to level 3)
 pc_func_stg4to3: tri_plat   
    generic map( width => 4, expand_type => expand_type)
    port map( vd      => vdd,
@@ -449,8 +469,15 @@ pc_ctrl_stg4to3: tri_plat
              q( 2)   => pc_pc_bolt_sl_thold_3,
              q( 3)   => pc_pc_sg_3
            );
+-- End of thold/SG/FCE staging (level 4 to level 3)
 
 
+--=====================================================================
+-- thold/SG staging (level 3 to level 0) for PC units
+--=====================================================================
+------------------------------------------------------
+-- FUNC (RUN)
+------------------------------------------------------
 func_3_2: tri_plat   
    generic map( width => 1, expand_type => expand_type)
    port map( vd      => vdd,
@@ -479,6 +506,9 @@ func_1_0: tri_plat
              q(0)    => pc_pc_func_sl_thold_0
            );
 
+------------------------------------------------------
+-- FUNC (SLEEP)
+------------------------------------------------------
 func_slp_3_2: tri_plat   
    generic map( width => 1, expand_type => expand_type)
    port map( vd      => vdd,
@@ -507,6 +537,9 @@ func_slp_1_0: tri_plat
              q(0)    => pc_pc_func_slp_sl_thold_0
            );
 
+------------------------------------------------------
+-- CFG (RUN)
+------------------------------------------------------
 cfg_3_2: tri_plat   
    generic map( width => 1, expand_type => expand_type)
    port map( vd      => vdd,
@@ -535,6 +568,9 @@ cfg_1_0: tri_plat
              q(0)    => pc_pc_cfg_sl_thold_0
            );
 
+------------------------------------------------------
+-- CFG (SLEEP)
+------------------------------------------------------
 cfg_slp_3_2: tri_plat   
    generic map( width => 1, expand_type => expand_type)
    port map( vd      => vdd,
@@ -563,6 +599,9 @@ cfg_slp_1_0: tri_plat
              q(0)    => pc_pc_cfg_slp_sl_thold_0
            );
 
+------------------------------------------------------
+-- ABST
+------------------------------------------------------
 abst_3_2: tri_plat   
    generic map( width => 2, expand_type => expand_type)
    port map( vd      => vdd,
@@ -597,6 +636,9 @@ abst_1_0: tri_plat
              q(1)    => pc_pc_bolt_sl_thold_0
            );
 
+------------------------------------------------------
+-- GPTR
+------------------------------------------------------
 gptr_3_2: tri_plat   
    generic map( width => 1, expand_type => expand_type)
    port map( vd      => vdd,
@@ -625,6 +667,9 @@ gptr_1_0: tri_plat
              q(0)    => pc_pc_gptr_sl_thold_0
            );
 
+------------------------------------------------------
+-- SG
+------------------------------------------------------
 sg_3_2: tri_plat   
    generic map( width => 1, expand_type => expand_type)
    port map( vd      => vdd,
@@ -655,4 +700,3 @@ sg_1_0: tri_plat
 
 
 end pcq_clks_stg;
-

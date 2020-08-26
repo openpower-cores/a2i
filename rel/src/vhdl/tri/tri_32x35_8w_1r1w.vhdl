@@ -18,15 +18,17 @@ library tri; use tri.tri_latches_pkg.all;
 -- pragma translate_on
 
 entity tri_32x35_8w_1r1w is
-  generic (addressable_ports : positive := 32; 
-           addressbus_width : positive := 5;   
-           port_bitwidth : positive := 35;     
-           ways : positive := 8;                
-           expand_type : integer := 1);         
+  generic (addressable_ports : positive := 32; -- number of addressable register in this array
+           addressbus_width : positive := 5;   -- width of the bus to address all ports (2^addressbus_width >= addressable_ports)
+           port_bitwidth : positive := 35;     -- bitwidth of ports
+           ways : positive := 8;                -- number of ways
+           expand_type : integer := 1);         -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
   port (
+    -- POWER PINS
     gnd               : inout power_logic;
     vdd               : inout power_logic;
     vcs               : inout power_logic;
+    -- CLOCK and CLOCKCONTROL ports
     nclk              : in clk_logic;
     rd0_act           : in std_ulogic;
     sg_0              : in std_ulogic;
@@ -42,6 +44,7 @@ entity tri_32x35_8w_1r1w is
     mpw1_dc_b         : in std_ulogic_vector(0 to 4);
     mpw2_dc_b         : in std_ulogic;
     delay_lclkr_dc    : in std_ulogic_vector(0 to 4);
+    -- ABIST
     wr_abst_act       : in std_ulogic;
     rd0_abst_act      : in std_ulogic;
     abist_di          : in std_ulogic_vector(0 to 3);
@@ -54,30 +57,34 @@ entity tri_32x35_8w_1r1w is
     abist_g8t_rd0_comp_ena      : in std_ulogic;
     abist_raw_dc_b              : in std_ulogic;
     obs0_abist_cmp              : in std_ulogic_vector(0 to 3);
+    -- Scan
     abst_scan_in      : in std_ulogic;
     time_scan_in      : in std_ulogic;
     repr_scan_in      : in std_ulogic;
     abst_scan_out     : out std_ulogic;
     time_scan_out     : out std_ulogic;
     repr_scan_out     : out std_ulogic;
+    -- BOLT-ON
     lcb_bolt_sl_thold_0         : in std_ulogic;
-    pc_bo_enable_2              : in std_ulogic; 
-    pc_bo_reset                 : in std_ulogic; 
-    pc_bo_unload                : in std_ulogic; 
-    pc_bo_repair                : in std_ulogic; 
-    pc_bo_shdata                : in std_ulogic; 
-    pc_bo_select                : in std_ulogic_vector(0 to 3); 
-    bo_pc_failout               : out std_ulogic_vector(0 to 3); 
+    pc_bo_enable_2              : in std_ulogic; -- general bolt-on enable
+    pc_bo_reset                 : in std_ulogic; -- reset
+    pc_bo_unload                : in std_ulogic; -- unload sticky bits
+    pc_bo_repair                : in std_ulogic; -- execute sticky bit decode
+    pc_bo_shdata                : in std_ulogic; -- shift data for timing write and diag loop
+    pc_bo_select                : in std_ulogic_vector(0 to 3); -- select for mask and hier writes
+    bo_pc_failout               : out std_ulogic_vector(0 to 3); -- fail/no-fix reg
     bo_pc_diagloop              : out std_ulogic_vector(0 to 3);
     tri_lcb_mpw1_dc_b           : in  std_ulogic;
     tri_lcb_mpw2_dc_b           : in  std_ulogic;
     tri_lcb_delay_lclkr_dc      : in  std_ulogic;
     tri_lcb_clkoff_dc_b         : in  std_ulogic;
     tri_lcb_act_dis_dc          : in  std_ulogic;
+    -- Write Ports
     write_enable      : in std_ulogic_vector (0 to ((port_bitwidth*ways-1)/(port_bitwidth*2)));
     way               : in std_ulogic_vector (0 to (ways-1));
     addr_wr           : in std_ulogic_vector (0 to (addressbus_width-1));
     data_in           : in std_ulogic_vector (0 to (port_bitwidth-1));
+    -- Read Ports
     addr_rd_01        : in std_ulogic_vector (0 to (addressbus_width-1));
     addr_rd_23        : in std_ulogic_vector (0 to (addressbus_width-1));
     addr_rd_45        : in std_ulogic_vector (0 to (addressbus_width-1));
@@ -103,7 +110,7 @@ constant ramb_width_mult : integer := (port_bitwidth-1)/ramb_base_width + 1;
 
 
 
-begin  
+begin  -- tri_32x35_8w_1r1w
 
   -- synopsys translate_off
   um: if expand_type = 0 generate
@@ -211,7 +218,7 @@ begin
       component RAMB16_S36_S36
         -- pragma translate_off
 	generic(
-		SIM_COLLISION_CHECK : string := "none"); 
+		SIM_COLLISION_CHECK : string := "none"); -- all, none, warning_only, GENERATE_X_ONLY
         -- pragma translate_on
 	port(
 		DOA : out std_logic_vector(31 downto 0);
@@ -281,6 +288,7 @@ begin
       wen <= or_reduce(write_enable);
       act <= rd0_act or wen;
 
+      -- Data Generate
       array_wr_data <= tconv(data_in);
       addr_calc : for t in 0 to 35 generate begin
             R0 : if(t < 35 - (port_bitwidth-1))  generate begin ramb_data_in(t) <= '0';                                       end generate;
@@ -296,6 +304,7 @@ begin
       write_enable_wG <= wen and way(6);
       write_enable_wH <= wen and way(7);      
 
+      -- Read/Write Port Address Generate
       rambAddrCalc : for t in 0 to ramb_base_addr-1 generate begin
             R0 : if(t < ramb_base_addr-addressbus_width) generate begin
                   rd_addr(t) <= '0';
@@ -327,6 +336,7 @@ begin
       arr0_A: RAMB16_S36_S36
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -353,6 +363,7 @@ begin
       arr1_B: RAMB16_S36_S36
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -379,6 +390,7 @@ begin
       arr2_C: RAMB16_S36_S36
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -405,6 +417,7 @@ begin
       arr3_D: RAMB16_S36_S36
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -431,6 +444,7 @@ begin
       arr4_E: RAMB16_S36_S36
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -457,6 +471,7 @@ begin
       arr5_F: RAMB16_S36_S36
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -483,6 +498,7 @@ begin
       arr6_G: RAMB16_S36_S36
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -509,6 +525,7 @@ begin
       arr7_H: RAMB16_S36_S36
           -- pragma translate_off
           generic map(
+          -- all, none, warning_only, generate_x_only
                       sim_collision_check => "none")
           -- pragma translate_on
           port map(
@@ -556,4 +573,3 @@ begin
   end generate a;
 
 end tri_32x35_8w_1r1w;
-

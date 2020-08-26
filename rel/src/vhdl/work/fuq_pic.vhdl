@@ -21,44 +21,44 @@ library ieee,ibm,support,tri,work;
 
  
 entity fuq_pic is
-generic(       expand_type               : integer := 2  ); 
+generic(       expand_type               : integer := 2  ); -- 0 - ibm tech, 1 - other );
 port(
        vdd                                       :inout power_logic;
        gnd                                       :inout power_logic;
-       clkoff_b                                  :in   std_ulogic; 
-       act_dis                                   :in   std_ulogic; 
-       flush                                     :in   std_ulogic; 
-       delay_lclkr                               :in   std_ulogic_vector(1 to 5); 
-       mpw1_b                                    :in   std_ulogic_vector(1 to 5); 
-       mpw2_b                                    :in   std_ulogic_vector(0 to 1); 
+       clkoff_b                                  :in   std_ulogic; -- tiup
+       act_dis                                   :in   std_ulogic; -- ??tidn??
+       flush                                     :in   std_ulogic; -- ??tidn??
+       delay_lclkr                               :in   std_ulogic_vector(1 to 5); -- tidn,
+       mpw1_b                                    :in   std_ulogic_vector(1 to 5); -- tidn,
+       mpw2_b                                    :in   std_ulogic_vector(0 to 1); -- tidn,
        sg_1                                      :in   std_ulogic;
        thold_1                                   :in   std_ulogic;
-       fpu_enable                                :in   std_ulogic; 
+       fpu_enable                                :in   std_ulogic; --dc_act
        nclk                                      :in   clk_logic;
 
-        f_pic_si                   :in  std_ulogic; 
-        f_pic_so                   :out std_ulogic; 
-        f_dcd_rf1_act              :in  std_ulogic; 
+        f_pic_si                   :in  std_ulogic; --perv
+        f_pic_so                   :out std_ulogic; --perv
+        f_dcd_rf1_act              :in  std_ulogic; --act
         f_dcd_rf1_aop_valid        :in  std_ulogic;
         f_dcd_rf1_cop_valid        :in  std_ulogic;
         f_dcd_rf1_bop_valid        :in  std_ulogic;
 
-        f_dcd_rf1_fsel_b           :in  std_ulogic;                 
-        f_dcd_rf1_from_integer_b   :in  std_ulogic;                 
-        f_dcd_rf1_to_integer_b     :in  std_ulogic;                 
-        f_dcd_rf1_rnd_to_int_b     :in  std_ulogic;                 
-        f_dcd_rf1_math_b           :in  std_ulogic;                 
-        f_dcd_rf1_est_recip_b      :in  std_ulogic;                 
-        f_dcd_rf1_est_rsqrt_b      :in  std_ulogic;                 
-        f_dcd_rf1_move_b           :in  std_ulogic;                 
-        f_dcd_rf1_compare_b        :in  std_ulogic;                 
-        f_dcd_rf1_prenorm_b        :in  std_ulogic;                 
-        f_dcd_rf1_frsp_b           :in  std_ulogic;                 
-        f_dcd_rf1_mv_to_scr_b      :in  std_ulogic;                  
-        f_dcd_rf1_mv_from_scr_b    :in  std_ulogic;                  
+        f_dcd_rf1_fsel_b           :in  std_ulogic;                 -- fsel
+        f_dcd_rf1_from_integer_b   :in  std_ulogic;                 -- fcfid (signed integer)
+        f_dcd_rf1_to_integer_b     :in  std_ulogic;                 -- fcti* (signed integer 32/64)
+        f_dcd_rf1_rnd_to_int_b     :in  std_ulogic;                 -- fcti* (signed integer 32/64)
+        f_dcd_rf1_math_b           :in  std_ulogic;                 -- fmul,fmad,fmsub,fadd,fsub,fnmsub,fnmadd
+        f_dcd_rf1_est_recip_b      :in  std_ulogic;                 -- fres
+        f_dcd_rf1_est_rsqrt_b      :in  std_ulogic;                 -- frsqrte
+        f_dcd_rf1_move_b           :in  std_ulogic;                 -- fmr,fneg,fabs,fnabs
+        f_dcd_rf1_compare_b        :in  std_ulogic;                 -- fcomp*
+        f_dcd_rf1_prenorm_b        :in  std_ulogic;                 -- prenorm ?? need
+        f_dcd_rf1_frsp_b           :in  std_ulogic;                 -- round-to-single-precision ?? need
+        f_dcd_rf1_mv_to_scr_b      :in  std_ulogic;                  --mcrfs,mtfsf,mtfsfi,mtfsb0,mtfsb1
+        f_dcd_rf1_mv_from_scr_b    :in  std_ulogic;                  --mffs
         f_dcd_rf1_div_beg          :in  std_ulogic;
         f_dcd_rf1_sqrt_beg         :in  std_ulogic;
-        f_dcd_rf1_force_excp_dis   :in  std_ulogic; 
+        f_dcd_rf1_force_excp_dis   :in  std_ulogic; -- ve=ue=xe=ze=oe= 0
         f_dcd_rf1_ftdiv            :in  std_ulogic; 
         f_dcd_rf1_ftsqrt           :in  std_ulogic; 
         f_fmt_ex2_ae_ge_54         :in  std_ulogic; 
@@ -67,18 +67,18 @@ port(
         f_fmt_ex2_be_ge_2044       :in  std_ulogic; 
         f_fmt_ex2_tdiv_rng_chk     :in  std_ulogic; 
         f_fmt_ex2_be_den           :in  std_ulogic; 
-        f_dcd_rf1_sp               :in  std_ulogic;                 
-        f_dcd_rf1_uns_b            :in  std_ulogic;                 
-        f_dcd_rf1_word_b           :in  std_ulogic;                 
-        f_dcd_rf1_sp_conv_b        :in  std_ulogic;                 
+        f_dcd_rf1_sp               :in  std_ulogic;                 -- single precision output
+        f_dcd_rf1_uns_b            :in  std_ulogic;                 -- convert unsigned
+        f_dcd_rf1_word_b           :in  std_ulogic;                 -- convert word/dw
+        f_dcd_rf1_sp_conv_b        :in  std_ulogic;                 -- convert sp/d
         f_dcd_rf1_pow2e_b          :in  std_ulogic;
         f_dcd_rf1_log2e_b          :in  std_ulogic;
-        f_dcd_rf1_ordered_b        :in  std_ulogic;                 
-        f_dcd_rf1_sub_op_b         :in  std_ulogic;                 
-        f_dcd_rf1_op_rnd_v_b       :in  std_ulogic;                 
-        f_dcd_rf1_op_rnd_b         :in  std_ulogic_vector(0 to 1);  
-        f_dcd_rf1_inv_sign_b       :in  std_ulogic;                 
-        f_dcd_rf1_sign_ctl_b       :in  std_ulogic_vector(0 to 1);  
+        f_dcd_rf1_ordered_b        :in  std_ulogic;                 -- fcompo
+        f_dcd_rf1_sub_op_b         :in  std_ulogic;                 -- fsub, fnmsub, fmsub (fcomp)
+        f_dcd_rf1_op_rnd_v_b       :in  std_ulogic;                 -- fctidz, fctiwz, prenorm, fri*
+        f_dcd_rf1_op_rnd_b         :in  std_ulogic_vector(0 to 1);  --
+        f_dcd_rf1_inv_sign_b       :in  std_ulogic;                 -- fnmsub fnmadd
+        f_dcd_rf1_sign_ctl_b       :in  std_ulogic_vector(0 to 1);  -- 0:fmr/fneg  1:fneg/fnabs
         f_dcd_rf1_sgncpy_b         :in std_ulogic;
 
         f_byp_pic_ex1_a_sign       :in  std_ulogic;
@@ -86,8 +86,8 @@ port(
         f_byp_pic_ex1_b_sign       :in  std_ulogic;
 
 
-        f_dcd_rf1_nj_deno          :in  std_ulogic;                 
-        f_dcd_rf1_nj_deni          :in  std_ulogic;                 
+        f_dcd_rf1_nj_deno          :in  std_ulogic;                 -- force output den to zero
+        f_dcd_rf1_nj_deni          :in  std_ulogic;                 -- force output den to zero
 
         f_cr2_ex1_fpscr_shadow     :in  std_ulogic_vector(0 to 7);
 
@@ -105,11 +105,11 @@ port(
         f_fmt_ex1_b_frac_zero      :in  std_ulogic;
         f_fmt_ex1_b_frac_msb       :in  std_ulogic;
         f_fmt_ex1_prod_zero        :in  std_ulogic;
-        f_fmt_ex1_bexpu_le126      :in  std_ulogic; 
-        f_fmt_ex1_gt126            :in  std_ulogic; 
-        f_fmt_ex1_ge128            :in  std_ulogic; 
+        f_fmt_ex1_bexpu_le126      :in  std_ulogic; -- log2e/pow2e special cases
+        f_fmt_ex1_gt126            :in  std_ulogic; -- log2e/pow2e special cases
+        f_fmt_ex1_ge128            :in  std_ulogic; -- log2e/pow2e special cases
         f_fmt_ex1_inf_and_beyond_sp  :in  std_ulogic;
-        f_alg_ex1_sign_frmw        :in  std_ulogic; 
+        f_alg_ex1_sign_frmw        :in  std_ulogic; --?? from_int word is always unsigned (do not need this signal)
 
         f_fmt_ex2_pass_sign        :in  std_ulogic;
         f_fmt_ex2_pass_msb         :in  std_ulogic;
@@ -147,12 +147,12 @@ port(
         f_pic_alg_ex1_act          :out std_ulogic;
         f_pic_cr2_ex1_act          :out std_ulogic;
         f_pic_tbl_ex1_act          :out std_ulogic;
-        f_pic_add_ex1_act_b        :out std_ulogic;
-        f_pic_lza_ex1_act_b        :out std_ulogic;
-        f_pic_eov_ex2_act_b        :out std_ulogic;
-        f_pic_nrm_ex3_act_b        :out std_ulogic;
-        f_pic_rnd_ex3_act_b        :out std_ulogic;
-        f_pic_scr_ex2_act_b        :out std_ulogic;
+        f_pic_add_ex1_act_b        :out std_ulogic;--set
+        f_pic_lza_ex1_act_b        :out std_ulogic;--set
+        f_pic_eov_ex2_act_b        :out std_ulogic;--set
+        f_pic_nrm_ex3_act_b        :out std_ulogic;--set
+        f_pic_rnd_ex3_act_b        :out std_ulogic;--set
+        f_pic_scr_ex2_act_b        :out std_ulogic;--set
 
 
 
@@ -199,8 +199,8 @@ port(
         f_pic_ex3_sel_est                      :out std_ulogic;        
 
 
-        f_dcd_rf1_uc_ft_pos                    :in  std_ulogic; 
-        f_dcd_rf1_uc_ft_neg                    :in  std_ulogic; 
+        f_dcd_rf1_uc_ft_pos                    :in  std_ulogic; -- force div/sqrt result poitive
+        f_dcd_rf1_uc_ft_neg                    :in  std_ulogic; -- force div/sqrt result poitive
         f_dcd_rf1_uc_mid                       :in  std_ulogic;
         f_dcd_rf1_uc_end                       :in  std_ulogic;
         f_dcd_rf1_uc_special                   :in  std_ulogic;
@@ -303,8 +303,7 @@ port(
 
 
 
-
-end fuq_pic; 
+end fuq_pic; -- ENTITY
 
 architecture fuq_pic of fuq_pic is
 
@@ -826,26 +825,29 @@ begin
 
   unused <= ex3_byp_prod_nz_sub or ex4_sel_spec_f or
             rf1_act or 
-            ex2_op_rnd(0) or 
-            ex2_op_rnd(1) or 
-            ex3_b_sign_adj or  
-            ex3_b_valid or 
-            ex3_gen_max or 
-            ex3_sh_unf or 
-            ex3_sh_ovf or 
-            ex4_nonieee or 
-            ex4_xe or 
-            ex4_fsel or 
-            ex4_move or 
-            ex4_prenorm or 
-            ex4_div_beg or 
-            ex4_sqrt_beg or 
-            ex4_sub_op or 
-            ex4_log2e or 
-            ex4_pow2e or 
-            ex5_unused; 
+            ex2_op_rnd(0) or --lat--
+            ex2_op_rnd(1) or --lat--
+            ex3_b_sign_adj or  --lat--
+            ex3_b_valid or --lat--
+            ex3_gen_max or --lat-- ????
+            ex3_sh_unf or --lat--
+            ex3_sh_ovf or --lat--
+            ex4_nonieee or --lat--
+            ex4_xe or --lat--
+            ex4_fsel or --lat--
+            ex4_move or --lat--
+            ex4_prenorm or --lat--
+            ex4_div_beg or --lat--
+            ex4_sqrt_beg or --lat--
+            ex4_sub_op or --lat--
+            ex4_log2e or --lat--
+            ex4_pow2e or --lat--
+            ex5_unused; --lat--
 
 
+--//################################################################
+--//# pervasive
+--//################################################################
 
     thold_reg_0:  tri_plat  generic map (expand_type => expand_type) port map (
          vd        => vdd,
@@ -874,6 +876,9 @@ begin
 
 
 
+--//################################################################
+--//# act
+--//################################################################
 
     
 
@@ -881,15 +886,16 @@ begin
         vd               => vdd,
         gd               => gnd,
         nclk             => nclk,
-        forcee => forcee, 
-        delay_lclkr      => delay_lclkr(4), 
-        mpw1_b           => mpw1_b(4), 
-        mpw2_b           => mpw2_b(0), 
-        act              => fpu_enable, 
-        thold_b          => thold_0_b, 
-        sg               => sg_0,  
+        forcee => forcee, --tidn,
+        delay_lclkr      => delay_lclkr(4), --tidn,
+        mpw1_b           => mpw1_b(4), --tidn,
+        mpw2_b           => mpw2_b(0), --tidn,
+        act              => fpu_enable, --tiup
+        thold_b          => thold_0_b, --tiup,
+        sg               => sg_0,  --tidn,
         scout            => act_so  ,                      
         scin             => act_si  ,                    
+        -------------------
          din(0)             => spare_unused(0),
          din(1)             => spare_unused(1),
          din(2)             =>   tiup,         
@@ -911,15 +917,16 @@ begin
          din(18)            => ex3_act,
          din(19)            => spare_unused(2),
          din(20)            => spare_unused(3),
+        -------------------
         dout(0)             => spare_unused(0),
         dout(1)             => spare_unused(1),
-        dout(2)             => f_pic_fmt_ex1_act , 
-        dout(3)             => f_pic_eie_ex1_act , 
-        dout(4)             => f_pic_mul_ex1_act , 
-        dout(5)             => f_pic_alg_ex1_act , 
-        dout(6)             => f_pic_cr2_ex1_act , 
+        dout(2)             => f_pic_fmt_ex1_act , --output
+        dout(3)             => f_pic_eie_ex1_act , --output
+        dout(4)             => f_pic_mul_ex1_act , --output
+        dout(5)             => f_pic_alg_ex1_act , --output
+        dout(6)             => f_pic_cr2_ex1_act , --output
         dout(7)             => rf1_act,
-        dout(8)             => f_pic_tbl_ex1_act , 
+        dout(8)             => f_pic_tbl_ex1_act , --output
         dout(9)             => ex1_act,
         dout(10)            => ex1_act_add ,
         dout(11)            => ex1_act_lza ,
@@ -944,6 +951,9 @@ begin
 
 
 
+--//################################################################
+--//# ex1 latches
+--//################################################################
 
 
   rf1_fsel           <= not f_dcd_rf1_fsel_b           ;
@@ -986,27 +996,28 @@ begin
   rf1_nj_deno_x      <= f_dcd_rf1_nj_deno  and
                     not f_dcd_rf1_div_beg  and 
                     not f_dcd_rf1_sqrt_beg and 
-                    not rf1_to_integer     and  
+                    not rf1_to_integer     and  -- do not want denorm outputs in the middle of a divide
                     not rf1_den_ok ;
 
   rf1_nj_deni_x      <= f_dcd_rf1_nj_deni and
-                    not rf1_den_ok        ; 
+                    not rf1_den_ok        ; -- do not want denorm outputs in the middle of a divide
 
 
 
     ex1_ctl_lat:  tri_rlmreg_p generic map (width=> 43, expand_type => expand_type) port map ( 
         vd               => vdd,
         gd               => gnd,
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(1), 
-        mpw1_b           => mpw1_b(1), 
-        mpw2_b           => mpw2_b(0), 
+        forcee => forcee,--tidn,
+        delay_lclkr      => delay_lclkr(1), --tidn,
+        mpw1_b           => mpw1_b(1), --tidn,
+        mpw2_b           => mpw2_b(0), --tidn,
         nclk             => nclk,
         act              => f_dcd_rf1_act, 
         thold_b          => thold_0_b,
         sg               => sg_0, 
         scout            => ex1_ctl_so  ,                      
         scin             => ex1_ctl_si  ,                    
+        -------------------
          din( 0)            => rf1_fsel           ,
          din( 1)            => rf1_from_integer   ,
          din( 2)            => rf1_to_integer     ,
@@ -1051,6 +1062,7 @@ begin
          din(41)            => f_dcd_rf1_ftdiv  , 
          din(42)            => f_dcd_rf1_ftsqrt , 
 
+        -------------------
         dout( 0)            => ex1_fsel             ,
         dout( 1)            => ex1_from_integer     ,
         dout( 2)            => ex1_to_integer       ,
@@ -1106,35 +1118,35 @@ begin
                            ex1_mv_to_scr or 
                            ex1_mv_from_scr ;
 
-        ex1_ve      <= f_cr2_ex1_fpscr_shadow(0) and not ex1_force_excp_dis; 
-        ex1_oe      <= f_cr2_ex1_fpscr_shadow(1) and not ex1_force_excp_dis; 
-        ex1_ue      <= f_cr2_ex1_fpscr_shadow(2) and not ex1_force_excp_dis; 
-        ex1_ze      <= f_cr2_ex1_fpscr_shadow(3) and not ex1_force_excp_dis; 
-        ex1_xe      <= f_cr2_ex1_fpscr_shadow(4) and not ex1_force_excp_dis; 
-        ex1_nonieee <= f_cr2_ex1_fpscr_shadow(5); 
+        ex1_ve      <= f_cr2_ex1_fpscr_shadow(0) and not ex1_force_excp_dis; -- 24
+        ex1_oe      <= f_cr2_ex1_fpscr_shadow(1) and not ex1_force_excp_dis; -- 25
+        ex1_ue      <= f_cr2_ex1_fpscr_shadow(2) and not ex1_force_excp_dis; -- 26
+        ex1_ze      <= f_cr2_ex1_fpscr_shadow(3) and not ex1_force_excp_dis; -- 27
+        ex1_xe      <= f_cr2_ex1_fpscr_shadow(4) and not ex1_force_excp_dis; -- 28
+        ex1_nonieee <= f_cr2_ex1_fpscr_shadow(5); -- 29
 
         ex1_rnd_fpscr(0 to 1) <= f_cr2_ex1_fpscr_shadow(6 to 7);
 
 
 
-        ex1_rnd0    <= ( f_cr2_ex1_fpscr_shadow(6) and not ex1_op_rnd_v ) or 
+        ex1_rnd0    <= ( f_cr2_ex1_fpscr_shadow(6) and not ex1_op_rnd_v ) or -- 30
                        ( ex1_op_rnd(0)             and     ex1_op_rnd_v );
-        ex1_rnd1    <= ( f_cr2_ex1_fpscr_shadow(7) and not ex1_op_rnd_v ) or 
+        ex1_rnd1    <= ( f_cr2_ex1_fpscr_shadow(7) and not ex1_op_rnd_v ) or -- 31
                        ( ex1_op_rnd(1)             and     ex1_op_rnd_v ) ;
-        ex1_rnd_dis <=   tidn and f_fmt_ex1_prod_zero and ex1_nj_deni ; 
+        ex1_rnd_dis <=   tidn and f_fmt_ex1_prod_zero and ex1_nj_deni ; -- force truncate "01"
 
-        f_pic_ex1_rnd_to_int <= ex1_rnd_to_int ; 
+        f_pic_ex1_rnd_to_int <= ex1_rnd_to_int ; --output--
 
 
 
         ex1_flush_dis_sp <= ex1_uc_mid or 
                             ex1_fsel or
-                            ex1_log2e or 
-                            ex1_pow2e or 
+                            ex1_log2e or -- denorm input forced to zero
+                            ex1_pow2e or -- denorm input forced to zero
                             ex1_prenorm or
                             ex1_move or
                             ex1_to_integer or 
-                            ex1_frsp ;
+                            ex1_frsp ;-- (never prenorm frsp)
 
         ex1_flush_dis_dp <= ex1_flush_dis_sp or
                             ex1_from_integer or
@@ -1145,46 +1157,67 @@ begin
         f_pic_ex1_flush_en_sp <= not ex1_flush_dis_sp ;
         f_pic_ex1_flush_en_dp <= not ex1_flush_dis_dp ;
 
-        f_pic_ex1_log2e  <= ex1_log2e;
-        f_pic_ex1_pow2e  <= ex1_pow2e;
+        f_pic_ex1_log2e  <= ex1_log2e;--output--
+        f_pic_ex1_pow2e  <= ex1_pow2e;--output--
 
 
+--//################################################################
+--//# ex1 logic
+--//################################################################
+        -- fmr/fneg/fabs/fnabs
+        -- fsel
+        -- mffs
+        -- mcrfs, mtcrf, mtfs*
+        -- prenorm_sp prenorm_dp
+        -- fcomp
+        -- fmul fadd fsub fmadd fmsub fnmsub fnmadd
+        -- fres,frsqrte
+        -- frsp
+        ---------------------------------------------
+        --
+        --
 
-        f_pic_ex1_from_integer    <=     ex1_from_integer ; 
-        f_pic_ex1_fsel            <=     ex1_fsel         ; 
+        f_pic_ex1_from_integer    <=     ex1_from_integer ; --output--
+        f_pic_ex1_fsel            <=     ex1_fsel         ; --output--
 
-        f_pic_ex1_sh_ovf_do       <= ex1_fsel        or     
+        f_pic_ex1_sh_ovf_do       <= ex1_fsel        or     --output--
                                      ex1_move        or
                                      ex1_prenorm     or  
                                      ex1_mv_to_scr   or 
                                      ex1_mv_from_scr ; 
 
-        f_pic_ex1_sh_ovf_ig_b     <= not( ex1_from_integer or  not ex1_b_valid ); 
+        f_pic_ex1_sh_ovf_ig_b     <= not( ex1_from_integer or  not ex1_b_valid ); --output--
 
-        f_pic_ex1_sh_unf_do       <=     not ex1_b_valid   
+        f_pic_ex1_sh_unf_do       <=     not ex1_b_valid   --output--
                                       or ex1_est_recip 
                                       or ex1_est_rsqrt ;
 
-        f_pic_ex1_sh_unf_ig_b     <= not ex1_from_integer ; 
+        f_pic_ex1_sh_unf_ig_b     <= not ex1_from_integer ; --output-- --UNSET--
 
 
 ex1_a_sign  <=  f_byp_pic_ex1_a_sign       ;
 ex1_c_sign  <=  f_byp_pic_ex1_c_sign       ;
 ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
 
-        ex1_b_sign_adj_x          <= ex1_b_sign xor ex1_sub_op ; 
-        ex1_p_sign                <= ex1_a_sign xor ex1_c_sign ; 
+        ex1_b_sign_adj_x          <= ex1_b_sign xor ex1_sub_op ; --addend sign adjusted
+        ex1_p_sign                <= ex1_a_sign xor ex1_c_sign ; --product sign
 
-        ex1_b_sign_adj <= 
+        ex1_b_sign_adj <= -- multiply/divide always use p-sign
                (ex1_b_sign_adj_x   and         ex1_b_valid ) or 
                (ex1_p_sign         and     not ex1_b_valid ) ;
 
         ex1_div_sign <= (ex1_a_sign xor ex1_b_sign) and ex1_div_beg ;
 
+       --//#------------------------------------------
+       --//# effective subtract
+       --//#------------------------------------------
 
-        f_pic_ex1_effsub_raw      <=  
+        f_pic_ex1_effsub_raw      <=  --output--
             (ex1_math or ex1_compare) and ( ex1_b_sign_adj xor ex1_p_sign );
 
+       --//#---------------------------------------------
+       --//# sign logic  alter b-sign for funny moves
+       --//#---------------------------------------------
 
        ex1_b_sign_alt <= 
              (    ex1_a_sign     and     ex1_move   and      ex1_sgncpy        and ex1_b_valid   ) or 
@@ -1200,6 +1233,9 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
 
 
  
+--//################################################################
+--//# ex2 latches
+--//################################################################
 
       ex1_lzo_dis <=
              ( ex1_uc_mid        ) or
@@ -1209,7 +1245,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
              ( ex1_from_integer  ) or
              ( ex1_est_recip     ) or 
              ( ex1_est_rsqrt     ) or 
-             ( ex1_to_integer and not ex1_rnd_to_int); 
+             ( ex1_to_integer and not ex1_rnd_to_int); --f_pic_ex2_to_integer
 
 
 
@@ -1221,11 +1257,11 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
        ex1_c_inf    <=  f_fmt_ex1_c_expo_max and     f_fmt_ex1_c_frac_zero and not ex1_uc_end_nspec and not ex1_uc_mid;
        ex1_b_inf    <=  f_fmt_ex1_b_expo_max and     f_fmt_ex1_b_frac_zero and not ex1_uc_end_nspec and not ex1_uc_mid;
 
-       ex1_bf_10000 <= ( f_fmt_ex1_b_imp and f_fmt_ex1_b_frac_zero ) or 
+       ex1_bf_10000 <= ( f_fmt_ex1_b_imp and f_fmt_ex1_b_frac_zero ) or -- imp=1, frac=0
                        ( f_fmt_ex1_b_imp and f_fmt_ex1_b_frac_z32 and ex1_word );
 
 
-        f_pic_ex1_frsp_ue1 <= ex1_frsp and ex1_ue ;
+        f_pic_ex1_frsp_ue1 <= ex1_frsp and ex1_ue ;--output
 
 
    ex1_sp               <= not ex1_sp_b             ;
@@ -1234,16 +1270,17 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
     ex2_ctl_lat:  tri_rlmreg_p generic map (width=> 57, expand_type => expand_type) port map ( 
         vd               => vdd,
         gd               => gnd,
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(2), 
-        mpw1_b           => mpw1_b(2), 
-        mpw2_b           => mpw2_b(0), 
+        forcee => forcee,--tidn,
+        delay_lclkr      => delay_lclkr(2), --tidn,
+        mpw1_b           => mpw1_b(2), --tidn,
+        mpw2_b           => mpw2_b(0), --tidn,
         nclk             => nclk,
         act              => ex1_act,
         thold_b          => thold_0_b,
         sg               => sg_0, 
         scout            => ex2_ctl_so  ,                      
         scin             => ex2_ctl_si  ,                    
+        -------------------
          din( 0)            => ex1_fsel             ,
          din( 1)            => ex1_from_integer     ,
          din( 2)            => ex1_to_integer       ,
@@ -1299,7 +1336,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          din(52)            => ex1_nj_deno          ,
          din(53)            => ex1_ftdiv            , 
          din(54)            => ex1_ftsqrt           , 
-         din(55)            => tiup                 , 
+         din(55)            => tiup                 , -- tie to the accuracy level
          din(56)            => f_fmt_ex1_b_imp      , 
         dout( 0)            => ex2_fsel             ,
         dout( 1)            => ex2_from_integer     ,
@@ -1361,13 +1398,13 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
 
 
   ex2_to_int_uns_neg <= ex2_to_integer and not ex2_rnd_to_int and ex2_uns and ex2_b_sign_alt;
-  ex2_wd_ov_x <= f_eie_ex2_wd_ov;  
-  ex2_dw_ov_x <= f_eie_ex2_dw_ov;  
+  ex2_wd_ov_x <= f_eie_ex2_wd_ov;  -- or  ex2_to_int_uns_neg; -- keep uns neg seperate
+  ex2_dw_ov_x <= f_eie_ex2_dw_ov;  -- or  ex2_to_int_uns_neg; -- keep uns neg seperate
 
 
- f_pic_ex2_frsp_ue1 <= ex2_frsp and ex2_ue;
- f_pic_ex2_b_valid  <= ex2_b_valid; 
- f_pic_ex2_ue1      <= ex2_ue or ex2_ovf_unf_dis ;
+ f_pic_ex2_frsp_ue1 <= ex2_frsp and ex2_ue;--output
+ f_pic_ex2_b_valid  <= ex2_b_valid; --output
+ f_pic_ex2_ue1      <= ex2_ue or ex2_ovf_unf_dis ;--output
  
 
               ex1_sp_invalid <=  ( f_fmt_ex1_sp_invalid and ex1_sp and not ex1_from_integer
@@ -1377,16 +1414,17 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
     ex2_flg_lat:  tri_rlmreg_p generic map (width=> 18, expand_type => expand_type) port map ( 
         vd               => vdd,
         gd               => gnd,
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(2), 
-        mpw1_b           => mpw1_b(2), 
-        mpw2_b           => mpw2_b(0), 
+        forcee => forcee,--tidn,
+        delay_lclkr      => delay_lclkr(2), --tidn,
+        mpw1_b           => mpw1_b(2), --tidn,
+        mpw2_b           => mpw2_b(0), --tidn,
         nclk             => nclk,
         act              => ex1_act,
         thold_b          => thold_0_b,
         sg               => sg_0, 
         scout            => ex2_flg_so  ,                      
         scin             => ex2_flg_si  ,                    
+        -------------------
          din( 0)            => f_fmt_ex1_a_frac_msb ,
          din( 1)            => f_fmt_ex1_c_frac_msb ,
          din( 2)            => f_fmt_ex1_b_frac_msb ,
@@ -1405,6 +1443,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          din(15)            => f_fmt_ex1_gt126       ,
          din(16)            => f_fmt_ex1_ge128       ,
          din(17)            => f_fmt_ex1_inf_and_beyond_sp ,
+        -------------------
         dout( 0)            => ex2_a_frac_msb       ,
         dout( 1)            => ex2_c_frac_msb       ,
         dout( 2)            => ex2_b_frac_msb       ,
@@ -1426,13 +1465,16 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
 
 
 
+--//################################################################
+--//# ex2 logic
+--//################################################################
 
-        f_pic_ex2_sp_b            <= not ex2_sp;         
-        f_pic_ex2_to_integer      <= ex2_to_integer and not ex2_rnd_to_int; 
+        f_pic_ex2_sp_b            <= not ex2_sp;         --output--
+        f_pic_ex2_to_integer      <= ex2_to_integer and not ex2_rnd_to_int; --output-- --lza only
         f_pic_ex2_prenorm         <= ex2_prenorm ;
 
 
-        f_pic_ex2_force_sel_bexp  <=  
+        f_pic_ex2_force_sel_bexp  <=  --output--
              (ex2_from_integer ) or
              (ex2_move         ) or
              (ex2_mv_to_scr    ) or 
@@ -1441,17 +1483,17 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
              (ex2_est_recip    ) or
              (ex2_est_rsqrt    ) ;
 
-        f_pic_ex2_est_recip <= ex2_est_recip;
-        f_pic_ex2_est_rsqrt <= ex2_est_rsqrt;
+        f_pic_ex2_est_recip <= ex2_est_recip;--output--feie
+        f_pic_ex2_est_rsqrt <= ex2_est_rsqrt;--output--feie
 
-        f_pic_ex2_sp_lzo          <= 
+        f_pic_ex2_sp_lzo          <= --output--
              (ex2_frsp             ) or
              (ex2_math and ex2_sp  );
 
-        f_pic_ex2_lzo_dis_prod    <=  
+        f_pic_ex2_lzo_dis_prod    <=  --output--
              (ex2_math and ex2_ue ) or 
              (ex2_frsp and ex2_ue ) or
-             (ex2_lzo_dis         ); 
+             (ex2_lzo_dis         ); -- intermediate steps div/sqrt
 
         f_pic_ex2_math_bzer_b  <= not( ex2_math and ex2_b_zero );
 
@@ -1462,7 +1504,81 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
  f_pic_ex2_rnd_nr     <= ex2_rnd_nr ;
  f_pic_ex2_rnd_inf_ok <= ex2_rnd_inf_ok ;
 
+  --//#------------------------------------------------------
+  --//# special cases from inputs
+  --//#------------------------------------------------------
+    --//# special cases can force 4 different results: PassNan genNan Inf Zero
+    --//#   (the value of inf can be modified based on round-mode)
+    --//#
+    --//# ...................................................................
+    --//#   @@ Specail Cases From inputs (other than NAN)
+    --//#   COMPARE : no special cases other than NAN which sets NAN compare
+    --//#
+    --//#   FROMINT   : BZero          T=+Zero  FI=0 FR=0 UX=0 OX=0 FPRF=+Zero // all others are +/- NORM
+    --//#
+    --//#   TOINT     : BZero+         T=+Zero  FI=0 FR=0 UX=0 OX=0 FPRF=00000 (ALL TOINTEGER UX=0 OX=0 FPRF=00000)
+    --//#   TOINT     : BZero-         T=+Zero  FI=0 FR=0 UX=0 OX=0 FPRF=00000 (ALL TOINTEGER UX=0 OX=0 FPRF=00000)
+    --//#   TOINT     : BNan           T=80000  Fi=0 Fr=0 Ux=0 Ox=0 FPRF=00000 (ALL TOINTEGER UX=0 OX=0 FPRF=00000)
+    --//#   TOINT     : BInf+          T=PIPE   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=00000 (ALL TOINTEGER UX=0 OX=0 FPRF=00000)
+    --//#   TOINT     : BInf-          T=PIPE   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=00000 (ALL TOINTEGER UX=0 OX=0 FPRF=00000)
+    --//#
+    --//#   FRES      : BZer+          T=+INF   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=+INF  // ZX (Ve=1: hold FPRF)
+    --//#   FRES      : BZer-          T=-INF   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=-INF  // ZX (Ve=1: hold FPRF)
+    --//#   FRES      : BInf+          T=+Zer   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=+Zer
+    --//#   FRES      : BInf-          T=-Zer   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=-Zer
+    --//#   FRES      : BNAN           T=PASS   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=qNAN
+    --//#
+    --//#   FRSQRTE   : BZer+          T=Inf+   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=Inf+  // ZX (Ve=1: hold FPRF)
+    --//#   FRSQRTE   : BZer-          T=Inf-   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=Inf-  // ZX (Ve=1: hold FPRF)
+    --//#   FRSQRTE   : BInf-          T=NAN    Fi=0 Fr=0 Ux=0 Ox=0 FPRF=nan   // vxsqrt
+    --//#   FRSQRTE   : B-             T=NAN    Fi=0 Fr=0 Ux=0 Ox=0 FPRF=nan   // vxsqrt
+    --//#   FRSQRTE   : BInf+          T=Zer+   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=Zer+
+    --//#   FRSQRTE   : BNan           T=PASS   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=nan   // vxsnan[?12]
+    --//#
+    --//#   SQRT_END  : BZer+          T=Zer+   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=Zer+
+    --//#   SQRT_END  : BZer-          T=Zer-   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=Zer-
+    --//#   SQRT_END  : BINF-          T=NAN    Fi=0 Fr=0 Ux=0 Ox=0 FPRF=NAN   // vxsqrt
+    --//#   SQRT_END  : B-             T=NAN    Fi=0 Fr=0 Ux=0 Ox=0 FPRF=NAN   // vxsqrt
+    --//#   SQRT_END  : BINF+          T=Inf+   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=Inf+
+    --//#   SQRT_END  : BNan           T=PASS   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=nan   // vxsnan[?12]
+    --//#
+    --//#   DIV_BEG   : BZer+          T=Inf?   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=Inf?  // ZX (Ve=1: hold FPRF) (vxZDZ if A=Zer)
+    --//#   DIV_BEG   : BZer-          T=Inf?   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=Inf?  // ZX (Ve=1: hold FPRF) (vxZDZ if A=Zer)
+    --//#   DIV_BEG   : BNAN           T=Pass   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=nan   // vxsnan[?12]
+    --//#   DIV_BEG   : BInf+          T=Zer?   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=Zer?  //                      (vxIDI if A=Inf)
+    --//#   DIV_BEG   : BInf-          T=Zer?   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=Zer?  //                      (vxIDI if A=Inf)
+    --//#   DIV_BEG   : Both,AInf      T=Inf?   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=Inf?  //
+    --//#   DIV_BEG   : Both,AZer      T=Zer?   Fi=0 Fr=0 Ux=0 Ox=0 FPRF=Zer?  //
+    --//#
+    --//#   FRSP      : BZer+          T=Zer+   Fi=0 Fr=0 Ux=0 Ox=0 Fprf=Zer+
+    --//#   FRSP      : BZer-          T=Zer-   Fi=0 Fr=0 Ux=0 Ox=0 Fprf=Zer-
+    --//#   FRSP      : BInf+          T=Inf+   Fi=0 Fr=0 Ux=0 Ox=0 Fprf=Inf+
+    --//#   FRSP      : BInf-          T=Inf-   Fi=0 Fr=0 Ux=0 Ox=0 Fprf=Inf-
+    --//#   FRSP      : BNan           T=Pass   Fi=0 Fr=0 Ux=0 Ox=0 Fprf=Nan?
+    --//#
+    --//#   MATH      : ANAN           T=Pass   Fi=0 Fr=0 Ux=0 Ox=0 Fprf=Nan?
+    --//#   MATH      : BNAN           T=Pass   Fi=0 Fr=0 Ux=0 Ox=0 Fprf=Nan?
+    --//#   MATH      : CNAN           T=Pass   Fi=0 Fr=0 Ux=0 Ox=0 Fprf=Nan?
+    --//#   MATH      : BZer*AZer      T=Zer@@  Fi-0 Fr=0 Ux=0 Ox=0 Fprf=Zer@@  @@:ExactZero Rounding Rule
+    --//#   MATH      : BZer*CZer      T=Zer@@  Fi-0 Fr=0 Ux=0 Ox=0 Fprf=Zer@@  @@:ExactZero Rounding Rule
+    --//#
+    --//#   MATH : AINF|CINF|BINF      T=???    Fi=0 Fr=0 Ux=0 Ox=0 Fprf=???
+    --//#
+    --//#    A   C   B
+    --//#    Z   I   x  => GenNan : vxIMZ
+    --//#    I   Z   x  => GenNan : vxIMZ
+    --//#    I  !Z   I  => GenNan : vxISI if effsub
+    --//#   !Z   I   I  => GenNan : vxISI if effsub
+    --//#    I  !Z   I  => INF    :       if effadd // sign = psign
+    --//#   !Z   I   I  => INF    :       if effadd // sign = psign
+    --//#    I  !Z  !I  => INF    : psign
+    --//#   !Z   I  !I  => INF    : psign
+    --//#   !ZI !ZI  I  => INF    : bsign xor sub_op
+    --//#
 
+       --//#----------------------------------------------------
+       --//# pass NAN  (math,est,frsp)
+       --//#----------------------------------------------------
 
        ex2_a_snan      <= ex2_a_nan and not ex2_a_frac_msb;
        ex2_b_snan      <= ex2_b_nan and not ex2_b_frac_msb;
@@ -1484,38 +1600,41 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
            (ex2_b_snan and ex2_nan_op_grp2    ) or 
            (f_dcd_ex2_uc_vxsnan               )  ; 
                        
-       ex2_vxvc   <= 
-           (ex2_compo and ex2_a_qnan and not ex2_b_snan  ) or 
-           (ex2_compo and ex2_b_qnan and not ex2_a_snan  ) or 
-           (ex2_compo and ex2_a_snan and not ex2_ve      ) or 
-           (ex2_compo and ex2_b_snan and not ex2_ve      ) ;  
+       ex2_vxvc   <= --(2)
+           (ex2_compo and ex2_a_qnan and not ex2_b_snan  ) or -- qnan
+           (ex2_compo and ex2_b_qnan and not ex2_a_snan  ) or -- qnan
+           (ex2_compo and ex2_a_snan and not ex2_ve      ) or -- snan
+           (ex2_compo and ex2_b_snan and not ex2_ve      ) ;  -- snan
 
-       ex2_vxcvi  <= 
+       ex2_vxcvi  <= --(3)
            (ex2_to_integer and ex2_b_nan and not ex2_rnd_to_int)  and not ex2_sp_invalid;
 
-       ex2_vxzdz  <= f_dcd_ex2_uc_vxzdz or 
+       ex2_vxzdz  <= f_dcd_ex2_uc_vxzdz or --(4) FDIV only
            (ex2_a_zero and ex2_b_zero and ex2_div_beg and not ex2_sp_invalid)  ;
 
-       ex2_vxidi  <= f_dcd_ex2_uc_vxidi or 
+       ex2_vxidi  <= f_dcd_ex2_uc_vxidi or --(5) FDIV only
            (ex2_a_inf  and ex2_b_inf  and ex2_div_beg  and not ex2_sp_invalid) ;
 
 
 
+       --//#----------------------------------------------------
+       --//# special case genNAN
+       --//#----------------------------------------------------
 
        ex2_p_inf  <= ex2_a_inf  or ex2_c_inf;
        ex2_p_zero <= ex2_a_zero or ex2_c_zero;
 
 
-       ex2_vximz  <= 
+       ex2_vximz  <= --(6)
           (ex2_math      and  ex2_p_inf and ex2_p_zero) and not ex2_sp_invalid;
 
-       ex2_vxisi  <= 
+       ex2_vxisi  <= --(7)
           (ex2_math      and  ex2_b_inf and ex2_p_inf and not ex2_p_zero and not f_alg_ex2_effsub_eac_b ) and not ex2_sp_invalid;
 
-       ex2_vxsqrt <= f_dcd_ex2_uc_vxsqrt or 
+       ex2_vxsqrt <= f_dcd_ex2_uc_vxsqrt or --(8)
           ( (ex2_est_rsqrt or ex2_sqrt_beg)  and ex2_b_sign_alt and not ex2_b_zero  and not ex2_b_nan and not ex2_sp_invalid)  ;
 
-       ex2_gen_nan_dv <=  (ex2_a_zero and ex2_b_zero     and ex2_div_beg ) or 
+       ex2_gen_nan_dv <=  (ex2_a_zero and ex2_b_zero     and ex2_div_beg ) or
                          ( (ex2_vxidi  or ex2_sp_invalid) and ex2_div_beg  );
 
        ex2_gen_nan_sq <= (ex2_vxsqrt or ex2_sp_invalid) and ex2_sqrt_beg ;
@@ -1525,23 +1644,33 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
                       ex2_gen_nan_pow or 
                       ex2_vxisi or
                       ex2_vximz or                      
-                      (ex2_a_zero and ex2_b_zero and ex2_div_beg ) or 
+                      (ex2_a_zero and ex2_b_zero and ex2_div_beg ) or
                       ex2_vxsqrt or
                       ex2_vxidi or 
-           (ex2_sp_invalid and not ex2_pow2e and not ex2_log2e ) ;
+           (ex2_sp_invalid and not ex2_pow2e and not ex2_log2e ) ;-- sp op requires exponent in sp range (except frsp)
 
+       -- NAN             *log:QNAN_PASS   *pow: QNAN_PASS
+       -- -INF            *log:QNAN_dflt    pow: +0
+       -- +INF            *log:+INF        *pow: +INF
+       --  -0             *log:-INF        *pow: +1
+       --  +0             *log:-INF        *pow: +1
+       -- NEG             *log:QNAN_dflt   *pow: xxxxx
+       -- -0 <x< 2**-126  *log:-INF        *pow: xxxxx
+       -- +0 <x< 2**-126  *log: xxxxx      *pow: +1
+       -- -2**-126 <x<-0  *log: xxxxx      *pow: +1
+       -- -INF <x<-126    *log: xxxxx       pow: 0
 
 
        
 
 
        ex2_log_ofzero    <= (ex2_log2e and ex2_b_zero ) or
-                            (ex2_log2e and ex2_bexpu_le126 ); 
+                            (ex2_log2e and ex2_bexpu_le126 ); -- +/- denorm
 
        ex2_gen_one <= (ex2_pow2e and ex2_b_zero) or
-                      (ex2_pow2e and ex2_bexpu_le126 ); 
+                      (ex2_pow2e and ex2_bexpu_le126 ); -- small denorms pos/neg
 
-       ex2_gen_nan_log <= ( ex2_log2e and ex2_b_sign_alt and not ex2_b_zero and not ex2_bexpu_le126 ) or  
+       ex2_gen_nan_log <= ( ex2_log2e and ex2_b_sign_alt and not ex2_b_zero and not ex2_bexpu_le126 ) or  --also catches -INF input
                           ( ex2_log2e and ex2_b_nan );
 
        ex2_gen_inf_log <= ex2_log_ofzero or
@@ -1556,6 +1685,9 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
 
        ex2_gen_nan_pow <= ( ex2_pow2e and ex2_b_nan ) ;
 
+       --//#----------------------------------------------------
+       --//# special case genINF
+       --//#----------------------------------------------------
 
        ex2_zx <= f_dcd_ex2_uc_zx or
                (ex2_b_zero and not ex2_a_zero
@@ -1574,21 +1706,27 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
            (ex2_to_integer and ex2_b_inf ) or 
            (ex2_zx                       ) or
            (ex2_frsp and ex2_b_inf       ) or
-           (ex2_math and ex2_any_inf     ) or  
+           (ex2_math and ex2_any_inf     ) or  -- priority will throw away the PassNan/GenNan cases
            (ex2_gen_inf_sq ) or
            (ex2_gen_inf_dv );
 
-       ex2_inf_sign <= 
-           (     ex2_p_inf and                   ex2_p_sign     ) or 
+       ex2_inf_sign <= -- will be "ANDed" with ex2_math
+           (     ex2_p_inf and                   ex2_p_sign     ) or -- could both be inf (effadd) and ok
            ( not ex2_p_inf and     ex2_b_inf and ex2_b_sign_adj );               
 
 
        ex2_any_inf <= ex2_a_inf or ex2_c_inf or ex2_b_inf ;
 
+       --//#----------------------------------------------------
+       --//# special case genMax
+       --//#----------------------------------------------------
 
-       ex2_gen_max  <=  
+       ex2_gen_max  <=  -- these are inf/max depending on rnd mode.
            (ex2_to_integer and ex2_b_inf and not ex2_rnd_to_int);
 
+       --//#----------------------------------------------------
+       --//# special case genZero
+       --//#----------------------------------------------------
 
        ex2_gen_zer_sq <= ex2_sqrt_beg    and ex2_b_zero ;
        ex2_gen_zer_dv <= ex2_div_beg     and ex2_b_inf and not ex2_a_nan and not ex2_a_inf ;
@@ -1599,14 +1737,17 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
            ( ex2_to_integer                          and ex2_b_zero ) or
            ( ex2_from_integer and not ex2_b_sign_alt and ex2_b_zero ) or
            ( ex2_frsp                                and ex2_b_zero ) or
-           ( ex2_prenorm and not  ex2_div_beg        and ex2_b_zero ) or 
+           ( ex2_prenorm and not  ex2_div_beg        and ex2_b_zero ) or -- div by zero is INF
            ( ex2_est_recip                           and ex2_b_inf  ) or
            ( ex2_est_rsqrt   and not ex2_b_sign_alt  and ex2_b_inf  ) or
            ( ex2_gen_zer_sq ) or 
            ( ex2_gen_zer_dv );
 
+       --//#----------------------------------------------------
+       --//# special case special sign
+       --//#----------------------------------------------------
 
-       ex2_neg_sqrt_nz <= 
+       ex2_neg_sqrt_nz <= -- divide must use PSign
            ( ex2_est_rsqrt and ex2_b_sign_alt and not ex2_b_zero) ;
 
        ex2_toint_genz <= ex2_to_integer and  ex2_b_zero ;
@@ -1618,7 +1759,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
        ex2_rnd_ni <= ex2_rnd0 and ex2_rnd1 ;
        ex2_exact_zero_sign <=
             (    ex2_effsub_eac and  (ex2_rnd_ni xor ex2_inv_sign) ) or 
-            (not ex2_effsub_eac and  (ex2_p_sign ) );               
+            (not ex2_effsub_eac and  (ex2_p_sign ) );               -- xor ex2_inv_sign
 
 
        ex2_prenorm_special <= ex2_gen_zer_dv or ex2_gen_inf_dv or ex2_gen_nan_dv or
@@ -1636,7 +1777,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
        ex2_spec_sign <= 
            (     ex2_pass_x and f_fmt_ex2_pass_sign             ) or
            ( not ex2_pass_x and ex2_prenorm and ex2_prenorm_sign  and not ex2_gen_nan ) or 
-           ( not ex2_pass_x and ex2_math and (ex2_a_zero or ex2_c_zero) and ex2_b_zero and ex2_exact_zero_sign and not ex2_inf_sign and not ex2_gen_nan) or 
+           ( not ex2_pass_x and ex2_math and (ex2_a_zero or ex2_c_zero) and ex2_b_zero and ex2_exact_zero_sign and not ex2_inf_sign and not ex2_gen_nan) or -- exact_zero
            ( not ex2_pass_x and ex2_log_ofzero                                         and not ex2_gen_nan ) or 
            ( not ex2_pass_x and not ex2_math and ex2_b_sign_alt and not ex2_neg_sqrt_nz
                                                                 and not ex2_prenorm
@@ -1645,7 +1786,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
                                                                 and not ex2_toint_genz and not ex2_gen_nan ) or 
            ( not ex2_pass_x and     ex2_math and ex2_inf_sign                          and not ex2_gen_nan ) or
            (     ex2_toint_nan_sign                                                    ) or 
-           (    ex2_b_sign_alt and ex2_rnd_to_int                                      and not ex2_gen_nan  ) ; 
+           (    ex2_b_sign_alt and ex2_rnd_to_int                                      and not ex2_gen_nan  ) ; --sign in = sign out
 
        ex2_quiet <= 
             ex2_pass_nan and not f_fmt_ex2_pass_msb and (ex2_math       or
@@ -1655,55 +1796,63 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
                                                          ex2_est_rsqrt     );
        
         
+       --//#----------------------------------------------------
+       --//# set up for compares
+       --//#----------------------------------------------------
 
-        ex2_cmp_zero <= ex2_a_zero and ex2_b_zero; 
+        ex2_cmp_zero <= ex2_a_zero and ex2_b_zero; -- and ex2_pass_en;
 
-        ex2_is_nan     <= ( ex2_compare and     ex2_pass_nan ) ; 
+        -- b-sign was already flipped for compares
+        ex2_is_nan     <= ( ex2_compare and     ex2_pass_nan ) ;
 
-        ex2_is_eq      <= ( ex2_compare and not ex2_pass_nan and     ex2_cmp_zero ) or  
-                          ( (ex2_ftsqrt or ex2_ftdiv)  and     ex2_b_zero ) or 
-                          ( (ex2_ftsqrt or ex2_ftdiv)  and     ex2_b_inf  ) or 
-                          ( (ex2_ftsqrt or ex2_ftdiv)  and     ex2_b_nan  ) or 
-                          (                ex2_ftdiv   and     ex2_a_inf  ) or 
-                          (                ex2_ftdiv   and     ex2_a_nan  ) or 
-                          (  ex2_ftsqrt                and     ex2_b_sign_alt     ) or  
-                          (  ex2_ftsqrt and not f_fmt_ex2_be_ge_54                    ) or  
-                          (  ex2_ftdiv  and not f_fmt_ex2_ae_ge_54 and not ex2_a_zero ) or  
-                          (  ex2_ftdiv  and not f_fmt_ex2_be_ge_2                     ) or  
-                          (  ex2_ftdiv  and     f_fmt_ex2_be_ge_2044                  ) or  
-                          (  ex2_ftdiv  and     f_fmt_ex2_tdiv_rng_chk and not ex2_a_zero ); 
+        ex2_is_eq      <= ( ex2_compare and not ex2_pass_nan and     ex2_cmp_zero ) or
+                          ( (ex2_ftsqrt or ex2_ftdiv)  and     ex2_b_zero ) or
+                          ( (ex2_ftsqrt or ex2_ftdiv)  and     ex2_b_inf  ) or
+                          ( (ex2_ftsqrt or ex2_ftdiv)  and     ex2_b_nan  ) or
+                          (                ex2_ftdiv   and     ex2_a_inf  ) or
+                          (                ex2_ftdiv   and     ex2_a_nan  ) or
+                          (  ex2_ftsqrt                and     ex2_b_sign_alt     ) or
+                          (  ex2_ftsqrt and not f_fmt_ex2_be_ge_54                    ) or
+                          (  ex2_ftdiv  and not f_fmt_ex2_ae_ge_54 and not ex2_a_zero ) or
+                          (  ex2_ftdiv  and not f_fmt_ex2_be_ge_2                     ) or
+                          (  ex2_ftdiv  and     f_fmt_ex2_be_ge_2044                  ) or
+                          (  ex2_ftdiv  and     f_fmt_ex2_tdiv_rng_chk and not ex2_a_zero );
 
-        ex2_is_gt      <= ( ex2_compare and not ex2_pass_nan and not ex2_cmp_zero and not ex2_a_sign  and not ex2_b_sign_alt ) or  
-                          ( (ex2_ftsqrt or ex2_ftdiv)  and not ex2_b_imp     ) or 
-                          ( (ex2_ftsqrt or ex2_ftdiv)  and f_fmt_ex2_be_den  ) or 
-                          ( (ex2_ftsqrt or ex2_ftdiv)  and     ex2_b_zero    ) or 
-                          ( (ex2_ftsqrt or ex2_ftdiv)  and     ex2_b_inf     ) or 
-                          (                ex2_ftdiv   and     ex2_a_inf     ) ;  
+        ex2_is_gt      <= ( ex2_compare and not ex2_pass_nan and not ex2_cmp_zero and not ex2_a_sign  and not ex2_b_sign_alt ) or
+                          ( (ex2_ftsqrt or ex2_ftdiv)  and not ex2_b_imp     ) or -- denormalize DP value
+                          ( (ex2_ftsqrt or ex2_ftdiv)  and f_fmt_ex2_be_den  ) or -- detect denorm after prenorm
+                          ( (ex2_ftsqrt or ex2_ftdiv)  and     ex2_b_zero    ) or
+                          ( (ex2_ftsqrt or ex2_ftdiv)  and     ex2_b_inf     ) or
+                          (                ex2_ftdiv   and     ex2_a_inf     ) ;
 
 
-        ex2_is_lt      <= ( ex2_compare and not ex2_pass_nan and not ex2_cmp_zero and     ex2_a_sign  and     ex2_b_sign_alt ) or 
-                          ( ex2_ftdiv   and     ex2_accuracy ) or 
-                          ( ex2_ftsqrt  and     ex2_accuracy ) ;  
+        ex2_is_lt      <= ( ex2_compare and not ex2_pass_nan and not ex2_cmp_zero and     ex2_a_sign  and     ex2_b_sign_alt ) or
+                          ( ex2_ftdiv   and     ex2_accuracy ) or
+                          ( ex2_ftsqrt  and     ex2_accuracy ) ;
         ex2_cmp_sgnneg <= ( ex2_compare and not ex2_pass_nan and not ex2_cmp_zero and     ex2_a_sign  and not ex2_b_sign_alt ) ;
         ex2_cmp_sgnpos <= ( ex2_compare and not ex2_pass_nan and not ex2_cmp_zero and not ex2_a_sign  and     ex2_b_sign_alt ) ;
 
 
+--//################################################################
+--//# ex3 latches
+--//################################################################
 
 
 
     ex3_scr_lat:  tri_rlmreg_p generic map (width=> 8, expand_type => expand_type) port map ( 
         vd               => vdd,
         gd               => gnd,
-        forcee => forcee, 
-        delay_lclkr      => delay_lclkr(3), 
-        mpw1_b           => mpw1_b(3), 
-        mpw2_b           => mpw2_b(0) ,
+        forcee => forcee, --tidn,
+        delay_lclkr      => delay_lclkr(3), --tidn,
+        mpw1_b           => mpw1_b(3), --tidn,
+        mpw2_b           => mpw2_b(0) ,--tidn,
         nclk             => nclk,
         act              => ex2_act,
         thold_b          => thold_0_b,
         sg               => sg_0, 
         scout            => ex3_scr_so  ,                      
         scin             => ex3_scr_si  ,                    
+        -------------------
          din(0)             => ex2_ve        ,
          din(1)             => ex2_oe        ,
          din(2)             => ex2_ue        ,
@@ -1712,6 +1861,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          din(5)             => ex2_nonieee   ,
          din(6)             => ex2_rnd0      ,
          din(7)             => ex2_rnd1      ,
+        -------------------
         dout(0)             => ex3_ve      ,
         dout(1)             => ex3_oe      ,
         dout(2)             => ex3_ue      ,
@@ -1722,6 +1872,8 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
         dout(7)             => ex3_rnd1   );
 
 
+  --//#----------------------------------------------------
+  --//# Don't truncate NaN's to SP on first divide/sqrt pass (*_beg = 1)
 
   ex2_sp_notrunc <= ex2_sp and not (
                    ( ex2_div_beg and (ex2_a_nan or ex2_b_nan)) or
@@ -1735,16 +1887,17 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
     ex3_ctl_lat:  tri_rlmreg_p generic map (width=> 34, expand_type => expand_type) port map ( 
         vd               => vdd,
         gd               => gnd,
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(3), 
-        mpw1_b           => mpw1_b(3), 
-        mpw2_b           => mpw2_b(0), 
+        forcee => forcee,--tidn,
+        delay_lclkr      => delay_lclkr(3), --tidn,
+        mpw1_b           => mpw1_b(3), --tidn,
+        mpw2_b           => mpw2_b(0), --tidn,
         nclk             => nclk,
         act              => ex2_act,
         thold_b          => thold_0_b,
         sg               => sg_0, 
         scout            => ex3_ctl_so  ,                  
         scin             => ex3_ctl_si  ,                    
+        -------------------
          din( 0)            => ex2_fsel             ,
          din( 1)            => ex2_from_integer     ,
          din( 2)            => ex2_to_integer       ,
@@ -1779,6 +1932,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          din(31)            => ex2_pow2e            ,
          din(32)            => ex2_ovf_unf_dis      ,
          din(33)            => ex2_nj_deno          ,
+        -------------------
         dout( 0)            => ex3_fsel             ,
         dout( 1)            => ex3_from_integer     ,
         dout( 2)            => ex3_to_integer       ,
@@ -1817,14 +1971,14 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
         ex3_nj_deno_x <= ex3_nj_deno and not ex3_ue ;
 
         ex3_byp_prod_nz   <=    (     ex3_math                    and
-                                  not ex3_b_zero                  and 
+                                  not ex3_b_zero                  and -- math,b=z cancells byp
                                   not ex3_prod_zero               and
                                      (ex3_a_valid or ex3_c_valid) and 
                                       ex3_sel_byp                           );
 
         ex3_byp_prod_nz_sub   <=    (     ex3_math                    and
                                           ex3_effsub_eac              and 
-                                      not ex3_b_zero                  and 
+                                      not ex3_b_zero                  and -- math,b=z cancells byp
                                       not ex3_prod_zero               and
                                          (ex3_a_valid or ex3_c_valid) and 
                                           ex3_sel_byp                           );
@@ -1838,17 +1992,18 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
     ex3_flg_lat:  tri_rlmreg_p generic map (width=> 47, expand_type => expand_type) port map ( 
         vd               => vdd,
         gd               => gnd,
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(3), 
-        mpw1_b           => mpw1_b(3) ,
-        mpw2_b           => mpw2_b(0), 
+        forcee => forcee,--tidn,
+        delay_lclkr      => delay_lclkr(3), --tidn,
+        mpw1_b           => mpw1_b(3) ,--tidn,
+        mpw2_b           => mpw2_b(0), --tidn,
         nclk             => nclk,
         act              => ex2_act,
         thold_b          => thold_0_b,
         sg               => sg_0, 
         scout            => ex3_flg_so,                      
         scin             => ex3_flg_si  ,                    
-         din( 0)            => ex2_vxsnan      ,
+        -------------------
+         din( 0)            => ex2_vxsnan      ,--exceptions
          din( 1)            => ex2_vxvc        ,  
          din( 2)            => ex2_vxcvi       ,
          din( 3)            => ex2_vxzdz       ,
@@ -1857,20 +2012,20 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          din( 6)            => ex2_vxisi       ,
          din( 7)            => ex2_vxsqrt      ,
          din( 8)            => ex2_zx          ,
-         din( 9)            => ex2_gen_nan     , 
+         din( 9)            => ex2_gen_nan     , --sel_k
          din(10)            => ex2_gen_inf     ,
          din(11)            => ex2_gen_max     ,
          din(12)            => ex2_gen_zero    ,
-         din(13)            => ex2_spec_sign   ,
+         din(13)            => ex2_spec_sign   ,--sign special
          din(14)            => ex2_quiet       ,
-         din(15)            => ex2_is_nan      ,
+         din(15)            => ex2_is_nan      ,--compares
          din(16)            => ex2_is_eq       ,
          din(17)            => ex2_is_gt       ,
          din(18)            => ex2_is_lt       ,
          din(19)            => ex2_cmp_sgnneg  ,
          din(20)            => ex2_cmp_sgnpos  ,
-         din(21)            => ex2_wd_ov_x     , 
-         din(22)            => ex2_dw_ov_x     , 
+         din(21)            => ex2_wd_ov_x     , --f_eie_ex2_wd_ov ,-- flags from toInt exponent
+         din(22)            => ex2_dw_ov_x     , --f_eie_ex2_dw_ov ,
          din(23)            => f_eie_ex2_wd_ov_if ,  
          din(24)            => f_eie_ex2_dw_ov_if ,
          din(25)            => ex2_to_int_uns_neg , 
@@ -1895,7 +2050,8 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          din(44)            => ex2_uc_g_ig ,
          din(45)            => ex2_uc_mid ,
          din(46)            => ex2_uc_end_spec ,
-        dout( 0)            => ex3_vxsnan      ,
+        -------------------
+        dout( 0)            => ex3_vxsnan      ,--exceptions
         dout( 1)            => ex3_vxvc        ,  
         dout( 2)            => ex3_vxcvi       ,
         dout( 3)            => ex3_vxzdz       ,
@@ -1904,19 +2060,19 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
         dout( 6)            => ex3_vxisi       ,
         dout( 7)            => ex3_vxsqrt      ,
         dout( 8)            => ex3_zx          ,
-        dout( 9)            => ex3_gen_nan     , 
+        dout( 9)            => ex3_gen_nan     , --sel_k
         dout(10)            => ex3_gen_inf     ,
         dout(11)            => ex3_gen_max     ,
         dout(12)            => ex3_gen_zero    ,
-        dout(13)            => ex3_spec_sign   ,
+        dout(13)            => ex3_spec_sign   ,--sign special
         dout(14)            => ex3_quiet       ,
-        dout(15)            => ex3_is_nan      ,
+        dout(15)            => ex3_is_nan      ,--compares
         dout(16)            => ex3_is_eq       ,
         dout(17)            => ex3_is_gt       ,
         dout(18)            => ex3_is_lt       ,
         dout(19)            => ex3_cmp_sgnneg  ,
         dout(20)            => ex3_cmp_sgnpos  ,
-        dout(21)            => ex3_wd_ov       ,
+        dout(21)            => ex3_wd_ov       ,-- flags from toInt exponent
         dout(22)            => ex3_dw_ov       ,  
         dout(23)            => ex3_wd_ov_if    ,  
         dout(24)            => ex3_dw_ov_if    ,
@@ -1944,32 +2100,38 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
         dout(46)            => ex3_uc_end_spec ); 
 
 
-        f_mad_ex3_uc_round_mode(0 to 1) <= ex3_rnd_fpscr(0 to 1); 
-        f_mad_ex3_uc_res_sign           <= ex3_div_sign ;
-        f_mad_ex3_uc_zx                 <= ex3_zx and not ex3_pass_nan ;
-        f_mad_ex3_uc_special            <= ex3_pass_nan  or 
+        f_mad_ex3_uc_round_mode(0 to 1) <= ex3_rnd_fpscr(0 to 1); --output--
+        f_mad_ex3_uc_res_sign           <= ex3_div_sign ;--output--
+        f_mad_ex3_uc_zx                 <= ex3_zx and not ex3_pass_nan ;--output--
+        f_mad_ex3_uc_special            <= ex3_pass_nan  or --output--
                                            ex3_gen_nan   or
                                            ex3_gen_zero  or
                                            ex3_gen_inf   ;
                                            
-        f_mad_ex3_uc_vxidi              <= ex3_vxidi    ;
-        f_mad_ex3_uc_vxzdz              <= ex3_vxzdz    ;
-        f_mad_ex3_uc_vxsqrt             <= ex3_vxsqrt   ;
-        f_mad_ex3_uc_vxsnan             <= ex3_vxsnan   ;
+        f_mad_ex3_uc_vxidi              <= ex3_vxidi    ;--output--
+        f_mad_ex3_uc_vxzdz              <= ex3_vxzdz    ;--output--
+        f_mad_ex3_uc_vxsqrt             <= ex3_vxsqrt   ;--output--
+        f_mad_ex3_uc_vxsnan             <= ex3_vxsnan   ;--output--
 
-        f_pic_ex3_cmp_sgnneg      <= ex3_cmp_sgnneg; 
-        f_pic_ex3_cmp_sgnpos      <= ex3_cmp_sgnpos; 
-        f_pic_ex3_is_eq           <= ex3_is_eq     ; 
-        f_pic_ex3_is_gt           <= ex3_is_gt     ; 
-        f_pic_ex3_is_lt           <= ex3_is_lt     ; 
-        f_pic_ex3_is_nan          <= ex3_is_nan    ; 
+        f_pic_ex3_cmp_sgnneg      <= ex3_cmp_sgnneg; --output--
+        f_pic_ex3_cmp_sgnpos      <= ex3_cmp_sgnpos; --output--
+        f_pic_ex3_is_eq           <= ex3_is_eq     ; --output--
+        f_pic_ex3_is_gt           <= ex3_is_gt     ; --output--
+        f_pic_ex3_is_lt           <= ex3_is_lt     ; --output--
+        f_pic_ex3_is_nan          <= ex3_is_nan    ; --output--
 
-        f_pic_ex3_sel_est         <= ex3_est_recip or ex3_est_rsqrt; 
-        f_pic_ex3_sp_b            <= not ex3_sp ; 
-
-
+        f_pic_ex3_sel_est         <= ex3_est_recip or ex3_est_rsqrt; --output--
+        f_pic_ex3_sp_b            <= not ex3_sp ; --output--
 
 
+
+--//################################################################
+--//# ex3 logic
+--//################################################################
+
+   --//##-----------------------------------------
+   --//## mutex selects for specials
+   --//##-----------------------------------------
 
 
    ex3_gen_rnd2int     <= ex3_rnd_to_int  and ex3_lt_bias ;
@@ -1979,9 +2141,10 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
    
    ex3_rnd2int_up <=
             (not ex3_rnd0 and not ex3_rnd1 and     ex3_eq_bias_m1 and not ex3_b_zero ) or
-            (    ex3_rnd0 and not ex3_rnd1 and not ex3_b_sign_alt and not ex3_b_zero ) or 
-            (    ex3_rnd0 and     ex3_rnd1 and     ex3_b_sign_alt and not ex3_b_zero );   
+            (    ex3_rnd0 and not ex3_rnd1 and not ex3_b_sign_alt and not ex3_b_zero ) or --pos_inf   --f_alg_ex3_int_fi and **1
+            (    ex3_rnd0 and     ex3_rnd1 and     ex3_b_sign_alt and not ex3_b_zero );   --neg_inf   --f_alg_ex3_int_fi and **1
 
+-- **1 rnd_rnd to int spec does not block round up becuase b is zero. i think that may be a mistake.
 
 
 
@@ -1999,14 +2162,14 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
         ex3_to_int_wd    <=  ex3_to_integer and     ex3_word and not ex3_rnd_to_int;
         ex3_to_int_dw    <=  ex3_to_integer and not ex3_word and not ex3_rnd_to_int;
         ex3_to_int_ov    <=
-          ( ex3_to_int_wd and ex3_wd_ov                                                ) or 
-          ( ex3_to_int_dw and ex3_dw_ov                                                ) or 
-          ( ex3_to_int_wd and ex3_wd_ov_if and not ex3_b_sign_alt and not ex3_uns      ) or 
-          ( ex3_to_int_dw and ex3_dw_ov_if and not ex3_b_sign_alt and not ex3_uns      ) or 
-          ( ex3_to_int_wd and ex3_wd_ov_if and     ex3_b_sign_alt and not(ex3_bf_10000 and not f_alg_ex3_int_fr) and not ex3_uns ) or  
-          ( ex3_to_int_dw and ex3_dw_ov_if and     ex3_b_sign_alt and not(ex3_bf_10000 and not f_alg_ex3_int_fr) and not ex3_uns ) ;   
+          ( ex3_to_int_wd and ex3_wd_ov                                                ) or -- definitely overflowed (includes unsigned)
+          ( ex3_to_int_dw and ex3_dw_ov                                                ) or -- definitely overflowed (includes unsigned)
+          ( ex3_to_int_wd and ex3_wd_ov_if and not ex3_b_sign_alt and not ex3_uns      ) or -- definitely overflowed (excludes unsigned)
+          ( ex3_to_int_dw and ex3_dw_ov_if and not ex3_b_sign_alt and not ex3_uns      ) or -- definitely overflowed (excludes unsigned)
+          ( ex3_to_int_wd and ex3_wd_ov_if and     ex3_b_sign_alt and not(ex3_bf_10000 and not f_alg_ex3_int_fr) and not ex3_uns ) or  -- definitely overflowed
+          ( ex3_to_int_dw and ex3_dw_ov_if and     ex3_b_sign_alt and not(ex3_bf_10000 and not f_alg_ex3_int_fr) and not ex3_uns ) ;   -- definitely overflowed
 
-        ex3_to_int_ov_if <=  ex3_to_integer and not ex3_b_sign_alt; 
+        ex3_to_int_ov_if <=  ex3_to_integer and not ex3_b_sign_alt; -- -- to_int positive
           
 
         ex3_spec_sel_e <=
@@ -2036,13 +2199,17 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
         ex3_unf_en_oe1 <= ex3_uf_en and     ex3_ue ;
 
 
+   --//##-----------------------------------------
+   --//## sign logic
+   --//##-----------------------------------------
+     -- multiply always uses p_sign (already replicated)
 
    ex3_spec_sign_sel <= ex3_spec_sel_e  or
                         ex3_prenorm     or 
                         ex3_fsel        or
                         ex3_mv_from_scr or
                         ex3_rnd_to_int  or
-                        ex3_log2e       or
+                        ex3_log2e       or-- log2e/pow2e regular sign merged in later
                         ex3_pow2e       or
                         ex3_uc_ft_pos   or 
                         ex3_uc_ft_neg; 
@@ -2052,34 +2219,38 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
    ex3_spec_sign_x <= (ex3_spec_sign and not ex3_uc_ft_pos) or  ex3_uc_ft_neg;
 
 
-   ex3_sign_pco <= 
+   ex3_sign_pco <= -- favors p-sign
          (     ex3_spec_sign_sel and ex3_spec_sign_x            ) or
          ( not ex3_spec_sign_sel and ex3_b_sign_alt and not ex3_p_sign_may                                       ) or
          ( not ex3_spec_sign_sel and ex3_p_sign     and     ex3_p_sign_may  and not (ex3_prod_zero and ex3_math) ) or 
          ( not ex3_spec_sign_sel and ex3_b_sign_alt and     ex3_p_sign_may  and     (ex3_prod_zero and ex3_math) ); 
             
-   ex3_sign_nco <= 
+   ex3_sign_nco <= -- favors b-sign
          (     ex3_spec_sign_sel and ex3_spec_sign_x           ) or
          ( not ex3_spec_sign_sel and ex3_b_sign_alt and not(ex3_b_zero and ex3_math) ) or
          ( not ex3_spec_sign_sel and ex3_p_sign     and    (ex3_b_zero and ex3_math) );
                   
 
+--//################################################################
+--//# ex4 latches
+--//################################################################
 
 
  
     ex4_scr_lat:  tri_rlmreg_p generic map (width=> 8, expand_type => expand_type) port map ( 
         vd               => vdd,
         gd               => gnd,
-        forcee => forcee, 
-        delay_lclkr      => delay_lclkr(4), 
-        mpw1_b           => mpw1_b(4) ,
-        mpw2_b           => mpw2_b(0) ,
+        forcee => forcee, --tidn,
+        delay_lclkr      => delay_lclkr(4), --tidn,
+        mpw1_b           => mpw1_b(4) ,--tidn,
+        mpw2_b           => mpw2_b(0) ,--tidn,
         nclk             => nclk,
         act              => ex3_act,
         thold_b          => thold_0_b,
         sg               => sg_0, 
         scout            => ex4_scr_so  ,                      
         scin             => ex4_scr_si  ,                    
+        -------------------
          din(0)             => ex3_ve        ,
          din(1)             => ex3_oe_x      ,
          din(2)             => ex3_ue_x      ,
@@ -2088,6 +2259,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          din(5)             => ex3_nonieee   ,
          din(6)             => ex3_rnd0      ,
          din(7)             => ex3_rnd1      ,
+        -------------------
         dout(0)             => ex4_ve      ,
         dout(1)             => ex4_oe      ,
         dout(2)             => ex4_ue      ,
@@ -2102,16 +2274,17 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
     ex4_ctl_lat:  tri_rlmreg_p generic map (width=> 29, expand_type => expand_type) port map ( 
         vd               => vdd,
         gd               => gnd,
-        forcee => forcee, 
-        delay_lclkr      => delay_lclkr(4), 
-        mpw1_b           => mpw1_b(4) ,
-        mpw2_b           => mpw2_b(0) ,
+        forcee => forcee, --tidn,
+        delay_lclkr      => delay_lclkr(4), --tidn,
+        mpw1_b           => mpw1_b(4) ,--tidn,
+        mpw2_b           => mpw2_b(0) ,--tidn,
         nclk             => nclk,
         act              => ex3_act,
         thold_b          => thold_0_b,
         sg               => sg_0, 
         scout            => ex4_ctl_so  ,                      
         scin             => ex4_ctl_si  ,                    
+        -------------------
          din( 0)            => ex3_fsel             ,
          din( 1)            => ex3_from_integer     ,
          din( 2)            => ex3_to_integer       ,
@@ -2141,6 +2314,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          din(26)            => ex3_pow2e            ,  
          din(27)            => ex3_ovf_unf_dis      ,  
          din(28)            => ex3_nj_deno_x        ,
+        -------------------
         dout( 0)            => ex4_fsel             ,
         dout( 1)            => ex4_from_integer     ,
         dout( 2)            => ex4_to_integer       ,
@@ -2178,17 +2352,18 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
     ex4_flg_lat:  tri_rlmreg_p generic map (width=> 38, expand_type => expand_type) port map ( 
         vd               => vdd,
         gd               => gnd,
-        forcee => forcee, 
-        delay_lclkr      => delay_lclkr(4), 
-        mpw1_b           => mpw1_b(4) ,
-        mpw2_b           => mpw2_b(0) ,
+        forcee => forcee, --tidn,
+        delay_lclkr      => delay_lclkr(4), --tidn,
+        mpw1_b           => mpw1_b(4) ,--tidn,
+        mpw2_b           => mpw2_b(0) ,--tidn,
         nclk             => nclk,
         act              => ex3_act,
         thold_b          => thold_0_b,
         sg               => sg_0, 
         scout            => ex4_flg_so  ,                      
         scin             => ex4_flg_si  ,                    
-         din( 0)            => ex3_vxsnan        ,
+        -------------------
+         din( 0)            => ex3_vxsnan        ,--exceptions
          din( 1)            => ex3_vxvc          ,  
          din( 2)            => ex3_vxcvi         ,
          din( 3)            => ex3_vxzdz         ,
@@ -2197,13 +2372,13 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          din( 6)            => ex3_vxisi         ,
          din( 7)            => ex3_vxsqrt        ,
          din( 8)            => ex3_zx            ,
-         din( 9)            => ex3_gen_nan_mutex     , 
+         din( 9)            => ex3_gen_nan_mutex     , --sel_k
          din(10)            => ex3_gen_inf_mutex     ,
          din(11)            => ex3_gen_max_mutex     ,
          din(12)            => ex3_gen_zer_mutex     ,
          din(13)            => ex3_gen_one_mutex     ,
          din(14)            => ex3_quiet       ,
-         din(15)            => ex3_to_int_wd   ,
+         din(15)            => ex3_to_int_wd   ,-- flags from toInt exponent
          din(16)            => ex3_to_int_dw   ,  
          din(17)            => ex3_to_int_ov    ,  
          din(18)            => ex3_to_int_ov_if  ,
@@ -2226,7 +2401,8 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          din(35)            => ex3_uc_g_ig     ,
          din(36)            => ex3_uc_mid      ,
          din(37)            => ex3_uc_end_spec ,
-        dout( 0)            => ex4_vxsnan      ,
+        -------------------
+        dout( 0)            => ex4_vxsnan      ,--exceptions
         dout( 1)            => ex4_vxvc        ,  
         dout( 2)            => ex4_vxcvi       ,
         dout( 3)            => ex4_vxzdz       ,
@@ -2235,13 +2411,13 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
         dout( 6)            => ex4_vxisi       ,
         dout( 7)            => ex4_vxsqrt      ,
         dout( 8)            => ex4_zx          ,
-        dout( 9)            => ex4_gen_nan     , 
+        dout( 9)            => ex4_gen_nan     , --sel_k
         dout(10)            => ex4_gen_inf     ,
         dout(11)            => ex4_gen_max     ,
         dout(12)            => ex4_gen_zero    ,
         dout(13)            => ex4_gen_one     ,
         dout(14)            => ex4_quiet       ,
-        dout(15)            => ex4_to_int_wd   ,
+        dout(15)            => ex4_to_int_wd   ,-- flags from toInt exponent
         dout(16)            => ex4_to_int_dw   ,  
         dout(17)            => ex4_to_int_ov   ,  
         dout(18)            => ex4_to_int_ov_if  ,
@@ -2274,11 +2450,14 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
             ( f_add_ex4_to_int_ovf_dw(1)  and ex4_to_int_dw and not ex4_uns and ex4_to_int_ov_if         ) ;
 
         ex4_to_int_ov_all <=
-                 ex4_to_int_uns_neg or 
+                 ex4_to_int_uns_neg or -- may not set vxcvi ... but the result will be zero
                  ex4_to_int_ov_all_x ; 
 
         
 
+                                               -- only set flag if dont successfuly round to zero
+                                               -- adder bit [99] was not flipped for the negate,
+                                               -- so it is the carry-out ... "0" co means negative
         ex4_vxcvi_ov <= ex4_vxcvi           or                                                   
                         ex4_to_int_ov_all_x or                                                   
                    (ex4_to_int_uns_neg and not f_add_ex4_to_int_ovf_dw(0) and ex4_to_int_dw) or  
@@ -2291,33 +2470,45 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
         ex4_sel_est <= (ex4_est_recip or ex4_est_rsqrt) and
                    not (ex4_pass_nan );   
 
-        f_pic_ex4_quiet_b         <= not ex4_quiet ;
-        f_pic_ex4_sp_b            <= not ex4_sp    ;
-        f_pic_ex4_sel_est_b       <= not ex4_sel_est ;
+        f_pic_ex4_quiet_b         <= not ex4_quiet ;--output--
+        f_pic_ex4_sp_b            <= not ex4_sp    ;--output--
+        f_pic_ex4_sel_est_b       <= not ex4_sel_est ;--output--
 
-        f_pic_ex4_to_int_ov_all    <= ex4_to_int_ov_all    ;
+        f_pic_ex4_to_int_ov_all    <= ex4_to_int_ov_all    ;--output--
 
-        f_pic_ex4_to_integer_b    <= not( ex4_to_integer and not ex4_rnd_to_int )   ;
-        f_pic_ex4_word_b          <= not ex4_word         ;
-        f_pic_ex4_uns_b           <= not ex4_uns          ;
+        f_pic_ex4_to_integer_b    <= not( ex4_to_integer and not ex4_rnd_to_int )   ;--output--
+        f_pic_ex4_word_b          <= not ex4_word         ;--output--
+        f_pic_ex4_uns_b           <= not ex4_uns          ;--output--
 
-        f_pic_ex4_spec_sel_k_e    <= ex4_spec_sel_e ;
-        f_pic_ex4_spec_sel_k_f    <= ex4_spec_sel_f ;
+        f_pic_ex4_spec_sel_k_e    <= ex4_spec_sel_e ;--output--
+        f_pic_ex4_spec_sel_k_f    <= ex4_spec_sel_f ;--output--
 
-        f_pic_ex4_sel_fpscr_b     <= not ex4_mv_from_scr  ;
-        f_pic_ex4_spec_inf_b      <= not ex4_gen_inf      ;
+        f_pic_ex4_sel_fpscr_b     <= not ex4_mv_from_scr  ;--output--
+        f_pic_ex4_spec_inf_b      <= not ex4_gen_inf      ;--output--
 
 
-        f_pic_ex4_oe              <=     ex4_oe         ;
-        f_pic_ex4_ue              <=     ex4_ue         ;
-        f_pic_ex4_ov_en           <=     ex4_ov_en  and not ex4_spec_sel_e    ;
-        f_pic_ex4_uf_en           <=     ex4_uf_en  and not ex4_spec_sel_e    ;
-        f_pic_ex4_ovf_en_oe0_b    <= not ex4_ovf_en_oe0 ;
-        f_pic_ex4_unf_en_ue0_b    <= not ex4_unf_en_oe0 ;
+        f_pic_ex4_oe              <=     ex4_oe         ;--output--
+        f_pic_ex4_ue              <=     ex4_ue         ;--output--
+        f_pic_ex4_ov_en           <=     ex4_ov_en  and not ex4_spec_sel_e    ;--output--
+        f_pic_ex4_uf_en           <=     ex4_uf_en  and not ex4_spec_sel_e    ;--output--
+        f_pic_ex4_ovf_en_oe0_b    <= not ex4_ovf_en_oe0 ;--output--
+        f_pic_ex4_unf_en_ue0_b    <= not ex4_unf_en_oe0 ;--output--
 
-        f_pic_ex4_ovf_en_oe1_b    <= not( ex4_ovf_en_oe1 and not ex4_uc_mid );
-        f_pic_ex4_unf_en_ue1_b    <= not( ex4_unf_en_oe1 and not ex4_uc_mid );
+        f_pic_ex4_ovf_en_oe1_b    <= not( ex4_ovf_en_oe1 and not ex4_uc_mid );--output--
+        f_pic_ex4_unf_en_ue1_b    <= not( ex4_unf_en_oe1 and not ex4_uc_mid );--output--
 
+--//################################################################
+--//# ex4 logic
+--//################################################################
+        -- fmr/fneg/fabs/fnabs
+        -- fsel
+        -- mffs
+        -- mcrfs, mtcrf, mtfs*
+        -- prenorm_sp prenorm_dp
+        -- fcomp
+        -- fmul fadd fsub fmadd fmsub fnmsub fnmadd
+        -- fres,frsqrte
+        -- frsp
 
         ex4_rnd_nr <= not ex4_rnd0 and not ex4_rnd1;
         ex4_rnd_zr <= not ex4_rnd0 and     ex4_rnd1;
@@ -2330,21 +2521,23 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
         ex4_rnd_inf_ok  <= ( ex4_rnd_en and ex4_rnd_pi and not ex4_round_sign ) or 
                            ( ex4_rnd_en and ex4_rnd_ni and     ex4_round_sign ) ;
         ex4_rnd_nr_ok   <=   ex4_rnd_en and ex4_rnd_nr ;
-        f_pic_ex4_rnd_inf_ok_b    <= not ex4_rnd_inf_ok ;
-        f_pic_ex4_rnd_ni_b        <= not ex4_rnd_ni     ;
-        f_pic_ex4_rnd_nr_b        <= not ex4_rnd_nr_ok  ;
+        f_pic_ex4_rnd_inf_ok_b    <= not ex4_rnd_inf_ok ;--output--
+        f_pic_ex4_rnd_ni_b        <= not ex4_rnd_ni     ;--output--
+        f_pic_ex4_rnd_nr_b        <= not ex4_rnd_nr_ok  ;--output--
 
 
+----------------------------
 
         ex4_uc_g_v <= ex4_uc_gs_v and not ex4_uc_g_ig ;
         ex4_uc_s_v <= ex4_uc_gs_v ;
 
-        f_pic_ex4_nj_deno            <= ex4_nj_deno    ;
-        f_pic_ex5_uc_inc_lsb         <= ex5_uc_inc_lsb ;
-        f_pic_ex5_uc_guard           <= ex5_uc_guard   ;
-        f_pic_ex5_uc_sticky          <= ex5_uc_sticky  ;
-        f_pic_ex5_uc_g_v             <= ex5_uc_g_v     ;
-        f_pic_ex5_uc_s_v             <= ex5_uc_s_v     ;
+        f_pic_ex4_nj_deno            <= ex4_nj_deno    ;--output--
+        f_pic_ex5_uc_inc_lsb         <= ex5_uc_inc_lsb ;--output--
+        f_pic_ex5_uc_guard           <= ex5_uc_guard   ;--output--
+        f_pic_ex5_uc_sticky          <= ex5_uc_sticky  ;--output--
+        f_pic_ex5_uc_g_v             <= ex5_uc_g_v     ;--output--
+        f_pic_ex5_uc_s_v             <= ex5_uc_s_v     ;--output--
+----------------------------
 
   ex4_vx <=  ex4_vxsnan or 
              ex4_vxisi  or 
@@ -2356,7 +2549,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
              ex4_vxcvi_ov  ;
 
   ex4_upd_fpscr_ops <=
-            ( ex4_math and not ex4_uc_mid )  or  
+            ( ex4_math and not ex4_uc_mid )  or  -- microcode only changes fpscr on last iteration
              ex4_est_recip    or 
              ex4_est_rsqrt    or
              ex4_to_integer   or 
@@ -2370,7 +2563,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
   ex4_scr_upd_move <= ex4_mv_to_scr                            ; 
 
 
-  ex4_fpr_wr_dis   <= 
+  ex4_fpr_wr_dis   <= -- does not include include iu cancel
             (ex4_fprf_hold     ) ; 
 
 
@@ -2395,6 +2588,9 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
              ex4_est_rsqrt  or
              ex4_rnd_to_int ;
 
+--$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+--$$ the spec has changed , overflow <ex4_to_int_ov_all> for to_ineger should now set fr_pipe_v fr=00
+--$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
   ex4_ox_pipe_v    <= not ex4_sel_spec_e  and not ex4_compare and not ex4_to_integer and not ex4_from_integer and not ex4_rnd_to_int and not ex4_uc_end_spec;
   ex4_fr_pipe_v    <= not ex4_sel_spec_fr and not ex4_compare and not ex4_to_integer                          and not ex4_rnd_to_int and not ex4_uc_end_spec;
@@ -2413,10 +2609,30 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
           (ex4_ve and ex4_vx and ex4_fprf_hold_ops ) or
           (ex4_ze and ex4_zx and ex4_fprf_hold_ops );
 
+  -- FPRF
+  -- 1 0 0 0 1  QNAN     [0]  qnan | den | (sign*zero)
+  -- 0 1 0 0 1 -INF      [1]  sign * !zero
+  -- 0 1 0 0 0 -norm     [2] !sign * !zero * !qnan
+  -- 1 1 0 0 0 -den      [3]  zero
+  -- 1 0 0 1 0 -zero     [4]  inf   | qnan
+  -- 0 0 0 1 0 +zero
+  -- 1 0 1 0 0 +den
+  -- 0 0 1 0 0 +norm
+  -- 0 0 1 0 1 +inf
+  --
+  -- ex4_pass_nan      10001  @
+  -- ex4_gen_nan       10001  @
+  -- ex4_gen_inf  (-)  01001
+  -- ex4_gen_inf  (+)  00101
+  -- ex4_gen_zero (-)  10010  @
+  -- ex4_gen_zero (+)  00010  @
+  -- ex4_gen_one  (+)  00100  +norm
+  -- ex4_gen_one  (-)  01000  -norm
 
   ex4_gen_inf_sign <= ex4_round_sign xor (ex4_inv_sign and not ex4_pass_nan and not ex4_gen_nan) ;
 
 
+  --[0] nan, -zer, -den, +den ... (spec does not create den)
   ex4_fprf_spec_x(0) <=
          ex4_pass_nan or
          ex4_gen_nan  or
@@ -2434,7 +2650,14 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
        ( (tidn & f_add_ex4_fpcc_iu(0 to 3))                              and     (0 to 4 => ex4_compare                 ) ) or               
        ( ex4_fprf_spec_x(0 to 4) and not (0 to 4 => ex4_to_integer_ken ) and not (0 to 4 => ex4_compare or ex4_fprf_hold) ) ;
 
+  -- selects for constant (pipe and spec) ??? need mayOvf
 
+  -- k depends on the rounding mode (also diff for to intetger)
+  -- NAN : pipe does not create nan
+  -- +/-   INF frac=0
+  -- MAX   FP  frac=1
+  -- MAX +int frac=1
+  -- MAX -INT frac=0
 
   ex4_may_ovf <= f_eov_ex4_may_ovf;
 
@@ -2443,6 +2666,19 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          ( ex4_may_ovf and ex4_rnd_pi and     ex4_round_sign ) or 
          ( ex4_may_ovf and ex4_rnd_ni and not ex4_round_sign ) ;
 
+  --exponent  1 <= tidn (sign)
+  --exponent  2 <= tidn (2048)
+  --exponent  3 <= msb  (1024) for inf/nan
+  --exponent  4 <= sp    (512)
+  --exponent  5 <= sp    (256)
+  --exponent  6 <= sp    (128)
+  --exponent  7 <= mid    (64)
+  --exponent  8 <= mid    (64)
+  --exponent  9 <= mid    (32)
+  --exponent 10 <= mid    (16)
+  --exponent 11 <= mid     (8)
+  --exponent 12 <= mid     (4)
+  --exponent 13 <= lsb     (1)
 
 
   ex4_gen_any <= ex4_gen_nan or
@@ -2468,18 +2704,18 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
 
 
   ex4_k_int_zer     <= 
-        (ex4_to_integer_ken and     ex4_uns and      ex4_gen_zero                                          )  or 
-        (ex4_to_integer_ken and     ex4_uns and                           ex4_gen_nan                      )  or 
-        (ex4_to_integer_ken and     ex4_uns and                                               ex4_sign_nco )  or 
-        (ex4_to_integer_ken and not ex4_uns and      ex4_gen_zero                                          )  ;  
+        (ex4_to_integer_ken and     ex4_uns and      ex4_gen_zero                                          )  or --uns
+        (ex4_to_integer_ken and     ex4_uns and                           ex4_gen_nan                      )  or --uns
+        (ex4_to_integer_ken and     ex4_uns and                                               ex4_sign_nco )  or --uns
+        (ex4_to_integer_ken and not ex4_uns and      ex4_gen_zero                                          )  ;  --sgn
                       
   ex4_k_int_maxpos  <=
-        ( ex4_to_integer_ken and     ex4_uns and not ex4_gen_zero and not ex4_gen_nan and not ex4_sign_nco ) or  
-        ( ex4_to_integer_ken and not ex4_uns and not ex4_gen_zero and not ex4_gen_nan and not ex4_sign_nco );    
+        ( ex4_to_integer_ken and     ex4_uns and not ex4_gen_zero and not ex4_gen_nan and not ex4_sign_nco ) or  --uns
+        ( ex4_to_integer_ken and not ex4_uns and not ex4_gen_zero and not ex4_gen_nan and not ex4_sign_nco );    --sgn
 
   ex4_k_int_maxneg  <=
-        ( ex4_to_integer_ken and not ex4_uns and not ex4_gen_zero and     ex4_gen_nan                      ) or  
-        ( ex4_to_integer_ken and not ex4_uns and not ex4_gen_zero and                         ex4_sign_nco );    
+        ( ex4_to_integer_ken and not ex4_uns and not ex4_gen_zero and     ex4_gen_nan                      ) or  --sgn
+        ( ex4_to_integer_ken and not ex4_uns and not ex4_gen_zero and                         ex4_sign_nco );    --sgn
 
 
 
@@ -2489,12 +2725,12 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
 
    ex4_en_exact_zero <= ex4_math       and
                         ex4_effsub_eac and
-                    not ex4_sel_spec_e ; 
+                    not ex4_sel_spec_e ; -- nan_pass, gen_nan, gen_inf, gen_zero
 
    ex4_invert_sign   <= ex4_inv_sign and
                     not ex4_pass_nan and
                     not ex4_gen_nan  and
-                    not (ex4_gen_zero and ex4_effsub_eac) ; 
+                    not (ex4_gen_zero and ex4_effsub_eac) ; -- (sign-of-exact-zero)
 
 
    ex4_sign_pco_x <= (not (ex4_gen_zero and ex4_math and ex4_effsub_eac) and ex4_sign_pco                  ) or
@@ -2502,12 +2738,12 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
    ex4_sign_nco_x <= (not (ex4_gen_zero and ex4_math and ex4_effsub_eac) and ex4_sign_nco                  ) or
                      (    (ex4_gen_zero and ex4_math and ex4_effsub_eac) and (ex4_rnd_ni xor ex4_inv_sign) ); 
 
-   ex4_round_sign    <=  
+   ex4_round_sign    <=  -- co means a<b (for math only)
           (     f_add_ex4_sign_carry and  ex4_sign_pco  ) or  
           ( not f_add_ex4_sign_carry and  ex4_sign_nco  );
 
 
-   ex4_to_int_k_sign <= 
+   ex4_to_int_k_sign <= -- sign bit in position 32 for word ops
          ( not ex4_word and not ex4_k_int_zer and     ex4_uns and not ex4_sign_nco ) or 
          ( not ex4_word and not ex4_k_int_zer and not ex4_uns and     ex4_sign_nco ) ; 
 
@@ -2517,11 +2753,14 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
    ex4_sign_nco_xx <=  (ex4_sign_nco_x and not ex4_to_int_ov_all_gt ) or  (ex4_to_int_k_sign and ex4_to_int_ov_all_gt) ;
 
 
-   ex4_round_sign_x  <=  
+   ex4_round_sign_x  <=  -- co means a<b (for math only)
           (     f_add_ex4_sign_carry and  ex4_sign_pco_xx  ) or 
           ( not f_add_ex4_sign_carry and  ex4_sign_nco_xx  );
 
  
+--//################################################################
+--//# ex5 latches
+--//################################################################
 
      ex4_k_nan_x         <= ( ex4_k_nan and not ex4_mv_from_scr );
      ex4_k_inf_x         <= ( ex4_k_inf and not ex4_mv_from_scr );
@@ -2532,17 +2771,18 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
     ex5_flg_lat:  tri_rlmreg_p generic map (width=> 42, expand_type => expand_type) port map ( 
         vd               => vdd,
         gd               => gnd,
-        forcee => forcee,
-        delay_lclkr      => delay_lclkr(5), 
-        mpw1_b           => mpw1_b(5), 
-        mpw2_b           => mpw2_b(1), 
+        forcee => forcee,--tidn,
+        delay_lclkr      => delay_lclkr(5), --tidn,
+        mpw1_b           => mpw1_b(5), --tidn,
+        mpw2_b           => mpw2_b(1), --tidn,
         nclk             => nclk,
         act              => ex4_act,
         thold_b          => thold_0_b,
         sg               => sg_0, 
         scout            => ex5_flg_so  ,                      
         scin             => ex5_flg_si  ,                    
-         din( 0)            => ex4_zx           ,
+        -------------------
+         din( 0)            => ex4_zx           ,--exceptions
          din( 1)            => ex4_vxsnan       ,
          din( 2)            => ex4_vxisi        ,
          din( 3)            => ex4_vxidi        ,  
@@ -2551,13 +2791,13 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          din( 6)            => ex4_vxvc         ,
          din( 7)            => ex4_vxsqrt       ,
          din( 8)            => ex4_vxcvi_ov     ,
-         din( 9)            => ex4_scr_upd_move ,
+         din( 9)            => ex4_scr_upd_move ,-- write enables
          din(10)            => ex4_scr_upd_pipe ,
          din(11)            => ex4_fpr_wr_dis   ,
-         din(12)            => ex4_ox_pipe_v    ,
+         din(12)            => ex4_ox_pipe_v    ,-- select pipe value
          din(13)            => ex4_fr_pipe_v    ,
          din(14)            => ex4_fprf_pipe_v  ,
-         din(15 to 19)      => ex4_fprf_spec(0 to 4) , 
+         din(15 to 19)      => ex4_fprf_spec(0 to 4) , -- generate special value
          din(20)            => ex4_k_nan_x        ,
          din(21)            => ex4_k_inf_x        ,
          din(22)            => ex4_k_max_x        ,
@@ -2566,7 +2806,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          din(25)            => ex4_k_int_maxpos   ,
          din(26)            => ex4_k_int_maxneg   ,
          din(27)            => ex4_k_int_zer      ,
-         din(28)            => ex4_en_exact_zero   , 
+         din(28)            => ex4_en_exact_zero   , -- sign
          din(29)            => ex4_invert_sign     ,
 
          din(30)            => ex4_round_sign_x  ,
@@ -2582,7 +2822,8 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
          din(39)            => ex4_uc_sticky   ,
          din(40)            => ex4_uc_g_v     ,
          din(41)            => ex4_uc_s_v     ,
-        dout( 0)            => ex5_zx           ,
+        -------------------
+        dout( 0)            => ex5_zx           ,--exceptions
         dout( 1)            => ex5_vxsnan       ,
         dout( 2)            => ex5_vxisi        ,
         dout( 3)            => ex5_vxidi        ,  
@@ -2591,13 +2832,13 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
         dout( 6)            => ex5_vxvc         ,
         dout( 7)            => ex5_vxsqrt       ,
         dout( 8)            => ex5_vxcvi        ,
-        dout( 9)            => ex5_scr_upd_move ,
+        dout( 9)            => ex5_scr_upd_move ,-- write enables
         dout(10)            => ex5_scr_upd_pipe ,
         dout(11)            => ex5_fpr_wr_dis   ,
-        dout(12)            => ex5_ox_pipe_v    ,
+        dout(12)            => ex5_ox_pipe_v    ,-- select pipe values
         dout(13)            => ex5_fr_pipe_v    ,
         dout(14)            => ex5_fprf_pipe_v  ,
-        dout(15 to 19)      => ex5_fprf_spec(0 to 4) , 
+        dout(15 to 19)      => ex5_fprf_spec(0 to 4) , -- generate special value
         dout(20)            => ex5_k_nan        ,
         dout(21)            => ex5_k_inf        ,
         dout(22)            => ex5_k_max        ,
@@ -2606,7 +2847,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
         dout(25)            => ex5_k_int_maxpos ,
         dout(26)            => ex5_k_int_maxneg ,
         dout(27)            => ex5_k_int_zer    ,
-        dout(28)            => ex5_en_exact_zero , 
+        dout(28)            => ex5_en_exact_zero , -- sign
         dout(29)            => ex5_invert_sign   ,
         dout(30)            => ex5_round_sign    ,
         dout(31)            => ex5_unused  ,
@@ -2624,53 +2865,60 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
 
         f_pic_ex5_frsp <= ex5_frsp ;
 
+--//################################################################
+--//# ex5 logic
+--//################################################################
  
 
-        f_pic_ex5_flag_zx_b       <= not ex5_zx           ;
-        f_pic_ex5_flag_vxsnan_b   <= not ex5_vxsnan       ;
-        f_pic_ex5_flag_vxisi_b    <= not ex5_vxisi        ;
-        f_pic_ex5_flag_vxidi_b    <= not ex5_vxidi        ;
-        f_pic_ex5_flag_vxzdz_b    <= not ex5_vxzdz        ;
-        f_pic_ex5_flag_vximz_b    <= not ex5_vximz        ;
-        f_pic_ex5_flag_vxvc_b     <= not ex5_vxvc         ;
-        f_pic_ex5_flag_vxsqrt_b   <= not ex5_vxsqrt       ;
-        f_pic_ex5_flag_vxcvi_b    <= not ex5_vxcvi        ;
+        f_pic_ex5_flag_zx_b       <= not ex5_zx           ;--output-- [05]
+        f_pic_ex5_flag_vxsnan_b   <= not ex5_vxsnan       ;--output-- [07]
+        f_pic_ex5_flag_vxisi_b    <= not ex5_vxisi        ;--output-- [08]
+        f_pic_ex5_flag_vxidi_b    <= not ex5_vxidi        ;--output-- [09]
+        f_pic_ex5_flag_vxzdz_b    <= not ex5_vxzdz        ;--output-- [10]
+        f_pic_ex5_flag_vximz_b    <= not ex5_vximz        ;--output-- [11]
+        f_pic_ex5_flag_vxvc_b     <= not ex5_vxvc         ;--output-- [12]
+        f_pic_ex5_flag_vxsqrt_b   <= not ex5_vxsqrt       ;--output-- [22]
+        f_pic_ex5_flag_vxcvi_b    <= not ex5_vxcvi        ;--output-- [23]
 
-        f_pic_ex5_scr_upd_move_b  <= not ex5_scr_upd_move ;
-        f_pic_ex5_scr_upd_pipe_b  <= not ex5_scr_upd_pipe ;
-        f_pic_ex5_fpr_wr_dis_b    <= not ex5_fpr_wr_dis   ;
-        f_pic_ex5_compare_b       <= not ex5_compare      ;
+        f_pic_ex5_scr_upd_move_b  <= not ex5_scr_upd_move ;--output--
+        f_pic_ex5_scr_upd_pipe_b  <= not ex5_scr_upd_pipe ;--output--
+        f_pic_ex5_fpr_wr_dis_b    <= not ex5_fpr_wr_dis   ;--output--
+        f_pic_ex5_compare_b       <= not ex5_compare      ;--output--
 
-        f_pic_ex5_ox_pipe_v_b     <= not ex5_ox_pipe_v;   
-        f_pic_ex5_fr_pipe_v_b     <= not ex5_fr_pipe_v;   
-        f_pic_ex5_fprf_pipe_v_b   <= not ex5_fprf_pipe_v; 
+        f_pic_ex5_ox_pipe_v_b     <= not ex5_ox_pipe_v;   --output-- [03]
+        f_pic_ex5_fr_pipe_v_b     <= not ex5_fr_pipe_v;   --output-- [13]
+        f_pic_ex5_fprf_pipe_v_b   <= not ex5_fprf_pipe_v; --output-- [15:19]
  
-        f_pic_ex5_fprf_spec_b(0 to 4) <= not ex5_fprf_spec(0 to 4);  
+        f_pic_ex5_fprf_spec_b(0 to 4) <= not ex5_fprf_spec(0 to 4);  --output--
 
-        f_pic_ex5_k_nan           <= ex5_k_nan          ;
-        f_pic_ex5_k_inf           <= ex5_k_inf          ;
-        f_pic_ex5_k_max           <= ex5_k_max          ;
-        f_pic_ex5_k_zer           <= ex5_k_zer          ;
-        f_pic_ex5_k_one           <= ex5_k_one          ;
-        f_pic_ex5_k_int_maxpos    <= ex5_k_int_maxpos   ;
-        f_pic_ex5_k_int_maxneg    <= ex5_k_int_maxneg   ;
-        f_pic_ex5_k_int_zer       <= ex5_k_int_zer      ;
+        f_pic_ex5_k_nan           <= ex5_k_nan          ;--output--
+        f_pic_ex5_k_inf           <= ex5_k_inf          ;--output--
+        f_pic_ex5_k_max           <= ex5_k_max          ;--output--
+        f_pic_ex5_k_zer           <= ex5_k_zer          ;--output--
+        f_pic_ex5_k_one           <= ex5_k_one          ;--output--
+        f_pic_ex5_k_int_maxpos    <= ex5_k_int_maxpos   ;--output--
+        f_pic_ex5_k_int_maxneg    <= ex5_k_int_maxneg   ;--output--
+        f_pic_ex5_k_int_zer       <= ex5_k_int_zer      ;--output--
 
-        f_pic_ex5_en_exact_zero   <= ex5_en_exact_zero;
-        f_pic_ex5_invert_sign     <= ex5_invert_sign;  
-        f_pic_ex5_round_sign      <= ex5_round_sign;   
+        f_pic_ex5_en_exact_zero   <= ex5_en_exact_zero;--output--
+        f_pic_ex5_invert_sign     <= ex5_invert_sign;  --output--
+        f_pic_ex5_round_sign      <= ex5_round_sign;   --output--
 
-
-
-        f_pic_ex5_fi_pipe_v_b     <= not ex5_fr_pipe_v ;
-        f_pic_ex5_ux_pipe_v_b     <= not ex5_ox_pipe_v ;
-        f_pic_ex5_fprf_hold_b     <= not ex5_fprf_hold ; 
-        f_pic_ex5_fi_spec_b       <= not ex5_fi_spec; 
-        f_pic_ex5_fr_spec_b       <= not ex5_fr_spec; 
+        -----------------------------------------------------------
 
 
+        f_pic_ex5_fi_pipe_v_b     <= not ex5_fr_pipe_v ;--output-- [14]
+        f_pic_ex5_ux_pipe_v_b     <= not ex5_ox_pipe_v ;--output-- [04]
+        f_pic_ex5_fprf_hold_b     <= not ex5_fprf_hold ; --output-- toint | (ve=1*(math|fprsp)*vx) ... not vxvc
+        f_pic_ex5_fi_spec_b       <= not ex5_fi_spec; --output--
+        f_pic_ex5_fr_spec_b       <= not ex5_fr_spec; --output--
 
 
+
+
+--//################################################################
+--//# scan string
+--//################################################################
 
 
    ex1_ctl_si  (0 to 42) <= ex1_ctl_so  (1 to 42) & f_pic_si ;
@@ -2687,13 +2935,7 @@ ex1_b_sign  <=  f_byp_pic_ex1_b_sign       ;
    f_pic_so              <=  act_so  (0) ;
 
 
+-------------------------
 
 
-end; 
-
-
-
-   
-   
-
-
+end; -- fuq_pic ARCHITECTURE

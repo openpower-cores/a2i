@@ -56,6 +56,7 @@ port(
  
      
 end iuq_fxu_dep_cmp;
+------------------------------------------------------------------------------------------------------------------------------------
 
 architecture iuq_fxu_dep_cmp of iuq_fxu_dep_cmp is
 
@@ -154,26 +155,12 @@ signal ex2_a_cmp_en     :std_ulogic;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
  
 begin
 
 
 
+-- address buffering
 
 ucmp_lm0adbufb: lm0_ad_buf_b(0 to 5) <= not lm0_ad(0 to 5);
 ucmp_lm1adbufb: lm1_ad_buf_b(0 to 5) <= not lm1_ad(0 to 5);
@@ -210,6 +197,7 @@ ucmp_is1adbuf1: is1_ad_buf1(0 to 5) <= not is1_ad_buf1_b(0 to 5);
 ucmp_is1adbuf2: is1_ad_buf2(0 to 5) <= not is1_ad_buf2_b(0 to 5);
 
 
+-- address compare
   
 ucmp_aeqis2_x:  a_eq_is2_x(0 to 5) <= not( is2_ad_buf(0 to 5) xor is1_ad_buf0(0 to 5) ); 
 ucmp_aeqis2_01: a_eq_is2_01_b      <= not( a_eq_is2_x(0) and a_eq_is2_x(1) ); 
@@ -316,6 +304,7 @@ ucmp_aeqlm7_w:  a_eq_lm7_v         <= not( a_eq_lm7_45_b );
 ucmp_aeqlm7:    a_eq_lm7_b         <= not( a_eq_lm7_u and a_eq_lm7_v and lm7_a_cmp_en ); 
   
 
+-- or compares together
 
 ucmp_aor11: a_or_1_1   <= not( a_eq_lm0_b and a_eq_lm1_b );
 ucmp_aor12: a_or_1_2   <= not( a_eq_lm2_b and a_eq_lm3_b );
@@ -334,6 +323,7 @@ ucmp_aor4:  a_or_4_b   <= not( a_group_en and a_or_3_1);
 
 
 
+-- compare enables
 
 a_group_en   <= is1_v; 
 
@@ -355,4 +345,3 @@ ad_hit_b     <= a_or_4_b;
 
     
 end iuq_fxu_dep_cmp;
-

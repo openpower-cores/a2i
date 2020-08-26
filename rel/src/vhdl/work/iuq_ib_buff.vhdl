@@ -8,6 +8,13 @@
 -- license is available.
 
 
+--********************************************************************
+--*
+--* TITLE: Instruction Buffer
+--*
+--* NAME: iuq_ib_buff.vhdl
+--*
+--*********************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
 library ibm; use ibm.std_ulogic_unsigned.all;
@@ -57,6 +64,7 @@ port(
      ib_ic_empty                : out std_ulogic;
      ib_ic_below_water          : out std_ulogic;
 
+     -- BP interface
      bp_ib_iu4_ifar             : in EFF_IFAR;       
      bp_ib_iu4_val              : in std_ulogic_vector(0 to 3);
      bp_ib_iu3_0_instr          : in std_ulogic_vector(0 to 31);        
@@ -65,10 +73,12 @@ port(
      bp_ib_iu4_2_instr          : in std_ulogic_vector(0 to 43);        
      bp_ib_iu4_3_instr          : in std_ulogic_vector(0 to 43);        
 
+     -- UC interface
      uc_ib_iu4_ifar             : in std_ulogic_vector(62-uc_ifar to 61);       
      uc_ib_iu4_val              : in std_ulogic;
      uc_ib_iu4_instr            : in std_ulogic_vector(0 to 36);        
 
+     -- RAM interface
      rm_ib_iu4_val              : in std_ulogic;
      rm_ib_iu4_force_ram        : in std_ulogic;
      rm_ib_iu4_instr            : in std_ulogic_vector(0 to 35);
@@ -80,8 +90,6 @@ port(
      iu_au_ib1_data               : out std_ulogic_vector(0 to ibuff_data_width-1)
 );
   -- synopsys translate_off
-
-
   -- synopsys translate_on
 end iuq_ib_buff;
 
@@ -136,6 +144,7 @@ signal iu4_act                  : std_ulogic;
 
 signal uc_ib_iu4_ifar_int       : EFF_IFAR;
 
+-- Latch signals
 signal buffer1_valid_d          : std_ulogic;
 signal buffer1_valid_l2         : std_ulogic;
 signal buffer2_valid_d          : std_ulogic;
@@ -183,6 +192,7 @@ signal buffer_ifar_match_uc     : std_ulogic;
 signal redirect_d               : std_ulogic;
 signal redirect_l2              : std_ulogic;
 
+-- Logic signals
 signal pc_ext_1                 : std_ulogic_vector(60 to 61);
 signal pc_ext_2                 : std_ulogic_vector(60 to 61);
 signal pc_ext_3                 : std_ulogic_vector(60 to 61);
@@ -199,6 +209,7 @@ signal buffer7_data_act         : std_ulogic;
 signal valid_out                : std_ulogic;
 signal data_out                 : std_ulogic_vector(0 to command_width_full-1);
 
+-- Pervasive
 signal pc_iu_func_sl_thold_1    : std_ulogic;
 signal pc_iu_func_sl_thold_0    : std_ulogic;
 signal pc_iu_func_sl_thold_0_b  : std_ulogic;
@@ -234,6 +245,9 @@ signal mpw2_b                           : std_ulogic;
 begin
 
 
+-----------------------------------------------------------------------
+-- Logic
+-----------------------------------------------------------------------
 tiup <= '1';
 
 
@@ -242,12 +256,18 @@ d_mode  <= '0';
 mpw2_b  <= '1';
 
 
+----------------------------------------
+-- passthrough
+----------------------------------------
 spr_dec_mask_pt_out     <=      spr_dec_mask_pt_in;
 fdep_dbg_data_pt_out    <=      fdep_dbg_data_pt_in;
 fdep_perf_event_pt_out  <=      fdep_perf_event_pt_in;
      
 
 
+----------------------------------------
+-- ibuff instruction source muxing
+----------------------------------------
 
 
 ib_iu4_val(0)           <= rm_ib_iu4_val or uc_ib_iu4_val or bp_ib_iu4_val(0);
@@ -280,9 +300,13 @@ ib_iu4_3_instr(0 to 49) <= bp_ib_iu4_3_instr(0 to 31) & "0000" & bp_ib_iu4_3_ins
 valid_slow      <= (rm_ib_iu4_val or uc_ib_iu4_val) and not redirect_l2;
 valid_fast      <= bp_ib_iu4_val(0) and not redirect_l2;
 
+----------------------------------------
+-- ibuff
+----------------------------------------
 valid_in(0 to 3) <= gate(ib_iu4_val(0 to 3), not redirect_l2);
 valid_in_uc      <= uc_ib_iu4_val and not redirect_l2;
 
+-- Calculate last 2 bits of address for instr1-3
 with ib_iu4_ifar(60 to 61) select
 pc_ext_1 <= "11"       when "10",
             "10"       when "01",
@@ -293,6 +317,7 @@ pc_ext_3 <= "11";
 
 buffer_ifar_d <= ib_iu4_ifar(EFF_IFAR'left to EFF_IFAR'right-ibuff_ifar_width) when buffer_ifar_update='1' else buffer_ifar_l2;
 
+-- Check for incoming valids and set new buffer entries
 check_vals:process(xu_iu_ib1_flush, uc_flush, valid_in, ib_iu4_ifar(EFF_IFAR'right+1-ibuff_ifar_width to EFF_IFAR'right), ib_iu4_0_instr,
                    pc_ext_1, pc_ext_2, pc_ext_3, stall_l2(0),
                    buffer1_valid_l2, buffer2_valid_l2, buffer3_valid_l2,
@@ -301,6 +326,7 @@ check_vals:process(xu_iu_ib1_flush, uc_flush, valid_in, ib_iu4_ifar(EFF_IFAR'rig
                    buffer4_data_l2, buffer5_data_l2, buffer6_data_l2, buffer7_data_l2,
                    ib_iu4_1_instr, ib_iu4_2_instr, ib_iu4_3_instr, buffer_ifar_match, buffer_ifar_match_uc, valid_fast, valid_slow, valid_in_uc, uc_iu4_0_instr) begin
 
+    -- default values
     buffer1_valid_d <= buffer1_valid_l2;
     buffer2_valid_d <= buffer2_valid_l2;
     buffer3_valid_d <= buffer3_valid_l2;
@@ -371,6 +397,7 @@ check_vals:process(xu_iu_ib1_flush, uc_flush, valid_in, ib_iu4_ifar(EFF_IFAR'rig
             buffer7_data_d  <= ib_iu4_3_instr & ib_iu4_ifar(EFF_IFAR'right+1-ibuff_ifar_width to 59) & pc_ext_3;
         end if;
 
+        --added for ucode
         if(buffer4_valid_l2 = '1' and buffer5_valid_l2 = '0' and buffer_ifar_match_uc = '1') then
             buffer5_valid_d <= valid_in_uc;
         end if;
@@ -386,7 +413,7 @@ check_vals:process(xu_iu_ib1_flush, uc_flush, valid_in, ib_iu4_ifar(EFF_IFAR'rig
         end if;
 
 
-    else    
+    else    -- stall_l2 = 0
         buffer1_data_d  <= buffer2_data_l2;
         buffer2_data_d  <= buffer3_data_l2;
         buffer3_data_d  <= buffer4_data_l2;
@@ -478,6 +505,7 @@ check_vals:process(xu_iu_ib1_flush, uc_flush, valid_in, ib_iu4_ifar(EFF_IFAR'rig
 
 end process;
 
+--added for clock gating
 buffer1_data_act <= not (stall_l2(0) and buffer1_valid_l2);
 buffer2_data_act <= not (stall_l2(0) and buffer2_valid_l2);
 buffer3_data_act <= not (stall_l2(0) and buffer3_valid_l2);
@@ -490,24 +518,28 @@ buffer7_data_act <= not (stall_l2(0) and buffer7_valid_l2);
 
 ib_ic_empty <= not (buffer1_valid_l2 or stall_l2(0));
 ib_ic_below_water <= (not buffer4_valid_l2) or (not buffer5_valid_l2 and not stall_l2(0));
+--duplicate for iu4_act...incoming pipeline will only contain valid data when buffer is below water and able to accept it
 iu4_act           <= (not buffer4_valid_l2) or (not buffer5_valid_l2 and not stall_l2(0));
 
+-- reconstruct buffer1_data
 buffer1_data    <= buffer1_data_l2(0 to ibuff_data_width-1) &
                    buffer_ifar_l2(EFF_IFAR'left to EFF_IFAR'right-ibuff_ifar_width) &
                    buffer1_data_l2(ibuff_data_width to command_width_lite-1);
 
 gen_uc_match1: if (ibuff_ifar_width < uc_ifar) generate
 begin
+-- generate flush based on stored ifar
 buffer_ifar_match       <= '1' when buffer_ifar_l2(EFF_IFAR'left to EFF_IFAR'right-ibuff_ifar_width) = ib_iu4_ifar(EFF_IFAR'left to EFF_IFAR'right-ibuff_ifar_width) else
                            '0';
-buffer_ifar_match_uc    <= buffer_ifar_match;   
+buffer_ifar_match_uc    <= buffer_ifar_match;   --for ucode-only buffer fill
 end generate;
 
 gen_uc_match0: if (ibuff_ifar_width >= uc_ifar) generate
 begin
+--assume address match on ucode/ram issued instructions for timing
 buffer_ifar_match       <= (not bp_ib_iu4_val(0)) or
                            (buffer_ifar_l2(EFF_IFAR'left to EFF_IFAR'right-ibuff_ifar_width) = bp_ib_iu4_ifar(EFF_IFAR'left to EFF_IFAR'right-ibuff_ifar_width));
-buffer_ifar_match_uc    <= '1';                 
+buffer_ifar_match_uc    <= '1';                 --for ucode-only buffer fill
 end generate;
 
 redirect_d              <= valid_in(0) and not xu_iu_ib1_flush and not uc_flush and not buffer_ifar_match and not buffer_ifar_update;
@@ -515,6 +547,7 @@ redirect_d              <= valid_in(0) and not xu_iu_ib1_flush and not uc_flush 
 ib_ic_iu5_redirect_tid  <= redirect_l2;
 
 
+--move stall latch to decode
 stall_d(0)             <= fdec_ibuf_stall;     
 stall_d(1)             <= fdec_ibuf_stall;     
 stall_d(2)             <= fdec_ibuf_stall;     
@@ -532,10 +565,8 @@ buff1_sel_d(3)  <= buffer1_valid_d;
 buff1_sel_d(4)  <= buffer1_valid_d;
 
 
+-- Instruction output
 valid_out <= (buffer1_valid_l2 or valid_fast or stall_l2(0));
-
-
-
 
 buffer_data(0 to 7)                     <= buffer1_data(0 to 7)                         when buff1_sel_l2(1) = '1' else
                                            bp_iu4_0_instr(0 to 7);
@@ -569,13 +600,19 @@ iu_au_ib1_data <= data_out(0 to ibuff_data_width-1);
 iu_au_ib1_ifar <= data_out(ibuff_data_width to command_width_full-1);
 
 
+-----------------------------------------------------------------------
+-- Perf
+-----------------------------------------------------------------------
 
 perf_event_d(0)         <= not (buffer1_valid_l2 or stall_l2(0));
 perf_event_d(1)         <= redirect_l2;
 
-ib_perf_event(0)        <= perf_event_l2(0);    
-ib_perf_event(1)        <= perf_event_l2(1);    
+ib_perf_event(0)        <= perf_event_l2(0);    -- ibuf empty
+ib_perf_event(1)        <= perf_event_l2(1);    -- ibuf flush
 
+-----------------------------------------------------------------------
+-- Debug
+-----------------------------------------------------------------------
 
 
 ib_dbg_data_d(0 to 3)     <= bp_ib_iu4_val(0 to 3);
@@ -584,7 +621,7 @@ ib_dbg_data_d(5)          <= uc_ib_iu4_val;
 
 ib_dbg_data(0 to 5)     <= ib_dbg_data_l2(0 to 5);
 ib_dbg_data(6)          <= redirect_l2;
-ib_dbg_data(7)          <= (not buffer4_valid_l2) or (not buffer5_valid_l2 and not stall_l2(0)); 
+ib_dbg_data(7)          <= (not buffer4_valid_l2) or (not buffer5_valid_l2 and not stall_l2(0)); --below water
 ib_dbg_data(8)          <= stall_l2(0);
 ib_dbg_data(9)          <= buffer1_valid_l2;
 ib_dbg_data(10)         <= buffer2_valid_l2;
@@ -594,6 +631,9 @@ ib_dbg_data(13)         <= buffer5_valid_l2;
 ib_dbg_data(14)         <= buffer6_valid_l2;
 ib_dbg_data(15)         <= buffer7_valid_l2;
 
+-----------------------------------------------------------------------
+-- Latches
+-----------------------------------------------------------------------
 bp_ib_iu4_0_instr_latch: tri_rlmreg_p
   generic map (width => bp_ib_iu4_0_instr_l2'length, init => 0, expand_type => expand_type)
   port map (vd          => vdd,
@@ -870,7 +910,7 @@ stall_buffer_data_latch: tri_rlmreg_p
   port map (vd          => vdd,
             gd          => gnd,
             nclk    => nclk,
-            act     => stall_buffer_act,        
+            act     => stall_buffer_act,        --tiup,
             thold_b => pc_iu_func_sl_thold_0_b,
             sg      => pc_iu_sg_0,
             forcee => forcee,
@@ -1055,6 +1095,9 @@ spare_latch: tri_rlmreg_p
             din     => spare_l2,
             dout    => spare_l2);
 
+-------------------------------------------------
+-- pervasive
+-------------------------------------------------
 
 perv_2to1_reg: tri_plat
   generic map (width => 2, expand_type => expand_type)
@@ -1090,6 +1133,9 @@ perv_lcbor: tri_lcbor
 
 
 
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv(0 to scan_right) <= sov(1 to scan_right) & scan_in;
 scan_out <= sov(0) and an_ac_scan_dis_dc_b;
 

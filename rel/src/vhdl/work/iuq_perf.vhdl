@@ -8,6 +8,13 @@
 -- license is available.
 
 
+--********************************************************************
+--*
+--* TITLE: Performance event mux
+--*
+--* NAME: iuq_perf.vhdl
+--*
+--*********************************************************************
 
 
 library ieee;
@@ -129,18 +136,58 @@ signal event_mux_ctrls_q                    : std_ulogic_vector(0 to 47);
 
 begin
 
+-----------------------------------------------------------------------
+-- Logic
+-----------------------------------------------------------------------
 
 tiup <= '1';
 
+----------------------------------------------------
+-- t* event list
+----------------------------------------------------
+-- 0    IL1 miss cycles
+-- 1    IL1 reloads dropped
+-- 2    reload collisions
+-- 3    iu0 redirect
+-- 4    ierat miss
+-- 5    icache fetch
+-- 6    instructions fetched
+-- 7    reserved
+-- 8    l2 back invalidates icache
+-- 9    l2 back invalidates icache hits
+-- 10   ibuff empty
+-- 11   ibuff flush
+-- 12   is1 stall
+-- 13   is2 stall
+-- 14   barrier stall
+-- 15   slowspr stall
+-----
+-- 16   raw dep hit
+-- 17   waw dep hit
+-- 18   sync dep hit
+-- 19   spr dep hit
+-- 20   axu dep hit
+-- 21   fxu dep hit
+-- 22   axu/fxu dep hit
+-- 23   reserved
+-- 24   2 instr issue
+-- 25   axu priority loss
+-- 26   fxu priority loss
+-- 27   axu issue
+-- 28   fxu issue
+-- 29   total issue
+-- 30   instruction match issue
+-- 31   reserved
+----------------------------------------------------
 
 xu_iu_msr_gs_d          <= xu_iu_msr_gs;
 xu_iu_msr_pr_d          <= xu_iu_msr_pr;
 event_count_mode_d      <= pc_iu_event_count_mode;
 
 
-event_en(0 to 3)        <= gate(    xu_iu_msr_pr_q(0 to 3)                               , event_count_mode_q(0)) or 
-                           gate(not xu_iu_msr_pr_q(0 to 3) and     xu_iu_msr_gs_q(0 to 3), event_count_mode_q(1)) or 
-                           gate(not xu_iu_msr_pr_q(0 to 3) and not xu_iu_msr_gs_q(0 to 3), event_count_mode_q(2));   
+event_en(0 to 3)        <= gate(    xu_iu_msr_pr_q(0 to 3)                               , event_count_mode_q(0)) or -- User
+                           gate(not xu_iu_msr_pr_q(0 to 3) and     xu_iu_msr_gs_q(0 to 3), event_count_mode_q(1)) or -- Guest Supervisor
+                           gate(not xu_iu_msr_pr_q(0 to 3) and not xu_iu_msr_gs_q(0 to 3), event_count_mode_q(2));   -- Hypervisor
 
 
 t0_events(0 to 31)      <= gate(
@@ -194,6 +241,9 @@ event_mux1: entity clib.c_event_mux
 iu_pc_event_data                <= event_data_q(0 to 7);
 
 
+-----------------------------------------------------------------------
+-- Latches
+-----------------------------------------------------------------------
 event_bus_enable_d <= pc_iu_event_bus_enable;
 event_mux_ctrls_d  <= pc_iu_event_mux_ctrls;     
 
@@ -306,6 +356,9 @@ xu_iu_msr_pr_reg: tri_rlmreg_p
             dout        => xu_iu_msr_pr_q);  
 
 
+-------------------------------------------------
+-- pervasive
+-------------------------------------------------
 
 perv_2to1_reg: tri_plat
   generic map (width => 2, expand_type => expand_type)
@@ -338,6 +391,9 @@ perv_lcbor: tri_lcbor
             forcee => forcee,
             thold_b     => pc_iu_func_sl_thold_0_b);
 
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv(0 to scan_right) <= sov(1 to scan_right) & scan_in;
 scan_out <= sov(0);
 

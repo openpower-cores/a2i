@@ -7,6 +7,10 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_lcbcntl_mac.vhdl
+-- *! DESCRIPTION : Used to generate control signals for LCBs
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
@@ -19,7 +23,7 @@ library tri; use tri.tri_latches_pkg.all;
 
 entity tri_lcbcntl_mac is
 
-  generic ( expand_type : integer := 1 ); 
+  generic ( expand_type : integer := 1 ); -- 1 = non-ibm, 2 = ibm (MPG)
 
   port (
         vdd            : inout power_logic;
@@ -64,4 +68,3 @@ begin
   end generate a;
 
 end tri_lcbcntl_mac;
-

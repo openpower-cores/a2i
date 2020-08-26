@@ -36,7 +36,7 @@ package std_ulogic_mux_support is
   function mux_2to1
     (code  : std_ulogic ;
      in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -59,7 +59,7 @@ package std_ulogic_mux_support is
      in0   : std_ulogic ;
      in1   : std_ulogic ;
      in2   : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -71,7 +71,7 @@ package std_ulogic_mux_support is
      in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -100,7 +100,7 @@ package std_ulogic_mux_support is
      in4   : std_ulogic ;
      in5   : std_ulogic ;
      in6   : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -116,7 +116,7 @@ package std_ulogic_mux_support is
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
      in6   : std_ulogic_vector ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -143,7 +143,7 @@ package std_ulogic_mux_support is
   function not_mux_2to1
     (code  : std_ulogic ;
      in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -153,7 +153,7 @@ package std_ulogic_mux_support is
   function not_mux_2to1
     (code  : std_ulogic ;
      in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -176,7 +176,7 @@ package std_ulogic_mux_support is
      in0   : std_ulogic ;
      in1   : std_ulogic ;
      in2   : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -188,7 +188,7 @@ package std_ulogic_mux_support is
      in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -217,7 +217,7 @@ package std_ulogic_mux_support is
      in4   : std_ulogic ;
      in5   : std_ulogic ;
      in6   : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -233,7 +233,7 @@ package std_ulogic_mux_support is
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
      in6   : std_ulogic_vector ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -262,7 +262,7 @@ package std_ulogic_mux_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -273,7 +273,7 @@ package std_ulogic_mux_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -298,7 +298,7 @@ package std_ulogic_mux_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -311,7 +311,7 @@ package std_ulogic_mux_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -340,7 +340,7 @@ package std_ulogic_mux_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -355,7 +355,7 @@ package std_ulogic_mux_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -394,7 +394,7 @@ package std_ulogic_mux_support is
      gate6 : std_ulogic ;
      in6   : std_ulogic ;
      gate7 : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -417,7 +417,7 @@ package std_ulogic_mux_support is
      gate6 : std_ulogic ;
      in6   : std_ulogic_vector ;
      gate7 : std_ulogic ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -452,7 +452,7 @@ package std_ulogic_mux_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -463,7 +463,7 @@ package std_ulogic_mux_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -488,7 +488,7 @@ package std_ulogic_mux_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -501,7 +501,7 @@ package std_ulogic_mux_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -530,7 +530,7 @@ package std_ulogic_mux_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -545,7 +545,7 @@ package std_ulogic_mux_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -584,7 +584,7 @@ package std_ulogic_mux_support is
      gate6 : std_ulogic ;
      in6   : std_ulogic ;
      gate7 : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -607,7 +607,7 @@ package std_ulogic_mux_support is
      gate6 : std_ulogic ;
      in6   : std_ulogic_vector ;
      gate7 : std_ulogic ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -640,14 +640,13 @@ package std_ulogic_mux_support is
 
 end std_ulogic_mux_support;
 
--- The Source code for this program is not published or otherwise   
 package body std_ulogic_mux_support is
 
   -- Multiplexor/Selector Functions
   function mux_2to1
     (code  : std_ulogic ;
      in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -673,7 +672,7 @@ package body std_ulogic_mux_support is
   function mux_2to1
     (code  : std_ulogic ;
      in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -701,7 +700,7 @@ package body std_ulogic_mux_support is
      in0   : std_ulogic ;
      in1   : std_ulogic ;
      in2   : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -731,7 +730,7 @@ package body std_ulogic_mux_support is
      in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -765,7 +764,7 @@ package body std_ulogic_mux_support is
      in4   : std_ulogic ;
      in5   : std_ulogic ;
      in6   : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -803,7 +802,7 @@ package body std_ulogic_mux_support is
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
      in6   : std_ulogic_vector ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -836,7 +835,7 @@ package body std_ulogic_mux_support is
   function not_mux_2to1
     (code  : std_ulogic ;
      in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -862,7 +861,7 @@ package body std_ulogic_mux_support is
   function not_mux_2to1
     (code  : std_ulogic ;
      in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -890,7 +889,7 @@ package body std_ulogic_mux_support is
      in0   : std_ulogic ;
      in1   : std_ulogic ;
      in2   : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -920,7 +919,7 @@ package body std_ulogic_mux_support is
      in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -954,7 +953,7 @@ package body std_ulogic_mux_support is
      in4   : std_ulogic ;
      in5   : std_ulogic ;
      in6   : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -992,7 +991,7 @@ package body std_ulogic_mux_support is
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
      in6   : std_ulogic_vector ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1026,7 +1025,7 @@ package body std_ulogic_mux_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1050,7 +1049,7 @@ package body std_ulogic_mux_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1076,7 +1075,7 @@ package body std_ulogic_mux_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1103,7 +1102,7 @@ package body std_ulogic_mux_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1132,7 +1131,7 @@ package body std_ulogic_mux_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1162,7 +1161,7 @@ package body std_ulogic_mux_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1200,7 +1199,7 @@ package body std_ulogic_mux_support is
      gate6 : std_ulogic ;
      in6   : std_ulogic ;
      gate7 : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1242,7 +1241,7 @@ package body std_ulogic_mux_support is
      gate6 : std_ulogic ;
      in6   : std_ulogic_vector ;
      gate7 : std_ulogic ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1272,7 +1271,7 @@ package body std_ulogic_mux_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1296,7 +1295,7 @@ package body std_ulogic_mux_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1322,7 +1321,7 @@ package body std_ulogic_mux_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1349,7 +1348,7 @@ package body std_ulogic_mux_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1378,7 +1377,7 @@ package body std_ulogic_mux_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1408,7 +1407,7 @@ package body std_ulogic_mux_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1446,7 +1445,7 @@ package body std_ulogic_mux_support is
      gate6 : std_ulogic ;
      in6   : std_ulogic ;
      gate7 : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1488,7 +1487,7 @@ package body std_ulogic_mux_support is
      gate6 : std_ulogic ;
      in6   : std_ulogic_vector ;
      gate7 : std_ulogic ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""

@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Performance Event Muxing
+--
 library ieee,ibm,support,work,tri,clib;
 use ieee.std_logic_1164.all;
 use support.power_logic_pkg.all;
@@ -16,8 +18,10 @@ entity xuq_perf is
 generic(
    expand_type                      :     integer :=  2);
 port(
+   -- Clocks
    nclk                             : in  clk_logic;
 
+   -- Pervasive
    func_sl_thold_2                  : in  std_ulogic;
    sg_2                             : in  std_ulogic;
    clkoff_dc_b                      : in  std_ulogic;
@@ -29,20 +33,25 @@ port(
    scan_in                          : in  std_ulogic;
    scan_out                         : out std_ulogic;
 
+   -- Event Inputs
    cpl_perf_tx_events               : in  std_ulogic_vector(0 to 75);
    spr_perf_tx_events               : in  std_ulogic_vector(0 to 31);
    byp_perf_tx_events               : in  std_ulogic_vector(0 to 11);
    fxa_perf_muldiv_in_use           : in  std_ulogic;
 
+   -- PC Control Interface
    pc_xu_event_bus_enable           : in  std_ulogic;
    pc_xu_event_count_mode           : in  std_ulogic_vector(0 to 2);
    pc_xu_event_mux_ctrls            : in  std_ulogic_vector(0 to 47);
 
+   -- Perf Event Output
    xu_pc_event_data                 : out std_ulogic_vector(0 to 7);
 
+   -- SPR Bits
    spr_msr_gs                       : in  std_ulogic_vector(0 to 3);
    spr_msr_pr                       : in  std_ulogic_vector(0 to 3);
 
+   -- Power
    vdd                              : inout power_logic;
    gnd                              : inout power_logic
 );
@@ -53,19 +62,21 @@ port(
 end xuq_perf;
 architecture xuq_perf of xuq_perf is
 
+-- Latches
 signal event_en_q,            event_en_d              : std_ulogic_vector(0 to 3);
 signal event_data_q,          event_data_d            : std_ulogic_vector(xu_pc_event_data'range);
 signal event_mux_ctrls_q,     event_mux_ctrls_d       : std_ulogic_vector(0 to 47);
-signal cpl_perf_tx_events_q                           : std_ulogic_vector(0 to 75);                
-signal spr_perf_tx_events_q                           : std_ulogic_vector(0 to 31);                
-signal byp_perf_tx_events_q                           : std_ulogic_vector(0 to 11);                
-signal muldiv_in_use_q                                : std_ulogic;                                
+signal cpl_perf_tx_events_q                           : std_ulogic_vector(0 to 75);                -- input=>cpl_perf_tx_events
+signal spr_perf_tx_events_q                           : std_ulogic_vector(0 to 31);                -- input=>spr_perf_tx_events
+signal byp_perf_tx_events_q                           : std_ulogic_vector(0 to 11);                -- input=>byp_perf_tx_events
+signal muldiv_in_use_q                                : std_ulogic;                                -- input=>fxa_perf_muldiv_in_use
 signal processor_busy_q,      processor_busy_d        : std_ulogic;
-signal br_commit_q,           br_commit_d             : std_ulogic;                                
-signal br_mispred_q,          br_mispred_d            : std_ulogic;                                
-signal br_ta_mispred_q,       br_ta_mispred_d         : std_ulogic;                                
-signal pc_event_count_mode_q                          : std_ulogic_vector(0 to 2);                 
+signal br_commit_q,           br_commit_d             : std_ulogic;                                -- act=>pc_event_bus_enable_q
+signal br_mispred_q,          br_mispred_d            : std_ulogic;                                -- act=>pc_event_bus_enable_q
+signal br_ta_mispred_q,       br_ta_mispred_d         : std_ulogic;                                -- act=>pc_event_bus_enable_q
+signal pc_event_count_mode_q                          : std_ulogic_vector(0 to 2);                 -- input=>pc_xu_event_count_mode
 signal pc_event_bus_enable_q                          : std_ulogic;
+-- Scanchains
 constant event_en_offset                              : integer := 0;
 constant event_data_offset                            : integer := event_en_offset                + event_en_q'length;
 constant event_mux_ctrls_offset                       : integer := event_data_offset              + event_data_q'length;
@@ -83,6 +94,7 @@ constant scan_right                                   : integer := pc_event_bus_
 signal siv                                            : std_ulogic_vector(0 to scan_right-1);
 signal sov                                            : std_ulogic_vector(0 to scan_right-1);
 
+-- Signals
 signal tiup                                           : std_ulogic;
 signal func_sl_thold_1                                : std_ulogic;
 signal sg_1                                           : std_ulogic;
@@ -99,6 +111,42 @@ begin
 
 tiup <= '1';
 
+-- Processor Busy / Br Commit / Br Mispred / Br TA Mispred
+------------------------------------------ SPR
+-- Thread Running
+-- TB Tick
+-- SPR read
+-- SPR write
+-- Cycles Stalled on waitrsv
+-- External Int Asserted
+-- Critical Ext Int Asserted
+-- Perf Mon Int Asserted
+------------------------------------------ CPL
+-- PPE Commit
+-- Integer Commit
+-- uCode Commit
+-- Any Flush
+-- Branch Commit
+-- Branch Mispredict Commit
+-- Branch Taken Commit
+-- Branch TA Mispredict Commit
+-- Mult/Div collision
+-- External Interrupt Pending
+-- Critical External Interrupt Pending
+-- Performance Mon Interrupt Pending
+-- Opcode Match
+-- Concurrent Run Instructions
+-- External, Critical, Perf Interrupts Taken (any thread)
+-- External Interrupt Taken
+-- Critical External Interrupt Taken
+-- Performance Mon Interrupt Taken
+-- Processor Doorbell or Critical Doorbell Taken
+------------------------------------------ BYP
+-- STCX Fail
+-- icswx failed
+-- icswx finished
+------------------------------------------ DEC
+-- Mult/Div Busy
 
 processor_busy_d     <= spr_perf_tx_events_q(00) or spr_perf_tx_events_q(08) or spr_perf_tx_events_q(16) or spr_perf_tx_events_q(24);
 
@@ -120,9 +168,9 @@ xu_pc_event_data  <= event_data_q;
 
 event_mux_ctrls_d <= pc_xu_event_mux_ctrls;
 
-event_en_d     <= (    spr_msr_pr and                    (0 to 3=>pc_event_count_mode_q(0))) or 
-                  (not spr_msr_pr and     spr_msr_gs and (0 to 3=>pc_event_count_mode_q(1))) or 
-                  (not spr_msr_pr and not spr_msr_gs and (0 to 3=>pc_event_count_mode_q(2)));   
+event_en_d     <= (    spr_msr_pr and                    (0 to 3=>pc_event_count_mode_q(0))) or -- User
+                  (not spr_msr_pr and     spr_msr_gs and (0 to 3=>pc_event_count_mode_q(1))) or -- Guest Supervisor
+                  (not spr_msr_pr and not spr_msr_gs and (0 to 3=>pc_event_count_mode_q(2)));   -- Hypervisor
 
 xuq_perf_mux1 : entity clib.c_event_mux(c_event_mux)
 generic map(events_in => 128)
@@ -137,6 +185,7 @@ port map(
    event_bits     => event_data_d
 );
 
+-- Latch Instances
 event_en_latch : tri_rlmreg_p
   generic map (width => event_en_q'length, init => 0, expand_type => expand_type, needs_sreset => 1)
   port map (nclk    => nclk, vd => vdd, gd => gnd,
@@ -307,6 +356,9 @@ pc_event_bus_enable_latch : tri_rlmlatch_p
             din     => pc_xu_event_bus_enable,
             dout    => pc_event_bus_enable_q);
 
+-------------------------------------------------
+-- Pervasive
+-------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 2, expand_type => expand_type)
 port map (vd          => vdd,

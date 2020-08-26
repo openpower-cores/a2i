@@ -21,16 +21,19 @@ library ieee,ibm,support,tri,work;
 
  
 entity fuq_nrm_sh is
-generic(       expand_type               : integer := 2  ); 
+generic(       expand_type               : integer := 2  ); -- 0 - ibm tech, 1 - other );
 port(
+      ----------- SHIFT CONTROLS -----------------
       f_lza_ex4_sh_rgt_en      :in   std_ulogic;
       f_lza_ex4_lza_amt_cp1    :in   std_ulogic_vector(2 to 7) ;
       f_lza_ex4_lza_dcd64_cp1  :in   std_ulogic_vector(0 to 2) ;
       f_lza_ex4_lza_dcd64_cp2  :in   std_ulogic_vector(0 to 1) ;
       f_lza_ex4_lza_dcd64_cp3  :in   std_ulogic_vector(0 to 0) ;
 
+      ----------- SHIFT DATA -----------------
       f_add_ex4_res            :in   std_ulogic_vector(0 to 162) ;
 
+      ---------- SHIFT OUTPUT ---------------
       ex4_sh2_o                :out  std_ulogic_vector(26 to 72);
       ex4_sh4_25               :out  std_ulogic;
       ex4_sh4_54               :out  std_ulogic;
@@ -44,7 +47,7 @@ port(
 
 
 
-end fuq_nrm_sh; 
+end fuq_nrm_sh; -- ENTITY
 
 architecture fuq_nrm_sh of fuq_nrm_sh is
 
@@ -88,76 +91,47 @@ architecture fuq_nrm_sh of fuq_nrm_sh is
    signal ex4_shift_extra_00_cp3_b    :std_ulogic;
    signal ex4_shift_extra_00_cp4_b    :std_ulogic;
 
-
-
-
-
-
-
-
-
-
-
-
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 begin
 
 
+--//##############################################
+--# EX4 logic: shift decode
+--//##############################################
 
   ex4_shctl_64(0 to 2)     <= f_lza_ex4_lza_dcd64_cp1(0 to 2) ;
   ex4_shctl_64_cp2(0 to 1) <= f_lza_ex4_lza_dcd64_cp2(0 to 1) ;
   ex4_shctl_64_cp3(0)      <= f_lza_ex4_lza_dcd64_cp3(0) ;
  
-  ex4_shctl_16(0) <= not f_lza_ex4_lza_amt_cp1(2) and not f_lza_ex4_lza_amt_cp1(3) ; 
-  ex4_shctl_16(1) <= not f_lza_ex4_lza_amt_cp1(2) and     f_lza_ex4_lza_amt_cp1(3) ; 
-  ex4_shctl_16(2) <=     f_lza_ex4_lza_amt_cp1(2) and not f_lza_ex4_lza_amt_cp1(3) ; 
-  ex4_shctl_16(3) <=     f_lza_ex4_lza_amt_cp1(2) and     f_lza_ex4_lza_amt_cp1(3) ; 
+  ex4_shctl_16(0) <= not f_lza_ex4_lza_amt_cp1(2) and not f_lza_ex4_lza_amt_cp1(3) ; --SH000
+  ex4_shctl_16(1) <= not f_lza_ex4_lza_amt_cp1(2) and     f_lza_ex4_lza_amt_cp1(3) ; --SH016
+  ex4_shctl_16(2) <=     f_lza_ex4_lza_amt_cp1(2) and not f_lza_ex4_lza_amt_cp1(3) ; --SH032
+  ex4_shctl_16(3) <=     f_lza_ex4_lza_amt_cp1(2) and     f_lza_ex4_lza_amt_cp1(3) ; --SH048
  
-  ex4_shctl_04(0) <= not f_lza_ex4_lza_amt_cp1(4) and not f_lza_ex4_lza_amt_cp1(5) ; 
-  ex4_shctl_04(1) <= not f_lza_ex4_lza_amt_cp1(4) and     f_lza_ex4_lza_amt_cp1(5) ; 
-  ex4_shctl_04(2) <=     f_lza_ex4_lza_amt_cp1(4) and not f_lza_ex4_lza_amt_cp1(5) ; 
-  ex4_shctl_04(3) <=     f_lza_ex4_lza_amt_cp1(4) and     f_lza_ex4_lza_amt_cp1(5) ; 
+  ex4_shctl_04(0) <= not f_lza_ex4_lza_amt_cp1(4) and not f_lza_ex4_lza_amt_cp1(5) ; --SH000
+  ex4_shctl_04(1) <= not f_lza_ex4_lza_amt_cp1(4) and     f_lza_ex4_lza_amt_cp1(5) ; --SH004
+  ex4_shctl_04(2) <=     f_lza_ex4_lza_amt_cp1(4) and not f_lza_ex4_lza_amt_cp1(5) ; --SH008
+  ex4_shctl_04(3) <=     f_lza_ex4_lza_amt_cp1(4) and     f_lza_ex4_lza_amt_cp1(5) ; --SH012
  
-  ex4_shctl_01(0) <= not f_lza_ex4_lza_amt_cp1(6) and not f_lza_ex4_lza_amt_cp1(7) ; 
-  ex4_shctl_01(1) <= not f_lza_ex4_lza_amt_cp1(6) and     f_lza_ex4_lza_amt_cp1(7) ; 
-  ex4_shctl_01(2) <=     f_lza_ex4_lza_amt_cp1(6) and not f_lza_ex4_lza_amt_cp1(7) ; 
-  ex4_shctl_01(3) <=     f_lza_ex4_lza_amt_cp1(6) and     f_lza_ex4_lza_amt_cp1(7) ; 
+  ex4_shctl_01(0) <= not f_lza_ex4_lza_amt_cp1(6) and not f_lza_ex4_lza_amt_cp1(7) ; --SH000
+  ex4_shctl_01(1) <= not f_lza_ex4_lza_amt_cp1(6) and     f_lza_ex4_lza_amt_cp1(7) ; --SH001
+  ex4_shctl_01(2) <=     f_lza_ex4_lza_amt_cp1(6) and not f_lza_ex4_lza_amt_cp1(7) ; --SH002
+  ex4_shctl_01(3) <=     f_lza_ex4_lza_amt_cp1(6) and     f_lza_ex4_lza_amt_cp1(7) ; --SH003
  
+--//##############################################
+--# EX4 logic: shifting
+--//##############################################
+  --//## big shifts first (come sooner from LZA,
+  --//## when shift amount is [0] we need to start out with a "dummy" leading bit to sacrifice for shift_extra
 
-  ex4_sh2_o(26 to 72) <= ex4_sh2(26 to 72); 
+  ex4_sh2_o(26 to 72) <= ex4_sh2(26 to 72); -- for sticky bit
+
+  ex4_sh4_25 <= ex4_sh4(25) ; -- for sticky bit
+  ex4_sh4_54 <= ex4_sh4(54) ; -- for sticky bit
 
 
-  ex4_sh4_25 <= ex4_sh4(25) ; 
-  ex4_sh4_54 <= ex4_sh4(54) ; 
 
 
-
-
+---------------------------------------------------------
 u_sh1x_000:  ex4_sh1_x_b(  0) <= not( tidn               and  ex4_shctl_64(0) );
 u_sh1x_001:  ex4_sh1_x_b(  1) <= not( f_add_ex4_res(  0) and  ex4_shctl_64(0) );
 u_sh1x_002:  ex4_sh1_x_b(  2) <= not( f_add_ex4_res(  1) and  ex4_shctl_64(0) );
@@ -198,7 +172,7 @@ u_sh1x_036:  ex4_sh1_x_b( 36) <= not( f_add_ex4_res( 35) and  ex4_shctl_64(0) );
 u_sh1x_037:  ex4_sh1_x_b( 37) <= not( f_add_ex4_res( 36) and  ex4_shctl_64(0) );
 u_sh1x_038:  ex4_sh1_x_b( 38) <= not( f_add_ex4_res( 37) and  ex4_shctl_64(0) );
 u_sh1x_039:  ex4_sh1_x_b( 39) <= not( f_add_ex4_res( 38) and  ex4_shctl_64(0) );
-u_sh1x_040:  ex4_sh1_x_b( 40) <= not( f_add_ex4_res( 39) and  ex4_shctl_64_cp2(0) );
+u_sh1x_040:  ex4_sh1_x_b( 40) <= not( f_add_ex4_res( 39) and  ex4_shctl_64_cp2(0) );----------
 u_sh1x_041:  ex4_sh1_x_b( 41) <= not( f_add_ex4_res( 40) and  ex4_shctl_64_cp2(0) );
 u_sh1x_042:  ex4_sh1_x_b( 42) <= not( f_add_ex4_res( 41) and  ex4_shctl_64_cp2(0) );
 u_sh1x_043:  ex4_sh1_x_b( 43) <= not( f_add_ex4_res( 42) and  ex4_shctl_64_cp2(0) );
@@ -239,7 +213,7 @@ u_sh1x_077:  ex4_sh1_x_b( 77) <= not( f_add_ex4_res( 76) and  ex4_shctl_64_cp2(0
 u_sh1x_078:  ex4_sh1_x_b( 78) <= not( f_add_ex4_res( 77) and  ex4_shctl_64_cp2(0) );
 u_sh1x_079:  ex4_sh1_x_b( 79) <= not( f_add_ex4_res( 78) and  ex4_shctl_64_cp2(0) );
 u_sh1x_080:  ex4_sh1_x_b( 80) <= not( f_add_ex4_res( 79) and  ex4_shctl_64_cp2(0) );
-u_sh1x_081:  ex4_sh1_x_b( 81) <= not( f_add_ex4_res( 80) and  ex4_shctl_64_cp3(0) );
+u_sh1x_081:  ex4_sh1_x_b( 81) <= not( f_add_ex4_res( 80) and  ex4_shctl_64_cp3(0) );------
 u_sh1x_082:  ex4_sh1_x_b( 82) <= not( f_add_ex4_res( 81) and  ex4_shctl_64_cp3(0) );
 u_sh1x_083:  ex4_sh1_x_b( 83) <= not( f_add_ex4_res( 82) and  ex4_shctl_64_cp3(0) );
 u_sh1x_084:  ex4_sh1_x_b( 84) <= not( f_add_ex4_res( 83) and  ex4_shctl_64_cp3(0) );
@@ -599,6 +573,7 @@ u_sh1_118:  ex4_sh1(118) <= not( ex4_sh1_x_b(118)                       and ex4_
 u_sh1_119:  ex4_sh1(119) <= not( ex4_sh1_x_b(119) );
 u_sh1_120:  ex4_sh1(120) <= not( ex4_sh1_x_b(120) );
 
+ ------------------------------------------------------------------------------------
 
 
 u_sh2x_00:  ex4_sh2_x_b( 0) <= not( (ex4_sh1(  0) and ex4_shctl_16(0) ) or ( ex4_sh1( 16) and ex4_shctl_16(1) ) );
@@ -825,6 +800,7 @@ u_sh2_70:  ex4_sh2(70) <= not( ex4_sh2_x_b(70) and ex4_sh2_y_b(70) );
 u_sh2_71:  ex4_sh2(71) <= not( ex4_sh2_x_b(71) and ex4_sh2_y_b(71) );
 u_sh2_72:  ex4_sh2(72) <= not( ex4_sh2_x_b(72) and ex4_sh2_y_b(72) );
 
+   -----------------------------------------------
 
 
 u_sh3x_00:  ex4_sh3_x_b( 0) <= not( (ex4_sh2( 0) and ex4_shctl_04(0) ) or ( ex4_sh2( 4) and ex4_shctl_04(1) ) );
@@ -1004,6 +980,7 @@ u_sh3_55:  ex4_sh3(55) <= not( ex4_sh3_x_b(55) and ex4_sh3_y_b(55) );
 u_sh3_56:  ex4_sh3(56) <= not( ex4_sh3_x_b(56) and ex4_sh3_y_b(56) );
 u_sh3_57:  ex4_sh3(57) <= not( ex4_sh3_x_b(57) and ex4_sh3_y_b(57) );
 
+   -----------------------------------------------
 
 u_sh4x_00cp1: ex4_sh4_x_00_b  <= not( (ex4_sh3( 0) and ex4_shctl_01(0) ) or ( ex4_sh3( 1) and ex4_shctl_01(1) ) );
 u_sh4x_00:  ex4_sh4_x_b( 0) <= not( (ex4_sh3( 0) and ex4_shctl_01(0) ) or ( ex4_sh3( 1) and ex4_shctl_01(1) ) );
@@ -1119,32 +1096,32 @@ u_sh4y_52:  ex4_sh4_y_b(52) <= not( (ex4_sh3(54) and ex4_shctl_01(2) ) or ( ex4_
 u_sh4y_53:  ex4_sh4_y_b(53) <= not( (ex4_sh3(55) and ex4_shctl_01(2) ) or ( ex4_sh3(56) and ex4_shctl_01(3) ) );
 u_sh4y_54:  ex4_sh4_y_b(54) <= not( (ex4_sh3(56) and ex4_shctl_01(2) ) or ( ex4_sh3(57) and ex4_shctl_01(3) ) );
 
-u_extra_cp1:  ex4_shift_extra_cp1_b    <= not(ex4_sh4_x_00_b and ex4_sh4_y_00_b ); 
-u_extra_cp2:  ex4_shift_extra_cp2_b    <= not(ex4_sh4_x_00_b and ex4_sh4_y_00_b ); 
-u_extra_cp3:  ex4_shift_extra_00_cp3_b <= not(ex4_sh4_x_b(0) and ex4_sh4_y_b(0) ); 
-u_extra_cp4:  ex4_shift_extra_00_cp4_b <= not(ex4_sh4_x_b(0) and ex4_sh4_y_b(0) ); 
+u_extra_cp1:  ex4_shift_extra_cp1_b    <= not(ex4_sh4_x_00_b and ex4_sh4_y_00_b ); -- shift extra when implicit bit is not 1
+u_extra_cp2:  ex4_shift_extra_cp2_b    <= not(ex4_sh4_x_00_b and ex4_sh4_y_00_b ); -- shift extra when implicit bit is not 1
+u_extra_cp3:  ex4_shift_extra_00_cp3_b <= not(ex4_sh4_x_b(0) and ex4_sh4_y_b(0) ); -- shift extra when implicit bit is not 1
+u_extra_cp4:  ex4_shift_extra_00_cp4_b <= not(ex4_sh4_x_b(0) and ex4_sh4_y_b(0) ); -- shift extra when implicit bit is not 1
 
-  ex4_shift_extra_cp1 <= not ex4_shift_extra_cp1_b ; 
-  ex4_shift_extra_cp2 <= not ex4_shift_extra_cp2_b ; 
+  ex4_shift_extra_cp1 <= not ex4_shift_extra_cp1_b ; --output--
+  ex4_shift_extra_cp2 <= not ex4_shift_extra_cp2_b ; --output--
 
 
-u_extra_10_cp3: ex4_shift_extra_10_cp3    <= not ex4_shift_extra_00_cp3_b    ; 
-u_extra_20_cp3: ex4_shift_extra_20_cp3_b  <= not ex4_shift_extra_10_cp3   ; 
-u_extra_30_cp3: ex4_shift_extra_cp3       <= not ex4_shift_extra_20_cp3_b ; 
+u_extra_10_cp3: ex4_shift_extra_10_cp3    <= not ex4_shift_extra_00_cp3_b    ; -- x4
+u_extra_20_cp3: ex4_shift_extra_20_cp3_b  <= not ex4_shift_extra_10_cp3   ; -- x6
+u_extra_30_cp3: ex4_shift_extra_cp3       <= not ex4_shift_extra_20_cp3_b ; -- x9
 
-u_extra_11_cp3: ex4_shift_extra_11_cp3    <= not ex4_shift_extra_00_cp3_b    ; 
-u_extra_21_cp3: ex4_shift_extra_21_cp3_b  <= not ex4_shift_extra_11_cp3   ; 
-u_extra_31_cp3: ex4_shift_extra_31_cp3    <= not ex4_shift_extra_21_cp3_b ; 
-u_extra_41_cp3: ex4_shift_extra_cp3_b     <= not ex4_shift_extra_31_cp3   ; 
+u_extra_11_cp3: ex4_shift_extra_11_cp3    <= not ex4_shift_extra_00_cp3_b    ; -- x2
+u_extra_21_cp3: ex4_shift_extra_21_cp3_b  <= not ex4_shift_extra_11_cp3   ; -- x4
+u_extra_31_cp3: ex4_shift_extra_31_cp3    <= not ex4_shift_extra_21_cp3_b ; -- x6
+u_extra_41_cp3: ex4_shift_extra_cp3_b     <= not ex4_shift_extra_31_cp3   ; -- x9
 
-u_extra_10_cp4: ex4_shift_extra_10_cp4    <= not ex4_shift_extra_00_cp4_b    ; 
-u_extra_20_cp4: ex4_shift_extra_20_cp4_b  <= not ex4_shift_extra_10_cp4   ; 
-u_extra_30_cp4: ex4_shift_extra_cp4       <= not ex4_shift_extra_20_cp4_b ; 
+u_extra_10_cp4: ex4_shift_extra_10_cp4    <= not ex4_shift_extra_00_cp4_b    ; -- x4
+u_extra_20_cp4: ex4_shift_extra_20_cp4_b  <= not ex4_shift_extra_10_cp4   ; -- x6
+u_extra_30_cp4: ex4_shift_extra_cp4       <= not ex4_shift_extra_20_cp4_b ; -- x9
 
-u_extra_11_cp4: ex4_shift_extra_11_cp4    <= not ex4_shift_extra_00_cp4_b    ; 
-u_extra_21_cp4: ex4_shift_extra_21_cp4_b  <= not ex4_shift_extra_11_cp4   ; 
-u_extra_31_cp4: ex4_shift_extra_31_cp4    <= not ex4_shift_extra_21_cp4_b ; 
-u_extra_41_cp4: ex4_shift_extra_cp4_b     <= not ex4_shift_extra_31_cp4   ; 
+u_extra_11_cp4: ex4_shift_extra_11_cp4    <= not ex4_shift_extra_00_cp4_b    ; -- x2
+u_extra_21_cp4: ex4_shift_extra_21_cp4_b  <= not ex4_shift_extra_11_cp4   ; -- x4
+u_extra_31_cp4: ex4_shift_extra_31_cp4    <= not ex4_shift_extra_21_cp4_b ; -- x6
+u_extra_41_cp4: ex4_shift_extra_cp4_b     <= not ex4_shift_extra_31_cp4   ; -- x9
 
 
 
@@ -1207,6 +1184,7 @@ u_sh4_52:  ex4_sh4(52) <= not( ex4_sh4_x_b(52) and ex4_sh4_y_b(52) );
 u_sh4_53:  ex4_sh4(53) <= not( ex4_sh4_x_b(53) and ex4_sh4_y_b(53) );
 u_sh4_54:  ex4_sh4(54) <= not( ex4_sh4_x_b(54) and ex4_sh4_y_b(54) );
  
+   -----------------------------------------------
           
 
 u_nrm_sh5x_00:  ex4_sh5_x_b( 0) <= not( ex4_sh4( 0) and ex4_shift_extra_cp3_b );
@@ -1322,6 +1300,4 @@ u_nrm_sh5y_53:  ex4_sh5_y_b(53) <= not( ex4_sh4(54) and     ex4_shift_extra_cp4 
 
 
 
-end; 
-
-
+end; -- fuq_nrm_sh ARCHITECTURE

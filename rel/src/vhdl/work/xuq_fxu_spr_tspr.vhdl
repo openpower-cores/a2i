@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU SPR - per thread register slice
+--
 library ieee,ibm,support,work,tri;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -35,14 +37,17 @@ port(
    scan_in                          : in  std_ulogic;
    scan_out                         : out std_ulogic;
    
+   -- Read Interface
    cspr_tspr_ex2_instr              : in  std_ulogic_vector(11 to 20);
    tspr_cspr_ex2_tspr_rt            : out std_ulogic_vector(64-regsize to 63);
 
+   -- Write Interface
    ex6_val                          : in  std_ulogic;
    cspr_tspr_ex6_is_mtspr           : in  std_ulogic;
    cspr_tspr_ex6_instr              : in  std_ulogic_vector(11 to 20);
    ex6_spr_wd                       : in  std_ulogic_vector(64-regsize to 63);
    
+   -- SPRs
    tspr_cspr_dbcr2_dac1us           : out std_ulogic_vector(0 to 1);
    tspr_cspr_dbcr2_dac1er           : out std_ulogic_vector(0 to 1);
    tspr_cspr_dbcr2_dac2us           : out std_ulogic_vector(0 to 1);
@@ -59,6 +64,7 @@ port(
    tspr_cspr_dbcr2_dvc2be           : out std_ulogic_vector(0 to 7);
 	spr_dbcr3_ivc                    : out std_ulogic;
 
+   -- Power
    vdd                              : inout power_logic;
    gnd                              : inout power_logic
 );
@@ -69,20 +75,25 @@ port(
 end xuq_fxu_spr_tspr;
 architecture xuq_fxu_spr_tspr of xuq_fxu_spr_tspr is
 
+-- Types
 subtype DO                            is std_ulogic_vector(65-regsize to 64);
+-- SPR Registers
 signal dbcr2_d        , dbcr2_q        : std_ulogic_vector(35 to 63);
 signal dbcr3_d        , dbcr3_q        : std_ulogic_vector(54 to 63);
+-- FUNC Scanchain
 constant dbcr2_offset                  : natural := 0;
 constant dbcr3_offset                  : natural := dbcr2_offset    + dbcr2_q'length*a2mode;
 constant last_reg_offset               : natural := dbcr3_offset    + dbcr3_q'length;
 constant scan_right                    : integer := last_reg_offset;
 signal siv                             : std_ulogic_vector(0 to scan_right-1);
 signal sov                             : std_ulogic_vector(0 to scan_right-1);
+-- Signals
 signal tiup                            : std_ulogic;
 signal tidn                            : std_ulogic_vector(00 to 63);
 signal ex2_instr                       : std_ulogic_vector(11 to 20);
 signal ex6_is_mtspr                    : std_ulogic;
 signal ex6_instr                       : std_ulogic_vector(11 to 20);
+-- Data
 signal spr_dbcr2_dac1us                : std_ulogic_vector(0 to 1);
 signal spr_dbcr2_dac1er                : std_ulogic_vector(0 to 1);
 signal spr_dbcr2_dac2us                : std_ulogic_vector(0 to 1);
@@ -127,9 +138,12 @@ ex2_instr      <= cspr_tspr_ex2_instr;
 ex6_is_mtspr   <= cspr_tspr_ex6_is_mtspr;
 ex6_instr      <= cspr_tspr_ex6_instr;
              
+-- SPR Input Control
+-- DBCR2
 dbcr2_act      <= ex6_dbcr2_we;
 dbcr2_d        <= ex6_dbcr2_di;
 
+-- DBCR3
 dbcr3_act      <= ex6_dbcr3_we;
 dbcr3_d        <= ex6_dbcr3_di;
 
@@ -152,13 +166,13 @@ tspr_cspr_ex2_tspr_rt <=
 	(dbcr3_do(DO'range)       and (DO'range => ex2_dbcr3_re   ));
 end generate;
 
-ex2_dbcr2_rdec    <= (ex2_instr(11 to 20) = "1011001001");   
-ex2_dbcr3_rdec    <= (ex2_instr(11 to 20) = "1000011010");   
+ex2_dbcr2_rdec    <= (ex2_instr(11 to 20) = "1011001001");   --  310
+ex2_dbcr3_rdec    <= (ex2_instr(11 to 20) = "1000011010");   --  848
 ex2_dbcr2_re      <=  ex2_dbcr2_rdec;
 ex2_dbcr3_re      <=  ex2_dbcr3_rdec;
 
-ex6_dbcr2_wdec    <= (ex6_instr(11 to 20) = "1011001001");   
-ex6_dbcr3_wdec    <= (ex6_instr(11 to 20) = "1000011010");   
+ex6_dbcr2_wdec    <= (ex6_instr(11 to 20) = "1011001001");   --  310
+ex6_dbcr3_wdec    <= (ex6_instr(11 to 20) = "1000011010");   --  848
 ex6_dbcr2_we      <= ex6_val and ex6_is_mtspr and  ex6_dbcr2_wdec;
 ex6_dbcr3_we      <= ex6_val and ex6_is_mtspr and  ex6_dbcr3_wdec;
 
@@ -197,45 +211,48 @@ mark_unused(tidn);
 mark_unused(ex6_spr_wd);
 
 
-ex6_dbcr2_di   <= ex6_spr_wd(32 to 33)             & 
-						ex6_spr_wd(34 to 35)             & 
-						ex6_spr_wd(36 to 37)             & 
-						ex6_spr_wd(38 to 39)             & 
-						ex6_spr_wd(41 to 41)             & 
-						ex6_spr_wd(44 to 45)             & 
-						ex6_spr_wd(46 to 47)             & 
-						ex6_spr_wd(48 to 55)             & 
-						ex6_spr_wd(56 to 63)             ; 
+-- DBCR2
+ex6_dbcr2_di   <= ex6_spr_wd(32 to 33)             & --DAC1US
+						ex6_spr_wd(34 to 35)             & --DAC1ER
+						ex6_spr_wd(36 to 37)             & --DAC2US
+						ex6_spr_wd(38 to 39)             & --DAC2ER
+						ex6_spr_wd(41 to 41)             & --DAC12M
+						ex6_spr_wd(44 to 45)             & --DVC1M
+						ex6_spr_wd(46 to 47)             & --DVC2M
+						ex6_spr_wd(48 to 55)             & --DVC1BE
+						ex6_spr_wd(56 to 63)             ; --DVC2BE
 dbcr2_do       <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						dbcr2_q(35 to 36)                & 
-						dbcr2_q(37 to 38)                & 
-						dbcr2_q(39 to 40)                & 
-						dbcr2_q(41 to 42)                & 
-						tidn(40 to 40)                   & 
-						dbcr2_q(43 to 43)                & 
-						tidn(42 to 43)                   & 
-						dbcr2_q(44 to 45)                & 
-						dbcr2_q(46 to 47)                & 
-						dbcr2_q(48 to 55)                & 
-						dbcr2_q(56 to 63)                ; 
-ex6_dbcr3_di   <= ex6_spr_wd(32 to 33)             & 
-						ex6_spr_wd(34 to 35)             & 
-						ex6_spr_wd(36 to 37)             & 
-						ex6_spr_wd(38 to 39)             & 
-						ex6_spr_wd(41 to 41)             & 
-						ex6_spr_wd(63 to 63)             ; 
+						tidn(0 to 31)                    & --///
+						dbcr2_q(35 to 36)                & --DAC1US
+						dbcr2_q(37 to 38)                & --DAC1ER
+						dbcr2_q(39 to 40)                & --DAC2US
+						dbcr2_q(41 to 42)                & --DAC2ER
+						tidn(40 to 40)                   & --///
+						dbcr2_q(43 to 43)                & --DAC12M
+						tidn(42 to 43)                   & --///
+						dbcr2_q(44 to 45)                & --DVC1M
+						dbcr2_q(46 to 47)                & --DVC2M
+						dbcr2_q(48 to 55)                & --DVC1BE
+						dbcr2_q(56 to 63)                ; --DVC2BE
+-- DBCR3
+ex6_dbcr3_di   <= ex6_spr_wd(32 to 33)             & --DAC3US
+						ex6_spr_wd(34 to 35)             & --DAC3ER
+						ex6_spr_wd(36 to 37)             & --DAC4US
+						ex6_spr_wd(38 to 39)             & --DAC4ER
+						ex6_spr_wd(41 to 41)             & --DAC34M
+						ex6_spr_wd(63 to 63)             ; --IVC
 dbcr3_do       <= tidn(0 to 0)                     &
-						tidn(0 to 31)                    & 
-						dbcr3_q(54 to 55)                & 
-						dbcr3_q(56 to 57)                & 
-						dbcr3_q(58 to 59)                & 
-						dbcr3_q(60 to 61)                & 
-						tidn(40 to 40)                   & 
-						dbcr3_q(62 to 62)                & 
-						tidn(42 to 62)                   & 
-						dbcr3_q(63 to 63)                ; 
+						tidn(0 to 31)                    & --///
+						dbcr3_q(54 to 55)                & --DAC3US
+						dbcr3_q(56 to 57)                & --DAC3ER
+						dbcr3_q(58 to 59)                & --DAC4US
+						dbcr3_q(60 to 61)                & --DAC4ER
+						tidn(40 to 40)                   & --///
+						dbcr3_q(62 to 62)                & --DAC34M
+						tidn(42 to 62)                   & --///
+						dbcr3_q(63 to 63)                ; --IVC
 
+-- Unused Signals
 mark_unused(dbcr2_do(0 to 64-regsize));
 mark_unused(dbcr3_do(0 to 64-regsize));
 

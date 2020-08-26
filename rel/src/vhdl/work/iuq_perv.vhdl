@@ -25,7 +25,7 @@ library tri;
 use tri.tri_latches_pkg.all;
 
 entity iuq_perv is
-generic(expand_type : integer := 2 ); 
+generic(expand_type : integer := 2 ); -- 0 = ibm umbra, 1 = xilinx, 2 = ibm mpg
 port(
      vdd                        : inout power_logic;
      gnd                        : inout power_logic;
@@ -321,8 +321,12 @@ perv_lcbcntl_cam: tri_lcbcntl_array_mac
 g6t_delay_lclkr <= int_g6t_delay_lclkr(0 to 3);
 unused <= int_g6t_delay_lclkr(4);
 
+--never disable act pins, they are used functionally
 act_dis(0 to 2) <= "000";
 
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 
 gptr_siv(0 to 6) <= gptr_sov(1 to 6) & gptr_scan_in;
 gptr_scan_out <= gptr_sov(0);

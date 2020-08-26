@@ -30,13 +30,11 @@ ARCHITECTURE xuq_alu_mult_csa22 OF xuq_alu_mult_csa22 IS
     signal car_b, sum_b : std_ulogic;
 
 
-
 BEGIN
 
   u_22nandc: car_b <= not( a and b );
-  u_22nands: sum_b <= not( car_b and (a or b) ); 
+  u_22nands: sum_b <= not( car_b and (a or b) ); -- this is equiv to an xnor
   u_22invc:  car   <= not car_b;
   u_22invs:  sum   <= not sum_b ;
 
 END;
-

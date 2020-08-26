@@ -19,11 +19,11 @@ library tri;
 use tri.tri_latches_pkg.all;
 
 entity xuq_alu_rol64 is generic(expand_type: integer := 2 );    port (
-        word            :in  std_ulogic_vector(0 to 1);  
-        right           :in  std_ulogic_vector(0 to 2);  
-        amt             :in  std_ulogic_vector(0 to 5);  
-        data_i          :in  std_ulogic_vector(0 to 63); 
-        res_rot         :out std_ulogic_vector(0 to 63)  
+        word            :in  std_ulogic_vector(0 to 1);  -- PPC word mode rotate <2 copies>
+        right           :in  std_ulogic_vector(0 to 2);  -- emulate a shift right with a rotate left <2 copies>
+        amt             :in  std_ulogic_vector(0 to 5);  -- shift amout [0:63]
+        data_i          :in  std_ulogic_vector(0 to 63); -- data to be shifted
+        res_rot         :out std_ulogic_vector(0 to 63)  -- mask shows which rotator bits to keep in the result.
 );
 
 -- synopsys translate_off
@@ -63,12 +63,13 @@ architecture xuq_alu_rol64 of xuq_alu_rol64 is
 
 
 
-
-
-
-
 begin
 
+   -- -------------------------------------------------------------
+   -- how the ppc emulates a rot32 using rot64 hardware.
+   -- this makes the wrapping corect for the low order 32 bits.
+   -- upper 32 result bits a garbage
+   ----------------------------------------------------------------
 
    word_b(0 to 1) <= not word(0 to 1) ;
 
@@ -85,6 +86,10 @@ begin
    u_dlo0adj: data_i1_adj_b(32 to 63) <= not( data_i(32 to 63)  );
    u_dloadj:  data_i_adj   (32 to 63) <= not( data_i1_adj_b(32 to 63) );
 
+   -----------------------------------------------------------------
+   -- decoder without the adder
+   -----------------------------------------------------------------
+   --rotate right by [n] == rotate_left by width -[n] == !n + 1
 
    right_b(0 to 2) <= not right(0 to 2) ;
    u_amt_b:  amt_b(0 to 5)   <= not amt(0 to 5) ;
@@ -133,7 +138,7 @@ begin
    u_x01rgt_2: x01_rgt_b(2) <= not( right  (2) and amt  (4) and amt_b(5) );
    u_x01rgt_3: x01_rgt_b(3) <= not( right  (2) and amt  (4) and amt  (5) );
 
-   u_lftx01_0: lftx01(0) <=  not( x01_lft_b(0)                  ) ; 
+   u_lftx01_0: lftx01(0) <=  not( x01_lft_b(0)                  ) ; -- the shift is like the +1
    u_lftx01_1: lftx01(1) <=  not( x01_lft_b(1) and x01_rgt_b(3) ) ;
    u_lftx01_2: lftx01(2) <=  not( x01_lft_b(2) and x01_rgt_b(2) ) ;
    u_lftx01_3: lftx01(3) <=  not( x01_lft_b(3) and x01_rgt_b(1) ) ;
@@ -183,6 +188,9 @@ begin
 
 
 
+   -----------------------------------------------------------------
+   -- the shifter
+   -----------------------------------------------------------------
 
 
    rolx16_0(0 to 63) <= data_i_adj( 0 to 63)   ;
@@ -225,4 +233,3 @@ begin
    u_shd01:   res_rot  (0 to 63) <= not( shd01_0_b(0 to 63) and shd01_1_b(0 to 63) and shd01_2_b(0 to 63) );
 
 end architecture xuq_alu_rol64;
-

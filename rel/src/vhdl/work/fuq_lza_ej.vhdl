@@ -26,6 +26,11 @@ entity fuq_lza_ej is port(
  );
 END                                 fuq_lza_ej;
 
+ --  generic 3 bit edge ::
+ --  P G !Z
+ --  P Z !G
+ -- !P G !G
+ -- !P Z !Z
 
 ARCHITECTURE fuq_lza_ej  OF fuq_lza_ej  IS
 
@@ -45,54 +50,63 @@ ARCHITECTURE fuq_lza_ej  OF fuq_lza_ej  IS
  
 
 
-
-
-
 BEGIN
 
 unused <= g(54) or z_b(53) or z_b(162) or p_b(161) or p_b(162) ;
 
+  ---------------------------------------------
+  -- (0:52) only one data input
+  ---------------------------------------------
 
-  x0(0 to 52) <= tidn & effsub & sum(0 to 50); 
-  x1(0 to 52) <=        effsub & sum(0 to 51); 
-  x2(0 to 52) <=                 sum(0 to 52); 
+  x0(0 to 52) <= tidn & effsub & sum(0 to 50); -- just a rename
+  x1(0 to 52) <=        effsub & sum(0 to 51); -- just a rename
+  x2(0 to 52) <=                 sum(0 to 52); -- just a rename
   
 
   xb_00:   x1_b(0 to 52)   <= not x1(0 to 52) ;
   ejx_00:  ej_b(0 to 52)   <= not( x1_b(0 to 52) and ( x0(0 to 52) or x2(0 to 52) ) ); 
   ej_00:   edge(0 to 52)   <= not( ej_b(0 to 52) and lzo_b(0 to 52) );
 
+  -------------------------------------------------------------------
+  -- (53) psuedo bit
+  -------------------------------------------------------------------
 
   glo_53:   g_b(53)   <= not( sum(53) and car(53) );
   zhi_53:   z  (53)   <= not( sum(53) or  car(53) ); 
   phi_53:   p  (53)   <=    ( sum(53) xor car(53) );
 
   ghi_53:   g  (53)   <= not( g_b(53) );
-  zlo_53:   z_b(53)   <= not( z  (53) );
+  zlo_53:   z_b(53)   <= not( z  (53) );--UNUSED
   plo_53:   p_b(53)   <= not( p  (53) );
   s52_53:   sum_52_b  <= not( sum(52) );
 
   e0_53:    e0_b(53)  <= not( sum(51)   and sum_52_b              );
   e1_53:    e1_b(53)  <= not(               sum_52_b and g(53)    );
-  ej_53:    edge(53)  <= not( lzo_b(53) and e0_b(53) and e1_b(53) ); 
+  ej_53:    edge(53)  <= not( lzo_b(53) and e0_b(53) and e1_b(53) ); --output
 
 
+  -------------------------------------------------------------------
+  -- (54) pseudo bit + 1
+  -------------------------------------------------------------------
 
   glo_54:   g_b(54)   <= not( sum(54) and car(54) );
   zhi_54:   z  (54)   <= not( sum(54) or  car(54) ); 
   phi_54:   p  (54)   <=    ( sum(54) xor car(54) );
 
-  ghi_54:   g  (54)   <= not( g_b(54) );
+  ghi_54:   g  (54)   <= not( g_b(54) );--UNUSED
   zlo_54:   z_b(54)   <= not( z  (54) );
   plo_54:   p_b(54)   <= not( p  (54) );
 
   zb_54:    lzo_54    <= not lzo_b(54);
 
-  e0_54:    e0_b(54)  <= not(  sum_52_b  and p(53)    and z_b(54)    ); 
-  e1_54:    e1_b(54)  <= not(  sum(52)   and p(53)    and g_b(54)    ); 
+  e0_54:    e0_b(54)  <= not(  sum_52_b  and p(53)    and z_b(54)    ); --really is p54 (demotes to z54)
+  e1_54:    e1_b(54)  <= not(  sum(52)   and p(53)    and g_b(54)    ); --really is p54 (demotes to z54)
   e2_54:    e2_b(54)  <= not( (sum(52)   and z(53) )  or  lzo_54     );
-  ej_54:    edge(54)  <= not(  e0_b(54)  and e1_b(54)  and e2_b(54)  ); 
+  ej_54:    edge(54)  <= not(  e0_b(54)  and e1_b(54)  and e2_b(54)  ); --output
 
+  -------------------------------------------------------------------
+  -- (55) pseudo bit + 2
+  -------------------------------------------------------------------
 
   glo_55:   g_b(55)   <= not( sum(55) and car(55) );
   zhi_55:   z  (55)   <= not( sum(55) or  car(55) ); 
@@ -107,18 +121,21 @@ unused <= g(54) or z_b(53) or z_b(162) or p_b(161) or p_b(162) ;
   gg_55:    gg(55)    <= not( g_b(54) or g(55) );
   zz_55:    zz(55)    <= not( z_b(54) or z(55) );
 
-  e1_55:    e1_b(55)  <= not( p_b(53)  and ( gz(55) or     zg(55) ) ); 
-  e0_55:    e0_b(55)  <= not( p  (53)  and ( gg(55) or     zz(55) ) ); 
-  ej_55:    edge(55)  <= not( e0_b(55) and e1_b(55) and lzo_b(55) ); 
+  e1_55:    e1_b(55)  <= not( p_b(53)  and ( gz(55) or     zg(55) ) ); -- P is flipped for psuedo bit
+  e0_55:    e0_b(55)  <= not( p  (53)  and ( gg(55) or     zz(55) ) ); -- P is flipped for psuedo bit
+  ej_55:    edge(55)  <= not( e0_b(55) and e1_b(55) and lzo_b(55) ); --output
 
+  -------------------------------------------------------------------
+  -- (56:162) normal 2 input edge
+  -------------------------------------------------------------------
 
   glo_56:   g_b(56 to 162)   <= not( sum(56 to 162) and car(56 to 162) );
   zhi_56:   z  (56 to 162)   <= not( sum(56 to 162) or  car(56 to 162) ); 
   phi_56:   p  (56 to 162)   <=    ( sum(56 to 162) xor car(56 to 162) );
 
   ghi_56:   g  (56 to 162)   <= not( g_b(56 to 162) );
-  zlo_56:   z_b(56 to 162)   <= not( z  (56 to 162) );
-  plo_56:   p_b(56 to 162)   <= not( p  (56 to 162) );
+  zlo_56:   z_b(56 to 162)   <= not( z  (56 to 162) );--162 unused
+  plo_56:   p_b(56 to 162)   <= not( p  (56 to 162) );--161,162 unused
 
   gz_56:    gz(56 to 162)    <= not( g_b(55 to 161) or z(56 to 162) );
   zg_56:    zg(56 to 162)    <= not( z_b(55 to 161) or g(56 to 162) );
@@ -127,14 +144,7 @@ unused <= g(54) or z_b(53) or z_b(162) or p_b(161) or p_b(162) ;
 
   e1_56:    e1_b(56 to 162)  <= not( p  (54 to 160) and ( gz(56 to 162) or zg(56 to 162) ) );
   e0_56:    e0_b(56 to 162)  <= not( p_b(54 to 160) and ( gg(56 to 162) or zz(56 to 162) ) ); 
-  ej_56:    edge(56 to 162)  <= not( e0_b(56 to 162) and e1_b(56 to 162) and lzo_b(56 to 162) ); 
+  ej_56:    edge(56 to 162)  <= not( e0_b(56 to 162) and e1_b(56 to 162) and lzo_b(56 to 162) ); --output
 
 
-END; 
-
-
-
-
-
-
-
+END; -- ARCH fuq_lza_ej

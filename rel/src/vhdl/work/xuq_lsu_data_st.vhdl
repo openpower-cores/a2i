@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU LSU Store Data Rotator Wrapper
+--
 
 library ibm, ieee, work, tri, support;
 use ibm.std_ulogic_support.all;
@@ -17,12 +19,19 @@ use ieee.numeric_std.all;
 use tri.tri_latches_pkg.all;
 use support.power_logic_pkg.all;
 
+-- ##########################################################################################
+-- VHDL Contents
+-- 1) 16 Byte Unaligned Rotator
+-- 2) Little Endian Support for 2,4,8,16 Byte Operations
+-- 3) Byte Enable Generation
+-- ##########################################################################################
 entity xuq_lsu_data_st is
-generic(expand_type     : integer := 2;         
-        regmode         : integer := 6;                 
-        l_endian_m      : integer := 1);        
+generic(expand_type     : integer := 2;         -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
+        regmode         : integer := 6;                 -- Register Mode 5 = 32bit, 6 = 64bit
+        l_endian_m      : integer := 1);        -- 1 = little endian mode enabled, 0 = little endian mode disabled
 port(
 
+     -- Acts to latches
      ex2_stg_act                :in  std_ulogic;
      ex3_stg_act                :in  std_ulogic;
      rel2_stg_act               :in  std_ulogic;
@@ -30,14 +39,16 @@ port(
      rel2_ex2_stg_act           :in  std_ulogic;
      rel3_ex3_stg_act           :in  std_ulogic;
 
+     --reload path
      rel_data_rot_sel           :in  std_ulogic;
      ldq_rel_rot_sel            :in  std_ulogic_vector(0 to 4);
      ldq_rel_op_size            :in  std_ulogic_vector(0 to 5);
      ldq_rel_le_mode            :in  std_ulogic;
      ldq_rel_algebraic          :in  std_ulogic;
-     ldq_rel_data_val           :in  std_ulogic_vector(0 to 15);        
+     ldq_rel_data_val           :in  std_ulogic_vector(0 to 15);        -- Reload Data is Valid
      rel_alg_bit                :in  std_ulogic;
 
+     -- Execution Pipe Store Data Rotator/BE_Gen Controls
      ex2_opsize                 :in  std_ulogic_vector(0 to 5);
      ex2_rot_sel                :in  std_ulogic_vector(0 to 4);
      ex2_rot_sel_le             :in  std_ulogic_vector(0 to 3);
@@ -45,9 +56,11 @@ port(
      ex4_le_mode_sel            :in  std_ulogic_vector(0 to 15);
      ex4_be_mode_sel            :in  std_ulogic_vector(0 to 15);
 
+     -- Reload/EX3 Data that needs rotating
      rel_ex3_data               :in  std_ulogic_vector(0 to 255);
      rel_ex3_par_gen            :in  std_ulogic_vector(0 to 31);
 
+     -- Rotated Data
      rel_256ld_data             :out std_ulogic_vector(0 to 255);
      rel_64ld_data              :out std_ulogic_vector(64-(2**regmode) to 63);
      rel_xu_ld_par              :out std_ulogic_vector(0 to 7);
@@ -57,6 +70,7 @@ port(
      rel_axu_le_mode            :out std_ulogic;
      rel_dvc_byte_mask          :out std_ulogic_vector((64-(2**regmode))/8 to 7);
 
+     -- Pervasive
      vdd                        :inout power_logic;
      gnd                        :inout power_logic;
      nclk                       :in  clk_logic;
@@ -75,9 +89,16 @@ port(
 -- synopsys translate_off
 -- synopsys translate_on
 end xuq_lsu_data_st;
+----
 architecture xuq_lsu_data_st of xuq_lsu_data_st is
 
+----------------------------
+-- components
+----------------------------
 
+----------------------------
+-- constants
+----------------------------
 constant ex3_byte_en_offset             :natural := 0;
 constant rel_opsize_offset              :natural := ex3_byte_en_offset + 32;
 constant rel_xu_le_mode_offset          :natural := rel_opsize_offset + 6;
@@ -91,6 +112,9 @@ constant ex4_parity_gen_le_offset       :natural := ex4_parity_gen_offset + 32;
 constant my_spare_latches_offset        :natural := ex4_parity_gen_le_offset + 32;
 constant scan_right                     :natural := my_spare_latches_offset + 12 - 1;
 
+----------------------------
+-- signals
+----------------------------
 signal op_size                  :std_ulogic_vector(0 to 5);
 signal op_sel                   :std_ulogic_vector(0 to 15);
 signal be10_en                  :std_ulogic_vector(0 to 31);
@@ -194,11 +218,16 @@ begin
 
 tiup <= '1';
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Inputs
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 rel_upd_gpr <= rel_data_rot_sel;
 
+-- This signals are not muxed latched, need to latch them only
 rel_opsize_d    <= ldq_rel_op_size;
 rel_algebraic_d <= ldq_rel_algebraic;
 
+-- This signals are all muxed latched
 rel_rot_sel <= ldq_rel_rot_sel;
 rel_le_mode <= ldq_rel_le_mode;
 
@@ -213,6 +242,9 @@ reload_algbit  <= rel_alg_bit;
 
 rel_val_data <= ldq_rel_data_val;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Select Between Reload and Store Data
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 with rel_upd_gpr select
     rotate_select <=     rot_sel when '0',
                      rel_rot_sel when others;
@@ -221,6 +253,9 @@ with rel_upd_gpr select
     le_mode_select <=         '0' when '0',
                       rel_le_mode when others;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Create 1-hot Rotate Select
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 lvl1_sel <= le_mode_select & rotate_select(0);
 lvl2_sel <= rotate_select(1 to 2);
 lvl3_sel <= rotate_select(3 to 4);
@@ -257,6 +292,9 @@ rel_xu_rot_sel3  <= rel_xu_rot_sel3_q;
 rel_xu_opsize    <= rel_opsize_q;
 rel_xu_algebraic <= rel_algebraic_q;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Create 1-hot Rotate Select For Little-Endian Rotator
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 le_lvl2_sel <= rot_sel_le(0 to 1);
 le_lvl3_sel <= rot_sel_le(2 to 3);
 
@@ -280,7 +318,11 @@ end generate leSelGen;
 le_xu_rot_sel2  <= le_xu_rot_sel2_q;
 le_xu_rot_sel3  <= le_xu_rot_sel3_q;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Execution Pipe Data Parity Rotation
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+---- LE,16 byte rotation
 pglvl1rot: for byte in 0 to 31 generate
 signal muxIn    :std_ulogic_vector(0 to 3);
 signal muxSel   :std_ulogic_vector(0 to 3);
@@ -303,6 +345,7 @@ begin
                     y  => pgrot10(byte));
 end generate pglvl1rot;
 
+-- 0/16/LE,4,8,12 byte rotation
 pglvl2rot: for byte in 0 to 31 generate
 signal muxIn    :std_ulogic_vector(0 to 3);
 signal muxSel   :std_ulogic_vector(0 to 3);
@@ -325,6 +368,7 @@ begin
                    y  => pgrotC840(byte));
 end generate pglvl2rot;
 
+---- 0/4/8/12/16/LE,1,2,3 byte rotation
 pglvl3rot: for byte in 0 to 31 generate
 signal muxIn    :std_ulogic_vector(0 to 3);
 signal muxSel   :std_ulogic_vector(0 to 3);
@@ -348,12 +392,17 @@ begin
 end generate pglvl3rot;
 
 ex3_par_rot <= pgrot3210;
+-- #############################################################################################
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Execution Pipe Data Parity Rotation
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 ParSwap : for bit in 0 to 31 generate begin
       le_xu_par_gen(bit) <= rel_xu_par_gen(31-bit);
 end generate ParSwap;
 
+-- 0,4,8,12 byte rotation
 lePglvl2rot: for byte in 0 to 31 generate
 signal muxIn    :std_ulogic_vector(0 to 3);
 signal muxSel   :std_ulogic_vector(0 to 3);
@@ -376,6 +425,7 @@ begin
                    y  => le_pgrotC840(byte));
 end generate lePglvl2rot;
 
+---- 0/4/8/12,1,2,3 byte rotation
 lePglvl3rot: for byte in 0 to 31 generate
 signal muxIn    :std_ulogic_vector(0 to 3);
 signal muxSel   :std_ulogic_vector(0 to 3);
@@ -399,8 +449,18 @@ begin
 end generate lePglvl3rot;
 
 ex3_par_rot_le <= le_pgrot3210;
+-- #############################################################################################
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Byte Enable Generation
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- Need to generate byte enables for the type of operation
+-- size1  => 0x8000
+-- size2  => 0xC000
+-- size4  => 0xF000
+-- size8  => 0xFF00
+-- size16 => 0xFFFF
 op_sel(0) <= op_size(1) or op_size(2) or op_size(3) or op_size(4) or op_size(5);
 op_sel(1) <= op_size(1) or op_size(2) or op_size(3) or op_size(4);
 op_sel(2) <= op_size(1) or op_size(2) or op_size(3);
@@ -418,28 +478,36 @@ op_sel(13) <= op_size(1);
 op_sel(14) <= op_size(1);
 op_sel(15) <= op_size(1);
 
+-- 32 Bit Rotator
+-- Need to Rotate optype generated byte enables
 with rot_addr(1) select
     be10_en <= op_sel(0 to 15) & x"0000" when '0',
                x"0000" & op_sel(0 to 15) when others;
 
+-- Selects between Data rotated by 0, 4, 8, or 12 bits
 with rot_addr(2 to 3) select
     beC840_en <=          be10_en(0 to 31) when "00",
                    x"0" & be10_en(0 to 27) when "01",
                   x"00" & be10_en(0 to 23) when "10",
                  x"000" & be10_en(0 to 19) when others;
 
+-- Selects between Data rotated by 0, 1, 2, or 3 bits
 with rot_addr(4 to 5) select
     be3210_en <=         beC840_en(0 to 31) when "00",
                    '0' & beC840_en(0 to 30) when "01",
                   "00" & beC840_en(0 to 29) when "10",
                  "000" & beC840_en(0 to 28) when others;
 
+-- Byte Enables Generated using the opsize and physical_addr(60 to 63)
 ben_gen : for t in 0 to 31 generate begin
       byte_en(t) <= op_size(0) or be3210_en(t);
 end generate ben_gen;
 
 ex3_byte_en_d <= byte_en;
 
+-- #############################################################################################
+-- 32 Byte Rotator
+-- #############################################################################################
 
 l1dcrotl0 : entity work.xuq_lsu_data_rot32_lu(xuq_lsu_data_rot32_lu)
 generic map(l_endian_m  => l_endian_m)
@@ -448,6 +516,7 @@ port map (
      vdd                        => vdd,
      gnd                        => gnd,
 
+     -- Rotator Controls and Data
      rot_sel1                   => rel_xu_rot_sel1(0 to 31),
      rot_sel2                   => rel_xu_rot_sel2(0 to 31),
      rot_sel3                   => rel_xu_rot_sel3(0 to 31),
@@ -455,6 +524,7 @@ port map (
      rot_sel3_le                => le_xu_rot_sel3(0 to 31),
      rot_data                   => rel_xu_data(0 to 127),
 
+     -- Rotated Data
      data256_rot_le             => data256_rot_le(0 to 127),
      data256_rot                => data256_rot(0 to 127)
 );
@@ -466,6 +536,7 @@ port map (
      vdd                        => vdd,
      gnd                        => gnd,
 
+     -- Rotator Controls and Data
      rot_sel1                   => rel_xu_rot_sel1(32 to 63),
      rot_sel2                   => rel_xu_rot_sel2(32 to 63),
      rot_sel3                   => rel_xu_rot_sel3(32 to 63),
@@ -473,11 +544,22 @@ port map (
      rot_sel3_le                => le_xu_rot_sel3(32 to 63),
      rot_data                   => rel_xu_data(128 to 255),
 
+     -- Rotated Data
      data256_rot_le             => data256_rot_le(128 to 255),
      data256_rot                => data256_rot(128 to 255)
 );
 
+-- #############################################################################################
+-- Op Size Mask Generation for Reloads
+-- #############################################################################################
 
+--with rel_xu_opsize select
+--    optype_mask <= x"0000000000000000000000000000000F0000000000000000000000000000000F" when "000001",
+--                   x"000000000000000000000000000000FF000000000000000000000000000000FF" when "000010",
+--                   x"0000000000000000000000000000FFFF0000000000000000000000000000FFFF" when "000100",
+--                   x"000000000000000000000000FFFFFFFF000000000000000000000000FFFFFFFF" when "001000",
+--                   x"0000000000000000FFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF" when "010000",
+--                   x"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" when others;
 
 with rel_xu_opsize(2 to 5) select
     rel_byte_mask <= x"01" when "0001",
@@ -515,26 +597,38 @@ end generate rel256data;
 algebraic_msk_data <= rel_swzl_data(0 to 191) & (rel_swzl_data(192 to 239) or algebraic_msk) & rel_swzl_data(240 to 255);
 rel_256ld_data_d   <= algebraic_msk_data;
 
+-- #############################################################################################
+-- Mux Reload and Store Data
+-- #############################################################################################
 
+-- LE Data
 ex4_wrt_data_le_d   <= data256_rot_le;
 ex4_parity_gen_le_d <= ex3_par_rot_le;
 
+-- BE Data
 ex3_wrt_data   <= data256_rot;
 ex3_parity_gen <= ex3_par_rot;
 
+-- Mux between reload and BE store
 wrtData : for t in 0 to 7 generate begin
       ex4_wrt_data_d(t*32 to (t*32)+31) <= gate(rel_xu_data(t*32 to (t*32)+31),rel_val_data(t)) or gate(ex3_wrt_data(t*32 to (t*32)+31),rel_val_data(t+8));      
 end generate wrtData;
 
+-- Data Write Parity Generation
 wrtPar : for t in 0 to 31 generate begin
       ex4_parity_gen_d(t) <= (rel_xu_par_gen(t) and rel_val_data(t mod 8)) or (ex3_parity_gen(t) and rel_val_data((t mod 8)+8));
 end generate wrtPar;
 
+-- Mux between reload/BEstore and LEstore
 leSel : for t in 0 to 15 generate begin 
       ex4_256st_data(t*16 to (t*16)+15) <= gate(ex4_wrt_data_le_q(t*16 to (t*16)+15), ex4_le_mode_sel(t)) or gate(ex4_wrt_data_q(t*16 to (t*16)+15), ex4_be_mode_sel(t));
       ex4_parity_gen(t*2 to (t*2)+1)    <= gate(ex4_parity_gen_le_q(t*2 to (t*2)+1),  ex4_le_mode_sel(t)) or gate(ex4_parity_gen_q(t*2 to (t*2)+1),  ex4_be_mode_sel(t));
 end generate leSel;
 
+-- #############################################################################################
+-- XU 8 Byte Reload Data Parity Generation
+-- #############################################################################################
+-- Array Data Parity Generation
 relpar_gen : for t in 0 to 7 generate begin
       R0 : if (t < (2**regmode)/8) generate begin
             rel_parity_gen(t) <= xor_reduce(rel_256ld_data_q((t*8)+256-(2**regmode) to (t*8)+256-(2**regmode)+7));
@@ -542,8 +636,14 @@ relpar_gen : for t in 0 to 7 generate begin
       R1 : if( t >= (2**regmode)/8) generate begin rel_parity_gen(t) <= '0'; end generate;
 end generate relpar_gen;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Spare Latches
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 my_spare_latches_d     <= not my_spare_latches_q;
 
+-- #############################################################################################
+-- Outputs
+-- #############################################################################################
 ex3_byte_en       <= ex3_byte_en_q;
 rel_256ld_data    <= rel_256ld_data_q;
 rel_64ld_data     <= rel_256ld_data_q(256-(2**regmode) to 255);
@@ -551,7 +651,12 @@ rel_xu_ld_par     <= rel_parity_gen;
 rel_axu_le_mode   <= rel_xu_le_mode_q;
 rel_dvc_byte_mask <= rel_dvc_byte_mask_q;
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Registers
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- Scan Latches
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 ex3_byte_en_reg: tri_rlmreg_p
   generic map (width => 32, init => 0, expand_type => expand_type, needs_sreset => 1)
@@ -760,6 +865,8 @@ port map (vd      => vdd,
             d       => my_spare_latches_d,
             qb      => my_spare_latches_q);
 
+-- Non-Scan Latches
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 rel_xu_rot_sel1_0reg: tri_regk
   generic map (width => 32, init => 286331153, expand_type => expand_type, needs_sreset => 1)
@@ -915,4 +1022,3 @@ siv(0 to scan_right) <= sov(1 to scan_right) & scan_in;
 scan_out <= sov(0);
 
 end xuq_lsu_data_st;
-

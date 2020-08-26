@@ -9,6 +9,11 @@
 
 			
 
+--********************************************************************
+--* TITLE: Memory Management Unit Invalidate Control Logic
+--* NAME: mmq_inval.vhdl
+--*********************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library ibm;
@@ -264,6 +269,7 @@ constant InvSeq_Stg29 : std_ulogic_vector(0 to 5) := "011100";
 constant InvSeq_Stg30 : std_ulogic_vector(0 to 5) := "011101";
 constant InvSeq_Stg31 : std_ulogic_vector(0 to 5) := "011111";
 constant InvSeq_Stg32 : std_ulogic_vector(0 to 5) := "100000";
+-- mmucr1 bits:  12:13-ICTID/ITTID,14:15-DCTID/DTTID,16:17-resv, TLBI_MSB/TLBI_REJ
 constant pos_ictid : natural := 12;
 constant pos_ittid : natural := 13;
 constant pos_dctid : natural := 14;
@@ -465,6 +471,7 @@ signal ex5_dgtmi_state  : std_ulogic;
 signal unused_dc  :  std_ulogic_vector(0 to 12);
 -- synopsys translate_off
 -- synopsys translate_on
+-- Pervasive
 signal pc_sg_1         : std_ulogic;
 signal pc_sg_0         : std_ulogic;
 signal pc_fce_1        : std_ulogic;
@@ -497,6 +504,7 @@ mm_xu_quiesce <= mm_xu_quiesce_q;
 mm_xu_quiesce_d <= tlb_req_quiesce and tlb_ctl_quiesce and
                  htw_quiesce and
                  not inval_quiesce_b;
+-- not quiesced
 inval_quiesce_b <=  ( (0 to thdid_width-1 => or_reduce(inv_seq_q)) and ex6_valid_q(0 to thdid_width-1) );
 ex1_valid_d <= xu_mm_rf1_val and not(xu_rf1_flush);
 ex1_ttype_d(0 to ttype_width-3) <= xu_mm_rf1_is_tlbilx & xu_mm_rf1_is_tlbivax & xu_mm_rf1_is_eratilx & xu_mm_rf1_is_erativax;
@@ -507,8 +515,13 @@ ex2_valid_d <= ex1_valid_q and not(xu_ex1_flush);
 ex2_ttype_d(0 to ttype_width-3) <= ex1_ttype_q(0 to ttype_width-3);
 ex2_ttype_d(ttype_width-2 to ttype_width-1) <= xu_mm_ex1_is_csync & xu_mm_ex1_is_isync;
 ex2_rs_is_d <= xu_mm_ex1_rs_is;
+-- RS(55)    -> Local  rs_is(0)
+-- RS(56:57) -> IS     rs_is(1 to 2)
+-- RS(58:59) -> Class  rs_is(3 to 4)
+-- RS(60:63) -> Size   rs_is(5 to 8)
 ex2_state_d <= ex1_state_q;
 ex2_t_d <= ex1_t_q;
+-- ex2 effective addr capture latch.. hold addr until inv_seq done with it
 ex3_ea_hold <= (or_reduce(ex3_valid_q) and or_reduce(ex3_ttype_q(0 to 3)))  
             or (or_reduce(ex4_valid_q) and or_reduce(ex4_ttype_q(0 to 3)))  
             or (or_reduce(ex5_valid_q) and or_reduce(ex5_ttype_q(0 to 3)))  
@@ -519,6 +532,7 @@ ex2_hv_state   <= not ex2_state_q(0) and not ex2_state_q(1);
 ex2_priv_state <= not ex2_state_q(1);
 ex2_dgtmi_state <= or_reduce(ex2_valid_q and xu_mm_epcr_dgtmi_q);
 ex3_valid_d <= ex2_valid_q and not(xu_ex2_flush);
+--ex3_ttype_d <= ex2_ttype_q;
 ex3_ttype_d(0 to ttype_width-3) <= ex2_ttype_q(0 to ttype_width-3);
 ex3_ttype_d(ttype_width-2) <= (ex2_ttype_q(ttype_width-2) and not mmucr1_csinv_q(0));
 ex3_ttype_d(ttype_width-1) <= (ex2_ttype_q(ttype_width-1) and not mmucr1_csinv_q(1));
@@ -546,20 +560,51 @@ ex5_t_d <= ex4_t_q;
 ex5_hv_state   <= not ex5_state_q(0) and not ex5_state_q(1);
 ex5_priv_state <= not ex5_state_q(1);
 ex5_dgtmi_state <= or_reduce(ex5_valid_q and xu_mm_epcr_dgtmi_q);
+-- these are ex6 capture latches.. hold op until inv_seq done with it
 ex6_valid_d <= "0000" when inv_seq_local_done='1'
          else (ex5_valid_q and not(xu_ex5_flush)) when  ( ex6_valid_q="0000" and
                 ((ex5_ttype_q(0)='1' and ex5_priv_state='1' and ex5_dgtmi_state='0') or   
                   (ex5_ttype_q(0)='1' and ex5_hv_state='1' and ex5_dgtmi_state='1') or    
                    (or_reduce(ex5_ttype_q(1 to 3))='1' and ex5_hv_state='1')) )             
          else ex6_valid_q;
+--ttype <= tlbilx & tlbivax & eratilx & erativax & csync & isync;
 ex6_ttype_d <= ex5_ttype_q when (ex5_valid_q /= "0000" and ex5_ttype_q(0 to 3)/="0000" and ex6_valid_q="0000") 
          else ex6_ttype_q;
+--                            ttype ->    0        1         2          3
+--                sources for ttype -> tlbilx   tlbivax   eratilx   erativax
+-- RS(55)    -> Local  rs_is(0)           1        0         1          0
+-- RS(56:57) -> IS     rs_is(1 to 2)    f(T)      11        f(T)    RS(56:57)
+-- RS(58:59) -> Class  rs_is(3 to 4)    g(T)      00        g(T)    RS(58:59)
+-- RS(60:63) -> Size   rs_is(5 to 8)    mas6     mas6       n/a     RS(60:63)
+--              TS (state(1))           mas6     mas6      mmucr0    mmucr0
+--              TID                     mas6     mas6      mmucr0    mmucr0
+--              GS (state(0))           mas5     mas5      mmucr0    mmucr0
+--              LPID                    mas5     mas5      lpidr     lpidr
+--              IND                     mas6     mas6        0         0
 ex6_isel_d <= '1' & ex5_rs_is_q(3 to 4)  when (ex5_valid_q /= "0000" and ex5_ttype_q(3)='1' and ex5_rs_is_q(1 to 2)="10" and ex6_valid_q="0000")
          else '0' & ex5_rs_is_q(1 to 2)  when (ex5_valid_q /= "0000" and ex5_ttype_q(3)='1' and ex5_rs_is_q(1 to 2)/="10" and ex6_valid_q="0000")
          else ex5_t_q(0 to 2) when (ex5_valid_q /= "0000" and ex5_ttype_q(2)='1' and ex6_valid_q="0000")
          else "011"            when (ex5_valid_q /= "0000" and ex5_ttype_q(1)='1' and ex6_valid_q="0000")
          else ex5_t_q(0 to 2) when (ex5_valid_q /= "0000" and ex5_ttype_q(0)='1' and ex6_valid_q="0000")
          else ex6_isel_q;
+-- T field from tlbilx/eratilx is  0=all, 1=pid, 2=resvd/GS, 3=address, 4-7=class
+-- ex1_rs_is(0 to 9) from erativax instr.
+--   RS(55)    -> ex1_rs_is(0)   -> snoop_attr(0)     -> Local
+--   RS(56:57) -> ex1_rs_is(1:2) -> snoop_attr(0:1)   -> IS
+--   RS(58:59) -> ex1_rs_is(3:4) -> snoop_attr(2:3)   -> Class
+--   n/a       ->  n/a           -> snoop_attr(4:5)   -> State
+--   n/a       ->  n/a           -> snoop_attr(6:13)  -> TID(6:13)
+--   RS(60:63) -> ex1_rs_is(5:8) -> snoop_attr(14:17) -> Size
+--   n/a       ->  n/a           -> snoop_attr(20:25) -> TID(0:5)
+-- erat snoop_attr:
+--          0 -> Local
+--        1:3 -> IS/Class: 0=all, 1=tid, 2=gs, 3=epn, 4=class0, 5=class1, 6=class2, 7=class3
+--        4:5 -> GS/TS
+--       6:13 -> TID(6:13)
+--      14:17 -> Size
+--      18    -> TID_NZ
+--      19    -> mmucsr0.tlb0fi
+--      20:25 -> TID(0:5)
 ex6_size_d <= ex5_rs_is_q(5 to 8) when (ex5_valid_q /= "0000" and ex5_ttype_q(3)='1' and ex6_valid_q="0000")
          else "0000" when (ex5_valid_q /= "0000" and ex5_ttype_q(2)='1' and ex6_valid_q="0000")
          else mas6_0_isize   when (ex5_valid_q(0)='1'   and ex5_ttype_q(0 to 1)/="00" and ex6_valid_q="0000")
@@ -570,6 +615,7 @@ ex6_size_d <= ex5_rs_is_q(5 to 8) when (ex5_valid_q /= "0000" and ex5_ttype_q(3)
 ex6_size_large <= '1' when (ex6_size_q=TLB_PgSize_64KB or ex6_size_q=TLB_PgSize_1MB or 
                 ex6_size_q=TLB_PgSize_16MB or ex6_size_q=TLB_PgSize_256MB or ex6_size_q=TLB_PgSize_1GB)
              else '0';
+-- mmucr0: 0:1-ExtClass, 2:3-TGS/TS, 4:5-TLBSel, 6:19-TID,
 ex6_gs_d <= mmucr0_0(2) when (ex5_valid_q(0)='1' and ex5_ttype_q(2 to 3)/="00" and ex6_valid_q="0000")
          else mmucr0_1(2)   when (ex5_valid_q(1)='1'   and ex5_ttype_q(2 to 3)/="00" and ex6_valid_q="0000")
          else mmucr0_2(2)   when (ex5_valid_q(2)='1'   and ex5_ttype_q(2 to 3)/="00" and ex6_valid_q="0000")
@@ -615,6 +661,8 @@ ex6_lpid_d <=  lpidr_q when (ex5_valid_q(0)='1' and ex5_ttype_q(2 to 3)/="00" an
          else mas5_2_slpid   when (ex5_valid_q(2)='1'   and ex5_ttype_q(0 to 1)/="00" and ex6_valid_q="0000")
          else mas5_3_slpid   when (ex5_valid_q(3)='1'   and ex5_ttype_q(0 to 1)/="00" and ex6_valid_q="0000")
          else ex6_lpid_q;
+-- an_ac_back_inv_q: 0=valid b-1, 1=target b-1, 2=valid b, 3=target b, 4=L, 5=GS, 6=IND, 7=local, 8=reject
+-- iu barrier op shadow status
 local_barrier_d <= (local_barrier_q and not(ex6_valid_q)) when inv_seq_local_barrier_done='1'
                 else (ex6_valid_q or local_barrier_q) when inv_seq_local_barrier_set='1'
                 else local_barrier_q;
@@ -624,6 +672,7 @@ global_barrier_d <= (others => '0') when ((inv_seq_global_barrier_done='1' and a
 barrier_done_d <= (local_barrier_q and ex6_valid_q) when inv_seq_local_barrier_done='1'
                  else global_barrier_q when ((inv_seq_global_barrier_done='1' and an_ac_back_inv_q(7)='1') or inval_snoop_local_reject='1') 
                  else tlb_ctl_barrier_done;
+-- Illegal instr logic
 ex2_rs_pgsize_not_supp <= '0' when (ex2_rs_is_q(5 to 8)=TLB_PgSize_4KB or ex2_rs_is_q(5 to 8)=TLB_PgSize_64KB or
                                       ex2_rs_is_q(5 to 8)=TLB_PgSize_1MB or  ex2_rs_is_q(5 to 8)=TLB_PgSize_16MB or
                                       ex2_rs_is_q(5 to 8)=TLB_PgSize_1GB ) else '1';
@@ -647,12 +696,16 @@ mas6_isize_not_supp(3)   <= '0' when ((mas6_3_isize=TLB_PgSize_4KB   or mas6_3_i
                                           mas6_3_isize=TLB_PgSize_1GB)   and mas6_3_sind='0')
                                     or ((mas6_3_isize=TLB_PgSize_1MB   or mas6_3_isize=TLB_PgSize_256MB)   and mas6_3_sind='1')   
                        else '1';
+-- T field from tlbilx/eratilx is  0=all, 1=pid, 2=resvd/GS, 3=address, 4-7=class
 illeg_instr_d <= ( ex2_valid_q and mas6_isize_not_supp and (0 to 3 => (ex2_ttype_q(1) and ex2_hv_state)) )  
               or ( ex2_valid_q and mas6_isize_not_supp and (0 to 3 => (ex2_ttype_q(0) and Eq(ex2_t_q,"011") and 
                                                             (ex2_hv_state or (ex2_priv_state and not ex2_dgtmi_state)))) )  
               or ( ex2_valid_q and (0 to 3 => (ex2_ttype_q(3) and ex2_hv_state and ex2_rs_pgsize_not_supp)) )  
               or ( ex2_valid_q and (0 to 3 => (ex2_ttype_q(2) and ex2_hv_state and ex2_t_q(0) and mmucr1_q(pos_ictid) and mmucr1_q(pos_dctid))) )  
               or ( tlb_ctl_ex2_illeg_instr );
+-- invalidate sequencer
+--Inv_Sequencer: PROCESS (inv_seq_q, por_seq_q, an_ac_back_inv, an_ac_back_inv_target,
+--                           ex6_valid_q, ex6_ttype_q)
 Inv_Sequencer: PROCESS (inv_seq_q, inval_snoop_forme, xu_mm_lmq_stq_empty, iu_mm_lmq_empty, hold_ack_q, lsu_tokens_q, xu_mm_ccr2_notlb_q(0),
                            snoop_ack_q, ex6_valid_q, ex6_ttype_q(0 to 3), ex6_ind_q, ex6_isel_q, 
                            mmucsr0_tlb0fi, 
@@ -1016,6 +1069,7 @@ inval_snoop_forme <= ( an_ac_back_inv_q(2) and an_ac_back_inv_q(3) and not(power
 inval_snoop_local_reject <= ( an_ac_back_inv_q(2) and an_ac_back_inv_q(3) and not(power_managed_q(0) and power_managed_q(1)) and an_ac_back_inv_q(7)
                                 and not Eq(an_ac_back_inv_lpar_id_q,lpidr_q) and (Eq(xu_mm_ccr2_notlb_q(0),ERAT_Mode_Value) or mmucr1_q(pos_tlbi_rej)) );
 local_reject_d <= (global_barrier_q and (0 to thdid_width-1 => inval_snoop_local_reject));
+-- an_ac_back_inv_q: 0=valid b-1, 1=target b-1, 2=valid b, 3=target b, 4=L, 5=GS, 6=IND, 7=local, 8=reject
 an_ac_back_inv_d(0) <= an_ac_back_inv;
 an_ac_back_inv_d(1) <= an_ac_back_inv_target;
 an_ac_back_inv_d(2) <= an_ac_back_inv_q(0) when inval_snoop_forme='0' 
@@ -1032,6 +1086,7 @@ an_ac_back_inv_d(6) <= an_ac_back_inv_ind when inval_snoop_forme='0'
                     else an_ac_back_inv_q(6);
 an_ac_back_inv_d(7) <= an_ac_back_inv_local when inval_snoop_forme='0'
                     else an_ac_back_inv_q(7);
+-- bit 8 is reject back to L2 (b phase) mmu targetted, but lpar id doesn't match
 an_ac_back_inv_d(8) <= ( an_ac_back_inv_q(2) and an_ac_back_inv_q(3) and not Eq(an_ac_back_inv_lpar_id_q,lpidr_q)
                                 and (Eq(xu_mm_ccr2_notlb_q(0),ERAT_Mode_Value) or mmucr1_q(pos_tlbi_rej)) )
                       or ( an_ac_back_inv_q(2) and an_ac_back_inv_q(3) and power_managed_q(0) and power_managed_q(1) );
@@ -1040,6 +1095,7 @@ an_ac_back_inv_addr_d <= an_ac_back_inv_addr when inval_snoop_forme='0'
 an_ac_back_inv_lpar_id_d <= an_ac_back_inv_lpar_id when inval_snoop_forme='0'
                     else an_ac_back_inv_lpar_id_q;
 ac_an_back_inv_reject  <= an_ac_back_inv_q(8);
+-- tlbwe back-invalidate to erats request from tlb_cmp
 tlbwe_back_inv_d(0 to thdid_width-1) <= tlbwe_back_inv_thdid when tlbwe_back_inv_q(thdid_width)='0'  
                 else (others => '0') when (tlbwe_back_inv_q(thdid_width)='1' and tlbwe_back_inv_q(thdid_width+1)='0' and tlb_tag5_write='0')
                 else (others => '0') when inv_seq_tlbwe_snoop_done='1'
@@ -1056,6 +1112,9 @@ tlbwe_back_inv_addr_d <= tlbwe_back_inv_addr when tlbwe_back_inv_q(thdid_width)=
 tlbwe_back_inv_attr_d <= tlbwe_back_inv_attr when tlbwe_back_inv_q(thdid_width)='0'  
                 else tlbwe_back_inv_attr_q;
 tlbwe_back_inv_pending <= or_reduce(tlbwe_back_inv_q(thdid_width to thdid_width+1));
+-----------------------------------------------------------------------
+-- Load/Store unit request interface
+-----------------------------------------------------------------------
 htw_lsu_req_taken <= htw_lsu_req_taken_sig;
 lsu_tokens_d <= "01" when (xu_mm_lsu_token='1' and lsu_tokens_q="00")
                  else "10" when (xu_mm_lsu_token='1' and lsu_tokens_q="01")
@@ -1076,6 +1135,27 @@ lsu_wimge_d <= htw_lsu_wimge when inv_seq_htw_load='1'
              else (others => '0');
 lsu_ubits_d <= htw_lsu_u when inv_seq_htw_load='1'
              else (others => '0');
+--                                            A2 to L2 interface req_ra epn bits for tlbivax op
+--  page size  mmucr1.tlbi_msb    27:30     31:33     34:35     36:39     40:43     44:47     48:51   TLB  w  value
+--      4K           0         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(40:43) EA(44:47) EA(48:51)     31
+--     64K           0         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(40:43) EA(44:47)  0b0011       31
+--      1M           0         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(40:43) EA(27:30)  0b0101       27
+--     16M           0         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(23:26) EA(27:30)  0b0111       23
+--    256M           0         EA(27:30) EA(31:33) EA(34:35) EA(19:22) EA(23:26) EA(27:30)  0b1001       19
+--      1G           0         EA(27:30) EA(31:33) EA(17:18) EA(19:22) EA(23:26) EA(27:30)  0b1010       17
+--      4K           1         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(40:43) EA(44:47) EA(48:51)     27
+--     64K           1         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(40:43) EA(44:47)  0b0011       27
+--      1M           1         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(40:43) EA(23:26)  0b0101       23
+--     16M           1         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(19:22) EA(23:26)  0b0111       19
+--    256M           1         EA(27:30) EA(31:33) EA(34:35) EA(15:18) EA(19:22) EA(23:26)  0b1001       15
+--      1G           1         EA(27:30) EA(31:33) EA(13:14) EA(15:18) EA(19:22) EA(23:26)  0b1010       13
+--  A2 to L2 interface req_ra for tlbivax op:
+--    22:26 TID(1:5)
+--    27:51 EPN
+--       52 TS
+--       53 TID(0)
+--    54:55 attributes
+--    56:63 TID(6:13)
 lsu_addr_d(64-real_addr_width to 64-real_addr_width+4) <= 
               htw_lsu_addr(64-real_addr_width to 64-real_addr_width+4) when inv_seq_htw_load='1' 
               else ex6_pid_q(pid_width-13 to pid_width-9) when inv_seq_tlbi_load='1'
@@ -1158,6 +1238,9 @@ mm_xu_lsu_lpid             <= lsu_lpid_q;
 mm_xu_lsu_ind              <= lsu_ind_q;
 mm_xu_lsu_gs               <= lsu_gs_q;
 mm_xu_lsu_lbit             <= lsu_lbit_q;
+-----------------------------------------------------------------------
+-- Snoop interfaces to erats and tlb
+-----------------------------------------------------------------------
 snoop_valid_d(0) <= inv_seq_ierat_snoop_val;
 snoop_valid_d(1) <= inv_seq_derat_snoop_val;
 snoop_valid_d(2) <= inv_seq_tlb_snoop_val;
@@ -1285,6 +1368,27 @@ snoop_attr_clone_d(20 to 25)  <= (others => '0') when inv_seq_snoop_inprogress_q
                              else tlbwe_back_inv_attr_q(20 to 25) when inv_seq_tlbwe_inprogress_q(1)='1'
                              else ex6_pid_q(pid_width-14 to pid_width-9);
 end generate gen32_snoop_attr;
+--                                            A2 to L2 interface req_ra epn bits for tlbivax op
+--  page size  mmucr1.tlbi_msb    27:30     31:33     34:35     36:39     40:43     44:47     48:51   TLB  w  value
+--      4K           0         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(40:43) EA(44:47) EA(48:51)     31
+--     64K           0         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(40:43) EA(44:47)  0b0011       31
+--      1M           0         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(40:43) EA(27:30)  0b0101       27
+--     16M           0         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(23:26) EA(27:30)  0b0111       23
+--    256M           0         EA(27:30) EA(31:33) EA(34:35) EA(19:22) EA(23:26) EA(27:30)  0b1001       19
+--      1G           0         EA(27:30) EA(31:33) EA(17:18) EA(19:22) EA(23:26) EA(27:30)  0b1010       17
+--      4K           1         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(40:43) EA(44:47) EA(48:51)     27
+--     64K           1         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(40:43) EA(44:47)  0b0011       27
+--      1M           1         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(40:43) EA(23:26)  0b0101       23
+--     16M           1         EA(27:30) EA(31:33) EA(34:35) EA(36:39) EA(19:22) EA(23:26)  0b0111       19
+--    256M           1         EA(27:30) EA(31:33) EA(34:35) EA(15:18) EA(19:22) EA(23:26)  0b1001       15
+--      1G           1         EA(27:30) EA(31:33) EA(13:14) EA(15:18) EA(19:22) EA(23:26)  0b1010       13
+--  A2 to L2 interface req_ra for tlbivax op:
+--    22:26 TID(1:5)
+--    27:51 EPN
+--       52 TS
+--       53 TID(0)
+--    54:55 attributes
+--    56:63 TID(6:13)
 gen_rs_gte_epn_snoop_vpn: if  (rs_data_width > epn_width-1) and (epn_width > real_addr_width) generate
 snoop_vpn_d(52-epn_width to 12)   <= (others => '0') when inv_seq_snoop_inprogress_q(0)='1'
                                            else tlbwe_back_inv_addr_q(0 to 12) when inv_seq_tlbwe_inprogress_q(0)='1'
@@ -1462,6 +1566,7 @@ inval_dbg_snoop_attr_q           <= snoop_attr_q;
 inval_dbg_snoop_attr_tlb_spec_q  <= snoop_attr_tlb_spec_q;
 inval_dbg_snoop_vpn_q            <= snoop_vpn_q(17 to 51);
 inval_dbg_lsu_tokens_q           <= lsu_tokens_q;
+-- unused spare signal assignments
 unused_dc(0) <= or_reduce(LCB_DELAY_LCLKR_DC(1 TO 4));
 unused_dc(1) <= or_reduce(LCB_MPW1_DC_B(1 TO 4));
 unused_dc(2) <= PC_FUNC_SL_FORCE;
@@ -1475,6 +1580,9 @@ unused_dc(9) <= or_reduce(MMUCR0_2(4 TO 5));
 unused_dc(10) <= or_reduce(MMUCR0_3(4 TO 5));
 unused_dc(11) <= mmucr1_q(13) and or_reduce(mmucr1_q(15 to 17));
 unused_dc(12) <= EX5_RS_IS_Q(0);
+--------------------------------------------------
+-- latches
+--------------------------------------------------
 ex1_valid_latch: tri_rlmreg_p
   generic map (width => ex1_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1543,6 +1651,7 @@ ex1_t_latch: tri_rlmreg_p
             scout   => sov(ex1_t_offset to ex1_t_offset+ex1_t_q'length-1),
             din     => ex1_t_d(0 to t_width-1),
             dout    => ex1_t_q(0 to t_width-1)  );
+-------------------------------------------------------------------------------
 ex2_valid_latch: tri_rlmreg_p
   generic map (width => ex2_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1628,6 +1737,7 @@ ex2_t_latch: tri_rlmreg_p
             scout   => sov(ex2_t_offset to ex2_t_offset+ex2_t_q'length-1),
             din     => ex2_t_d(0 to t_width-1),
             dout    => ex2_t_q(0 to t_width-1)  );
+-------------------------------------------------------------------------------
 ex3_valid_latch: tri_rlmreg_p
   generic map (width => ex3_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1747,6 +1857,7 @@ ex3_ea_latch: tri_rlmreg_p
             scout   => sov(ex3_ea_offset to ex3_ea_offset+ex3_ea_q'length-1),
             din     => ex3_ea_d(64-rs_data_width to 63),
             dout    => ex3_ea_q(64-rs_data_width to 63)  );
+-------------------------------------------------------------------------------
 ex4_valid_latch: tri_rlmreg_p
   generic map (width => ex4_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1832,6 +1943,7 @@ ex4_t_latch: tri_rlmreg_p
             scout   => sov(ex4_t_offset to ex4_t_offset+ex4_t_q'length-1),
             din     => ex4_t_d(0 to t_width-1),
             dout    => ex4_t_q(0 to t_width-1)  );
+--------------------------------------------------
 ex5_valid_latch: tri_rlmreg_p
   generic map (width => ex5_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1917,6 +2029,7 @@ ex5_t_latch: tri_rlmreg_p
             scout   => sov(ex5_t_offset to ex5_t_offset+ex5_t_q'length-1),
             din     => ex5_t_d(0 to t_width-1),
             dout    => ex5_t_q(0 to t_width-1)  );
+--------------------------------------------------
 ex6_valid_latch: tri_rlmreg_p
   generic map (width => ex6_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2070,6 +2183,7 @@ ex6_lpid_latch: tri_rlmreg_p
             scout   => sov(ex6_lpid_offset to ex6_lpid_offset+ex6_lpid_q'length-1),
             din     => ex6_lpid_d(0 to lpid_width-1),
             dout    => ex6_lpid_q(0 to lpid_width-1)  );
+--------------------------------------------------
 inv_seq_latch: tri_rlmreg_p
   generic map (width => inv_seq_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2223,6 +2337,7 @@ local_reject_latch: tri_rlmreg_p
             scout   => sov(local_reject_offset to local_reject_offset+local_reject_q'length-1),
             din     => local_reject_d(0 to thdid_width-1),
             dout    => local_reject_q(0 to thdid_width-1));
+-- snoop output and ack latches 0:ierat, 1:derat, 2:tlb
 snoop_coming_latch: tri_rlmreg_p
   generic map (width => snoop_coming_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2376,6 +2491,7 @@ mm_xu_quiesce_latch: tri_rlmreg_p
             scout   => sov(mm_xu_quiesce_offset to mm_xu_quiesce_offset+mm_xu_quiesce_q'length-1),
             din     => mm_xu_quiesce_d(0 to thdid_width-1),
             dout    => mm_xu_quiesce_q(0 to thdid_width-1)  );
+-- snoop invalidate input latches
 an_ac_back_inv_latch: tri_rlmreg_p
   generic map (width => an_ac_back_inv_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2427,6 +2543,7 @@ an_ac_back_inv_lpar_id_latch: tri_rlmreg_p
             scout   => sov(an_ac_back_inv_lpar_id_offset to an_ac_back_inv_lpar_id_offset+an_ac_back_inv_lpar_id_q'length-1),
             din     => an_ac_back_inv_lpar_id_d(0 to lpid_width-1),
             dout    => an_ac_back_inv_lpar_id_q(0 to lpid_width-1)  );
+-- Load/Store unit request interface latches
 lsu_tokens_latch: tri_rlmreg_p
   generic map (width => lsu_tokens_q'length, init => 1, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2597,6 +2714,7 @@ lsu_lbit_latch: tri_rlmlatch_p
             scout   => sov(lsu_lbit_offset),
             din     => lsu_lbit_d,
             dout    => lsu_lbit_q);
+-- core night-night sleep mode
 power_managed_latch: tri_rlmreg_p
   generic map (width => power_managed_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2716,6 +2834,7 @@ spare_latch: tri_rlmreg_p
             scout   => sov(spare_offset to spare_offset+spare_q'length-1),
             din     => spare_q,
             dout    => spare_q);
+-- non-scannable config latches
 epcr_dgtmi_latch : tri_regk
   generic map (width => xu_mm_epcr_dgtmi_q'length, init => 0, expand_type => expand_type, needs_sreset => 0)
   port map (nclk    => nclk, vd => vdd, gd => gnd,
@@ -2764,6 +2883,9 @@ mmucr1_csinv_latch : tri_regk
             thold_b => pc_func_slp_nsl_thold_0_b,
             din     => mmucr1_csinv,
             dout    => mmucr1_csinv_q);
+--------------------------------------------------
+-- thold/sg latches
+--------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 5, expand_type => expand_type)
   port map (vd          => vdd,
@@ -2820,7 +2942,29 @@ perv_nsl_lcbor: tri_lcbor
             act_dis     => tidn,
             forcee => pc_func_slp_nsl_force,
             thold_b     => pc_func_slp_nsl_thold_0_b);
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv(0 to scan_right) <= sov(1 to scan_right) & ac_func_scan_in;
 ac_func_scan_out <= sov(0);
 end mmq_inval;
-
+-- PowerISA v2.06   Sec. 6.11.4.4  TLB Lookaside Information (i.e. shadow/erats)
+--  If TLBnCFG HES =0, lookaside info is kept coherent with the TLB and is
+--  invisible to software. Any write to the TLB that displaces or updates an entry
+--  will be reflected in the lookaside info, invalidating the lookaside info
+--  corresponding to the previous TLB entry.  Any type of invalidation of an
+--  entry in TLB will also invalidate the corresponding lookaside info.
+--  If TLBnCFG HES =1, lookaside info is not required to be kept coherent with TLB.
+--  Only the following conditions will keep coherency.  MMUCRS0.tlb0_fi will
+--  invalidate ALL lookaside info. tlbilx and tlbivax invalidate lookaside info
+--  corresponding to TLB values that they are specified to invalidate as well as
+--  those TLB entry values that would have been invalidated except for their
+--  IPROT=1 value.
+--  Programming Note: If TLBnCFG HES =1 for a TLB array and it is important that lookaside info
+--  corresponding to a TLB entry be invalidated, software should use tlbilx or tlbivax
+--  to invalidate the VA.
+--  Architecture Note: For TLB's with TLBnCFG HES =1, the tlbilx and tlbivax instructions
+--  are defined to invalidate lookaside info (but not TLB entries) with IPROT=1 because
+--  tlbwe is not guaranteed to invalidate lookaside info corresponding to the previous
+--  value of the TLB entry (i.e. for TLBnCFG HES =1). There needs to be a mechanism to
+--  invalidate such lookaside information.

@@ -20,21 +20,38 @@ use tri.tri_latches_pkg.all;
 
 entity xuq_alu_ins is  generic(expand_type: integer := 2 );   port (
 
-        ins_log_fcn     :in  std_ulogic_vector(0 to 3) ; 
+        ins_log_fcn     :in  std_ulogic_vector(0 to 3) ; -- use pass ra for rlwimi
+                                                         -- rs, ra/rb
+                                                         -- 0000 => "0"
+                                                         -- 0001 => rs AND  rb
+                                                         -- 0010 => rs AND !rb
+                                                         -- 0011 => rs
+                                                         -- 0100 => !rs and RB
+                                                         -- 0101 =>         RB
+                                                         -- 0110 => rs xor  RB
+                                                         -- 0111 => rs or   RB
+                                                         -- 1000 => rs nor  RB
+                                                         -- 1001 => rs xnor RB (use for cmp-byt)
+                                                         -- 1010 =>        !RB
+                                                         -- 1011 => rs or  !rb
+                                                         -- 1100 => !rs
+                                                         -- 1101 => rs nand !rb, !rs or rb
+                                                         -- 1110 => rs nand rb   ...
+                                                         -- 1111 => "1"
 
         ins_cmp_byt     :in  std_ulogic ;
         ins_sra_wd          :in  std_ulogic ;
         ins_sra_dw          :in  std_ulogic ;
 
-        ins_xtd_byte    :in  std_ulogic ;
-        ins_xtd_half    :in  std_ulogic ;
-        ins_xtd_wd      :in  std_ulogic ;
+        ins_xtd_byte    :in  std_ulogic ;-- use with xtd
+        ins_xtd_half    :in  std_ulogic ;-- use with xtd
+        ins_xtd_wd      :in  std_ulogic ;-- use with xtd, sra
 
 
-        data0_i         :in  std_ulogic_vector(0 to 63) ;
-        data1_i         :in  std_ulogic_vector(0 to 63) ;
+        data0_i         :in  std_ulogic_vector(0 to 63) ;--data input (rs)
+        data1_i         :in  std_ulogic_vector(0 to 63) ;--data input (ra|rb)
         mrg_byp_log     :out std_ulogic_vector(0 to 63) ;
-        res_ins         :out std_ulogic_vector(0 to 63)  
+        res_ins         :out std_ulogic_vector(0 to 63)  --insert data (also result of logicals)
 );
 
 -- synopsys translate_off
@@ -76,11 +93,6 @@ architecture xuq_alu_ins of xuq_alu_ins is
   
   signal data0_b, data1_b           : std_ulogic_vector(0 to 63); 
   signal data0,   data1             : std_ulogic_vector(0 to 63);
-
-
-
-
-
 
 
 begin
@@ -187,8 +199,8 @@ begin
   xtd_byte_bus(0 to 63) <= (0 to 56 => data0(56) ) & data0(57 to 63) ;
   xtd_half_bus(0 to 63) <= (0 to 48 => data0(48) ) & data0(49 to 63) ;
   xtd_wd_bus  (0 to 63) <= (0 to 32 => data0(32) ) & data0(33 to 63) ;
-  sra_wd_bus  (0 to 63) <= (0 to 63 => data0(32) );  
-  sra_dw_bus  (0 to 63) <= (0 to 63 => data0(0)  );  
+  sra_wd_bus  (0 to 63) <= (0 to 63 => data0(32) );  -- all the bits for sra
+  sra_dw_bus  (0 to 63) <= (0 to 63 => data0(0)  );  -- all the bits for sra
 
 
   sign_xtd_bus(0 to 63) <=
@@ -205,8 +217,7 @@ begin
   u_res_ins1: res_ins1_b(0 to 63) <= not( sel_cmp_byt_b        and res_log(0 to 63)      );
   u_res_ins2: res_ins2_b(0 to 63) <= not(                          sign_xtd_bus(0 to 63) );
   
-  u_res_ins : res_ins   (0 to 63) <= not( res_ins0_b(0 to 63) and res_ins1_b(0 to 63) and res_ins2_b(0 to 63) );
+  u_res_ins : res_ins   (0 to 63) <= not( res_ins0_b(0 to 63) and res_ins1_b(0 to 63) and res_ins2_b(0 to 63) );--output--
 
 
 end architecture xuq_alu_ins;
-

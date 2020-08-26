@@ -21,19 +21,19 @@ LIBRARY clib;
 
 entity xuq_alu_mult_boothrow is
     port(
-        s_neg           : in std_ulogic;                  
-        s_x             : in std_ulogic;                  
-        s_x2            : in std_ulogic;                  
+        s_neg           : in std_ulogic;                  -- negate the row
+        s_x             : in std_ulogic;                  -- shift by 0
+        s_x2            : in std_ulogic;                  -- shift by 1
         sign_bit_adj    : in std_ulogic;
-        x               : in std_ulogic_vector(0 to 31);  
-        q               : out std_ulogic_vector(0 to 32); 
-        hot_one         : out std_ulogic;                 
+        x               : in std_ulogic_vector(0 to 31);  -- input (multiplicand)
+        q               : out std_ulogic_vector(0 to 32); -- final output
+        hot_one         : out std_ulogic;                 -- lsb term for row below
         vdd             : inout power_logic;
         gnd             : inout power_logic
     );
 --  synopsys translate_off
 --  synopsys translate_on
-end xuq_alu_mult_boothrow; 
+end xuq_alu_mult_boothrow; -- entity
 
 architecture xuq_alu_mult_boothrow of xuq_alu_mult_boothrow is
     constant tiup   : std_ulogic := '1';
@@ -41,14 +41,13 @@ architecture xuq_alu_mult_boothrow of xuq_alu_mult_boothrow is
 
     signal left     : std_ulogic_vector(1 to 32);
 
-
-
-
-
 begin
 
 
 
+    ---------------------------------------------------------------------
+    -- Build the booth mux row bit by bit
+    ---------------------------------------------------------------------
     u00: entity clib.c_prism_bthmx generic map( btr => "BTHMX_X1_A12TH" ) port map(
         vd      => vdd,
         gd      => gnd,
@@ -415,4 +414,3 @@ begin
 
     u33: hot_one <= s_neg and (s_x or s_x2) ;
 end;
-

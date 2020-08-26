@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Bypass Unit
+--
 library ieee,ibm,support,tri;
 use ieee.std_logic_1164.all;
 use ibm.std_ulogic_function_support.all;
@@ -21,11 +23,14 @@ generic (
    regsize                             : integer := 64;
    eff_ifar                            : integer := 62);
 port (
+   -- Clocks
    nclk                                : in  clk_logic;
 
+   -- Power
    vdd                                 : inout power_logic;
    gnd                                 : inout power_logic;
 
+   -- Pervasive
    d_mode_dc                           : in std_ulogic;
    delay_lclkr_dc                      : in std_ulogic;
    mpw1_dc_b                           : in std_ulogic;
@@ -44,6 +49,7 @@ port (
    dec_byp_ex3_instr_trace_val         : in  std_ulogic;
    dec_byp_ex3_instr_trace_gate        : in  std_ulogic;
 
+   -- Flushes
    xu_ex3_flush                        : in  std_ulogic_vector(0 to threads-1);
    xu_ex4_flush                        : in  std_ulogic_vector(0 to threads-1);
    xu_ex5_flush                        : in  std_ulogic_vector(0 to threads-1);
@@ -54,6 +60,7 @@ port (
    dec_ex3_tid                         : in std_ulogic_vector(0 to threads-1);
    dec_ex5_tid                         : in std_ulogic_vector(0 to threads-1);
 
+   -- Decode Inputs
    dec_alu_rf1_sel                     : in  std_ulogic_vector(2 to 2);
    dec_byp_rf1_rs0_sel                 : in std_ulogic_vector(1 to 9);
    dec_byp_rf1_rs1_sel                 : in std_ulogic_vector(1 to 10);
@@ -85,12 +92,14 @@ port (
    dec_byp_ex3_tlb_sel                 : in  std_ulogic_vector(0 to 1);
    alu_ex2_div_done                    : in  std_ulogic;
 
+   -- Slow SPR Bus
    slowspr_val_in                      : in  std_ulogic;
    slowspr_rw_in                       : in  std_ulogic;
    slowspr_etid_in                     : in  std_ulogic_vector(0 to 1);
    slowspr_addr_in                     : in  std_ulogic_vector(0 to 9);
    slowspr_done_in                     : in  std_ulogic;
 
+   -- DCR Bus
    dec_byp_ex4_dcr_ack                 : in  std_ulogic;
    an_ac_dcr_act                       : in  std_ulogic;
    an_ac_dcr_read                      : in  std_ulogic;
@@ -102,24 +111,27 @@ port (
    mux_cpl_slowspr_done                : out std_ulogic_vector(0 to 3);
    mux_cpl_slowspr_flush               : out std_ulogic_vector(0 to 3);
 
+   -- Source Data
    dec_byp_rf1_imm                     : in std_ulogic_vector(64-regsize to 63);
    fxa_fxb_rf1_do0                     : in std_ulogic_vector(64-regsize to 63);
    fxa_fxb_rf1_do1                     : in std_ulogic_vector(64-regsize to 63);
    fxa_fxb_rf1_do2                     : in std_ulogic_vector(64-regsize to 63);
 
-   alu_byp_ex1_log_rt                  : in  std_ulogic_vector(64-regsize to 63);     
-   alu_byp_ex2_rt                      : in  std_ulogic_vector(64-regsize to 63);     
-   alu_byp_ex3_div_rt                  : in  std_ulogic_vector(64-regsize to 63);     
-   cpl_byp_ex3_spr_rt                  : in  std_ulogic_vector(64-regsize to 63);     
-   spr_byp_ex3_spr_rt                  : in  std_ulogic_vector(64-regsize to 63);     
-   fspr_byp_ex3_spr_rt                 : in  std_ulogic_vector(64-regsize to 63);     
-   lsu_xu_ex4_tlb_data                 : in  std_ulogic_vector(64-regsize to 63);     
-   iu_xu_ex4_tlb_data                  : in  std_ulogic_vector(64-regsize to 63);     
-   alu_byp_ex5_mul_rt                  : in  std_ulogic_vector(64-regsize to 63);     
-   lsu_xu_rot_ex6_data_b               : in  std_ulogic_vector(64-regsize to 63);     
-   lsu_xu_rot_rel_data                 : in  std_ulogic_vector(64-regsize to 63);     
-   slowspr_data_in                     : in  std_ulogic_vector(64-regsize to 63);     
+   -- Result Busses
+   alu_byp_ex1_log_rt                  : in  std_ulogic_vector(64-regsize to 63);     -- ALU Logicals
+   alu_byp_ex2_rt                      : in  std_ulogic_vector(64-regsize to 63);     -- ALU
+   alu_byp_ex3_div_rt                  : in  std_ulogic_vector(64-regsize to 63);     -- Divide
+   cpl_byp_ex3_spr_rt                  : in  std_ulogic_vector(64-regsize to 63);     -- CPL SPR
+   spr_byp_ex3_spr_rt                  : in  std_ulogic_vector(64-regsize to 63);     -- SPR
+   fspr_byp_ex3_spr_rt                 : in  std_ulogic_vector(64-regsize to 63);     -- FXU SPR
+   lsu_xu_ex4_tlb_data                 : in  std_ulogic_vector(64-regsize to 63);     -- D-ERAT
+   iu_xu_ex4_tlb_data                  : in  std_ulogic_vector(64-regsize to 63);     -- I-ERAT
+   alu_byp_ex5_mul_rt                  : in  std_ulogic_vector(64-regsize to 63);     -- Multiply
+   lsu_xu_rot_ex6_data_b               : in  std_ulogic_vector(64-regsize to 63);     -- Load/Store Hit
+   lsu_xu_rot_rel_data                 : in  std_ulogic_vector(64-regsize to 63);     -- Load/Store Miss
+   slowspr_data_in                     : in  std_ulogic_vector(64-regsize to 63);     -- Slow SPR
 
+   -- Target Data
    byp_dec_rf1_xer_ca                  : out std_ulogic;
    byp_alu_ex1_rs0                     : out std_ulogic_vector(64-regsize to 63);
    byp_alu_ex1_rs1                     : out std_ulogic_vector(64-regsize to 63);
@@ -130,15 +142,17 @@ port (
    xu_lsu_ex1_add_src0                 : out std_ulogic_vector(64-regsize to 63);
    xu_lsu_ex1_add_src1                 : out std_ulogic_vector(64-regsize to 63);
 
+   -- Other Outputs
    xu_ex1_rs_is                        : out std_ulogic_vector(0 to 8);
    xu_ex1_ra_entry                     : out std_ulogic_vector(7 to 11);
    xu_ex1_rb                           : out std_ulogic_vector(64-regsize to 51);
-   xu_ex4_rs_data                      : out std_ulogic_vector(64-regsize to 63);     
-   xu_mm_derat_epn                     : out std_ulogic_vector(62-eff_ifar to 51);    
-   xu_pc_ram_data                      : out std_ulogic_vector(64-regsize to 63);     
-   mux_spr_ex6_rt                      : out std_ulogic_vector(64-regsize to 63);     
+   xu_ex4_rs_data                      : out std_ulogic_vector(64-regsize to 63);     -- TLB Write Data
+   xu_mm_derat_epn                     : out std_ulogic_vector(62-eff_ifar to 51);    -- DERAT EPN
+   xu_pc_ram_data                      : out std_ulogic_vector(64-regsize to 63);     -- RAM Result Capture
+   mux_spr_ex6_rt                      : out std_ulogic_vector(64-regsize to 63);     -- SPR Write Data
    byp_xer_si                          : out std_ulogic_vector(0 to 7*threads-1);
 
+   -- FU CR Update
    fu_xu_ex4_cr_val                    : in std_ulogic_vector(0 to threads-1);
    fu_xu_ex4_cr_noflush                : in std_ulogic_vector(0 to threads-1);
    fu_xu_ex4_cr0                       : in std_ulogic_vector(0 to 3);
@@ -150,23 +164,29 @@ port (
    fu_xu_ex4_cr3                       : in std_ulogic_vector(0 to 3);
    fu_xu_ex4_cr3_bf                    : in std_ulogic_vector(0 to 2);
 
+   -- MMU CR Update
    mm_xu_cr0_eq_valid                  : in  std_ulogic_vector(0 to threads-1);
    mm_xu_cr0_eq                        : in  std_ulogic_vector(0 to threads-1);
 
+   -- L2 CR Update
    an_ac_stcx_complete                 : in  std_ulogic_vector(0 to threads-1);
    an_ac_stcx_pass                     : in  std_ulogic_vector(0 to threads-1);
 
+   -- icswx CR Update
    an_ac_back_inv                      : in std_ulogic;
    an_ac_back_inv_addr                 : in std_ulogic_vector(58 to 63);
    an_ac_back_inv_target_bit3          : in std_ulogic;
 
+   -- MT/MFDCR
    lsu_xu_ex4_mtdp_cr_status           : in std_ulogic;
    lsu_xu_ex4_mfdp_cr_status           : in std_ulogic;
 
+   -- ldawx/wchkall
    dec_byp_ex4_is_wchkall              : in std_ulogic;
    lsu_xu_ex4_cr_upd                   : in std_ulogic;
    lsu_xu_ex5_cr_rslt                  : in std_ulogic;
 
+   -- CR/XER Signals
    alu_byp_ex2_cr_recform              : in std_ulogic_vector(0 to 3);
    alu_byp_ex5_cr_mul                  : in std_ulogic_vector(0 to 4);
    alu_byp_ex3_cr_div                  : in std_ulogic_vector(0 to 4);
@@ -177,13 +197,16 @@ port (
    spr_byp_ex4_is_mtxer                : in std_ulogic_vector(0 to threads-1);
    byp_cpl_ex1_cr_bit                  : out std_ulogic;
 
+   -- ALU isel controls
    byp_alu_rf1_isel_fcn                : out std_ulogic_vector(0 to 3);
 
+   -- SPR Inputs
    spr_msr_cm                          : in  std_ulogic_vector(0 to threads-1);
    dec_byp_ex5_instr                   : in std_ulogic_vector(12 to 19);
 
    byp_perf_tx_events                  : out std_ulogic_vector(0 to 3*threads-1);
 
+   -- GPR Bypass
    mux_cpl_ex4_rt                      : out std_ulogic_vector(64-regsize to 63);
    byp_spr_ex6_rt                      : out std_ulogic_vector(64-regsize to 63);
    xu_lsu_ex1_store_data               : out std_ulogic_vector(64-regsize to 63);
@@ -226,6 +249,9 @@ signal trace_bus_enable                         : std_ulogic;
 
 begin
 
+---------------------------------------------------------------------
+-- GPR
+---------------------------------------------------------------------
 xu_byp_gpr : entity work.xuq_byp_gpr(xuq_byp_gpr)
 generic map(
    threads                             => threads,
@@ -286,18 +312,18 @@ port map(
    fxa_fxb_rf1_do0                     => fxa_fxb_rf1_do0,
    fxa_fxb_rf1_do1                     => fxa_fxb_rf1_do1,
    fxa_fxb_rf1_do2                     => fxa_fxb_rf1_do2,
-   alu_byp_ex1_log_rt                  => alu_byp_ex1_log_rt,                  
-   alu_byp_ex2_rt                      => alu_byp_ex2_rt,                      
-   alu_byp_ex3_div_rt                  => alu_byp_ex3_div_rt,                  
-   cpl_byp_ex3_spr_rt                  => cpl_byp_ex3_spr_rt,                  
-   spr_byp_ex3_spr_rt                  => spr_byp_ex3_spr_rt,                  
-   fspr_byp_ex3_spr_rt                 => fspr_byp_ex3_spr_rt,                 
-   lsu_xu_ex4_tlb_data                 => lsu_xu_ex4_tlb_data,                 
-   iu_xu_ex4_tlb_data                  => iu_xu_ex4_tlb_data,                  
-   alu_byp_ex5_mul_rt                  => alu_byp_ex5_mul_rt,                  
-   lsu_xu_rot_ex6_data_b               => lsu_xu_rot_ex6_data_b,               
-   lsu_xu_rot_rel_data                 => lsu_xu_rot_rel_data,                 
-   slowspr_data_in                     => slowspr_data_in,                     
+   alu_byp_ex1_log_rt                  => alu_byp_ex1_log_rt,                  -- ALU Logicals
+   alu_byp_ex2_rt                      => alu_byp_ex2_rt,                      -- ALU
+   alu_byp_ex3_div_rt                  => alu_byp_ex3_div_rt,                  -- Divide
+   cpl_byp_ex3_spr_rt                  => cpl_byp_ex3_spr_rt,                  -- CPL SPR
+   spr_byp_ex3_spr_rt                  => spr_byp_ex3_spr_rt,                  -- SPR
+   fspr_byp_ex3_spr_rt                 => fspr_byp_ex3_spr_rt,                 -- FXU SPR
+   lsu_xu_ex4_tlb_data                 => lsu_xu_ex4_tlb_data,                 -- D-ERAT
+   iu_xu_ex4_tlb_data                  => iu_xu_ex4_tlb_data,                  -- I-ERAT
+   alu_byp_ex5_mul_rt                  => alu_byp_ex5_mul_rt,                  -- Multiply
+   lsu_xu_rot_ex6_data_b               => lsu_xu_rot_ex6_data_b,               -- Load/Store Hit
+   lsu_xu_rot_rel_data                 => lsu_xu_rot_rel_data,                 -- Load/Store Miss
+   slowspr_data_in                     => slowspr_data_in,                     -- Slow SPR
    byp_ex5_cr_rt                       => byp_ex5_cr_rt,
    byp_ex5_xer_rt                      => byp_ex5_xer_rt,
    ex1_mfocrf_rt                       => ex1_mfocrf_rt,
@@ -312,10 +338,10 @@ port map(
    xu_ex1_rs_is                        => xu_ex1_rs_is,
    xu_ex1_ra_entry                     => xu_ex1_ra_entry,
    xu_ex1_rb                           => xu_ex1_rb,
-   xu_ex4_rs_data                      => xu_ex4_rs_data,                      
-   xu_mm_derat_epn                     => xu_mm_derat_epn,                     
-   xu_pc_ram_data                      => xu_pc_ram_data,                      
-   mux_spr_ex6_rt                      => mux_spr_ex6_rt,                      
+   xu_ex4_rs_data                      => xu_ex4_rs_data,                      -- TLB Write Data
+   xu_mm_derat_epn                     => xu_mm_derat_epn,                     -- DERAT EPN
+   xu_pc_ram_data                      => xu_pc_ram_data,                      -- RAM Result Capture
+   mux_spr_ex6_rt                      => mux_spr_ex6_rt,                      -- SPR Write Data
    spr_msr_cm                          => spr_msr_cm,
    mux_cpl_ex4_rt                      => mux_cpl_ex4_rt,
    byp_spr_ex6_rt                      => byp_spr_ex6_rt,
@@ -335,6 +361,9 @@ port map(
    );
 
 
+---------------------------------------------------------------------
+-- CR
+---------------------------------------------------------------------
 xu_byp_cr : entity work.xuq_byp_cr(xuq_byp_cr)
 generic map(
    threads                         => threads,
@@ -426,6 +455,9 @@ port map(
    cr_grp1_debug                   => byp_grp7_debug
    );
 
+---------------------------------------------------------------------
+-- XER
+---------------------------------------------------------------------
 xu_byp_xer : entity work.xuq_byp_xer(xuq_byp_xer)
 generic map(
    threads                         => threads,

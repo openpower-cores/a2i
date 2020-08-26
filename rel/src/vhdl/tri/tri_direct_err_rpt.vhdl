@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_direct_err_rpt.vhdl
+-- *! DESCRIPTION : Error Reporting Component
+-- *!
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
@@ -19,8 +24,8 @@ library tri; use tri.tri_latches_pkg.all;
 entity tri_direct_err_rpt is
 
   generic (
-      width         : positive := 1 ;      
-      expand_type   : integer  := 1 );     
+      width         : positive := 1 ;      -- use to bundle error reporting checkers of the same exact type
+      expand_type   : integer  := 1 );     -- 1 = non-ibm, 2 = ibm (MPG)
   port (
       vd            : inout power_logic;
       gd            : inout power_logic;
@@ -36,7 +41,7 @@ end tri_direct_err_rpt;
 
 architecture tri_direct_err_rpt of tri_direct_err_rpt is
 
-begin  
+begin  -- tri_direct_err_rpt
 
   a: if expand_type /= 2 generate
   begin
@@ -44,4 +49,3 @@ begin
   end generate a;
 
 end tri_direct_err_rpt;
-

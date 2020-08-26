@@ -18,12 +18,12 @@ use ibm.std_ulogic_mux_support.all;
 
 entity fuq_mul_bthmux  is  port(
      X      : IN  STD_ULOGIC;
-     SNEG   : IN  STD_ULOGIC; 
-     SX     : IN  STD_ULOGIC; 
-     SX2    : IN  STD_ULOGIC; 
-     RIGHT  : IN  STD_ULOGIC; 
-     LEFT   : OUT STD_ULOGIC; 
-     Q      : OUT STD_ULOGIC  
+     SNEG   : IN  STD_ULOGIC; -- DO NOT FLIP THE INPUT (ADD)
+     SX     : IN  STD_ULOGIC; -- SHIFT BY 1
+     SX2    : IN  STD_ULOGIC; -- SHIFT BY 2
+     RIGHT  : IN  STD_ULOGIC; -- BIT FROM THE RIGHT (LSB)
+     LEFT   : OUT STD_ULOGIC; -- BIT FROM THE LEFT
+     Q      : OUT STD_ULOGIC  -- FINAL OUTPUT
 );
 
 
@@ -41,15 +41,13 @@ begin
 
    u_bmx_xor: center  <= x xor sneg ;
 
-              left    <= center ; 
+              left    <= center ; --output-- rename, no gate
 
    u_bmx_aoi: q_b     <= not(  ( sx  and center  ) or
                                ( sx2 and right   )    );
 
-   u_bmx_inv: q       <= not q_b    ; 
+   u_bmx_inv: q       <= not q_b    ; -- output--
 
 
 
 end;
-
-

@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU ECC Generation Macro
+--
 library ieee,ibm,support;
 use ieee.std_logic_1164.all;
 use ibm.std_ulogic_function_support.all;
@@ -27,11 +29,25 @@ architecture xuq_eccgen of xuq_eccgen is
 begin
 ecc64 : if regsize = 64 generate
 
-   signal e                   : std_ulogic_vector(0 to 71); 
+   signal e                   : std_ulogic_vector(0 to 71); -- syndrome bits inverted
    signal l1term              : std_ulogic_vector(0 to 22);
 
    begin
 
+   -- ====================================================================
+   -- 64 data bits, 8 check bits
+   -- single bit error correction, double bit error detection
+   -- ====================================================================
+   --                        ecc matrix description
+   -- ====================================================================
+   -- syn 0   111011010011101001100101101101001100101101001011001101001110100110000000
+   -- syn 1   110110101011010101010101011010101010101010101010101010101101010101000000
+   -- syn 2   101101100110110011001100110110011001100110011001100110011011001100100000
+   -- syn 3   011100011110001111000011110001111000011110000111100001111000111100010000
+   -- syn 4   000011111110000000111111110000000111111110000000011111111000000000001000
+   -- syn 5   000000000001111111111111110000000000000001111111111111111000000000000100
+   -- syn 6   000000000000000000000000001111111111111111111111111111111000000000000010
+   -- syn 7   000000000000000000000000000000000000000000000000000000000111111100000001
 
    e(0 to 71)  <= din(0 to 71);
 
@@ -70,11 +86,24 @@ ecc64 : if regsize = 64 generate
 end generate;
 ecc32 : if regsize = 32 generate
 
-   signal e                   : std_ulogic_vector(0 to 38); 
+   signal e                   : std_ulogic_vector(0 to 38); -- syndrome bits inverted
    signal l1term              : std_ulogic_vector(0 to 13);
 
    begin
 
+   -- ====================================================================
+   -- 32 Data Bits, 7 Check bits
+   -- Single bit error correction, Double bit error detection
+   -- ====================================================================
+   --                        ECC Matrix Description
+   -- ====================================================================
+   -- Syn 0   111011010011101001100101101101001000000
+   -- Syn 1   110110101011010101010101011010100100000
+   -- Syn 2   101101100110110011001100110110010010000
+   -- Syn 3   011100011110001111000011110001110001000
+   -- Syn 4   000011111110000000111111110000000000100
+   -- Syn 5   000000000001111111111111110000000000010
+   -- Syn 6   000000000000000000000000001111110000001
 
    e(0 to 38) <= din(0 to 38);
 
@@ -103,3 +132,4 @@ ecc32 : if regsize = 32 generate
 end generate;
 
 end xuq_eccgen;
+

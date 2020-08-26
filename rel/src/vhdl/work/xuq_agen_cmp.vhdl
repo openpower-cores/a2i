@@ -19,7 +19,16 @@ library ieee,ibm,support,tri, work;
    use ibm.std_ulogic_mux_support.all; 
 library clib ;
 
+-- #######################################################
+-- ##  want equivalence to  (A[53:63] + B[53:63]) => sum[53:63] , then sum[53:57] == z[53:57]
+-- ##  this is all complicated by another mode for                     sum[53:56] == z[53:56]
+-- ##
+-- ##  the short cut is to compute  (A+B-C)=="00000" / (A+B-c)=="0000"
+-- ##  it is a shortcut because you substitute a 3:2 compressor delay for a 12 bit adder delay
+-- ##  since there are more bits in (A+B) than C, there needs to be a carry-in to the compare
+-- #######################################################
 
+-- 0(53) 1(54) 2(55) 3(56) 4(57) 5(58) 6(59) 7(60) 8(61) 9(62) 10(63)
 
 entity xuq_agen_cmp is port(
      x_b                  :in  std_ulogic_vector(53 to 63) ; 
@@ -28,7 +37,7 @@ entity xuq_agen_cmp is port(
 
      inv1_val_b           :in  std_ulogic;   
      ex1_cache_acc_b      :in  std_ulogic;
-     dir_ig_57_b          :in  std_ulogic; 
+     dir_ig_57_b          :in  std_ulogic; -- when this is low , bit 57 becomes "1" .
      rel3_val             :in  std_ulogic;
      way                  :in  std_ulogic_vector(0 to 7);
 
@@ -116,6 +125,9 @@ BEGIN
 
   dir_ig_57   <= not dir_ig_57_b ;
 
+  --###########################################################################
+  --# dont want too put too much loads on the input (slows down rest of agen)
+  --###########################################################################
 
    u_x1_0:  x(0) <= not x_b(53) ;
    u_x1_1:  x(1) <= not x_b(54) ;
@@ -150,58 +162,64 @@ BEGIN
    u_t1_8:  t1(8)  <= not( x_b(61)  and y_b(61)  );
    u_t1_9:  t1(9)  <= not( x_b(62)  and y_b(62)  );
 
+  --##################################################################################
+  --# compressors  (a+b-c ... sort of A+B+!C + 1 <== missing the +1 at this point
+  --##################################################################################
 
 
   u_ac_csa_0: entity clib.c_prism_csa32 port map(
         vd               => vdd,
         gd               => gnd,
-        a                =>   x(0)                    ,
-        b                =>   y(0)                    ,
-        c                => z_b(0)                    ,
-        sum              => sum(0)                    ,
-        car              => unused_car               );
+        a                =>   x(0)                    ,--i--
+        b                =>   y(0)                    ,--i--
+        c                => z_b(0)                    ,--i--
+        sum              => sum(0)                    ,--o--
+        car              => unused_car               );--o--
 
   u_ac_csa_1: entity clib.c_prism_csa32 port map(
         vd               => vdd,
         gd               => gnd,
-        a                =>   x(1)                    ,
-        b                =>   y(1)                    ,
-        c                => z_b(1)                    ,
-        sum              => sum(1)                    ,
-        car              => car(0)                   );
+        a                =>   x(1)                    ,--i--
+        b                =>   y(1)                    ,--i--
+        c                => z_b(1)                    ,--i--
+        sum              => sum(1)                    ,--o--
+        car              => car(0)                   );--o--
 
   u_ac_csa_2: entity clib.c_prism_csa32 port map(
         vd               => vdd,
         gd               => gnd,
-        a                =>   x(2)                    ,
-        b                =>   y(2)                    ,
-        c                => z_b(2)                    ,
-        sum              => sum(2)                    ,
-        car              => car(1)                   );
+        a                =>   x(2)                    ,--i--
+        b                =>   y(2)                    ,--i--
+        c                => z_b(2)                    ,--i--
+        sum              => sum(2)                    ,--o--
+        car              => car(1)                   );--o--
 
   u_ac_csa_3: entity clib.c_prism_csa32 port map(
         vd               => vdd,
         gd               => gnd,
-        a                =>   x(3)                    ,
-        b                =>   y(3)                    ,
-        c                => z_b(3)                    ,
-        sum              => sum(3)                    ,
-        car              => car(2)                   );
+        a                =>   x(3)                    ,--i--
+        b                =>   y(3)                    ,--i--
+        c                => z_b(3)                    ,--i--
+        sum              => sum(3)                    ,--o--
+        car              => car(2)                   );--o--
 
   u_ac_csa_4: entity clib.c_prism_csa32 port map(
         vd               => vdd,
         gd               => gnd,
-        a                =>   x(4)                    ,
-        b                =>   y(4)                    ,
-        c                => z_b(4)                    ,
-        sum              => sum(4)                    ,
-        car              => car(3)                   );
+        a                =>   x(4)                    ,--i--
+        b                =>   y(4)                    ,--i--
+        c                => z_b(4)                    ,--i--
+        sum              => sum(4)                    ,--o--
+        car              => car(3)                   );--o--
 
 
+  --####################################################################
+  --# carry path  (conditionally includes bit 4 <57> )
+  --####################################################################
 
  u_g_4:   g_4_b  <= not( g1(4) );
- u_g_4e:  g_4e   <= not( g_4_b or  dir_ig_57_b); 
- u_t_4:   t_4e_b <= not( t1(4) or  dir_ig_57_b); 
+ u_g_4e:  g_4e   <= not( g_4_b or  dir_ig_57_b); -- neg input and : g1(4) and !dir_ig_57
+ u_t_4:   t_4e_b <= not( t1(4) or  dir_ig_57_b); --                 t1(4) or   dir_ig_57
  u_t_4e:  t_4e   <= not( t_4e_b );
 
  u_g_5t7_0:  g_5t7_0_b  <= not( g1(5) );
@@ -222,6 +240,9 @@ BEGIN
  u_g_4t10:   g_4t10     <= not( g_4t10_0_b and g_4t10_1_b and g_4t10_2_b );
 
 
+  --####################################################################
+  --# combine it all
+  --####################################################################
 
 
   u_xorcmp_0: xorcmp(0) <= sum(0) xor car(0) ;
@@ -244,11 +265,16 @@ BEGIN
   u_gp3:   gp3 <= ulp xor g_4t10 ;
 
   u_match_a: match_arr_b <= not( gp12_a and gp3 );
-  u_match_i: match       <= not( match_arr_b );
-  match_oth   <= match   ; 
+  u_match_i: match       <= not( match_arr_b );--output-- small to buffer off
+  match_oth   <= match   ; --output-- rename
 
+  -- ######################################################
+  -- ## drive to the array pins
+  -- ######################################################
  
-
+   --    ARRAY positions ---------------------
+   --    array_01    array_45
+   --    array_23    array_67
 
    rel3_val_01 <= rel3_val and ( way(0) or way(1) );
    rel3_val_23 <= rel3_val and ( way(2) or way(3) );
@@ -256,22 +282,21 @@ BEGIN
    rel3_val_67 <= rel3_val and ( way(6) or way(7) );
 
    
-   u_match_lv0_i0: match_lv0_i0 <= not( match_arr_b  ); 
+   u_match_lv0_i0: match_lv0_i0 <= not( match_arr_b  ); --6
 
-   u_match_lv1_i0: match_lv1_i0_b <= not( match_lv0_i0   ); 
-   u_match_lv1_i1: match_lv1_i1_b <= not( match_lv0_i0   ); 
+   u_match_lv1_i0: match_lv1_i0_b <= not( match_lv0_i0   ); --2
+   u_match_lv1_i1: match_lv1_i1_b <= not( match_lv0_i0   ); --6
 
-   u_wact_01b:     ary_write_act_01_b <= not( match_lv1_i0_b and rel3_val_01 ) ; 
-   u_wact_45b:     ary_write_act_45_b <= not( match_lv1_i0_b and rel3_val_45 ) ; 
-   u_wact_23b:     ary_write_act_23_b <= not( match_lv1_i1_b and rel3_val_23 ) ; 
-   u_wact_67b:     ary_write_act_67_b <= not( match_lv1_i1_b and rel3_val_67 ) ; 
+   u_wact_01b:     ary_write_act_01_b <= not( match_lv1_i0_b and rel3_val_01 ) ; --3
+   u_wact_45b:     ary_write_act_45_b <= not( match_lv1_i0_b and rel3_val_45 ) ; --3
+   u_wact_23b:     ary_write_act_23_b <= not( match_lv1_i1_b and rel3_val_23 ) ; --4
+   u_wact_67b:     ary_write_act_67_b <= not( match_lv1_i1_b and rel3_val_67 ) ; --4
 
-   u_wact_01:      ary_write_act_01 <= not( ary_write_act_01_b ) ; 
-   u_wact_45:      ary_write_act_45 <= not( ary_write_act_45_b ) ; 
-   u_wact_23:      ary_write_act_23 <= not( ary_write_act_23_b ) ; 
-   u_wact_67:      ary_write_act_67 <= not( ary_write_act_67_b ) ; 
+   u_wact_01:      ary_write_act_01 <= not( ary_write_act_01_b ) ; --6 --output--
+   u_wact_45:      ary_write_act_45 <= not( ary_write_act_45_b ) ; --6 --output--
+   u_wact_23:      ary_write_act_23 <= not( ary_write_act_23_b ) ; --6 --output--
+   u_wact_67:      ary_write_act_67 <= not( ary_write_act_67_b ) ; --6 --output--
 
    u_wact:         ary_write_act_cpy <= not (ary_write_act_01_b & ary_write_act_23_b & ary_write_act_45_b & ary_write_act_67_b);
    ary_write_act <= ary_write_act_cpy;
-END; 
-
+END; -- ARCH xuq_agen_cmp

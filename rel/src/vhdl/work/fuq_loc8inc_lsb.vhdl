@@ -17,7 +17,7 @@ library ibm;
 
 
 entity fuq_loc8inc_lsb is  port(
-     x           :in  std_ulogic_vector(0 to 4); 
+     x           :in  std_ulogic_vector(0 to 4); --48 to 52
      co_b        :out std_ulogic;
      s0          :out std_ulogic_vector(0 to 4);
      s1          :out std_ulogic_vector(0 to 4)
@@ -29,15 +29,25 @@ ARCHITECTURE fuq_loc8inc_lsb OF fuq_loc8inc_lsb IS
   signal x_b, t2_b, t4  :std_ulogic_vector(0 to 4);
 
 
-
-
-
-
+-- FOLDED layout
+--   i0_xb   i2_xb   i4_xb   skip   skip   skip   skip
+--   i1_xb   i3_xb   skip    skip   skip   skip   skip
+--   i0_t2   i2_t2   i4_t2   skip   skip   skip   skip
+--   skip    i1_t2   i3_t2   skip   skip   skip   skip
+--   i0_t2   i2_t2   i4_t2   skip   skip   skip   skip
+--   i0_t8   i1_t2   i3_t2   skip   skip   skip   skip
+--   i0_s0   i2_s0   i4_s0   skip   skip   skip   skip
+--   i1_s0   i3_s0   skip    skip   skip   skip   skip
+--   i0_s1   i2_s1   i4_s1   skip   skip   skip   skip
+--   i1_s1   i3_s1   skip    skip   skip   skip   skip
 
 
 
 BEGIN
 
+  ---------------------------------
+  -- buffer off non critical path
+  ---------------------------------
 
  i0_xb: x_b(0) <= not x(0) ; 
  i1_xb: x_b(1) <= not x(1) ;
@@ -45,6 +55,9 @@ BEGIN
  i3_xb: x_b(3) <= not x(3) ;
  i4_xb: x_b(4) <= not x(4) ;
 
+  ----------------------------
+  -- local carry chain
+  ----------------------------
 
  i0_t2: t2_b(0) <= not( x(0) );
  i1_t2: t2_b(1) <= not( x(1) and x(2) );
@@ -60,6 +73,9 @@ BEGIN
 
  i0_t8: co_b    <= not( t4(0) and t4(1) );
 
+   --------------------------
+   -- sum generation
+   --------------------------
 
   i0_s0: s0(0) <= not( x_b(0) );
   i1_s0: s0(1) <= not( x_b(1) );
@@ -76,9 +92,4 @@ BEGIN
 
 
 
-END; 
-
-
-
-
-       
+END; -- ARCH fuq_loc8inc_lsb

@@ -7,6 +7,15 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--*****************************************************************************
+--*
+--*  TITLE: F_DP_FPR
+--*
+--*  NAME:  fuq_fpr.vhdl
+--*
+--*  DESC:   This is the Floating Point Register file
+--*
+--*****************************************************************************
 
 
 library IEEE,ibm;
@@ -21,19 +30,19 @@ library tri;  use tri.tri_latches_pkg.all;
 
 entity fuq_fpr is
 generic(
-     expand_type                    : integer := 2  ); 
+     expand_type                    : integer := 2  ); -- 0 - ibm tech, 1 - other );
 port(
 
 
      nclk                           : in  clk_logic;
-     clkoff_b                       : in  std_ulogic; 
-     act_dis                        : in  std_ulogic; 
-     flush                          : in  std_ulogic; 
-     delay_lclkra                    : in  std_ulogic_vector(0 to 1); 
-     delay_lclkrb                    : in  std_ulogic_vector(6 to 7); 
-     mpw1_ba                         : in  std_ulogic_vector(0 to 1); 
-     mpw1_bb                         : in  std_ulogic_vector(6 to 7); 
-     mpw2_b                         : in  std_ulogic_vector(0 to 1); 
+     clkoff_b                       : in  std_ulogic; -- tiup
+     act_dis                        : in  std_ulogic; -- ??tidn??
+     flush                          : in  std_ulogic; -- ??tidn??
+     delay_lclkra                    : in  std_ulogic_vector(0 to 1); -- tidn,
+     delay_lclkrb                    : in  std_ulogic_vector(6 to 7); -- tidn,
+     mpw1_ba                         : in  std_ulogic_vector(0 to 1); -- tidn,
+     mpw1_bb                         : in  std_ulogic_vector(6 to 7); -- tidn,
+     mpw2_b                         : in  std_ulogic_vector(0 to 1); -- tidn,
      abst_sl_thold_1                : in  std_ulogic;
      time_sl_thold_1                : in  std_ulogic;
      ary_nsl_thold_1                : in  std_ulogic;
@@ -54,6 +63,7 @@ port(
      iu_fu_rf0_str_v                : in  std_ulogic;
      f_dcd_perr_sm_running          : in  std_ulogic;
 
+     --bolt-on lbist
      pc_fu_bolt_sl_thold_3          : in  std_ulogic;
      pc_fu_bo_enable_3              : in  std_ulogic;
      pc_fu_bo_unload                : in  std_ulogic;
@@ -64,6 +74,7 @@ port(
      fu_pc_bo_fail                  : out std_ulogic_vector(0 to 1);
      fu_pc_bo_diagout               : out std_ulogic_vector(0 to 1);
 
+     -- BX scan repower
      bx_fu_rp_abst_scan_out   : in  std_ulogic;
      bx_rp_abst_scan_out      : out std_ulogic;
      rp_bx_abst_scan_in       : in  std_ulogic;
@@ -83,6 +94,7 @@ port(
      gptr_scan_out                  : out std_ulogic;
      vdd                            : inout power_logic;
      gnd                            : inout power_logic;
+     -- ABIST
      pc_fu_abist_di_0               : in  std_ulogic_vector(0 to 3);
      pc_fu_abist_di_1               : in  std_ulogic_vector(0 to 3);
      pc_fu_abist_ena_dc             : in  std_ulogic;
@@ -98,12 +110,14 @@ port(
      pc_fu_abist_wl144_comp_ena     : in  std_ulogic;
      pc_fu_inj_regfile_parity       : in  std_ulogic_vector(0 to 3);
 
+     -- Interface to IU
      f_dcd_rf0_tid                    : in  std_ulogic_vector(0 to 1);
      f_dcd_rf0_fra                    : in  std_ulogic_vector(0 to 5);
      f_dcd_rf0_frb                    : in  std_ulogic_vector(0 to 5);
      f_dcd_rf0_frc                    : in  std_ulogic_vector(0 to 5);
      iu_fu_rf0_ldst_tid               : in  std_ulogic_vector(0 to 1);
      iu_fu_rf0_ldst_tag               : in  std_ulogic_vector(0 to 8);
+     ------------------------------------------------
      f_dcd_rf0_bypsel_a_res1        : in  std_ulogic;
      f_dcd_rf0_bypsel_b_res1        : in  std_ulogic;
      f_dcd_rf0_bypsel_c_res1        : in  std_ulogic;
@@ -112,6 +126,7 @@ port(
      f_dcd_rf0_bypsel_b_load1       : in  std_ulogic;
      f_dcd_rf0_bypsel_c_load1       : in  std_ulogic;
      f_dcd_rf0_bypsel_s_load1       : in  std_ulogic;
+     ------------------------------------------------
      f_dcd_ex5_frt_tid              : in  std_ulogic_vector(0 to 1);
      f_dcd_ex5_flush_int            : in  std_ulogic_vector(0 to 3);     
      f_dcd_ex6_frt_addr             : in  std_ulogic_vector(0 to 5);
@@ -120,9 +135,11 @@ port(
      f_rnd_ex6_res_expo             : in  std_ulogic_vector (1 to 13);
      f_rnd_ex6_res_frac             : in  std_ulogic_vector (0 to 52);
      f_rnd_ex6_res_sign             : in  std_ulogic ;
+     ------------------------------------------------
      xu_fu_ex5_load_val               : in  std_ulogic_vector(0 to 3);
      xu_fu_ex5_load_tag               : in  std_ulogic_vector(0 to 8);
      xu_fu_ex6_load_data              : in  std_ulogic_vector(192 to 255);
+     ------------------------------------------------
      f_fpr_ex7_load_addr            : out std_ulogic_vector(0 to 7);
      f_fpr_ex7_load_v               : out std_ulogic;
      f_fpr_ex7_load_sign            : out std_ulogic;
@@ -154,6 +171,7 @@ end fuq_fpr;
 architecture fuq_fpr of fuq_fpr is
 
 
+-- ####################### SIGNALS ####################### --
 signal  tilo                           : std_ulogic;
 signal  tihi                           : std_ulogic;
 
@@ -251,24 +269,24 @@ signal    abist_waddr_0            :   std_ulogic_vector(0 to 9);
 signal    abist_waddr_1            :   std_ulogic_vector(0 to 9);
 signal    ab_reg_si, ab_reg_so     :   std_ulogic_vector(0 to 52);
 
-signal    abist_comp_en                  :   std_ulogic;  
-signal    r0e_abist_comp_en              :   std_ulogic;  
-signal    r1e_abist_comp_en              :   std_ulogic;  
+signal    abist_comp_en                  :   std_ulogic;  -- when abist tested
+signal    r0e_abist_comp_en              :   std_ulogic;  -- when abist tested
+signal    r1e_abist_comp_en              :   std_ulogic;  -- when abist tested
 signal    Alcb_act_dis_dc                 :   std_ulogic;
 
 signal     lcb_clkoff_dc_b                :   std_ulogic_vector(0 to 1);
 
 signal    Alcb_d_mode_dc                  :   std_ulogic;
 
-signal    Alcb_delay_lclkr_dc             :   std_ulogic_vector(0 to 4); 
+signal    Alcb_delay_lclkr_dc             :   std_ulogic_vector(0 to 4); --<lclk delay>
 
-signal    lcb_delay_lclkr_dc             :   std_ulogic_vector(0 to 9); 
+signal    lcb_delay_lclkr_dc             :   std_ulogic_vector(0 to 9); --<lclk delay>
 
 signal    fce_0                          :   std_ulogic; 
-signal    Alcb_mpw1_dc_b                  :   std_ulogic_vector(0 to 4); 
+signal    Alcb_mpw1_dc_b                  :   std_ulogic_vector(0 to 4); -- <clock shapg>
 signal    Alcb_mpw2_dc_b                  :   std_ulogic;
 
-signal    lcb_mpw1_dc_b                  :   std_ulogic_vector(1 to 9); 
+signal    lcb_mpw1_dc_b                  :   std_ulogic_vector(1 to 9); -- <clock shapg>
 signal    lcb_mpw2_dc_b                  :   std_ulogic;
 
 signal    lcb_sg_0                       :   std_ulogic; 
@@ -331,10 +349,10 @@ signal    ex7_ldv_si   , ex7_ldv_so            :   std_ulogic_vector(0 to 3);
 signal    ex6_ldv_si  ,  ex6_ldv_so           :   std_ulogic_vector(0 to 3);
 signal    ex6_lctl_si  , ex6_lctl_so           :   std_ulogic_vector(0 to 13);
 signal    ex1_par_si   , ex1_par_so            :   std_ulogic_vector(0 to 32);
- signal ld_par3239, ld_par3239_inj, ld_par4047, ld_par4855, ld_par5663, ld_par6163, ld_par6163_inj :std_ulogic; 
- signal ld_par0007    , ld_par0815 , ld_par1623 , ld_par2431 :std_ulogic;
- signal ld_par32_3436 , ld_par3744 , ld_par4552 , ld_par5360 :std_ulogic;
- signal load_dp_nint, load_dp_int , load_sp_all1 , load_sp_nall1 :std_ulogic;
+ signal ld_par3239, ld_par3239_inj, ld_par4047, ld_par4855, ld_par5663, ld_par6163, ld_par6163_inj :std_ulogic; --ld_pgen_premux--
+ signal ld_par0007    , ld_par0815 , ld_par1623 , ld_par2431 :std_ulogic;--ld_pgen_premux--
+ signal ld_par32_3436 , ld_par3744 , ld_par4552 , ld_par5360 :std_ulogic;--ld_pgen_premux--
+ signal load_dp_nint, load_dp_int , load_sp_all1 , load_sp_nall1 :std_ulogic;--ld_pgen_premux--
 
  signal      xu_fu_ex5_load_val_din               :   std_ulogic_vector(0 to 3);
 
@@ -360,8 +378,11 @@ signal abst_slat_lclk  : clk_logic;
 signal func_slat_d2clk : std_ulogic;
 signal func_slat_lclk  : clk_logic;
 
+----------------------------------------------------------------
 begin
 
+------------------------------------------------------------------------
+-- Pervasive
     
     thold_reg_0:  tri_plat  generic map (expand_type => expand_type) port map (
          vd        => vdd,
@@ -418,6 +439,7 @@ begin
         forcee => time_force,
         thold_b      => time_sl_thold_0_b );
 
+    --bolt on lbist staging
     bo_thold_reg_0:  tri_plat  generic map (width => 4, expand_type => expand_type) port map (
          vd        => vdd,
          gd        => gnd,
@@ -432,11 +454,15 @@ begin
          q(2)      => lcb_bolt_sl_thold_0,
          q(3)      => pc_bo_enable_2 );
 
+------------------------------------------------------------------------
+-- Act Latches
 
 
    tilo      <= '0';
    tihi      <= '1';
 
+------------------------------------------------------------------------
+-- Load Data
 
 
 xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_flush_int(0 to 3);
@@ -541,42 +567,129 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
 
    load_addr(1 to 7)   <= ex7_load_tag(4 to 8) & load_tid_enc(0 to 1);
 
-   load_sp             <= ex7_load_tag(0);  
-   load_int            <= ex7_load_tag(1);  
-   load_sign_ext       <= ex7_load_tag(2);  
+   load_sp             <= ex7_load_tag(0);  -- bit 0 of the tag indicates that the instr was an lfs*
+   load_int            <= ex7_load_tag(1);  -- bit 1 is lfi*
+   load_sign_ext       <= ex7_load_tag(2);  -- bit 1 is lfiwax
 
    load_wen            <= ex7_load_val(0) or ex7_load_val(1) or
                           ex7_load_val(2) or ex7_load_val(3)  ;
 
+-- FPU LOADS
+--
+-- Double precision (DP) loads are straight forward.
+-- To get rid of the mathematical discontinuity in the ieee number system,
+-- We add the implicit bit and change the zero exponent from x000 to x001.
+-- This needs to be undone when data is stored.
+--
+-- the spec says that Single Precision loads (SP) should be fully normalized
+-- and converted to double format before storing.
+-- there is not time to do that, so we take a short cut and deal with the problems
+-- when the operand is used.
+-- The Double precision exponent bias is 1023.
+-- The Single precision exponent bias is  127.
+-- The difference x380 is added to convert the exponent.
+-- (actually no adder is needed)
+--          x380 => "0_0011_1000_0000
+--           SP             Dddd_dddd
+--          if D=0   0_0011_1ddd_dddd    --> {D, !D, !D, !D}
+--          if D=1   0_0100_0ddd_dddd    --> {D, !D, !D, !D}
+--
+-- also for SP -> SP_infinity is converted to DP infinity
+--             -> (0) is converted to x381 (instead of x380) and the implicit bit is added.
+-- so .... there are now 2 numbers that mean zero
+--            1) (exp==x001) and (IMP_bit==0) and (FRAC==0)
+--            2) (exp==x381) and (IMP_bit==0) and (FRAC==0)
+-- the only time the SP load needs correcting (prenormalization) is
+--           (exp==x381) and (IMP_bit==0) and (FRAC==0) <== SP denorm can be converted to DP norm.
+--
+--------------------------------------------------------------------------------------------------
+-- INPUT LOAD DATA FORMAT  LdDin[0:63] :
+--
+--           lfd       lfs
+--  [00:00] sign       [00:00] sign
+--  [01:11] exponent   [01:08] exponent
+--  [12:63] fraction   [09:31] fraction
+-- -----------------------------------------------------------------------------------------------
+-- OUTPUT LOAD DATA FORMAT ... add implicit bit
+--
+--          DP                                   |  SP
+--  ---------------------------------------------|-------------------------------------------------
+-- [00:00]  Din[00]                              |  Din[00]                           <--- Sgn
+-- [01:01]  Din[01]                              |  Din[01]                           <--- exp[00]     //03
+-- [02:02]  Din[02]                              | ~Din[01] | (Din[01:08]="11111111") <--- exp[01]     //04
+-- [03:03]  Din[03]                              | ~Din[01] | (Din[01:08]="11111111") <--- exp[02]     //05
+-- [04:04]  Din[04]                              | ~Din[01] | (Din[01:08]="11111111") <--- exp[03]     //06
+-- [05:10]  Din[05:10]                           |  Din[02:07]                        <--- exp[04:09]  //07:12
+-- [11:11]  Din[11] | (Din[01:11]="00000000000") |  Din[08] | (Din[01:08]="00000000") <--- exp[10]     //13
+-- [12:12]           ~(Din[01:11]="00000000000") |           ~(Din[01:08]="00000000") <--- frac[00]    //imlicit bit
+-- [13:35]  Din[12:34]                           |  Din[09:31]                        <--- frac[01:23]
+-- [36:64]  Din[35:63]                           |  (0:28=>'0')                       <--- frac[24:52]
+--  ---------------------------------------------|-------------------------------------------------
+--------------------------------------------------------------------------------
+-- LOAD FPU/FPR data format
+--
+-- Double-precision load: lfd*
+--
+-- Value Loaded  Internal Representation [sign exponent imp fraction]  Format name
+-- ------------  ----------------------------------------------------  -----------
+-- 0             x 00000000001 0 0000...                               Zero
+-- Denormal      x 00000000001 0 xxxx...                               Denormal
+-- Normal        x xxxxxxxxxxx 1 xxxx...                               Normal
+-- Inf           x 11111111111 1 0000...                               Inf
+-- NaN           x 11111111111 1 qxxx...                               NaN
+--
+-- Single-precision denormal form (SP_DENORM)
+--  exp = 0x381, imp = 0, frac != 0 (frac == 0: SP_DENORM0)
+--
+-- Single-precision load: lfs*
+--
+-- Value Loaded  Internal Representation [sign exponent imp fraction]  Format name
+-- ------------  ----------------------------------------------------  -----------
+-- 0             x 01110000001 0 000000000000000000000000000...        SP_DENORM0
+-- Denormal      x 01110000001 0 xxxxxxxxxxxxxxxxxxxxxxx0000...        SP_DENORM
+-- Normal        x xXXXxxxxxxx 1 xxxxxxxxxxxxxxxxxxxxxxx0000...        Normal
+-- Inf           x 11111111111 1 000000000000000000000000000...        Inf
+-- NaN           x 11111111111 1 qxxxxxxxxxxxxxxxxxxxxxx0000...        NaN
+--------------------------------------------------------------------------------
+   -- Convert Incoming SP loads to DP format
+   -- DP bias = 1023
+   -- SP bias =  127
+   -- diff = x380 => 0_0011_1000_0000
+   --        SP             Dddd_dddd
+   -- if D=0, 0_0011_1ddd_dddd -> {D,!D,!D,!D}
+   -- if D=1, 0_0100_0ddd_dddd -> {D,!D,!D,!D}
 
+   -- For lfiwax and lfiwzx, either set upper (32) to zeros or ones
+   --load_int_zup  <= (load_int and load_sign_ext and not load_sp_data(0)) or (load_int and not load_sign_ext);
    load_int_1up  <=  load_int and load_sign_ext and     load_sp_data(0);
 
+   -- Due to the XU rotator, all SP loads (words) are aligned to the right
    ex7_load_sp_data_raw(0 to 31) <= ex7_load_data_raw(32 to 63);
 
    load_dp_exp_zero       <= ex7_load_data_raw( 1 to 11)    = "00000000000";
    load_sp_exp_zero       <= ex7_load_sp_data_raw( 1 to 8) =    "00000000";
    load_sp_exp_ones       <= ex7_load_sp_data_raw( 1 to 8) =    "11111111";
 
-   load_sp_data(0)        <=     ex7_load_sp_data_raw( 0);                     
-   load_sp_data(1)        <=     tilo;                                         
-   load_sp_data(2)        <=     ex7_load_sp_data_raw( 1);                     
-   load_sp_data(3)        <= not ex7_load_sp_data_raw( 1) or load_sp_exp_ones; 
-   load_sp_data(4)        <= not ex7_load_sp_data_raw( 1) or load_sp_exp_ones; 
-   load_sp_data(5)        <= not ex7_load_sp_data_raw( 1) or load_sp_exp_ones; 
-   load_sp_data(6 to 11)  <=     ex7_load_sp_data_raw( 2 to 7);                
-   load_sp_data(12)       <=     ex7_load_sp_data_raw( 8) or load_sp_exp_zero; 
-   load_sp_data(13)       <=                             not load_sp_exp_zero; 
-   load_sp_data(14 to 36) <=     ex7_load_sp_data_raw( 9 to 31);               
-   load_sp_data(37 to 65) <= (37 to 65 => tilo);                               
+   load_sp_data(0)        <=     ex7_load_sp_data_raw( 0);                     -- sign
+   load_sp_data(1)        <=     tilo;                                         -- exp02
+   load_sp_data(2)        <=     ex7_load_sp_data_raw( 1);                     -- exp03
+   load_sp_data(3)        <= not ex7_load_sp_data_raw( 1) or load_sp_exp_ones; -- exp04
+   load_sp_data(4)        <= not ex7_load_sp_data_raw( 1) or load_sp_exp_ones; -- exp05
+   load_sp_data(5)        <= not ex7_load_sp_data_raw( 1) or load_sp_exp_ones; -- exp06
+   load_sp_data(6 to 11)  <=     ex7_load_sp_data_raw( 2 to 7);                -- exp07-12
+   load_sp_data(12)       <=     ex7_load_sp_data_raw( 8) or load_sp_exp_zero; -- exp13
+   load_sp_data(13)       <=                             not load_sp_exp_zero; -- implicit
+   load_sp_data(14 to 36) <=     ex7_load_sp_data_raw( 9 to 31);               -- frac01:23
+   load_sp_data(37 to 65) <= (37 to 65 => tilo);                               -- frac24:52
 
 
-   load_dp_data( 0)       <= (ex7_load_data_raw( 0)       and not                 load_int)  or              load_int_1up;  
-   load_dp_data( 1)       <= tilo;                                                                                          
-   load_dp_data( 2 to 11) <= (ex7_load_data_raw( 1 to 10) and not  (1 to 10 =>    load_int)) or  (1 to 10 => load_int_1up); 
-   load_dp_data(12)       <= (ex7_load_data_raw(11) or load_dp_exp_zero) or       load_int   or              load_int_1up;  
-   load_dp_data(13)       <= (                      not load_dp_exp_zero  and not load_int)  or              load_int_1up;  
-   load_dp_data(14 to 33) <= (ex7_load_data_raw(12 to 31) and not (14 to 33 =>    load_int)) or (14 to 33 => load_int_1up); 
-   load_dp_data(34 to 65) <=  ex7_load_data_raw(32 to 63);                      
+   load_dp_data( 0)       <= (ex7_load_data_raw( 0)       and not                 load_int)  or              load_int_1up;  -- sign
+   load_dp_data( 1)       <= tilo;                                                                                          -- exp02
+   load_dp_data( 2 to 11) <= (ex7_load_data_raw( 1 to 10) and not  (1 to 10 =>    load_int)) or  (1 to 10 => load_int_1up); -- exp03-12
+   load_dp_data(12)       <= (ex7_load_data_raw(11) or load_dp_exp_zero) or       load_int   or              load_int_1up;  -- exp13
+   load_dp_data(13)       <= (                      not load_dp_exp_zero  and not load_int)  or              load_int_1up;  -- implicit
+   load_dp_data(14 to 33) <= (ex7_load_data_raw(12 to 31) and not (14 to 33 =>    load_int)) or (14 to 33 => load_int_1up); -- fraction
+   load_dp_data(34 to 65) <=  ex7_load_data_raw(32 to 63);                      -- fraction
 
 
    ex7_load_data(0 to 65) <= (load_dp_data(0 to 65)  and not (0 to 65 => load_sp)) or
@@ -739,11 +852,15 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
 
 
 
+------------------------------------------------------------------------
+-- Load Bypass
 
    f_fpr_ex7_load_sign          <= load_data(0);
    f_fpr_ex7_load_expo(3 to 13) <= load_data(2 to 12);
    f_fpr_ex7_load_frac(0 to 52) <= load_data(13 to 65);
 
+------------------------------------------------------------------------
+-- Target Data
 
    frt_addr(1 to 7)   <= f_dcd_ex6_frt_addr(1 to 5) & f_dcd_ex6_frt_tid(0 to 1);
    frt_wen            <= f_dcd_ex6_frt_wen;
@@ -766,27 +883,35 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
                           f_rnd_ex6_res_frac(49) xor f_rnd_ex6_res_frac(50) xor f_rnd_ex6_res_frac(51) xor f_rnd_ex6_res_frac(52);
 
 
+------------------------------------------------------------------------
+-- Source Address
 
-   rf0_fra_addr(1 to 7)   <= f_dcd_rf0_fra(1 to 5) & f_dcd_rf0_tid(0 to 1); 
+   rf0_fra_addr(1 to 7)   <= f_dcd_rf0_fra(1 to 5) & f_dcd_rf0_tid(0 to 1); --uc_hook
    rf0_frb_addr(1 to 7)   <= f_dcd_rf0_frb(1 to 5) & f_dcd_rf0_tid(0 to 1); 
    rf0_frc_addr(1 to 7)   <= f_dcd_rf0_frc(1 to 5) & f_dcd_rf0_tid(0 to 1);
 
    rf0_frs_addr(1 to 7)   <= iu_fu_rf0_ldst_tag(4 to 8) & iu_fu_rf0_ldst_tid(0 to 1);
 
-   rf0_fra_addr(0)        <= f_dcd_rf0_fra(0); 
+   -- Microcode Scratch Registers
+   rf0_fra_addr(0)        <= f_dcd_rf0_fra(0); -- uc_hook
    rf0_frb_addr(0)        <= f_dcd_rf0_frb(0);  
    rf0_frc_addr(0)        <= f_dcd_rf0_frc(0);
 
    frt_addr(0)            <= f_dcd_ex6_frt_addr(0);
 
-   rf0_frs_addr(0)        <= iu_fu_rf0_ldst_tag(3);    
+   rf0_frs_addr(0)        <= iu_fu_rf0_ldst_tag(3);    -- Don't need to store from scratch regs?
    load_addr(0)           <= ex7_load_tag(3);          
 
+   -- For bypass writethru compare
    f_fpr_ex7_load_addr(0 to 7) <= load_tid_enc(0 to 1) & load_addr(0) & ex7_load_tag(4 to 8);
    f_fpr_ex7_load_v            <= load_wen;
 
+------------------------------------------------------------------------
+-- RF0
 
 
+------------------------------------------------------------------------
+-- RF1
 
 
 
@@ -798,6 +923,12 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
    w0l_en_func            <= frt_wen;
    w0l_addr_func(0 to 7)  <= frt_addr (0 to 7);
 
+   --parity(0 to 7)<= data(66 to 73)    0:7
+   --"000"                              8:10
+   --sign          <= data(0);          11
+   --expo(1)                            12
+   --expo(2 to 13) <= data(1 to 12);    13:24
+   --frac(0 to 52) <= data(13 to 65);   25:77
 
    w0e_data_func_f0(0 to 77) <= load_data_parity_inj(0 to 7)  & "000" & load_data(0) & '0' & load_data(1 to 65);
    w0e_data_func_f1(0 to 77) <= load_data_parity(0 to 7)     & "000" & load_data(0) & '0' & load_data(1 to 65);
@@ -805,21 +936,10 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
    w0l_data_func_f0(0 to 77) <= frt_data_parity(0 to 7) & "000" & f_rnd_ex6_res_sign & f_rnd_ex6_res_expo(1 to 13) & f_rnd_ex6_res_frac(0 to 52);
    w0l_data_func_f1(0 to 77) <= frt_data_parity(0 to 6) & (frt_data_parity(7) xor ex6_targ_perr_inj) & "000" & f_rnd_ex6_res_sign & f_rnd_ex6_res_expo(1 to 13) & f_rnd_ex6_res_frac(0 to 52);
 
-   rf1_fra(0 to 77)     <= fra_data_out( 0 to 77);       
-   rf1_frb(0 to 77)     <= frb_data_out( 0 to 77);       
-   rf1_frc(0 to 77)     <= frc_data_out( 0 to 77);       
-   rf1_frs(0 to 77)     <= frs_data_out( 0 to 77);       
-
-
-
-
-
-
-
-
-
-
-
+   rf1_fra(0 to 77)     <= fra_data_out( 0 to 77);       --frac
+   rf1_frb(0 to 77)     <= frb_data_out( 0 to 77);       --frac
+   rf1_frc(0 to 77)     <= frc_data_out( 0 to 77);       --frac
+   rf1_frs(0 to 77)     <= frs_data_out( 0 to 77);       --frac
 
 
    rf1_byp: tri_rlmreg_p   generic map (init => 0, expand_type => expand_type, width => 8, needs_sreset => 0)
@@ -871,6 +991,7 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
 
 
              
+   -- Array Instantiation
    f0 : entity tri.tri_144x78_2r2w
    generic map (expand_type => expand_type)
    port map(
@@ -927,6 +1048,7 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
       obs0_scan_out                  => obs0_scan_out(0)               ,
       obs1_scan_in                   => obs1_scan_in(0)                ,
       obs1_scan_out                  => obs1_scan_out(0)               ,
+      -- Read Port FRA
       r0e_act                        => r0e_fra_act                        ,
       r0e_en_func                    => r0e_fra_en_func                    ,
       r0e_en_abist                   => r0e_en_abist                   ,
@@ -937,6 +1059,7 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
       r0e_byp_l                      => rf1_bypsel_a_res1_nlb        ,
       r0e_byp_r                      => rf1_a_r0e_byp_r,       
       r0e_sel_lbist                  => r0e_sel_lbist                  ,
+      -- Read Port FRC
       r1e_act                        => r1e_frc_act                        ,
       r1e_en_func                    => r1e_frc_en_func                    ,
       r1e_en_abist                   => r1e_en_abist                   ,
@@ -947,6 +1070,7 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
       r1e_byp_l                      => rf1_bypsel_c_res1_nlb        ,
       r1e_byp_r                      => rf1_c_r1e_byp_r,       
       r1e_sel_lbist                  => r1e_sel_lbist                  ,
+      -- Write Ports
       w0e_act                        => w0e_act                        ,
       w0e_en_func                    => w0e_en_func                    ,
       w0e_en_abist                   => w0e_en_abist                   ,
@@ -963,6 +1087,7 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
       w0l_data_abist                 => w0l_data_abist                 
       );
 
+   -- Array Instantiation
    f1 : entity tri.tri_144x78_2r2w
    generic map (expand_type => expand_type)
    port map(
@@ -1019,6 +1144,7 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
       obs0_scan_out                  => obs0_scan_out(1)               ,
       obs1_scan_in                   => obs1_scan_in(1)                ,
       obs1_scan_out                  => obs1_scan_out(1)               ,
+      -- Read Port FRB
       r0e_act                        => r0e_frb_act                        ,
       r0e_en_func                    => r0e_frb_en_func                    ,
       r0e_en_abist                   => r0e_en_abist                   ,
@@ -1029,6 +1155,7 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
       r0e_byp_l                      => rf1_bypsel_b_res1_nlb        ,
       r0e_byp_r                      => rf1_b_r0e_byp_r,  
       r0e_sel_lbist                  => r0e_sel_lbist                  ,
+      -- Read Port FRS
       r1e_act                        => r1e_frs_act                        ,
       r1e_en_func                    => r1e_frs_en_func                    ,
       r1e_en_abist                   => r1e_en_abist                   ,
@@ -1039,6 +1166,7 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
       r1e_byp_l                      => rf1_bypsel_s_res1_nlb          ,
       r1e_byp_r                      => rf1_s_r1e_byp_r,      
       r1e_sel_lbist                  => r1e_sel_lbist                  ,
+      -- Write Ports
       w0e_act                        => w0e_act                        ,
       w0e_en_func                    => w0e_en_func                    ,
       w0e_en_abist                   => w0e_en_abist                   ,
@@ -1055,6 +1183,7 @@ xu_fu_ex5_load_val_din(0 to 3) <= xu_fu_ex5_load_val(0 to 3) and not f_dcd_ex5_f
       w0l_data_abist                 => w0l_data_abist                 
       );
 
+   -- ABIST timing latches
    ab_reg: tri_rlmreg_p   generic map (init => 0, expand_type => expand_type, width => 53, needs_sreset => 0)
    port map (nclk    => nclk,
              act     => pc_fu_abist_ena_dc,
@@ -1100,20 +1229,29 @@ lcbctrlA : entity tri.tri_lcbcntl_array_mac
         nclk           => nclk,
         scan_in        => gptr_scan_in,
         scan_diag_dc   => scan_diag_dc,
-        thold          => gptr_sl_thold_0, 
+        thold          => gptr_sl_thold_0, --Connects to time thold
         clkoff_dc_b    => Aclkoff_dc_b,
         delay_lclkr_dc => Alcb_delay_lclkr_dc(0 to 4),
         act_dis_dc     => Alcb_act_dis_dc,
         d_mode_dc      => Ad_mode_dc,
         mpw1_dc_b      => Alcb_mpw1_dc_b(0 to 4),
         mpw2_dc_b      => Alcb_mpw2_dc_b,
-        scan_out       => gptr_scan_out  
+        scan_out       => gptr_scan_out  -- Connects to time scan ring
        );
 
 
 
    lcb_mpw2_dc_b <= Alcb_mpw2_dc_b;
 
+      --0 lcb_delay_lclkr_dc(0,2)	--> Are driving L2 LCBs
+      --1 lcb_delay_lclkr_dc(1,3)	--> Are driving L1 LCBs
+      --2 lcb_delay_lclkr_dc(4)	--> Is driving the late write clock LCB
+      --3 lcb_delay_lclkr_dc(5:9)	--> Are driving nLCBs
+      --Similar for mpw1 signals:
+      --0 lcb_mpw1_dc_b(2)	--> unused
+      --1 lcb_mpw1_dc_b(1,3)	--> Driving L1 LCBs
+      --2 lcb_mpw1_dc_b(4)	--> Is driving the late write clock LCB
+      --3 lcb_mpw1_dc_b(5:9)	--> Are driving nLCBs
 
    lcb_delay_lclkr_dc(0)      <= Alcb_delay_lclkr_dc(0) ;
    lcb_delay_lclkr_dc(1)      <= Alcb_delay_lclkr_dc(1) ;
@@ -1141,6 +1279,7 @@ lcbctrlA : entity tri.tri_lcbcntl_array_mac
    lcb_obs0_sl_thold_0            <= ab_thold_0          ;
    lcb_obs1_sl_thold_0            <= ab_thold_0          ;
 
+   -- Other inputs
     r0e_abist_comp_en              <= abist_comp_en;
     r1e_abist_comp_en              <= abist_comp_en;
 
@@ -1151,7 +1290,7 @@ lcbctrlA : entity tri.tri_lcbcntl_array_mac
 
     lcb_clkoff_dc_b                 <= Aclkoff_dc_b & Aclkoff_dc_b;
 
-    r0e_frb_act                    <= iu_fu_rf0_frb_v or f_dcd_perr_sm_running or lbist_en_dc; 
+    r0e_frb_act                    <= iu_fu_rf0_frb_v or f_dcd_perr_sm_running or lbist_en_dc; --ports BC used by perrsm
     r0e_frb_en_func                <= iu_fu_rf0_frb_v or f_dcd_perr_sm_running or lbist_en_dc;
     r0e_fra_act                    <= iu_fu_rf0_fra_v or lbist_en_dc;
     r0e_fra_en_func                <= iu_fu_rf0_fra_v or lbist_en_dc;
@@ -1170,11 +1309,8 @@ lcbctrlA : entity tri.tri_lcbcntl_array_mac
     r0e_sel_lbist                  <= an_ac_lbist_ary_wrt_thru_dc; 
     r1e_sel_lbist                  <= an_ac_lbist_ary_wrt_thru_dc; 
 
-
-
-
-
-
+------------------------------------------------------------------------
+-- Parity Checking
 
 
    ex1_par: tri_rlmreg_p   generic map (init => 0, expand_type => expand_type, width => 33, needs_sreset => 0)
@@ -1209,7 +1345,15 @@ lcbctrlA : entity tri.tri_lcbcntl_array_mac
    f_fpr_ex1_s_par(0 to 7) <= ex1_frs_par(0 to 7);
 
 
+------------------------------------------------------------------------
+-- Outputs
 
+   --parity(0 to 7)<= data(66 to 73)    0:7
+   --"000"                              8:10
+   --sign          <= data(0);          11
+   --expo(1)                            12
+   --expo(2 to 13) <= data(1 to 12);    13:24
+   --frac(0 to 52) <= data(13 to 65);   25:77
 
    f_fpr_rf1_a_sign           <= rf1_fra(11);
    f_fpr_rf1_a_expo(1 to 13)  <= rf1_fra(12 to 24);
@@ -1224,11 +1368,13 @@ lcbctrlA : entity tri.tri_lcbcntl_array_mac
    f_fpr_rf1_s_sign           <=        rf1_frs(11);
    f_fpr_rf1_s_expo(1 to 11)  <=        rf1_frs(14 to 24);
    f_fpr_rf1_s_frac(0 to 52)  <=        rf1_frs(25 to 77);
+   -- For Parity checking only, not used by store
    f_fpr_ex1_s_expo_extra     <=        ex1_s_expo_extra;
 
 
 
-
+------------------------------------------------------------------------
+-- Spare Latches
 
    spare_lat: tri_rlmreg_p
    generic map (init => 0, expand_type => expand_type, width => 8)
@@ -1245,7 +1391,9 @@ lcbctrlA : entity tri.tri_lcbcntl_array_mac
              scin    => spare_si(0 to 7),
              scout   => spare_so(0 to 7),
              din( 0 to  7)  => SPARE_L2(0 to 7) ,
+            ---------------------------------------------
              dout( 0 to  7) => SPARE_L2(0 to 7)        
+            ---------------------------------------------
              );
 
    spare_lat_time: tri_rlmreg_p
@@ -1263,7 +1411,9 @@ lcbctrlA : entity tri.tri_lcbcntl_array_mac
              scin    => time_spare_si(0 to 1),
              scout   => time_spare_so(0 to 1),
              din( 0 to  1)  => time_SPARE_L2(0 to 1) ,
+            ---------------------------------------------
              dout( 0 to  1) => time_SPARE_L2(0 to 1)        
+            ---------------------------------------------
              );
 
 
@@ -1313,6 +1463,8 @@ bx_func_stg: tri_slat_scan
               scan_out(0 to 1) => bx_rp_func_scan_out,
               scan_out(2 to 3) => rp_fu_bx_func_scan_in );
 
+------------------------------------------------------------------------
+-- Scan Chains
 
 
 
@@ -1326,7 +1478,7 @@ bx_func_stg: tri_slat_scan
    spare_si  (0 to 7)                   <= spare_so(1 to 7)      & ex1_dcd_so  (0);
    f_fpr_so                             <= spare_so  (0);
 
-   ab_reg_si   (0 to 7)                 <= ab_reg_so   (1 to 7) & f_fpr_ab_si; 
+   ab_reg_si   (0 to 7)                 <= ab_reg_so   (1 to 7) & f_fpr_ab_si; --broke up for timing
    r_scan_in_0                          <= ab_reg_so(0);
    w_scan_in_0                          <= r_scan_out_0;
    r_scan_in_1                          <= w_scan_out_0;
@@ -1337,11 +1489,14 @@ bx_func_stg: tri_slat_scan
    ab_reg_si   (8 to 52)                <= ab_reg_so   (9 to 52) & obs1_scan_out(0);
    f_fpr_ab_so                          <= ab_reg_so(8);
 
+   --Time scan ring
    time_spare_si(0)                     <= time_scan_in;
    fpr_time_si(0 to 1)                  <= fpr_time_so(1) & time_spare_so(0);
    time_spare_si(1)                     <= fpr_time_so(0);
    time_scan_out                        <= time_spare_so(1);
 
+------------------------------------------------------------------------
+-- Unused
 
    spare_unused( 0 to  2) <= iu_fu_rf0_ldst_tag(0 to 2);
    spare_unused( 3 to  5) <= rf1_fra(8 to 10);
@@ -1361,7 +1516,7 @@ bx_func_stg: tri_slat_scan
 
 
    
+------------------------------------------------------------------------
+-- END
 
 end architecture fuq_fpr;
-
-

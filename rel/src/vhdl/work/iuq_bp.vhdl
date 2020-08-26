@@ -27,28 +27,32 @@ library work;
 use work.iuq_pkg.all;
 
 entity iuq_bp is
-generic(expand_type : integer := 2 ); 
+generic(expand_type : integer := 2 ); -- 0 = ibm umbra, 1 = xilinx, 2 = ibm mpg
 port(
 
      bp_dbg_data0               : out std_ulogic_vector(0 to 87);
      bp_dbg_data1               : out std_ulogic_vector(0 to 87);
 
+     --in from bht
      iu3_0_bh_rd_data           : in  std_ulogic_vector(0 to 1);
      iu3_1_bh_rd_data           : in  std_ulogic_vector(0 to 1);
      iu3_2_bh_rd_data           : in  std_ulogic_vector(0 to 1);
      iu3_3_bh_rd_data           : in  std_ulogic_vector(0 to 1);
 
+     --out to bht
      iu1_bh_rd_addr             : out std_ulogic_vector(0 to 7);
      iu1_bh_rd_act              : out std_ulogic;
      ex6_bh_wr_data             : out std_ulogic_vector(0 to 1);
      ex6_bh_wr_addr             : out std_ulogic_vector(0 to 7);
      ex6_bh_wr_act              : out std_ulogic_vector(0 to 3);
 
+     --iu1
      ic_bp_iu1_val              : in  std_ulogic;
-     ic_bp_iu1_tid              : in  std_ulogic_vector(0 to 3);      
+     ic_bp_iu1_tid              : in  std_ulogic_vector(0 to 3);      --unlatched version for timing, must latch before use
      ic_bp_iu1_ifar             : in  std_ulogic_vector(52 to 59);       
 
 
+     --iu3
      ic_bp_iu3_val              : in  std_ulogic_vector(0 to 3);
      ic_bp_iu3_tid              : in  std_ulogic_vector(0 to 3);
      ic_bp_iu3_ifar             : in  EFF_IFAR;
@@ -57,27 +61,32 @@ port(
      ic_bp_iu3_2ucode_type      : in  std_ulogic;
      ic_bp_iu3_flush            : in  std_ulogic;
 
+     --iu3 instruction(0:31) + predecode(32:35)
      ic_bp_iu3_0_instr          : in  std_ulogic_vector(0 to 35);        
      ic_bp_iu3_1_instr          : in  std_ulogic_vector(0 to 35);        
      ic_bp_iu3_2_instr          : in  std_ulogic_vector(0 to 35);        
      ic_bp_iu3_3_instr          : in  std_ulogic_vector(0 to 35);        
 
+     --iu4
      bp_ib_iu4_t0_val           : out std_ulogic_vector(0 to 3);
      bp_ib_iu4_t1_val           : out std_ulogic_vector(0 to 3);
      bp_ib_iu4_t2_val           : out std_ulogic_vector(0 to 3);
      bp_ib_iu4_t3_val           : out std_ulogic_vector(0 to 3);
      bp_ib_iu4_ifar             : out EFF_IFAR;       
 
+     --iu4 instruction(0:31) + prediction(32:34) + error(35:37) + 2ucode + 2ucode_type + gshare(40:43)
      bp_ib_iu3_0_instr          : out std_ulogic_vector(0 to 31);        
      bp_ib_iu4_0_instr          : out std_ulogic_vector(32 to 43);        
      bp_ib_iu4_1_instr          : out std_ulogic_vector(0 to 43);        
      bp_ib_iu4_2_instr          : out std_ulogic_vector(0 to 43);        
      bp_ib_iu4_3_instr          : out std_ulogic_vector(0 to 43);        
 
+     --iu5 hold/redirect
      bp_ic_iu5_hold_tid         : out std_ulogic_vector(0 to 3);
      bp_ic_iu5_redirect_tid     : out std_ulogic_vector(0 to 3);         
      bp_ic_iu5_redirect_ifar    : out EFF_IFAR;
 
+     --ex5 update
      xu_iu_ex5_ifar             : in  EFF_IFAR;       
      xu_iu_ex5_tid              : in  std_ulogic_vector(0 to 3);
      xu_iu_ex5_val              : in  std_ulogic;
@@ -90,6 +99,7 @@ port(
      xu_iu_ex5_bh               : in  std_ulogic_vector(0 to 1);
      xu_iu_ex5_gshare           : in  std_ulogic_vector(0 to 3);
 
+     --flush conditions
      xu_iu_iu3_flush_tid        : in  std_ulogic_vector(0 to 3);         
      xu_iu_iu4_flush_tid        : in  std_ulogic_vector(0 to 3);         
      xu_iu_iu5_flush_tid        : in  std_ulogic_vector(0 to 3);
@@ -97,9 +107,11 @@ port(
      ib_ic_iu5_redirect_tid     : in  std_ulogic_vector(0 to 3);
      uc_flush_tid               : in  std_ulogic_vector(0 to 3);
 
+     --config bits
      spr_bp_config              : in  std_ulogic_vector(0 to 3);
      spr_bp_gshare_mask         : in  std_ulogic_vector(0 to 3);
 
+     --pervasive
      vdd                        : inout power_logic;
      gnd                        : inout power_logic;
      nclk                       : in  clk_logic;
@@ -121,10 +133,14 @@ port(
 -- synopsys translate_on
 
 end iuq_bp;
+----
 architecture iuq_bp of iuq_bp is
 
+----------------------------
+-- constants
+----------------------------
 
-
+--scan chain 0, ~473 latches
 constant ic_bp_iu1_tid_offset           : natural := 0;
 constant gshare_t0_offset               : natural := ic_bp_iu1_tid_offset       + 4;
 constant gshare_t1_offset               : natural := gshare_t0_offset           + 4;
@@ -165,6 +181,7 @@ constant iu5_ls_pop_offset              : natural := iu5_ls_push_offset         
 constant iu5_ifar_offset                : natural := iu5_ls_pop_offset          + 4;
 constant scan_right0                    : natural := iu5_ifar_offset            + EFF_IFAR'length - 1;
 
+--scan chain 1, ~1115 latches
 constant iu6_ls_t0_ptr_offset           : natural := 0;
 constant iu6_ls_t1_ptr_offset           : natural := iu6_ls_t0_ptr_offset       + 4;
 constant iu6_ls_t2_ptr_offset           : natural := iu6_ls_t1_ptr_offset       + 4;
@@ -209,6 +226,9 @@ constant scan_right1                    : natural := spare_offset               
 
 signal spare_l2                 : std_ulogic_vector(0 to 11);
 
+----------------------------
+-- signals
+----------------------------
 
 signal bp_dy_en                 : std_ulogic;
 signal bp_st_en                 : std_ulogic;
@@ -547,14 +567,20 @@ act_dis <= '0';
 d_mode  <= '0';
 mpw2_b  <= '1';
 
+-------------------------------------------------
+-- config bits
+-------------------------------------------------
 
 bp_config_d(0 to 3)             <= spr_bp_config(0 to 3);
 
-bp_dy_en                        <= bp_config_q(0);    
-bp_st_en                        <= bp_config_q(1);    
-bp_ti_en                        <= bp_config_q(2);    
-bp_gs_en                        <= bp_config_q(3);    
+bp_dy_en                        <= bp_config_q(0);    --dynamic prediction enable                             default = 1
+bp_st_en                        <= bp_config_q(1);    --static prediction enable                              default = 0
+bp_ti_en                        <= bp_config_q(2);    --thread isolation enable                               default = 1
+bp_gs_en                        <= bp_config_q(3);    --gshare enable                                         default = 0
 
+-------------------------------------------------
+-- latched xu interface
+-------------------------------------------------
 
 ex6_flush_tid_d                 <= xu_iu_ex5_flush_tid;
 
@@ -570,6 +596,9 @@ ex6_lk_d                        <= xu_iu_ex5_lk;
 ex6_bh_d                        <= xu_iu_ex5_bh;
 ex6_gshare_d                    <= xu_iu_ex5_gshare;
 
+-------------------------------------------------
+-- read branch history table
+-------------------------------------------------
 
 iu1_bh_rd_act                   <= ic_bp_iu1_val;
 
@@ -596,8 +625,9 @@ iu1_tid_enc(0 to 1)             <= gate("00", ic_bp_iu1_tid_q(0)) or
 iu2_gshare_d(0 to 3)            <= iu1_gshare(0 to 3);
 iu3_gshare_d(0 to 3)            <= iu2_gshare_q(0 to 3);
 
-
-
+-------------------------------------------------
+-- write branch history table
+-------------------------------------------------
 
 ex6_bh_ti0gs1_wr_addr(0 to 7)   <=                       (ex6_ifar_q(52 to 55) xor ex6_gshare(0 to 3)) & ex6_ifar_q(56 to 59);
 ex6_bh_ti1gs1_wr_addr(0 to 7)   <= ex6_tid_enc(0 to 1) & (ex6_ifar_q(54 to 57) xor ex6_gshare(0 to 3)) & ex6_ifar_q(58 to 59);
@@ -613,6 +643,9 @@ ex6_tid_enc(0 to 1)             <= gate("00", ex6_tid_q(0)) or
                                    gate("10", ex6_tid_q(2)) or
                                    gate("11", ex6_tid_q(3));
 
+-------------------------------------------------
+-- update branch hitstory
+-------------------------------------------------
 
 ex6_flush                       <= or_reduce(ex6_tid_q(0 to 3) and ex6_flush_tid_q(0 to 3));
 ex6_val                         <= not ex6_flush;
@@ -628,7 +661,9 @@ ex6_bh_wr_act(1)                <= (ex6_br_hist_dec or ex6_br_hist_inc) and ex6_
 ex6_bh_wr_act(2)                <= (ex6_br_hist_dec or ex6_br_hist_inc) and ex6_ifar_q(60 to 61) = "10";
 ex6_bh_wr_act(3)                <= (ex6_br_hist_dec or ex6_br_hist_inc) and ex6_ifar_q(60 to 61) = "11";
 
-
+-------------------------------------------------
+-- update global history
+-------------------------------------------------
 
 gshare_mask_d(0 to 3)           <= spr_bp_gshare_mask(0 to 3);
 
@@ -707,6 +742,7 @@ gshare_act(3)                   <= tiup;
 
 
 
+--completion gshare repair
 cp_gshare_shift(0 to 3)         <= gate(ex6_tid_q(0 to 3) and not ex6_flush_tid_q(0 to 3), ex6_val_q and ex6_br_update_q);
 cp_gshare_taken                 <= ex6_br_taken_q;
 
@@ -722,8 +758,11 @@ cp_gshare_t3_d(0 to 3)          <= (cp_gshare_taken & cp_gshare_t3_q(0 to 2)) an
 
 cp_gshare_act(0 to 3)           <= cp_gshare_shift(0 to 3);
 
+---------------------------------------------------
+---- branch history table
+---------------------------------------------------
 
-
+--  TBD...external ports for now
 
 
 
@@ -745,6 +784,9 @@ iu3_2_br_hist                   <= iu3_3_bh_rd_data(0 to 1) when "01",
 iu3_3_br_hist                   <= iu3_3_bh_rd_data(0 to 1);
 
 
+-------------------------------------------------
+-- predict branches
+-------------------------------------------------
 
 iu3_br_val(0 to 3)              <= ic_bp_iu3_0_instr(32) & ic_bp_iu3_1_instr(32) & ic_bp_iu3_2_instr(32) & ic_bp_iu3_3_instr(32);
 iu3_br_hard(0 to 3)             <= ic_bp_iu3_0_instr(33) & ic_bp_iu3_1_instr(33) & ic_bp_iu3_2_instr(33) & ic_bp_iu3_3_instr(33);
@@ -768,9 +810,9 @@ iu3_br_pred(0 to 3)             <= iu3_br_val(0 to 3) and
 
 iu3_br_update(0 to 3)           <= iu3_br_val(0 to 3) and iu3_br_dynamic(0 to 3);
 
-
-
-
+-------------------------------------------------
+-- prioritize branch instructions
+-------------------------------------------------
 
 iu3_instr_pri(0 to 31)          <= ic_bp_iu3_0_instr(0 to 31)   when iu3_br_pred(0) = '1'       else
                                    ic_bp_iu3_1_instr(0 to 31)   when iu3_br_pred(1) = '1'       else
@@ -788,6 +830,9 @@ iu4_ifar_pri_d(60 to 61)        <= ic_bp_iu3_ifar(60 to 61)     when iu3_br_pred
                                    ic_bp_iu3_ifar(60 to 61) + 3;
 
 
+-------------------------------------------------
+-- decode priority branch instruction
+-------------------------------------------------
 
 
 
@@ -813,6 +858,7 @@ iu4_excode_d(21 to 30)          <= iu3_instr_pri(21 to 30);
 iu4_bclr                        <= (iu4_opcode_q(0 to 5) = "010011" and iu4_excode_q(21 to 30) = "0000010000") or dft_q(0);
 iu4_bcctr                       <=  iu4_opcode_q(0 to 5) = "010011" and iu4_excode_q(21 to 30) = "1000010000";
 
+-- bcl 20,31,$+4 is special case.  not a subroutine call, used to get next instruction address, should not be placed on link stack.
 iu4_bo_d( 6 to 10)              <= iu3_instr_pri( 6 to 10);
 iu4_bi_d(11 to 15)              <= iu3_instr_pri(11 to 15);
 
@@ -823,6 +869,7 @@ iu4_getNIA                      <= iu4_opcode_q(0 to 5)         = "010000"      
                                    iu4_aa_q                     = '0'           and
                                    iu4_lk_q                     = '1'           ;
 
+--use pr_taken to validate control signals in iu4
 iu4_pr_taken_d(0)               <= ic_bp_iu3_tid(0) and not iu3_flush_tid(0) and or_reduce(iu3_br_pred(0 to 3) and ic_bp_iu3_val(0 to 3));          
 iu4_pr_taken_d(1)               <= ic_bp_iu3_tid(1) and not iu3_flush_tid(1) and or_reduce(iu3_br_pred(0 to 3) and ic_bp_iu3_val(0 to 3));          
 iu4_pr_taken_d(2)               <= ic_bp_iu3_tid(2) and not iu3_flush_tid(2) and or_reduce(iu3_br_pred(0 to 3) and ic_bp_iu3_val(0 to 3));          
@@ -831,7 +878,9 @@ iu4_pr_taken_d(3)               <= ic_bp_iu3_tid(3) and not iu3_flush_tid(3) and
   
 
 
-
+-------------------------------------------------
+-- calculate branch target address
+-------------------------------------------------
 
 iu4_abs(EFF_IFAR'left to 61)    <= iu4_li(EFF_IFAR'left to 61) when iu4_b_q = '1' else
                                    iu4_bd(EFF_IFAR'left to 61);
@@ -841,6 +890,9 @@ iu4_off(EFF_IFAR'left to 61)    <= iu4_abs(EFF_IFAR'left to 61) + (iu4_ifar_q(EF
 iu4_bta(EFF_IFAR'left to 61)    <= iu4_abs(EFF_IFAR'left to 61) when iu4_aa_q = '1' else
                                    iu4_off(EFF_IFAR'left to 61);
                     
+-------------------------------------------------
+-- forward validated instructions
+-------------------------------------------------
 
 iu4_act                         <= ic_bp_iu3_val(0);
 iu4_instr_act(0 to 3)           <= ic_bp_iu3_val(0 to 3);
@@ -907,6 +959,9 @@ iu4_3_instr_d(40 to 43)         <= iu3_gshare_q(0 to 3);
 iu4_br_pred(0 to 3)             <= iu4_0_instr_q(32) & iu4_1_instr_q(32) & iu4_2_instr_q(32) & iu4_3_instr_q(32);
 iu4_br_update(0 to 3)           <= iu4_0_instr_q(34) & iu4_1_instr_q(34) & iu4_2_instr_q(34) & iu4_3_instr_q(34);
 
+-------------------------------------------------
+-- detect incoming flushes
+-------------------------------------------------
 
 
 
@@ -921,10 +976,15 @@ iu5_flush_tid(0 to 3)           <= xu_iu_iu5_flush_tid(0 to 3) or ib_ic_iu5_redi
 
 
 
+-------------------------------------------------
+-- ex link stack pointers
+-------------------------------------------------
 
+--valid can be concurrent with flush
 ex6_ls_push_d(0 to 3)   <= gate(ex6_tid_d(0 to 3) and not ex6_flush_tid_d(0 to 3), ex6_val_d and ex6_br_taken_d and not ex6_bclr_d and ex6_lk_d and not ex6_getNIA_d);
 ex6_ls_pop_d(0 to 3)    <= gate(ex6_tid_d(0 to 3) and not ex6_flush_tid_d(0 to 3), ex6_val_d and ex6_br_taken_d and     ex6_bclr_d and ex6_bh_d(0 to 1) = "00");
 
+--use ptr_d signal later...cannot eliminate feedback path
 ex7_ls_t0_ptr_d(0 to 3)         <= ex7_ls_t0_ptr_q(3) & ex7_ls_t0_ptr_q(0 to 2) when ex6_ls_push_q(0) = '1' and ex6_ls_pop_q(0) = '0' else
                                    ex7_ls_t0_ptr_q(1 to 3) & ex7_ls_t0_ptr_q(0) when ex6_ls_push_q(0) = '0' and ex6_ls_pop_q(0) = '1' else
                                    ex7_ls_t0_ptr_q(0 to 3); 
@@ -940,13 +1000,16 @@ ex7_ls_t3_ptr_d(0 to 3)         <= ex7_ls_t3_ptr_q(3) & ex7_ls_t3_ptr_q(0 to 2) 
 
 ex7_ls_ptr_act(0 to 3)          <= ex6_ls_push_q(0 to 3) xor ex6_ls_pop_q(0 to 3);
 
-
+-------------------------------------------------
+-- iu link stack pointers
+-------------------------------------------------
 iu5_ls_push_d(0 to 3)           <= gate(iu4_pr_taken_q(0 to 3) and not iu4_flush_tid(0 to 3), not iu4_bclr and iu4_lk_q and not iu4_getNIA);
 iu5_ls_pop_d(0 to 3)            <= gate(iu4_pr_taken_q(0 to 3) and not iu4_flush_tid(0 to 3),     iu4_bclr and iu4_bh_q(0 to 1) = "00");
 
 ex6_repair(0 to 3)              <= gate(ex6_tid_q(0 to 3) and not ex6_flush_tid_q(0 to 3), ex6_val_q and (ex6_br_taken_q xor ex6_br_hist_q(0))) or
                                    ex6_flush_tid_q(0 to 3);
 
+--use ptr_d signal later...cannot eliminate feedback path
 
 iu6_ls_t0_ptr_d(0 to 3)         <= ex7_ls_t0_ptr_d(0 to 3) when ex6_repair(0) = '1' else 
                                    iu6_ls_t0_ptr_q(3) & iu6_ls_t0_ptr_q(0 to 2) when iu5_ls_push_q(0) = '1' and iu5_ls_pop_q(0) = '0' else
@@ -967,6 +1030,9 @@ iu6_ls_t3_ptr_d(0 to 3)         <= ex7_ls_t3_ptr_d(0 to 3) when ex6_repair(3) = 
 
 iu6_ls_ptr_act(0 to 3)          <= ex6_repair(0 to 3) or not ib_ic_iu5_redirect_tid(0 to 3); 
 
+-------------------------------------------------
+-- maintain link stack contents
+-------------------------------------------------
 
 iu5_ls_update(0 to 3)                   <= iu5_ls_push_q(0 to 3) and not ib_ic_iu5_redirect_tid(0 to 3); 
 ex6_ls_update(0 to 3)                   <= gate(ex6_ls_push_q(0 to 3), not ex6_br_hist_q(0));
@@ -1046,6 +1112,9 @@ iu6_ls_t3_act(0 to 3)                   <= ex7_ls_t3_ptr_d(0 to 3)      when ex6
                                            iu6_ls_t3_ptr_d(0 to 3)      when iu5_ls_push_q(3) = '1' else
                                             "0000";
 
+-------------------------------------------------
+-- mux out link address
+-------------------------------------------------
 
 iu4_lnk(EFF_IFAR'left to 61)    <= gate(iu6_ls_t00_q(EFF_IFAR'left to 61), iu4_tid_q(0) and iu6_ls_t0_ptr_q(0)) or 
                                    gate(iu6_ls_t01_q(EFF_IFAR'left to 61), iu4_tid_q(0) and iu6_ls_t0_ptr_q(1)) or 
@@ -1068,6 +1137,9 @@ iu4_lnk(EFF_IFAR'left to 61)    <= gate(iu6_ls_t00_q(EFF_IFAR'left to 61), iu4_t
                                    gate(iu6_ls_t33_q(EFF_IFAR'left to 61), iu4_tid_q(3) and iu6_ls_t3_ptr_q(3)) ;
 
 
+-------------------------------------------------
+-- hold thread
+-------------------------------------------------
 
 
 
@@ -1091,6 +1163,9 @@ iu5_hold_tid_d(3)               <= '0' when iu5_flush_tid(3) = '1' else
 
 bp_ic_iu5_hold_tid(0 to 3)      <= iu5_hold_tid_q(0 to 3);
 
+-------------------------------------------------
+-- redirect instruction pointer
+-------------------------------------------------
 
 iu5_redirect_act                                <= or_reduce(iu4_redirect_tid(0 to 3));
 
@@ -1103,6 +1178,9 @@ iu5_redirect_tid_d(0 to 3)                      <= iu4_redirect_tid(0 to 3) and 
 bp_ic_iu5_redirect_ifar(EFF_IFAR'left to 61)    <= iu5_redirect_ifar_q(EFF_IFAR'left to 61);
 bp_ic_iu5_redirect_tid(0 to 3)                  <= iu5_redirect_tid_q(0 to 3);
 
+-------------------------------------------------
+-- output validated instructions
+-------------------------------------------------
 
 
 bp_ib_iu4_ifar(EFF_IFAR'left to 61)     <= iu4_ifar_q(EFF_IFAR'left to 61);
@@ -1119,6 +1197,9 @@ bp_ib_iu4_2_instr(0 to 43)              <= iu4_2_instr_q(0 to 43);
 bp_ib_iu4_3_instr(0 to 43)              <= iu4_3_instr_q(0 to 43);
 
 
+-------------------------------------------------
+-- debug
+-------------------------------------------------
 bp_dbg_data0(0 to 7)    <= iu6_ls_t00_q(54 to 61);
 bp_dbg_data0(8 to 15)   <= iu6_ls_t01_q(54 to 61);
 bp_dbg_data0(16 to 23)  <= iu6_ls_t02_q(54 to 61);
@@ -1161,7 +1242,11 @@ bp_dbg_data1(86)        <= ex6_lk_q;
 bp_dbg_data1(87)        <= '0';
 
 
+-------------------------------------------------
+-- latches
+-------------------------------------------------
 
+--scan chain 0
 ic_bp_iu1_tid_reg: tri_rlmreg_p
   generic map (width => 4, init => 0, expand_type => expand_type) 
   port map (vd          => vdd,
@@ -1853,6 +1938,7 @@ iu5_ifar_reg: tri_rlmreg_p
             din         => iu5_ifar_d(EFF_IFAR'left to 61),
             dout        => iu5_ifar_q(EFF_IFAR'left to 61));
 
+--scan chain 1
 iu6_ls_t0_ptr_reg: tri_rlmreg_p
   generic map (width => 4, init => 8, expand_type => expand_type) 
   port map (vd          => vdd,
@@ -2559,6 +2645,9 @@ spare_latch: tri_rlmreg_p
             dout    => spare_l2);
 
 
+-------------------------------------------------
+-- pervasive
+-------------------------------------------------
 
 perv_2to1_reg: tri_plat
   generic map (width => 2, expand_type => expand_type)
@@ -2614,6 +2703,9 @@ dft_latch: tri_slat_scan
             q_b         => open);
 
 
+-------------------------------------------------
+-- scan
+-------------------------------------------------
 
 siv0(0 to scan_right0)  <= scan_in(0) & sov0(0 to scan_right0-1);
 scan_out(0)             <= sov0(scan_right0) and an_ac_scan_dis_dc_b;

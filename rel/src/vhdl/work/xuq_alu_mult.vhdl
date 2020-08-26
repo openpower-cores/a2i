@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Multiplier Top
+--
 
 LIBRARY ieee;       USE ieee.std_logic_1164.all;
                     USE ieee.numeric_std.all;
@@ -27,10 +29,16 @@ entity xuq_alu_mult is
         threads                         : integer := 4;
         fxu_synth                       : integer := 0);
     port (
+        ---------------------------------------------------------------------
+        -- Clocks & Power
+        ---------------------------------------------------------------------
         nclk                            : in clk_logic;
         vdd                             : inout power_logic;
         gnd                             : inout power_logic;
 
+        ---------------------------------------------------------------------
+        -- Pervasive
+        ---------------------------------------------------------------------
         d_mode_dc                       : in std_ulogic;
         delay_lclkr_dc                  : in std_ulogic;
         mpw1_dc_b                       : in std_ulogic;
@@ -41,24 +49,39 @@ entity xuq_alu_mult is
         scan_in                         : in std_ulogic;
         scan_out                        : out std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Interface with Decode
+        ---------------------------------------------------------------------
         dec_alu_rf1_mul_recform         : in std_ulogic;
         dec_alu_rf1_mul_val             : in std_ulogic;
-        dec_alu_rf1_mul_ret             : in std_ulogic;                   
-        dec_alu_rf1_mul_sign            : in std_ulogic;                   
-        dec_alu_rf1_mul_size            : in std_ulogic;                   
-        dec_alu_rf1_mul_imm             : in std_ulogic;                   
+        dec_alu_rf1_mul_ret             : in std_ulogic;                   -- 0: Return low word/dword, 1: Return high word/dword
+        dec_alu_rf1_mul_sign            : in std_ulogic;                   -- 0: Unsigned, 1: Signed
+        dec_alu_rf1_mul_size            : in std_ulogic;                   -- 0: 32x32, 1: 64x64
+        dec_alu_rf1_mul_imm             : in std_ulogic;                   -- 0: Normal 1: Multiplier is 16 bit S.E. immediate
         dec_alu_rf1_xer_ov_update       : in std_ulogic;
         fxa_fxb_ex1_hold_ctr_flush      : in std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Interface with SPR
+        ---------------------------------------------------------------------
         ex4_spr_msr_cm                  : in std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Interface with Bypass
+        ---------------------------------------------------------------------
         byp_alu_ex1_mulsrc_0            : in std_ulogic_vector(0 to 2**regmode-1);
         byp_alu_ex1_mulsrc_1            : in std_ulogic_vector(0 to 2**regmode-1);
         alu_byp_ex5_xer_mul             : out std_ulogic_vector(0 to 3);
         alu_byp_ex5_cr_mul              : out std_ulogic_vector(0 to 4);
 
+        ---------------------------------------------------------------------
+        -- Interface with Mux
+        ---------------------------------------------------------------------
         alu_byp_ex5_mul_rt              : out std_ulogic_vector(0 to 2**regmode-1);
 
+        ---------------------------------------------------------------------
+        -- Multi-drop
+        ---------------------------------------------------------------------
         alu_ex3_mul_done                : out std_ulogic;
         alu_ex4_mul_done                : out std_ulogic
     );
@@ -131,45 +154,46 @@ architecture xuq_alu_mult of xuq_alu_mult is
     signal ex2_bs_lo, ex2_bd_lo                                     : std_ulogic_vector(32 to 63);
     signal ex2_act, ex3_act, ex4_act                                : std_ulogic;
 
-    signal ex1_mul_val_q                                            : std_ulogic;                                           
-    signal ex2_mulstage_q                                           : std_ulogic_vector(0 to 3);                            
+    -- Latch Signals
+    signal ex1_mul_val_q                                            : std_ulogic;                                           -- Valid multiply op
+    signal ex2_mulstage_q                                           : std_ulogic_vector(0 to 3);                            -- Stage of multiplication
     signal ex3_mulstage_q                                           : std_ulogic_vector(0 to 3);
     signal ex4_mulstage_q                                           : std_ulogic_vector(0 to 3);
     signal ex5_mulstage_q                                           : std_ulogic_vector(0 to 3);
-    signal ex1_is_recform_q                                         : std_ulogic;                                           
+    signal ex1_is_recform_q                                         : std_ulogic;                                           -- Multiply is a record form
     signal ex2_is_recform_q                                         : std_ulogic;
     signal ex3_is_recform_q                                         : std_ulogic;
     signal ex4_is_recform_q                                         : std_ulogic;
     signal ex5_is_recform_q                                         : std_ulogic;
-    signal ex1_retsel_q,             ex1_retsel_d                   : std_ulogic_vector(0 to 2);                            
+    signal ex1_retsel_q,             ex1_retsel_d                   : std_ulogic_vector(0 to 2);                            -- Select which data to return
     signal ex2_retsel_q                                             : std_ulogic_vector(0 to 2);
     signal ex3_retsel_q                                             : std_ulogic_vector(0 to 2);
     signal ex4_retsel_q                                             : std_ulogic_vector(0 to 2);
     signal ex1_mul_size_q                                           : std_ulogic;
     signal ex1_mul_sign_q                                           : std_ulogic;
-    signal ex3_mul_done_q,           ex3_mul_done_d                 : std_ulogic;                                           
+    signal ex3_mul_done_q,           ex3_mul_done_d                 : std_ulogic;                                           -- Multiply result is done
     signal ex4_mul_done_q                                           : std_ulogic;
     signal ex5_mul_done_q                                           : std_ulogic;
-    signal ex1_xer_ov_update_q                                      : std_ulogic;                                           
+    signal ex1_xer_ov_update_q                                      : std_ulogic;                                           -- Update XER[OV]
     signal ex2_xer_ov_update_q                                      : std_ulogic;
     signal ex3_xer_ov_update_q                                      : std_ulogic;
     signal ex4_xer_ov_update_q                                      : std_ulogic;
     signal ex5_xer_ov_update_q                                      : std_ulogic;
-    signal ex2_bs_lo_sign_q,            ex2_bs_lo_sign_d            : std_ulogic;                                           
+    signal ex2_bs_lo_sign_q,            ex2_bs_lo_sign_d            : std_ulogic;                                           -- Sign of operands
     signal ex2_bd_lo_sign_q,            ex2_bd_lo_sign_d            : std_ulogic;
     signal ex4_ci_q,                    ex4_ci_d                    : std_ulogic;
     signal ex5_res_q                                                : std_ulogic_vector(0 to 63);
-    signal ex5_all0_q                                               : std_ulogic;                                           
+    signal ex5_all0_q                                               : std_ulogic;                                           -- Check different pieces of result for ovf/cr
     signal ex5_all1_q                                               : std_ulogic;
     signal ex5_all0_lo_q                                            : std_ulogic;
     signal ex5_all0_hi_q                                            : std_ulogic;
     signal ex5_all1_hi_q                                            : std_ulogic;
-    signal carry_32_dly1_q                                          : std_ulogic;                                           
-    signal all0_lo_dly1_q                                           : std_ulogic;                                           
+    signal carry_32_dly1_q                                          : std_ulogic;                                           -- Delayed carry bit for adder
+    signal all0_lo_dly1_q                                           : std_ulogic;                                           -- Delay low all 0
     signal all0_lo_dly2_q                                           : std_ulogic;
     signal all0_lo_dly3_q                                           : std_ulogic;
-    signal rslt_lo_q,                   rslt_lo_d                   : std_ulogic_vector(0 to 31);                           
-    signal rslt_lo_dly_q,               rslt_lo_dly_d               : std_ulogic_vector(0 to 31);                           
+    signal rslt_lo_q,                   rslt_lo_d                   : std_ulogic_vector(0 to 31);                           -- Result holding latches
+    signal rslt_lo_dly_q,               rslt_lo_dly_d               : std_ulogic_vector(0 to 31);                           -- delay low half of result for mulldo
     signal ex2_mulsrc_0_q,              ex1_mulsrc_0                : std_ulogic_vector(0 to 63);     
     signal ex2_mulsrc_1_q,              ex1_mulsrc_1                : std_ulogic_vector(0 to 63);     
     signal ex5_rslt_hw_q,               ex5_rslt_hw_d               : std_ulogic_vector(0 to 7);
@@ -189,6 +213,7 @@ architecture xuq_alu_mult of xuq_alu_mult is
     signal ex5_ret_mullw_q                                          : std_ulogic;
     signal ex5_ret_mulldo_q                                         : std_ulogic;
     signal ex5_cmp0_undef_q,            ex5_cmp0_undef_d            : std_ulogic;
+    -- Scanchain
     constant ex1_mul_val_offset                                     : integer := 1;
     constant ex2_mulstage_offset                                    : integer := ex1_mul_val_offset             + 1;
     constant ex3_mulstage_offset                                    : integer := ex2_mulstage_offset            + ex2_mulstage_q'length;
@@ -254,9 +279,15 @@ architecture xuq_alu_mult of xuq_alu_mult is
 
 begin
 
+    ---------------------------------------------------------------------
+    -- Other signals
+    ---------------------------------------------------------------------
     ex1_retsel_d            <= dec_alu_rf1_mul_ret & dec_alu_rf1_mul_size & dec_alu_rf1_mul_imm;
     ex5_mul_cr_valid        <= ex5_is_recform_q         and                    ex5_mul_done_q;
 
+    ---------------------------------------------------------------------
+    -- Multiply Stage Counter
+    ---------------------------------------------------------------------
     ex1_mul_val         <= ex1_mul_val_q and not fxa_fxb_ex1_hold_ctr_flush;
     ex1_mulstage_shift  <= tidn & gate(ex2_mulstage_q(0 to 2),not(fxa_fxb_ex1_hold_ctr_flush));
 
@@ -270,7 +301,15 @@ mult_32b_stagecnt : if regmode = 5 generate
 end generate;
 
 
+    ------------------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------------
+    -- NEW MULTIPLIER ------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------------
 
+    ---------------------------------------------------------------------
+    -- Signs
+    ---------------------------------------------------------------------
 
 
     ex2_bs_lo_sign_d            <= ((ex1_bs_sign and ex1_mul_sign_q and (ex1_mulstage(1) or ex1_mulstage(3))) and     ex1_mul_size_q ) or
@@ -280,6 +319,9 @@ end generate;
                                    ( ex1_bd_sign and ex1_mul_sign_q                                           and not ex1_mul_size_q ) or
                                    ( ex1_bd_sign and ex1_mul_sign_q                                           and     ex1_retsel_q(2));
 
+    ---------------------------------------------------------------------
+    -- Operands
+    ---------------------------------------------------------------------
     ex1_mulsrc0_act   <= or_reduce(ex1_mulstage);
     ex1_mulsrc1_act   <= ex1_mulstage(0) or ex1_mulstage(2);
 
@@ -292,6 +334,7 @@ end generate;
         ex1_mulsrc_1(0 to 63)    <= byp_alu_ex1_mulsrc_1(0  to 63)                         when '1',
                                     ex2_mulsrc_1_q(32 to 63) & ex2_mulsrc_1_q(0 to 31)     when others;
                                     
+    -- Use the saved value for bd_sign when mulsrc1 is clock gated
     with (ex1_mulstage(1) or ex1_mulstage(3)) select
         ex1_bd_sign              <= ex2_mulsrc_1_q(32)   when '1',
                                     ex1_mulsrc_1(32)     when others;
@@ -301,7 +344,9 @@ end generate;
     ex2_bs_lo                   <= ex2_mulsrc_0_q(32 to 63);
     ex2_bd_lo                   <= ex2_mulsrc_1_q(32 to 63);
 
-
+    ---------------------------------------------------------------------
+    -- Multiply Core
+    ---------------------------------------------------------------------
     mcore : entity work.xuq_alu_mult_core(xuq_alu_mult_core)
         generic map (expand_type => expand_type)
         port map (
@@ -333,11 +378,21 @@ end generate;
     ex3_act                     <= or_reduce(ex3_mulstage_q);
     ex4_act                     <= or_reduce(ex4_mulstage_q);
 
+    ---------------------------------------------------------------------
+    -- Carry In
+    ---------------------------------------------------------------------
+    --                      |---------|---------|
+    --            |---------|---------| dly  <--/   * for mulli
+    --            |---------|---------| dly1 <-/    * for mulld
+    --  |---------|---------|  dly <--/             * for mulhd
 
-    ex4_ci_d                    <= (carry_32_dly1_q and   ex3_mulstage_q(2)                         ) or 
+    ex4_ci_d                    <= (carry_32_dly1_q and   ex3_mulstage_q(2)                         ) or -- feedback from previous previous add
                                    (ex4_cout_32     and ((ex3_mulstage_q(3) and ex3_retsel_q(1)) or
                                                          (ex3_mulstage_q(1) and ex3_retsel_q(2)))   );
 
+    ---------------------------------------------------------------------
+    -- Adder (ripple carry for simulation, replace with carry look ahead
+    ---------------------------------------------------------------------
     ex4_xi                      <= ex4_pp5_0s(200 to 263);
     ex4_yi                      <= ex4_pp5_0c(200 to 263);
 
@@ -357,9 +412,14 @@ end generate;
          cout_32                => ex4_cout_32,
          cout_0                 => open);
 
+    ---------------------------------------------------------------------
+    -- Determine Recirculation
+    ---------------------------------------------------------------------
+    -- Shift amount
     ex3_recyc_sh32              <= ex3_retsel_q(1) and (ex3_mulstage_q(1) or ex3_mulstage_q(3));
     ex3_recyc_sh00              <= ex3_retsel_q(1) and (ex3_mulstage_q(2)) ;
 
+    -- Get rid of "bogus" bit
     ex3_xtd_196_or              <= ex4_pp5_0s(196) or  ex4_pp5_0c(196);
     ex3_xtd_196_and             <= ex4_pp5_0s(196) and ex4_pp5_0c(196);
     ex3_xtd_197_or              <= ex4_pp5_0s(197) or  ex4_pp5_0c(197);
@@ -386,11 +446,21 @@ end generate;
     ex3_recycle_c(198 to 264)   <= ( (198 to 264=> ex3_recyc_sh00) and (                       ex4_pp5_0c(198 to 264)        ) ) or
                                    ( (198 to 264=> ex3_recyc_sh32) and ( (0 to 31=> tidn)    & ex4_pp5_0c(198 to 231) & tidn ) ) ;
 
+    ---------------------------------------------------------------------
+    -- Result
+    ---------------------------------------------------------------------
     rslt_lo_act                 <= ex5_mulstage_q(0) or ex5_mulstage_q(2);
 
     rslt_lo_d                   <= ex5_res_q(32 to 63);
     rslt_lo_dly_d               <= rslt_lo_q;
 
+    --          RETURN                                    RET     SIZE    IMM     OVF   READY
+    -- mulhw    (0 to 31 => '0')    & ex5_res_q(0 to 31)  1       0       0       .     1000
+    -- mullw    ex5_res_q                                 0       0       0       .     1000
+    -- mulli    ex5_res_q(32 to 63) & rslt_lo_q           .       .       1       .     0100
+    -- mulld    ex5_res_q(32 to 63) & rslt_lo_q           0       1       0       0     0010
+    -- mulldo   rslt_lo_q           & rslt_lo_dly_q       0       1       0       1     0001
+    -- mulhd    ex5_res_q                                 1       1       0       .     0001
 
     ex4_ret_mulhw               <=     ex4_retsel_q(0) and not ex4_retsel_q(1) and not ex4_retsel_q(2)                            ;
     ex4_ret_mullw               <= not ex4_retsel_q(0) and not ex4_retsel_q(1) and not ex4_retsel_q(2)                            ;
@@ -409,6 +479,9 @@ end generate;
                                    ((rslt_lo_q           & rslt_lo_dly_q     ) and fanout(ex5_rslt_ldo_q  ,64)) or   
                                    ((ex5_res_q                               ) and fanout(ex5_rslt_lw_hd_q,64));
 
+    ---------------------------------------------------------------------
+    -- Overflow
+    ---------------------------------------------------------------------
     ex4_all0_test(0 to 62)      <= ( not ex4_p(0 to 62) and not ex4_t(1 to 63) ) or
                                    (     ex4_p(0 to 62) and     ex4_t(1 to 63) ) ;
     ex4_all0_test(63)           <= ( not ex4_p(63)      and not ex4_ci_q         ) or
@@ -430,7 +503,22 @@ end generate;
     ex4_all1_hi                 <= and_reduce( ex4_all1_test(0 to 30) & ex4_all1_test_mid );
 
 
+    -- What sign bit to use for compare to zero?
+    --
+    --     | CM = 1 (64b)  | CM = 0 (32b)     |
+    -- hw  | '0'           | ex5_res_q(0)     | <- 64b case is undefined ,return zero
+    -- lw  | ex5_res_q(0)  | ex5_res_q(32)    |
+    -- hd  | ex5_res_q(0)  | ex5_res_q(32)    |
+    -- ld  | ex5_res_q(32) | rslt_lo_q(0)     |
+    -- ldo | rslt_lo_q(0)  | rslt_lo_dly_q(0) |
 
+    -- (ex5_res_q(0)     and (ex5_ret_mullw or ex5_ret_mulhd or ex5_ret_mulhw) and     ex5_spr_msr_cm_q) or
+    -- (ex5_res_q(0)     and  ex5_ret_mulhw                                                            ) or
+    -- (ex5_res_q(32)    and (ex5_ret_mullw or ex5_ret_mulhd or ex5_ret_mulhw) and not ex5_spr_msr_cm_q) or
+    -- (ex5_res_q(32)    and  ex5_ret_mulld                                    and     ex5_spr_msr_cm_q) or
+    -- (rslt_lo_q(0)     and  ex5_ret_mulld                                    and not ex5_spr_msr_cm_q) or
+    -- (rslt_lo_q(0)     and  ex5_ret_mulldo                                   and     ex5_spr_msr_cm_q) or
+    -- (rslt_lo_dly_q(0) and  ex5_ret_mulldo                                   and not ex5_spr_msr_cm_q);
 
     ex5_cmp0_undef_d          <=   ex4_ret_mulhw                   and     ex4_spr_msr_cm;
 
@@ -448,7 +536,25 @@ end generate;
                           (ex5_cmp0_sel_reslodly2_q   and rslt_lo_dly_q(0) ); 
     
 
+   --       +-----------------------------+-----------------------------+
+   --       | CM = 1 (64b)                | CM = 0 (32b)                |
+   --       +-----------------------------+-----------------------------+
+   -- lw    | all0                        | all0_lo
+   -- hd    | all0                        | all0 & all0_lo
+   -- ld    | all0_lo      & all0_lo_dly2 | all0_lo_dly2
+   -- ldo   | all0_lo_dly1 & all0_lo_dly3 | all0_lo_dly3
+   -- hw    | all0_hi                     | all0_hi                      <- 64b case is undefined ,return zero
+   --       +-----------------------------+-----------------------------+
 
+   -- (ex5_ret_mullw  and ex5_all0_q                        and     ex5_spr_msr_cm_q) or
+   -- (ex5_ret_mullw  and ex5_all0_lo_q                     and not ex5_spr_msr_cm_q) or
+   -- (ex5_ret_mulhd  and ex5_all0_q                                                ) or
+   -- (ex5_ret_mulhd  and ex5_all0_lo_q                     and not ex5_spr_msr_cm_q) or
+   -- (ex5_ret_mulld  and ex5_all0_lo_q  and all0_lo_dly2_q and     ex5_spr_msr_cm_q) or
+   -- (ex5_ret_mulld  and                    all0_lo_dly2_q and not ex5_spr_msr_cm_q) or
+   -- (ex5_ret_mulldo and all0_lo_dly1_q and all0_lo_dly3_q and     ex5_spr_msr_cm_q) or
+   -- (ex5_ret_mulldo and                    all0_lo_dly3_q and not ex5_spr_msr_cm_q) or
+   -- (ex5_ret_mulhw  and ex5_all0_hi_q                                             );
 
    ex5_eq_sel_all0_hi_b_d  <= not( ex4_ret_mulhw                         );
 
@@ -477,7 +583,18 @@ end generate;
     ex5_cmp0_gt                 <= not ex5_sign_rt_cmp0 and not ex5_eq and not ex5_cmp0_undef_q;
     ex5_cmp0_lt                 <=     ex5_sign_rt_cmp0 and not ex5_eq and not ex5_cmp0_undef_q;
 
+    -- What sign bit to use for overflow detection?
+    --
+    -- lwo - ex5_res_q(32)
+    -- ldo - rslt_lo_q(0)
 
+--     ex5_sign_rt_ov              <= (ex5_res_q(32) and ex5_ret_mullw ) or
+--                                    (rslt_lo_q(0)  and ex5_ret_mulldo);
+--
+--     ex5_xer_ov                  <= (ex5_ret_mullw  and not ex5_sign_rt_ov and not ex5_all0_hi_q) or
+--                                    (ex5_ret_mullw  and     ex5_sign_rt_ov and not ex5_all1_hi_q) or
+--                                    (ex5_ret_mulldo and not ex5_sign_rt_ov and not ex5_all0_q   ) or
+--                                    (ex5_ret_mulldo and     ex5_sign_rt_ov and not ex5_all1_q   );
 
      ex5_xer_ov                  <= (ex5_ret_mullw_q  and ((not ex5_res_q(32) and not ex5_all0_hi_q) or
                                                            (    ex5_res_q(32) and not ex5_all1_hi_q))) or
@@ -485,11 +602,24 @@ end generate;
                                                            (    rslt_lo_q(0)  and not ex5_all1_q   )));
 
 
+    ---------------------------------------------------------------------
+    -- Return
+    ---------------------------------------------------------------------
     alu_byp_ex5_mul_rt          <= ex5_result;
     alu_byp_ex5_cr_mul          <= ex5_cmp0_lt & ex5_cmp0_gt & ex5_cmp0_eq & (ex5_xer_ov and ex5_xer_ov_update_q) & ex5_mul_cr_valid;
     alu_byp_ex5_xer_mul         <= ex5_xer_ov & tidn & ex5_xer_ov_update_q & tidn;
 
+    ---------------------------------------------------------------------
+    -- Assert a signal when the result is ready
+    ---------------------------------------------------------------------
 
+    --             READY   RET     SIZE    IMM     OVERFLOW
+    -- mulhw       1000    .       0       0       .
+    -- mullw       1000    .       0       0       .
+    -- mulli       0100    .       .       1       .
+    -- mulld       0010    0       1       0       0
+    -- mulldo      0001    0       1       0       1
+    -- mulhd       0001    1       1       0       .
 
     ex2_ready_stage(0)      <= (                        not ex2_retsel_q(1) and not ex2_retsel_q(2)                            )    ;
     ex2_ready_stage(1)      <= (                                                    ex2_retsel_q(2)                            )    ;
@@ -504,10 +634,18 @@ end generate;
     alu_ex4_mul_done    <= ex4_mul_done_q;
 
 
+    ------------------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------------------------------------------------------------
     mark_unused(ex3_recycle_c(264));
     mark_unused(ex5_mulstage_q(1));
     mark_unused(ex5_mulstage_q(3));
 
+    ---------------------------------------------------------------------
+    -- Latch Instances
+    ---------------------------------------------------------------------
     ex1_mul_val_latch : tri_rlmlatch_p
         generic map (init => 0, expand_type => expand_type, needs_sreset => 1)
         port map (nclk          => nclk,

@@ -16,9 +16,11 @@ library ibm;
   use ibm.std_ulogic_ao_support.all;
   use ibm.std_ulogic_mux_support.all;
 
+-- input phase is important
+-- (change X (B) by switching xor/xnor )
 
 entity xuq_add_csmux is port(
-     sum_0      :in  std_ulogic_vector(0 to 7) ; 
+     sum_0      :in  std_ulogic_vector(0 to 7) ; -- after xor
      sum_1      :in  std_ulogic_vector(0 to 7) ;
      ci_b       :in  std_ulogic ;
      sum        :out std_ulogic_vector(0 to 7)
@@ -33,12 +35,6 @@ ARCHITECTURE xuq_add_csmux  OF xuq_add_csmux  IS
 
  signal sum0_b, sum1_b :std_ulogic_vector(0 to 7);
  signal int_ci, int_ci_t, int_ci_b :std_ulogic;
-
-
-
-
-
-
 
 
 BEGIN
@@ -75,5 +71,4 @@ BEGIN
  u_sum_7: sum(7) <= not( sum0_b(7) and sum1_b(7) );
 
 
-END; 
-
+END; -- ARCH xuq_add_csmux

@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_128x168_1w_0.vhdl
+-- *! DESCRIPTION : 128 Entry x 168 bit x 1 way array
+-- *!
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all ;
 library ibm; 
@@ -20,16 +25,18 @@ use tri.tri_latches_pkg.all;
 -- pragma translate_on
 
 entity tri_128x168_1w_0 is
-  generic (addressable_ports : positive := 128; 
-           addressbus_width : positive := 7;    
-           port_bitwidth : positive := 168;     
-           ways : positive := 1;                
-           expand_type : integer := 1);         
+  generic (addressable_ports : positive := 128; -- number of addressable register in this array
+           addressbus_width : positive := 7;    -- width of the bus to address all ports (2^addressbus_width >= addressable_ports)
+           port_bitwidth : positive := 168;     -- bitwidth of ports
+           ways : positive := 1;                -- number of ways
+           expand_type : integer := 1);         -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
   port (
+  -- POWER PINS
     gnd                : inout power_logic;
     vdd                : inout power_logic;
     vcs                : inout power_logic;
     
+  -- CLOCK and CLOCKCONTROL ports
     nclk              : in clk_logic;
     act               : in std_ulogic;
     ccflush_dc        : in std_ulogic;
@@ -58,7 +65,7 @@ entity tri_128x168_1w_0 is
     lcb_repr_sl_thold_0   : in std_ulogic;
     lcb_time_sl_thold_0   : in std_ulogic;
     lcb_ary_nsl_thold_0   : in std_ulogic;
-    lcb_bolt_sl_thold_0   : in std_ulogic; 
+    lcb_bolt_sl_thold_0   : in std_ulogic; -- thold for any regs inside backend
 
     tc_lbist_ary_wrt_thru_dc    : in std_ulogic;
     abist_en_1                  : in std_ulogic;
@@ -69,13 +76,14 @@ entity tri_128x168_1w_0 is
     addr_abist                  : in std_ulogic_vector(0 to 6);
     r_wb_abist                  : in std_ulogic;
 
-    pc_bo_enable_2                 : in    std_ulogic; 
-    pc_bo_reset                    : in    std_ulogic; 
+  -- BOLT-ON
+    pc_bo_enable_2                 : in    std_ulogic; -- general bolt-on enable, probably DC
+    pc_bo_reset                    : in    std_ulogic; -- execute sticky bit decode
     pc_bo_unload                   : in    std_ulogic;
-    pc_bo_repair                   : in    std_ulogic; 
-    pc_bo_shdata                   : in    std_ulogic; 
-    pc_bo_select                   : in    std_ulogic; 
-    bo_pc_failout                  : out   std_ulogic; 
+    pc_bo_repair                   : in    std_ulogic; -- load repair reg
+    pc_bo_shdata                   : in    std_ulogic; -- shift data for timing write
+    pc_bo_select                   : in    std_ulogic; -- select for mask and hier writes
+    bo_pc_failout                  : out   std_ulogic; -- fail/no-fix reg
     bo_pc_diagloop                 : out   std_ulogic;
     tri_lcb_mpw1_dc_b              : in    std_ulogic;
     tri_lcb_mpw2_dc_b              : in    std_ulogic;
@@ -83,15 +91,12 @@ entity tri_128x168_1w_0 is
     tri_lcb_clkoff_dc_b            : in    std_ulogic;
     tri_lcb_act_dis_dc             : in    std_ulogic;
 
+  -- PORTS
     write_enable      : in std_ulogic;
     addr              : in std_ulogic_vector (0 to addressbus_width-1);
     data_in           : in std_ulogic_vector (0 to port_bitwidth-1);
     data_out          : out std_ulogic_vector(0 to port_bitwidth-1)
 );
-
-  -- synopsys translate_off
-
-  -- synopsys translate_on
 
 end entity tri_128x168_1w_0;
 
@@ -101,14 +106,15 @@ constant wga_base_width : integer := 168;
 constant wga_width_mult : integer := (port_bitwidth*ways-1)/wga_base_width + 1;
 constant ramb_base_width : integer := 36;
 constant ramb_base_addr  : integer := 9;
-constant ramb_width_mult : integer := (port_bitwidth-1)/ramb_base_width + 1;  
+constant ramb_width_mult : integer := (port_bitwidth-1)/ramb_base_width + 1;  -- # of RAMB's per way
+--  added way constant below to fake out way-based generates and ranges
 constant way : std_ulogic_vector(0 to 0) := "0";
 
 
 type RAMB_DATA_ARRAY is array (natural range <>) of std_logic_vector(0 to (ramb_base_width*ramb_width_mult - 1));
 
 
-begin  
+begin  -- tri_128x168_1w_0
 
   -- synopsys translate_off
   um: if expand_type = 0 generate
@@ -203,7 +209,7 @@ begin
       component RAMB16_S36_S36
       -- pragma translate_off
 	generic(
-		SIM_COLLISION_CHECK : string := "none"); 
+		SIM_COLLISION_CHECK : string := "none"); -- all, none, warning_only, GENERATE_X_ONLY
       -- pragma translate_on
 	port(
 		DOA : out std_logic_vector(31 downto 0);
@@ -316,4 +322,3 @@ begin
   end generate a;
 
 end tri_128x168_1w_0;
-

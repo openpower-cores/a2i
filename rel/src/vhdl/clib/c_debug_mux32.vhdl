@@ -7,6 +7,14 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--********************************************************************
+--*
+--* TITLE: Debug Mux Component (32:1 Debug Groups; 4:1 Trigger Groups)
+--*
+--* NAME: c_debug_mux32.vhdl
+--*
+--********************************************************************
+--
 library ieee; use ieee.std_logic_1164.all;
 library support;
 use support.power_logic_pkg.all;
@@ -84,6 +92,7 @@ signal trigg_grp_rotated        : std_ulogic_vector(0 to 11);
 begin
 
 
+-- Debug Mux
     with select_bits(0 to 4) select debug_grp_selected <= 
       dbg_group0    when "00000",
       dbg_group1    when "00001",
@@ -143,6 +152,7 @@ begin
 
 
 
+-- Trigger Mux
    with select_bits(11 to 12) select trigg_grp_selected <= 
       trg_group0    when "00",
       trg_group1    when "01",

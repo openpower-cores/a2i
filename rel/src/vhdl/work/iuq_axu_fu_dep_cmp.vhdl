@@ -25,10 +25,12 @@ entity iuq_axu_fu_dep_cmp is
 port(
      lm_v                         : in  std_ulogic_vector(0 to 7);
      is1_instr_v                  : in  std_ulogic;
+     ---------------------------------------------------------------------
      vdd                                 	: inout power_logic;
      gnd                                 	: inout power_logic;
+     ---------------------------------------------------------------------
      lmc_ex4_v                    : in  std_ulogic;
-     dis_byp_is1                  : in  std_ulogic;  
+     dis_byp_is1                  : in  std_ulogic;  -- note: dis_byp does NOT disable the writethru case for loads
      is1_store_v                  : in  std_ulogic;     
      ex3_ld_v                     : in  std_ulogic;
      ex4_ld_v                     : in  std_ulogic;     
@@ -81,6 +83,7 @@ port(
  
      
 end iuq_axu_fu_dep_cmp;
+------------------------------------------------------------------------------------------------------------------------------------
 
 architecture iuq_axu_fu_dep_cmp of iuq_axu_fu_dep_cmp is
 
@@ -389,7 +392,10 @@ signal lm7_valid     : std_ulogic;
 begin
 
 
+-----------------------------------------------------------------------
+-- RAW
 
+-- target address buffering
   ucmp_lm0tabufb: lm0_ta_buf_b(0 to 5) <= not lm0_ta(0 to 5);
   ucmp_lm1tabufb: lm1_ta_buf_b(0 to 5) <= not lm1_ta(0 to 5);
   ucmp_lm2tabufb: lm2_ta_buf_b(0 to 5) <= not lm2_ta(0 to 5);
@@ -424,6 +430,7 @@ begin
   ucmp_rf0tabuf: rf0_ta_buf(0 to 5) <= not rf0_ta_buf_b (0 to 5);
   ucmp_is2tabuf: is2_ta_buf(0 to 5) <= not is2_ta_buf_b (0 to 5);
 
+  -- buffer is1 source addresses
   ucmp_is1frabufb1: is1_fra_buf1_b(0 to 5) <= not is1_fra(0 to 5);
   ucmp_is1frbbufb1: is1_frb_buf1_b(0 to 5) <= not is1_frb(0 to 5);
   ucmp_is1frcbufb1: is1_frc_buf1_b(0 to 5) <= not is1_frc(0 to 5);
@@ -467,6 +474,8 @@ begin
 
 
 
+------------------------------------------------------------------------------------
+-- RAW fra address compares
   
 
 
@@ -879,6 +888,7 @@ begin
 
 
 
+-------------------------------------------------------------------------------------------------------
 
 
   ucmp_teqlm0_x:  t_eq_lm0_x(0 to 5) <= not( lm0_ta_buf(0 to 5) xor is1_frt_buf1(0 to 5) ); 
@@ -951,7 +961,11 @@ begin
 
   
 
+-- ####################################################
+-- # oring the compares together
+-- ####################################################
 
+  -- ## A GROUP #####################
 
   ucmp_aor11: a_or_1_1   <= not( a_eq_lm0_b and a_eq_lm1_b );
   ucmp_aor12: a_or_1_2   <= not( a_eq_lm2_b and a_eq_lm3_b );
@@ -973,6 +987,7 @@ begin
   ucmp_aor4:  a_or_4_b   <= not( a_group_en and (a_or_3_1 or a_or_3_2) );
 
 
+  -- ## B GROUPs ##################### {2 parts because of ucode_end}
 
   ucmp_bor11: b_or_1_1   <= not( b_eq_lm0_b and b_eq_lm1_b );
   ucmp_bor12: b_or_1_2   <= not( b_eq_lm2_b and b_eq_lm3_b );
@@ -993,6 +1008,7 @@ begin
 
   ucmp_bor4:  b_or_4_b   <= not( b_group_en and (b_or_3_1 or b_or_3_2) );
 
+          ---------- b miro-code ------------
 
   ucmp_uor15: u_or_1_5   <= not(                u_eq_ex4_b );
   ucmp_uor16: u_or_1_6   <= not( u_eq_ex3_b and u_eq_ex2_b );
@@ -1006,6 +1022,7 @@ begin
 
   ucmp_uor4: u_or_4_b   <= not( u_or_3_1 and u_group_en);
 
+  -- ## C GROUP #####################
 
   ucmp_cor11: c_or_1_1   <= not( c_eq_lm0_b and c_eq_lm1_b );
   ucmp_cor12: c_or_1_2   <= not( c_eq_lm2_b and c_eq_lm3_b );
@@ -1026,6 +1043,7 @@ begin
 
   ucmp_cor4:  c_or_4_b   <= not( c_group_en and (c_or_3_1 or c_or_3_2) );
 
+  -- ## T GROUP #####################
 
   ucmp_tor11: t_or_1_1   <= not( t_eq_lm0_b and t_eq_lm1_b );
   ucmp_tor12: t_or_1_2   <= not( t_eq_lm2_b and t_eq_lm3_b );
@@ -1044,6 +1062,9 @@ begin
 
 
 
+-- ####################################################
+-- # compare enables
+-- ####################################################
 lm0_valid  <= lm_v(0);
 lm1_valid  <= lm_v(1);  
 lm2_valid  <= lm_v(2);  
@@ -1127,6 +1148,7 @@ lm7_valid  <= lm_v(7);
   ex4_b_cmp_en <= ex4_frt_v and (dis_byp_is1 or (is1_store_v and ex4_ld_v));
   ex4_c_cmp_en <= ex4_frt_v and  dis_byp_is1 ;
   
+  --
   
   is2_u_cmp_en <= is2_frt_v ;
   rf0_u_cmp_en <= rf0_frt_v ;
@@ -1136,6 +1158,7 @@ lm7_valid  <= lm_v(7);
   ex3_u_cmp_en <= ex3_frt_v ;
   ex4_u_cmp_en <= ex4_frt_v ;
 
+  -----------------------------------------------
 
   a_group_en <= is1_fra_v  and is1_instr_v ;
   c_group_en <= is1_frc_v  and is1_instr_v ;
@@ -1153,4 +1176,3 @@ lm7_valid  <= lm_v(7);
 
     
 end iuq_axu_fu_dep_cmp;
-

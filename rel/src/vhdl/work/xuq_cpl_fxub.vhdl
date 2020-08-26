@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Exception Handler
+--
 library ieee,ibm,support,work,tri,clib;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -26,17 +28,23 @@ generic(
         hvmode                  : integer := 1;
         regmode                 : integer := 6;
         dc_size                 : natural := 14;
-        cl_size                 : natural := 6;             
+        cl_size                 : natural := 6;             -- 2^6 = 64 Bytes CacheLines
         real_data_add           : integer := 42;
         fxu_synth               : integer := 0;
         a2mode                  : integer := 1);
 port(
 
+        ---------------------------------------------------------------------
+        -- Clocks & Power
+        ---------------------------------------------------------------------
         nclk                            : in clk_logic;
         vdd                             : inout power_logic;
         gnd                             : inout power_logic;
         vcs                             : inout power_logic;
 
+        ---------------------------------------------------------------------
+        -- Pervasive
+        ---------------------------------------------------------------------
         func_scan_in                        : in     std_ulogic_vector(50 to 58);
         func_scan_out                       : out    std_ulogic_vector(50 to 58);
         an_ac_scan_dis_dc_b                 : in     std_ulogic;
@@ -103,6 +111,9 @@ port(
         gptr_scan_in                        : in     std_ulogic;
         gptr_scan_out                       : out    std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Interface with FXU A
+        ---------------------------------------------------------------------
         fxa_fxb_rf0_val                     : in  std_ulogic_vector(0 to threads-1);
         fxa_fxb_rf0_issued                  : in  std_ulogic_vector(0 to threads-1);
         fxa_fxb_rf0_ucode_val               : in  std_ulogic_vector(0 to threads-1);
@@ -157,6 +168,9 @@ port(
         fxa_fxb_rf1_do1                     : in  std_ulogic_vector(64-regsize to 63);
         fxa_fxb_rf1_do2                     : in  std_ulogic_vector(64-regsize to 63);
 
+        ---------------------------------------------------------------------
+        -- Interface with LSU
+        ---------------------------------------------------------------------
         xu_lsu_rf0_act                      : out std_ulogic;
         xu_lsu_rf1_cache_acc                : out std_ulogic;
         xu_lsu_rf1_thrd_id                  : out std_ulogic_vector(0 to threads-1);
@@ -201,7 +215,7 @@ port(
         xu_lsu_rf1_targ_gpr                 : out std_ulogic;
         xu_lsu_rf1_targ_axu                 : out std_ulogic;
         xu_lsu_rf1_targ_dp                  : out std_ulogic;
-        xu_lsu_ex4_val                      : out std_ulogic_vector(0 to threads-1);    
+        xu_lsu_ex4_val                      : out std_ulogic_vector(0 to threads-1);    -- There is a valid Instruction in EX4
         xu_lsu_ex1_rotsel_ovrd              : out std_ulogic_vector(0 to 4);
         xu_lsu_rf1_derat_act                : out std_ulogic;
         xu_lsu_rf1_derat_is_load            : out std_ulogic;
@@ -231,9 +245,9 @@ port(
         xu_lsu_rf1_cmd_act                  : out std_ulogic;
         xu_lsu_rf1_data_act                 : out std_ulogic;
         xu_lsu_rf1_mtspr_trace              : out std_ulogic;
-        lsu_xu_ex5_wren                     : in  std_ulogic;                        
-        lsu_xu_rel_wren                     : in  std_ulogic;                        
-        lsu_xu_rel_ta_gpr                   : in  std_ulogic_vector(0 to 7);         
+        lsu_xu_ex5_wren                     : in  std_ulogic;                        -- FXU Load Hit Write is Valid in EX5
+        lsu_xu_rel_wren                     : in  std_ulogic;                        -- FXU Reload is Valid
+        lsu_xu_rel_ta_gpr                   : in  std_ulogic_vector(0 to 7);         -- FXU Reload Target Register
         lsu_xu_need_hole                    : in  std_ulogic;
         lsu_xu_rot_ex6_data_b               : in  std_ulogic_vector(64-(2**regmode) to 63);
         lsu_xu_rot_rel_data                 : in  std_ulogic_vector(64-(2**regmode) to 63);
@@ -251,12 +265,19 @@ port(
         xu_lsu_ex1_add_src0                 : out std_ulogic_vector(64-regsize to 63);
         xu_lsu_ex1_add_src1                 : out std_ulogic_vector(64-regsize to 63);
 
+        ---------------------------------------------------------------------
+        -- Effective Address
+        ---------------------------------------------------------------------
         xu_ex1_eff_addr_int                 : out std_ulogic_vector(64-(dc_size-3) to 63);
 
+        -- Barrier
         xu_lsu_ex5_set_barr                 : out std_ulogic_vector(0 to threads-1);
         cpl_fxa_ex5_set_barr                : out std_ulogic_vector(0 to threads-1);
         cpl_iu_set_barr_tid                 : out std_ulogic_vector(0 to threads-1);
 
+        ---------------------------------------------------------------------
+        -- TLB ops interface
+        ---------------------------------------------------------------------
         xu_iu_rf1_val                       : out std_ulogic_vector(0 to threads-1);
         xu_rf1_val                          : out std_ulogic_vector(0 to threads-1);
         xu_rf1_is_tlbre                     : out std_ulogic;
@@ -283,20 +304,35 @@ port(
         lsu_xu_ex4_tlb_data                 : in  std_ulogic_vector(64-(2**regmode) to 63);
         iu_xu_ex4_tlb_data                  : in  std_ulogic_vector(64-(2**regmode) to 63);
 
+        ---------------------------------------------------------------------
+        -- D-ERAT Req Interface
+        ---------------------------------------------------------------------
         xu_mm_derat_epn                     : out std_ulogic_vector(62-eff_ifar to 51);
 
+        ---------------------------------------------------------------------
+        -- Back Invalidate
+        ---------------------------------------------------------------------
         lsu_xu_is2_back_inv                 : in std_ulogic;
         lsu_xu_is2_back_inv_addr            : in std_ulogic_vector(64-real_data_add to 63-cl_size);
 
+        ---------------------------------------------------------------------
+        -- TLBRE
+        ---------------------------------------------------------------------
         mm_xu_mmucr0_0_tlbsel               : in  std_ulogic_vector(4 to 5);
         mm_xu_mmucr0_1_tlbsel               : in  std_ulogic_vector(4 to 5);
         mm_xu_mmucr0_2_tlbsel               : in  std_ulogic_vector(4 to 5);
         mm_xu_mmucr0_3_tlbsel               : in  std_ulogic_vector(4 to 5);
 
+        ---------------------------------------------------------------------
+        -- TLBSX./TLBSRX.
+        ---------------------------------------------------------------------
         xu_mm_rf1_is_tlbsxr                 : out std_ulogic;
         mm_xu_cr0_eq_valid                  : in  std_ulogic_vector(0 to threads-1);
         mm_xu_cr0_eq                        : in  std_ulogic_vector(0 to threads-1);
 
+        ---------------------------------------------------------------------
+        -- FU CR Write
+        ---------------------------------------------------------------------
         fu_xu_ex4_cr_val                    : in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex4_cr_noflush                : in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex4_cr0                       : in  std_ulogic_vector(0 to 3);
@@ -308,8 +344,14 @@ port(
         fu_xu_ex4_cr3                       : in  std_ulogic_vector(0 to 3);
         fu_xu_ex4_cr3_bf                    : in  std_ulogic_vector(0 to 2);
 
+        ---------------------------------------------------------------------
+        -- RAM
+        ---------------------------------------------------------------------
         xu_pc_ram_data                      : out std_ulogic_vector(64-(2**regmode) to 63);
 
+        ---------------------------------------------------------------------
+        -- Interface with IU
+        ---------------------------------------------------------------------
         xu_iu_ex5_val                       : out std_ulogic;
         xu_iu_ex5_tid                       : out std_ulogic_vector(0 to threads-1);
         xu_iu_ex5_br_update                 : out std_ulogic;
@@ -326,13 +368,22 @@ port(
         xu_iu_ex5_gshare                    : out std_ulogic_vector(0 to 3);
         xu_iu_ex5_getNIA                    : out std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- L2 STCX complete
+        ---------------------------------------------------------------------
         an_ac_stcx_complete                 : in  std_ulogic_vector(0 to threads-1);
         an_ac_stcx_pass                     : in  std_ulogic_vector(0 to threads-1);
 
+        ---------------------------------------------------------------------
+        -- icswx. interface
+        ---------------------------------------------------------------------
         an_ac_back_inv                      : in  std_ulogic;
         an_ac_back_inv_addr                 : in  std_ulogic_vector(58 to 63);
         an_ac_back_inv_target_bit3          : in  std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Slow SPR Bus
+        ---------------------------------------------------------------------
         slowspr_val_in                      : in  std_ulogic;
         slowspr_rw_in                       : in  std_ulogic;
         slowspr_etid_in                     : in  std_ulogic_vector(0 to 1);
@@ -340,6 +391,9 @@ port(
         slowspr_data_in                     : in  std_ulogic_vector(64-(2**regmode) to 63);
         slowspr_done_in                     : in  std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- DCR Bus
+        ---------------------------------------------------------------------
         an_ac_dcr_act                       : in  std_ulogic;
         an_ac_dcr_val                       : in  std_ulogic;
         an_ac_dcr_read                      : in  std_ulogic;
@@ -347,13 +401,22 @@ port(
         an_ac_dcr_data                      : in  std_ulogic_vector(64-(2**regmode) to 63);
         an_ac_dcr_done                      : in  std_ulogic;
         
+        ---------------------------------------------------------------------
+        -- MT/MFDCR CR
+        ---------------------------------------------------------------------
         lsu_xu_ex4_mtdp_cr_status           : in  std_ulogic;
         lsu_xu_ex4_mfdp_cr_status           : in  std_ulogic;
         dec_cpl_ex3_mc_dep_chk_val          : in  std_ulogic_vector(0 to threads-1);
 
+        ---------------------------------------------------------------------
+        -- ldawx/wchkall
+        ---------------------------------------------------------------------
         lsu_xu_ex4_cr_upd                   : in std_ulogic;
         lsu_xu_ex5_cr_rslt                  : in std_ulogic;
 
+        ---------------------------------------------------------------------
+        -- Interface with SPR
+        ---------------------------------------------------------------------
         dec_spr_ex4_val                     : out std_ulogic_vector(0 to threads-1);
         dec_spr_ex1_epid_instr              : out std_ulogic;
         mux_spr_ex2_rt                      : out std_ulogic_vector(64-(2**regmode) to 63);
@@ -376,14 +439,23 @@ port(
         dec_spr_rf1_val                     : out std_ulogic_vector(0 to threads-1);
         fxu_spr_ex1_rs2                     : out std_ulogic_vector(42 to 55);
 
+        ---------------------------------------------------------------------
+        -- Perf Events
+        ---------------------------------------------------------------------
         fxa_perf_muldiv_in_use              : in  std_ulogic;
         spr_perf_tx_events                  : in  std_ulogic_vector(0 to 8*threads-1);
         xu_pc_event_data                    : out std_ulogic_vector(0 to 7);
 
+        ---------------------------------------------------------------------
+        -- PC Control Interface
+        ---------------------------------------------------------------------
         pc_xu_event_bus_enable              : in  std_ulogic;
         pc_xu_event_count_mode              : in  std_ulogic_vector(0 to 2);
         pc_xu_event_mux_ctrls               : in  std_ulogic_vector(0 to 47);
 
+        ---------------------------------------------------------------------
+        -- Debug Ramp & Controls
+        ---------------------------------------------------------------------
         pc_xu_trace_bus_enable              : in  std_ulogic;
         pc_xu_instr_trace_mode              : in  std_ulogic;
         pc_xu_instr_trace_tid               : in  std_ulogic_vector(0 to 1);
@@ -397,6 +469,9 @@ port(
         lsu_xu_data_debug1                  : in  std_ulogic_vector(0 to 87);
         lsu_xu_data_debug2                  : in  std_ulogic_vector(0 to 87);
 
+        ---------------------------------------------------------------------
+        -- SPR Bits
+        ---------------------------------------------------------------------
         spr_msr_gs                          : in  std_ulogic_vector(0 to threads-1);
         spr_msr_ds                          : in  std_ulogic_vector(0 to threads-1);
         spr_msr_pr                          : in  std_ulogic_vector(0 to threads-1);
@@ -406,8 +481,10 @@ port(
         spr_dbcr0_dac4                      : in  std_ulogic_vector(0 to 2*threads-1);
         spr_xucr0_clkg_ctl                  : in  std_ulogic_vector(2 to 2);
          
+        -- CHIP IO
         ac_tc_debug_trigger              : out std_ulogic_vector(0 to threads-1);
 
+        -- Pervasive
         ccfg_scan_in                     : in  std_ulogic;
         ccfg_scan_out                    : out std_ulogic;
         bcfg_scan_in                     : in  std_ulogic;
@@ -415,10 +492,12 @@ port(
         dcfg_scan_in                     : in  std_ulogic;
         dcfg_scan_out                    : out std_ulogic;
 
+        -- Valids
         dec_cpl_rf0_act                  : in  std_ulogic;
         dec_cpl_rf0_tid                  : in  std_ulogic_vector(0 to threads-1);
 
 
+        -- FU Inputs
         fu_xu_rf1_act                    : in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex1_ifar                   : in  std_ulogic_vector(0 to eff_ifar*threads-1);
         fu_xu_ex2_ifar_val               : in  std_ulogic_vector(0 to threads-1);
@@ -427,6 +506,7 @@ port(
         fu_xu_ex2_instr_match            : in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex2_is_ucode               : in  std_ulogic_vector(0 to threads-1);
 
+        -- PC Inputs
         pc_xu_step                       : in  std_ulogic_vector(0 to threads-1);
         pc_xu_stop                       : in  std_ulogic_vector(0 to threads-1);
         pc_xu_dbg_action                 : in  std_ulogic_vector(0 to 3*threads-1);
@@ -434,6 +514,7 @@ port(
         xu_pc_step_done                  : out std_ulogic_vector(0 to threads-1);
         pc_xu_init_reset                 : in  std_ulogic;
 
+        -- Async Interrupt Req Interface
         spr_cpl_ext_interrupt            : in  std_ulogic_vector(0 to threads-1);
         spr_cpl_udec_interrupt           : in  std_ulogic_vector(0 to threads-1);
         spr_cpl_perf_interrupt           : in  std_ulogic_vector(0 to threads-1);
@@ -453,6 +534,7 @@ port(
         cpl_spr_ex5_gcdbell_taken        : out std_ulogic_vector(0 to threads-1);
         cpl_spr_ex5_gmcdbell_taken       : out std_ulogic_vector(0 to threads-1);
 
+        -- Interrupt Interface
         cpl_spr_ex5_act                  : out std_ulogic_vector(0 to threads-1);
         cpl_spr_ex5_int                  : out std_ulogic_vector(0 to threads-1);
         cpl_spr_ex5_gint                 : out std_ulogic_vector(0 to threads-1);
@@ -473,6 +555,7 @@ port(
 
         spr_cpl_dbsr_ide                 : in  std_ulogic_vector(0 to threads-1);
 
+        -- Machine Check Interrupts
         mm_xu_local_snoop_reject         : in  std_ulogic_vector(0 to threads-1);
         mm_xu_lru_par_err                : in  std_ulogic_vector(0 to threads-1);
         mm_xu_tlb_par_err                : in  std_ulogic_vector(0 to threads-1);
@@ -486,24 +569,31 @@ port(
         lsu_xu_ex6_datc_par_err          : in  std_ulogic;
         spr_cpl_external_mchk            : in  std_ulogic_vector(0 to threads-1);
 
+        -- PC Errors
         xu_pc_err_attention_instr        : out std_ulogic_vector(0 to threads-1);
         xu_pc_err_nia_miscmpr            : out std_ulogic_vector(0 to threads-1);
         xu_pc_err_debug_event            : out std_ulogic_vector(0 to threads-1);
 
+        -- Data Storage
         lsu_xu_ex3_dsi                   : in  std_ulogic_vector(0 to threads-1);
         derat_xu_ex3_dsi                 : in  std_ulogic_vector(0 to threads-1);
         spr_cpl_ex3_ct_le                : in  std_ulogic_vector(0 to threads-1);
         spr_cpl_ex3_ct_be                : in  std_ulogic_vector(0 to threads-1);
 
+        -- Alignment
         lsu_xu_ex3_align                 : in  std_ulogic_vector(0 to threads-1);
 
+        -- Program
         spr_cpl_ex3_spr_illeg            : in  std_ulogic;
         spr_cpl_ex3_spr_priv             : in  std_ulogic;
 
+        -- Hypv Privledge
         spr_cpl_ex3_spr_hypv             : in  std_logic;
 
+        -- Data TLB Miss
         derat_xu_ex3_miss                : in  std_ulogic_vector(0 to threads-1);
 
+        -- RAM
         pc_xu_ram_mode                   : in  std_ulogic;
         pc_xu_ram_thread                 : in  std_ulogic_vector(0 to 1);
         pc_xu_ram_execute                : in  std_ulogic;
@@ -512,6 +602,7 @@ port(
         xu_pc_ram_done                   : out std_ulogic;
         pc_xu_ram_flush_thread           : in  std_ulogic;
 
+        -- Run State
         cpl_spr_stop                     : out std_ulogic_vector(0 to threads-1);
         xu_pc_stop_dbg_event             : out std_ulogic_vector(0 to threads-1);
         cpl_spr_ex5_instr_cpl            : out std_ulogic_vector(0 to threads-1);
@@ -519,6 +610,7 @@ port(
         cpl_spr_quiesce                  : out std_ulogic_vector(0 to threads-1);
         spr_cpl_ex2_run_ctl_flush        : in  std_ulogic_vector(0 to threads-1);
 
+        -- MMU Flushes
         mm_xu_illeg_instr                : in  std_ulogic_vector(0 to threads-1);
         mm_xu_tlb_miss                   : in  std_ulogic_vector(0 to threads-1);
         mm_xu_pt_fault                   : in  std_ulogic_vector(0 to threads-1);
@@ -535,6 +627,7 @@ port(
         mm_xu_eratmiss_done              : in  std_ulogic_vector(0 to threads-1);
         mm_xu_ex3_flush_req              : in  std_ulogic_vector(0 to threads-1);
 
+        -- LSU Flushes
         lsu_xu_l2_ecc_err_flush          : in  std_ulogic_vector(0 to threads-1);
         lsu_xu_datc_perr_recovery        : in  std_ulogic;
         lsu_xu_ex3_dep_flush             : in  std_ulogic;
@@ -546,6 +639,7 @@ port(
         lsu_xu_ex3_attr                  : in  std_ulogic_vector(0 to 8);
         lsu_xu_ex3_derat_vf              : in  std_ulogic;
 
+        -- AXU Flushes
         fu_xu_ex3_ap_int_req             : in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex3_trap                   : in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex3_n_flush                : in  std_ulogic_vector(0 to threads-1);
@@ -553,6 +647,7 @@ port(
         fu_xu_ex3_flush2ucode            : in  std_ulogic_vector(0 to threads-1);
         fu_xu_ex2_async_block            : in  std_ulogic_vector(0 to threads-1);
 
+        -- IU Flushes
         xu_iu_ex5_br_taken               : out std_ulogic;
         xu_iu_ex5_ifar                   : out std_ulogic_vector(62-eff_ifar to 61);
         xu_iu_flush                      : out std_ulogic_vector(0 to threads-1);
@@ -563,6 +658,7 @@ port(
         xu_iu_ucode_restart              : out std_ulogic_vector(0 to threads-1);
         xu_iu_ex5_ppc_cpl                : out std_ulogic_vector(0 to threads-1);
 
+        -- Flushes
         xu_rf0_flush                     : out std_ulogic_vector(0 to threads-1);
         xu_rf1_flush                     : out std_ulogic_vector(0 to threads-1);
         xu_ex1_flush                     : out std_ulogic_vector(0 to threads-1);
@@ -598,6 +694,7 @@ port(
         xu_mm_ex5_perf_dtlb              : out std_ulogic_vector(0 to threads-1);
 
 
+        -- SPR Bits
         spr_bit_act                      : in  std_ulogic;
         spr_cpl_iac1_en                  : in  std_ulogic_vector(0 to threads-1);
         spr_cpl_iac2_en                  : in  std_ulogic_vector(0 to threads-1);
@@ -638,15 +735,18 @@ port(
         cpl_ccr2_ap                      : out std_ulogic_vector(0 to threads-1);
         spr_xucr4_mmu_mchk               : out std_ulogic;
 
+        -- Cache invalidate
         xu_lsu_ici                       : out std_ulogic;
         xu_lsu_dci                       : out std_ulogic;
 
+        -- Parity
         spr_cpl_ex3_sprg_ce              : in  std_ulogic;
         spr_cpl_ex3_sprg_ue              : in  std_ulogic;
         iu_xu_ierat_ex2_flush_req        : in  std_ulogic_vector(0 to threads-1);
         iu_xu_ierat_ex3_par_err          : in  std_ulogic_vector(0 to threads-1);
         iu_xu_ierat_ex4_par_err          : in  std_ulogic_vector(0 to threads-1);
 
+        -- Regfile Parity
         fu_xu_ex3_regfile_err_det	      : in  std_ulogic_vector(0 to threads-1);
         xu_fu_regfile_seq_beg	         : out std_ulogic;
         fu_xu_regfile_seq_end	         : in  std_ulogic;
@@ -667,6 +767,7 @@ port(
         xu_pc_err_mchk_disabled          : out std_ulogic;
         xu_pc_err_sprg_ue                : out std_ulogic_vector(0 to threads-1);
 
+        -- Debug
         cpl_debug_mux_ctrls              : in  std_ulogic_vector(0 to 15);
         cpl_debug_data_in                : in  std_ulogic_vector(0 to 87);
         cpl_debug_data_out               : out std_ulogic_vector(0 to 87);
@@ -1191,8 +1292,11 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       regsize                          => regsize,
       eff_ifar                         => eff_ifar)
    port map(
+      -- Clocks
       nclk                             => nclk,
+      -- CHIP IO
       ac_tc_debug_trigger              => ac_tc_debug_trigger,
+      -- Pervasive
       an_ac_scan_dis_dc_b             => an_ac_scan_dis_dc_b,
       pc_xu_ccflush_dc                => pc_xu_ccflush_dc,
       clkoff_dc_b                     => clkoff_dc_b_b,
@@ -1217,10 +1321,12 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       dcfg_scan_in                    => dcfg_scan_in,
       dcfg_scan_out                   => dcfg_scan_out,
 
+      -- Valids
       dec_cpl_rf0_act                  => dec_cpl_rf0_act,
       dec_cpl_rf0_tid                  => dec_cpl_rf0_tid,
       dec_cpl_rf1_val                  => dec_cpl_rf1_val,
       dec_cpl_rf1_issued               => dec_cpl_rf1_issued,
+      -- FU Inputs
       fu_xu_rf1_act                    => fu_xu_rf1_act,
       fu_xu_ex2_ifar_val               => fu_xu_ex2_ifar_val,
       fu_xu_ex2_ifar_issued            => fu_xu_ex2_ifar_issued,
@@ -1230,12 +1336,15 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       fu_xu_ex2_is_ucode               => fu_xu_ex2_is_ucode,
       fu_xu_ex3_trap                   => fu_xu_ex3_trap,
       fu_xu_ex3_ap_int_req             => fu_xu_ex3_ap_int_req,
+      -- PC Inputs
       pc_xu_step                       => pc_xu_step,
       pc_xu_stop                       => pc_xu_stop,
       pc_xu_dbg_action                 => pc_xu_dbg_action,
       pc_xu_force_ude                  => pc_xu_force_ude,
       xu_pc_step_done                  => xu_pc_step_done,
+      -- Bypass Inputs
       byp_cpl_ex1_cr_bit               => byp_cpl_ex1_cr_bit,
+      -- Decode Inputs
       dec_cpl_rf1_pred_taken_cnt       => dec_cpl_rf1_pred_taken_cnt,
       dec_cpl_rf1_instr                => dec_cpl_rf1_instr,
       dec_cpl_ex2_error                => dec_cpl_ex2_error,
@@ -1256,6 +1365,7 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       lsu_xu_ex4_mtdp_cr_status        => lsu_xu_ex4_mtdp_cr_status,
       dec_cpl_ex3_instr_hypv           => dec_cpl_ex3_instr_hypv,
       fxa_cpl_ex2_div_coll             => fxa_cpl_ex2_div_coll,
+      -- Async Interrupt Req Interface
       spr_cpl_ext_interrupt            => spr_cpl_ext_interrupt,
       spr_cpl_dec_interrupt            => spr_cpl_dec_interrupt,
       spr_cpl_udec_interrupt           => spr_cpl_udec_interrupt,
@@ -1273,6 +1383,7 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       cpl_spr_ex5_gdbell_taken         => cpl_spr_ex5_gdbell_taken,
       cpl_spr_ex5_gcdbell_taken        => cpl_spr_ex5_gcdbell_taken,
       cpl_spr_ex5_gmcdbell_taken       => cpl_spr_ex5_gmcdbell_taken,
+      -- Debug Compares
       dec_cpl_rf1_ifar                 => dec_cpl_rf1_ifar,
       fxu_cpl_ex3_dac1r_cmpr_async     => fxu_cpl_ex3_dac1r_cmpr_async,
       fxu_cpl_ex3_dac2r_cmpr_async     => fxu_cpl_ex3_dac2r_cmpr_async,
@@ -1284,6 +1395,7 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       fxu_cpl_ex3_dac2w_cmpr           => fxu_cpl_ex3_dac2w_cmpr,
       fxu_cpl_ex3_dac3w_cmpr           => fxu_cpl_ex3_dac3w_cmpr,
       fxu_cpl_ex3_dac4w_cmpr           => fxu_cpl_ex3_dac4w_cmpr,
+      -- Interrupt Interface
       cpl_spr_ex5_act                  => cpl_spr_ex5_act,
       cpl_spr_ex5_int                  => cpl_spr_ex5_int,
       cpl_spr_ex5_gint                 => cpl_spr_ex5_gint,
@@ -1302,7 +1414,9 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       cpl_spr_ex5_force_gsrr           => cpl_spr_ex5_force_gsrr,
       cpl_spr_ex5_dbsr_ide             => cpl_spr_ex5_dbsr_ide,
       spr_cpl_dbsr_ide                 => spr_cpl_dbsr_ide,
+      -- ALU Inputs
       alu_cpl_ex1_eff_addr             => xu_ex1_eff_addr(62 to 63),
+      -- Machine Check Interrupts
       mm_xu_local_snoop_reject         => mm_xu_local_snoop_reject,
       mm_xu_lru_par_err                => mm_xu_lru_par_err,
       mm_xu_tlb_par_err                => mm_xu_tlb_par_err,
@@ -1315,21 +1429,29 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       lsu_xu_ex4_n_lsu_ddmh_flush      => lsu_xu_ex4_n_lsu_ddmh_flush,
       lsu_xu_ex6_datc_par_err          => lsu_xu_ex6_datc_par_err,
       spr_cpl_external_mchk            => spr_cpl_external_mchk,
+      -- ATTN complete
       xu_pc_err_attention_instr        => xu_pc_err_attention_instr,
       xu_pc_err_nia_miscmpr            => xu_pc_err_nia_miscmpr,
       xu_pc_err_debug_event            => xu_pc_err_debug_event,
+      -- Data Storage
       derat_xu_ex3_dsi                 => derat_xu_ex3_dsi,
       lsu_xu_ex3_dsi                   => lsu_xu_ex3_dsi,
       spr_cpl_ex3_ct_le                => spr_cpl_ex3_ct_le,
       spr_cpl_ex3_ct_be                => spr_cpl_ex3_ct_be,
+      -- Alignment
       lsu_xu_ex3_align                 => lsu_xu_ex3_align,
+      -- Program
       spr_cpl_ex3_spr_illeg            => spr_cpl_ex3_spr_illeg,
       spr_cpl_ex3_spr_priv             => spr_cpl_ex3_spr_priv,
       alu_cpl_ex3_trap_val             => alu_cpl_ex3_trap_val,
+      -- Hypv Privledge
       spr_cpl_ex3_spr_hypv             => spr_cpl_ex3_spr_hypv,
+      -- Data TLB Miss
       derat_xu_ex3_miss                => derat_xu_ex3_miss,
       mm_xu_illeg_instr                => mm_xu_illeg_instr,
+      -- Instr TLB Miss
       mm_xu_tlb_miss                   => mm_xu_tlb_miss,
+      -- RAM
       pc_xu_ram_mode                   => pc_xu_ram_mode,
       pc_xu_ram_thread                 => pc_xu_ram_thread,
       pc_xu_ram_execute                => pc_xu_ram_execute,
@@ -1338,12 +1460,14 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       xu_pc_ram_interrupt              => xu_pc_ram_interrupt,
       xu_pc_ram_done                   => xu_pc_ram_done,
       pc_xu_init_reset                 => pc_xu_init_reset,
+      -- Run State
       cpl_spr_stop                     => cpl_spr_stop,
       cpl_spr_ex5_instr_cpl            => cpl_spr_ex5_instr_cpl,
       xu_pc_stop_dbg_event             => xu_pc_stop_dbg_event,
       spr_cpl_quiesce                  => spr_cpl_quiesce,
       cpl_spr_quiesce                  => cpl_spr_quiesce,
       spr_cpl_ex2_run_ctl_flush        => spr_cpl_ex2_run_ctl_flush,
+      -- MMU Flushes
       mm_xu_pt_fault                   => mm_xu_pt_fault,
       mm_xu_tlb_inelig                 => mm_xu_tlb_inelig,
       mm_xu_lrat_miss                  => mm_xu_lrat_miss,
@@ -1357,6 +1481,7 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       xu_mm_hold_ack                   => xu_mm_hold_ack,
       mm_xu_eratmiss_done              => mm_xu_eratmiss_done,
       mm_xu_ex3_flush_req              => mm_xu_ex3_flush_req,
+      -- LSU Flushes
       lsu_xu_l2_ecc_err_flush          => lsu_xu_l2_ecc_err_flush,
       lsu_xu_datc_perr_recovery        => lsu_xu_datc_perr_recovery,
       lsu_xu_ex3_dep_flush             => lsu_xu_ex3_dep_flush,
@@ -1367,10 +1492,12 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       lsu_xu_ex3_inval_align_2ucode    => lsu_xu_ex3_inval_align_2ucode,
       lsu_xu_ex3_attr                  => lsu_xu_ex3_attr,
       lsu_xu_ex3_derat_vf              => lsu_xu_ex3_derat_vf,
+      -- AXU Flushes
       fu_xu_ex3_n_flush                => fu_xu_ex3_n_flush,
       fu_xu_ex3_np1_flush              => fu_xu_ex3_np1_flush,
       fu_xu_ex3_flush2ucode            => fu_xu_ex3_flush2ucode,
       fu_xu_ex2_async_block            => fu_xu_ex2_async_block,
+      -- IU Flushes
       xu_iu_ex5_br_taken               => xu_iu_ex5_br_taken,
       xu_iu_ex5_ifar                   => xu_iu_ex5_ifar,
       xu_iu_flush                      => xu_iu_flush,
@@ -1380,6 +1507,7 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       xu_iu_flush_2ucode_type          => xu_iu_flush_2ucode_type,
       xu_iu_ucode_restart              => xu_iu_ucode_restart,
       xu_iu_ex5_ppc_cpl                => xu_iu_ex5_ppc_cpl,
+      -- Flushes
       xu_n_is2_flush                   => xu_n_is2_flush,
       xu_n_rf0_flush                   => xu_n_rf0_flush,
       xu_n_rf1_flush                   => xu_n_rf1_flush,
@@ -1417,11 +1545,13 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       xu_lsu_dci                       => xu_lsu_dci,
       xu_lsu_ici                       => xu_lsu_ici,
       xu_lsu_ex4_val                   => xu_lsu_ex4_val,
+      -- Parity
       spr_cpl_ex3_sprg_ue              => spr_cpl_ex3_sprg_ue,
       spr_cpl_ex3_sprg_ce              => spr_cpl_ex3_sprg_ce,
       iu_xu_ierat_ex2_flush_req        => iu_xu_ierat_ex2_flush_req,
       iu_xu_ierat_ex3_par_err          => iu_xu_ierat_ex3_par_err,
       iu_xu_ierat_ex4_par_err          => iu_xu_ierat_ex4_par_err,
+      -- Regfile Parity
        fu_xu_ex3_regfile_err_det          => fu_xu_ex3_regfile_err_det,
        xu_fu_regfile_seq_beg             => xu_fu_regfile_seq_beg,
        fu_xu_regfile_seq_end             => fu_xu_regfile_seq_end,
@@ -1441,13 +1571,18 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
        xu_pc_err_mchk_disabled          => xu_pc_err_mchk_disabled,
        xu_pc_err_tlb_parity             => xu_pc_err_tlb_parity,
        xu_pc_err_sprg_ue                => xu_pc_err_sprg_ue,
+      -- Perf
       cpl_perf_tx_events               => cpl_perf_tx_events,
       spr_cpl_async_int                => spr_cpl_async_int,
+      -- Barrier
       xu_lsu_ex5_set_barr              => xu_lsu_ex5_set_barr,
       cpl_fxa_ex5_set_barr             => cpl_fxa_ex5_set_barr,
       cpl_iu_set_barr_tid               => cpl_iu_set_barr_tid,
+      -- Read Data
       cpl_byp_ex3_spr_rt               => cpl_byp_ex3_spr_rt,
+      -- Write Data
       mux_cpl_ex4_rt                   => mux_cpl_ex4_rt,
+      -- SPR Bits
       spr_bit_act                      => spr_bit_act,
       spr_cpl_iac1_en                  => spr_cpl_iac1_en,
       spr_cpl_iac2_en                  => spr_cpl_iac2_en,
@@ -1493,11 +1628,13 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       cpl_msr_spv                      => cpl_msr_spv,
       cpl_ccr2_ap                      => cpl_ccr2_ap,
       spr_xucr0_clkg_ctl               => spr_xucr0_clkg_ctl(2 to 2),
+      -- Slow SPR Bus
       mux_cpl_slowspr_flush            => mux_cpl_slowspr_flush,
       mux_cpl_slowspr_done             => mux_cpl_slowspr_done,
       dec_cpl_ex1_is_slowspr_wr        => dec_cpl_ex1_is_slowspr_wr,
       dec_cpl_ex3_ddmh_en              => dec_cpl_ex3_ddmh_en,
       dec_cpl_ex3_back_inv             => dec_cpl_ex3_back_inv,
+      -- Debug
       pc_xu_event_bus_enable           => pc_xu_event_bus_enable,
       pc_xu_trace_bus_enable           => pc_xu_trace_bus_enable,
       pc_xu_instr_trace_mode           => pc_xu_instr_trace_mode,
@@ -1511,6 +1648,7 @@ cfg_slp_sl_thold_2 <= cfg_slp_sl_thold_2_b;
       cpl_trigger_data_in              => cpl_trigger_data_in,
       cpl_trigger_data_out             => cpl_trigger_data_out,
       fxa_cpl_debug                    => fxa_cpl_debug,
+      -- Power
       vdd                              => vdd,
       gnd                              => gnd
    );
@@ -1525,4 +1663,3 @@ xu_ex4_flush            <= xu_ex4_flush_int;
 dec_spr_ex1_epid_instr  <= dec_ex1_epid_instr;
 
 end xuq_cpl_fxub;
-

@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--
+--  Description: Pervasive Core Registers + Error Reporting
+--
+--*****************************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library ibm,clib;
@@ -19,8 +24,8 @@ library tri;
 use tri.tri_latches_pkg.all;
 
 entity pcq_regs is
-generic(expand_type             : integer := 2;       
-        regmode                 : integer := 6        
+generic(expand_type             : integer := 2;       -- 0=ibm (Umbra), 1=non-ibm, 2=ibm (MPG)
+        regmode                 : integer := 6        -- 6=64-bit model, 5=32-bit model
 );         
 port(
     vdd                         : inout power_logic;
@@ -45,11 +50,13 @@ port(
     bcfg_scan_out               : out   std_ulogic;
     dcfg_scan_out               : out   std_ulogic;
     func_scan_out               : out   std_ulogic;
+-- SCOM Satellite Interface
     an_ac_scom_sat_id           : in    std_ulogic_vector(0 to 3);
     an_ac_scom_dch              : in    std_ulogic;
     an_ac_scom_cch              : in    std_ulogic;
     ac_an_scom_dch              : out   std_ulogic;
     ac_an_scom_cch              : out   std_ulogic;
+-- FIR and Error Signals
     ac_an_special_attn           : out   std_ulogic_vector(0 to 3);
     ac_an_checkstop              : out   std_ulogic_vector(0 to 2);
     ac_an_local_checkstop        : out   std_ulogic_vector(0 to 2);
@@ -112,6 +119,8 @@ port(
     pc_iu_inj_icachedir_multihit : out  std_ulogic;
     pc_xu_inj_dcachedir_multihit : out  std_ulogic;
     pc_xu_cache_par_err_event    : out   std_ulogic;
+-- SCOM Register Interfaces
+--  -- RAM Command/Data
     pc_iu_ram_instr             : out   std_ulogic_vector(0 to 31);
     pc_iu_ram_instr_ext         : out   std_ulogic_vector(0 to 3);
     pc_iu_ram_mode              : out   std_ulogic;
@@ -132,6 +141,7 @@ port(
     pc_xu_msrovride_de          : out   std_ulogic;
     pc_iu_ram_force_cmplt       : out   std_ulogic;
     pc_xu_ram_flush_thread      : out   std_ulogic;
+--  -- THRCTL + PCCR0 Register
     pc_xu_stop                  : out   std_ulogic_vector(0 to 3); 
     pc_xu_step                  : out   std_ulogic_vector(0 to 3); 
     pc_xu_force_ude             : out   std_ulogic_vector(0 to 3);
@@ -148,6 +158,7 @@ port(
     pc_xu_decrem_dis_on_stop    : out   std_ulogic;
     ct_rg_hold_during_init      : in    std_ulogic;
     rg_ct_dis_pwr_savings       : out   std_ulogic;
+--  --Debug Select Register outputs to units for debug grouping
     sp_rg_trace_bus_enable      : in    std_ulogic;
     rg_db_trace_bus_enable      : out   std_ulogic;
     pc_fu_trace_bus_enable      : out   std_ulogic;
@@ -165,6 +176,7 @@ port(
     pc_xu_debug_mux2_ctrls      : out   std_ulogic_vector(0 to 15);
     pc_xu_debug_mux3_ctrls      : out   std_ulogic_vector(0 to 15);
     pc_xu_debug_mux4_ctrls      : out   std_ulogic_vector(0 to 15);
+--  Debug Signals to Trace/Trigger Muxes
     dbg_scom_rdata              : out   std_ulogic_vector(0 to 63);
     dbg_scom_wdata              : out   std_ulogic_vector(0 to 63);
     dbg_scom_decaddr            : out   std_ulogic_vector(0 to 63);
@@ -184,6 +196,9 @@ end pcq_regs;
 
 architecture pcq_regs of pcq_regs is
 
+--=====================================================================
+-- Signal Declarations
+--=====================================================================
 constant rami_size              : positive := 32;
 constant ramc_size              : positive := 20;
 constant ramd_size              : positive := 64;
@@ -208,6 +223,9 @@ constant func_stage2_size       : positive := 32;
 constant func_stage3_size       : positive := 11;
 constant fu_ram_din_size        : positive := 64;
 constant xu_ram_din_size        : positive := 2**regmode+1;
+-----------------------------------------------------------------------
+-- Scan Ring Ordering:
+-- start of dcfg scan chain ordering
 constant abdsr_offset       : natural := 0;
 constant abdsr_par_offset   : natural := abdsr_offset + abdsr_size;
 constant idsr_offset        : natural := abdsr_par_offset + parity_size;
@@ -223,6 +241,8 @@ constant recerrcntr_offset  : natural := pccr0_offset + pccr0_size;
 constant pccr0_par_offset   : natural := recerrcntr_offset + recerrcntr_size;
 constant dcfg_stage1_offset : natural := pccr0_par_offset + parity_size;
 constant dcfg_right         : natural := dcfg_stage1_offset + dcfg_stage1_size - 1;
+-- end of dcfg scan chain ordering
+-- start of bcfg scan chain ordering
 constant scommode_offset    : natural := 0;
 constant thrctl1_offset     : natural := scommode_offset + 2;
 constant thrctl2_offset     : natural := thrctl1_offset + thrctl1_size;
@@ -232,6 +252,8 @@ constant spattn_par_offset  : natural := spattn2_offset + spattn_size;
 constant bcfg_stage1_offset : natural := spattn_par_offset + parity_size;
 constant bcfg_stage2_offset : natural := bcfg_stage1_offset + bcfg_stage1_size;
 constant bcfg_right         : natural := bcfg_stage2_offset + bcfg_stage2_size - 1;
+-- end of bcfg scan chain ordering
+-- start of func scan chain ordering
 constant rami_offset        : natural := 0;
 constant ramc_offset        : natural := rami_offset + rami_size;
 constant ramd_offset        : natural := ramc_offset + ramc_size;
@@ -245,12 +267,20 @@ constant func_stage2_offset : natural := func_stage1_offset + func_stage1_size;
 constant func_stage3_offset : natural := func_stage2_offset + func_stage2_size;
 constant scomfunc_offset    : natural := func_stage3_offset + func_stage3_size;
 constant func_right         : natural := scomfunc_offset + 177 - 1;
+-- end of func scan chain ordering
 
+-----------------------------------------------------------------------
+-- start of scom register addresses
 constant scom_width        : positive := 64;
+--                                               0000000000111111111122222222223333333333444444444455555555556666
+--                                               0123456789012345678901234567890123456789012345678901234567890123
 constant use_addr        : std_ulogic_vector := "1111111111111110111111111011100000000000111111111111111110011111";
 constant addr_is_rdable  : std_ulogic_vector := "1001111001100110100110011010000000000000111001111001001000011111";
 constant addr_is_wrable  : std_ulogic_vector := "1111101111111110111011111011100000000000111111111111111110011111";
+-- end of scom register addresses
  
+-----------------------------------------------------------------------
+-- Basic/Misc signals
 signal tidn, tiup                       : std_ulogic;
 signal tidn_32                          : std_ulogic_vector(0 to 31);
 signal bcfg_siv, bcfg_sov               : std_ulogic_vector(0 to bcfg_right);
@@ -267,6 +297,7 @@ signal cfg_slat_force                   : std_ulogic;
 signal cfg_slat_d2clk                   : std_ulogic;
 signal cfg_slat_lclk                    : clk_logic;
 signal cfg_slat_thold_b                 : std_ulogic;
+-- SCOM satellite/decode signals
 signal scom_cch_q, scom_dch_q           : std_ulogic;
 signal scom_act, scom_local_act         : std_ulogic;
 signal sc_r_nw                          : std_ulogic;
@@ -277,7 +308,7 @@ signal sc_wparity_out                   : std_ulogic;
 signal sc_wparity                       : std_ulogic;
 signal scom_fsm_err                     : std_ulogic;
 signal scom_ack_err                     : std_ulogic;
-signal scaddr_predecode                 : std_ulogic_vector(0 to 5); 
+signal scaddr_predecode                 : std_ulogic_vector(0 to 5); -- satid_nobits=5 (default)
 signal scaddr_dec_d                     : std_ulogic_vector(0 to 63);
 signal scaddr_v                         : std_ulogic_vector(0 to 63);
 signal andmask_ones                     : std_ulogic_vector(0 to 63);
@@ -287,6 +318,7 @@ signal scaddr_v_d, scaddr_v_q           : std_ulogic_vector(0 to 63);
 signal scaddr_nvld_d, scaddr_nvld_q     : std_ulogic;
 signal sc_wr_nvld_d, sc_wr_nvld_q       : std_ulogic;
 signal sc_rd_nvld_d, sc_rd_nvld_q       : std_ulogic;
+-- RAM related signals
 signal ramc_instr_in                    : std_ulogic_vector(0 to 3);
 signal ramc_mode_in                     : std_ulogic_vector(0 to 2);
 signal ramc_force_cmplt_in              : std_ulogic;
@@ -326,6 +358,7 @@ signal ram_msrovrgs_d, ram_msrovrgs_q   : std_ulogic;
 signal ram_msrovrde_d, ram_msrovrde_q   : std_ulogic;
 signal ram_force_d, ram_force_q         : std_ulogic;
 signal ram_flush_d, ram_flush_q         : std_ulogic;
+-- THRCTL related signals
 signal or_thrctl_load                   : std_ulogic;
 signal and_thrctl_ones                  : std_ulogic;
 signal and_thrctl_load                  : std_ulogic;
@@ -352,6 +385,7 @@ signal ext_debug_stop_q                 : std_ulogic;
 signal external_debug_stop              : std_ulogic_vector(0 to 3);
 signal stop_dbg_event_q                 : std_ulogic_vector(0 to 3);  
 signal step_done_q                      : std_ulogic_vector(0 to 3);  
+-- PCCR0 related signals
 signal or_pccr0_load                    : std_ulogic;
 signal and_pccr0_ones                   : std_ulogic;
 signal and_pccr0_load                   : std_ulogic;
@@ -383,6 +417,7 @@ signal recErrCntr_q                     : std_ulogic_vector(0 to 3);
 signal pccr0_pervModes_in               : std_ulogic_vector(0 to 6);
 signal pccr0_spare_in                   : std_ulogic_vector(0 to 4);
 signal pccr0_dbgActSel_in               : std_ulogic_vector(0 to 11);
+-- spattn related signals
 signal or_spattn_load                   : std_ulogic;
 signal and_spattn_ones                  : std_ulogic;
 signal and_spattn_load                  : std_ulogic;
@@ -396,6 +431,7 @@ signal spattn_mask_d, spattn_mask_q     : std_ulogic_vector(0 to spattn_size-1);
 signal spattn_unused                    : std_ulogic_vector(spattn_size to 15);
 signal spattn_attn_instr_in             : std_ulogic_vector(0 to 3);
 signal spattn_out_masked                : std_ulogic_vector(0 to spattn_size-1);
+-- Debug related signals
 signal abdsr_data_in                    : std_ulogic_vector(0 to abdsr_size-1);
 signal abdsr_out                        : std_ulogic_vector(0 to 63);
 signal abdsr_par_err                    : std_ulogic;
@@ -422,6 +458,7 @@ signal xdsr2_out                        : std_ulogic_vector(0 to 63);
 signal xdsr2_par_err                    : std_ulogic;
 signal xdsr2_d, xdsr2_q                 : std_ulogic_vector(0 to xdsr2_size-1);
 signal xdsr2_par_d, xdsr2_par_q         : std_ulogic_vector(0 to 0);
+-- FIR + Error related signals
 signal errinj_out                       : std_ulogic_vector(0 to 63);
 signal errinj_thread_in                 : std_ulogic_vector(0 to 3);
 signal errinj_errtype_in                : std_ulogic_vector(0 to 14);
@@ -467,6 +504,7 @@ signal inj_wdt_reset_d                  : std_ulogic_vector(0 to 3);
 signal inj_wdt_reset_q                  : std_ulogic_vector(0 to 3);
 signal unused_signals                   : std_ulogic;
 
+-----------------------------------------------------------------------
 
 
 
@@ -490,12 +528,15 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
                                
 
 
+--=====================================================================
+-- SCOM Satellite and Controls
+--=====================================================================
   scomsat: entity tri.tri_serial_scom2
       generic map(width                 => scom_width,
                   internal_addr_decode  => false,
                   pipeline_paritychk    => false,
                   expand_type           => expand_type )
-      port map( 
+      port map( --  Global lines for clocking and cop control
                 nclk                    => nclk
               , vd                      => vdd
               , gd                      => gnd
@@ -517,11 +558,20 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
               , dcfg_scan_in            => bcfg_siv(scommode_offset to scommode_offset + 1)
               , dcfg_scan_out           => bcfg_sov(scommode_offset to scommode_offset + 1)
               , scom_local_act          => scom_local_act
+          ---------------------------------------------------------------------
+          --  Global SCOM interface
+          ---------------------------------------------------------------------
+              -- tie to VDD/GND to program the base address ranges
               , sat_id                  => an_ac_scom_sat_id
+              --global serial lines to top level of macro
               , scom_dch_in             => scom_dch_q
               , scom_cch_in             => scom_cch_q 
               , scom_dch_out            => ac_an_scom_dch
               , scom_cch_out            => ac_an_scom_cch
+          ---------------------------------------------------------------------
+          --  Internal SCOM interface to parallel registers
+          ---------------------------------------------------------------------
+              -- address/control interface
               , sc_req                  => sc_req_d          
               , sc_ack                  => sc_ack   
               , sc_ack_info             => sc_ack_info
@@ -540,13 +590,13 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
                  , addr_is_rdable => addr_is_rdable
                  , addr_is_wrable => addr_is_wrable
                  )
-      port map( sc_addr     => scaddr_predecode 
-              , scaddr_dec  => scaddr_dec_d     
-              , sc_req      => sc_req_d         
-              , sc_r_nw     => sc_r_nw          
-              , scaddr_nvld => scaddr_nvld_d    
-              , sc_wr_nvld  => sc_wr_nvld_d     
-              , sc_rd_nvld  => sc_rd_nvld_d     
+      port map( sc_addr     => scaddr_predecode -- binary coded scom address
+              , scaddr_dec  => scaddr_dec_d     -- one hot coded scom address, not latched
+              , sc_req      => sc_req_d         -- scom request
+              , sc_r_nw     => sc_r_nw          -- read / not write bit
+              , scaddr_nvld => scaddr_nvld_d    -- scom address not valid; not latched
+              , sc_wr_nvld  => sc_wr_nvld_d     -- scom write not allowed, not latched
+              , sc_rd_nvld  => sc_rd_nvld_d     -- scom read  not allowed, not latched
               , vd          => vdd
               , gd          => gnd
               );
@@ -568,8 +618,15 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
   sc_wparity   <= sc_wparity_out xor sc_parity_error_inject;
 
   
+--=====================================================================
+-- SCOM Register Writes
+--=====================================================================
    andmask_ones  <= (others => '1');
 
+-----------------------------------------------------------------------
+-- RAM Instruction Register -------------------------------------------
+   -- RAMIC RW address  = 40
+   -- RAMI  RW address  = 41
 
    rami_d(0 to 31)  <= sc_wdata(0 to 31)  when (scaddr_v(40) and sc_wr_q) = '1' else
                        sc_wdata(32 to 63) when (scaddr_v(41) and sc_wr_q) = '1' else
@@ -580,6 +637,12 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
    ramic_out <= rami_out(32 to 63) & ramc_out(32 to 63);
 
 
+-----------------------------------------------------------------------
+-- RAM Control Register -----------------------------------------------
+   -- RAMIC RW address       = 40
+   -- RAMC  RW address       = 42
+   -- RAMC  WO with and-mask = 43
+   -- RAMC  WO with or-mask  = 44
 
    or_ramc_load  <=      (scaddr_v(40) or scaddr_v(42) or scaddr_v(44)) and sc_wr_q;
    and_ramc_ones <=  not((scaddr_v(40) or scaddr_v(42) or scaddr_v(43)) and sc_wr_q);
@@ -589,26 +652,37 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
    and_ramc <= gate_and(and_ramc_load, sc_wdata) or gate_and(and_ramc_ones, andmask_ones);
 
 
+   -- Instruction fields: set by SCOM; reset by SCOM
    ramc_instr_in <= or_ramc(32 to 35) or (ramc_out(32 to 35) and and_ramc(32 to 35));
 
+   -- Mode/Thread bits: set by SCOM; reset by SCOM
    ramc_mode_in <= or_ramc(44 to 46) or (ramc_out(44 to 46) and and_ramc(44 to 46));
 
+   -- Execute bit: not latched; pulsed by SCOM write
    ramc_execute_in <= or_ramc(47);
 
+   -- MSR Override control bits: set by SCOM; reset by SCOM
    ramc_msr_ovrid_in <= or_ramc(48 to 50) or (ramc_out(48 to 50) and and_ramc(48 to 50));
 
+   -- Force Ram Completion bit: set by SCOM; reset by SCOM
    ramc_force_cmplt_in <= or_ramc(51) or (ramc_out(51) and and_ramc(51));
 
+   -- Force Flush bit: not latched; pulsed by SCOM write.
    ramc_force_flush_in <= or_ramc(52);
 
+   -- MSR[DE] override control bit: set by SCOM; reset by SCOM
    ramc_msr_de_ovrid_in <= or_ramc(53) or (ramc_out(53) and and_ramc(53));
 
+   -- Spare bits: set by SCOM; reset by SCOM
    ramc_spare_in <= or_ramc(54 to 56) or (ramc_out(54 to 56) and and_ramc(54 to 56));
 
+   -- Interrupt bit: set by SCOM + xu interrupt signal; reset by SCOM
    ramc_status_in(0) <= xu_pc_ram_interrupt or or_ramc(61) or (ramc_out(61) and and_ramc(61));
 
+   -- Error bit: set by SCOM + RAMed threads checkstop bit; reset by SCOM
    ramc_status_in(1) <= rg_rg_ram_mode_xstop or or_ramc(62) or (ramc_out(62) and and_ramc(62));
 
+   -- Done bit: set by SCOM + xu/fu Done signals; reset by SCOM + RAMC_execute
    ramc_status_in(2) <= xu_ram_done_q or fu_ram_done_q or or_ramc(63) or
                         (ramc_out(63) and and_ramc(63) and not ramc_out(47));
 
@@ -616,18 +690,27 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
    ramc_d   <= ramc_instr_in & ramc_mode_in & ramc_execute_in & ramc_msr_ovrid_in & ramc_force_cmplt_in & 
                ramc_force_flush_in & ramc_msr_de_ovrid_in & ramc_spare_in & ramc_status_in;
 
+   --                    Instr Extension        Mode/Thread/Exec   MSR Ovrids/Force
    ramc_out <= tidn_32 & ramc_q(0 to 3) & x"00" & ramc_q(4 to 7) & ramc_q(8 to 13) &
+   --          Spare Latches                Status
                ramc_q(14 to 16) & "0000" & ramc_q(17 to 19);
 
 
+-----------------------------------------------------------------------
+-- RAM Data Register  -------------------------------------------------
+   -- RAMD  R/W address  = 45
+   -- RAMDH R/W address  = 46
+   -- RAMDL R/W address  = 47
 
 
    fu_ramd_load_data_d  <=  fu_pc_ram_data(0 to 63);
 
+   -- For XU, adjusting size of RAM data when compiled as 32-bit core.
    ramd_xu_load_zeros(0 to 64-(2**regmode)) <= (others => '0');
    xu_ramd_load_data_d(0 to 64) <= ramd_xu_load_zeros & xu_pc_ram_data(64-(2**regmode) to 63);
    xu_ramd_load_data(0 to 63)   <= xu_ramd_load_data_q(1 to 64);
 
+   -- Latch Ram data from SCOM, or FU/XU Ram data buses.
    ramd_d(0 to 31)  <= sc_wdata(0 to 31)            when (scaddr_v(45) and sc_wr_q) = '1' else
                        sc_wdata(32 to 63)           when (scaddr_v(46) and sc_wr_q) = '1' else
                        fu_ramd_load_data_q(0 to 31) when  fu_ram_done_q = '1'             else
@@ -645,6 +728,11 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
    ramdl_out  <= tidn_32 & ramd_q(32 to 63);
 
 
+-----------------------------------------------------------------------
+-- Thread Control Register
+   -- THRCTL RW address       = 48
+   -- THRCTL WO with and-mask = 49
+   -- THRCTL WO with or-mask  = 50
 
    or_thrctl_load  <=      (scaddr_v(48) or scaddr_v(50)) and sc_wr_q;
    and_thrctl_ones <=  not((scaddr_v(48) or scaddr_v(49)) and sc_wr_q);
@@ -654,29 +742,42 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
    and_thrctl <= gate_and(and_thrctl_load, sc_wdata) or gate_and(and_thrctl_ones, andmask_ones);
 
 
+   -- Stop bit: set by SCOM + misc stop signals; reset by SCOM
    thrctl_stop_in  <= stop_dbg_event_q(0 to 3)  or  attn_instr_int(0 to 3)  or 
                       rg_rg_xstop_err(0 to 3)   or    
                       or_thrctl(32 to 35) or (thrctl_out(32 to 35) and and_thrctl(32 to 35)) ;
 
+   -- Step bit: set by SCOM; reset by SCOM or xu_pc_step_done
    thrctl_step_in  <= or_thrctl(36 to 39) or
                       (thrctl_out(36 to 39) and and_thrctl(36 to 39) and not step_done_q(0 to 3));
 
+   -- Run bit: controlled by external status input
    thrctl_run_in  <= xu_pc_running(0 to 3);
 
+   -- PM bit: controlled by "power managed" status signals
    thrctl_pm_in  <= ct_rg_power_managed(0 to 3) or ct_rg_pm_thread_stop(0 to 3);
 
+   -- Misc Debug Ctrl bits: set by SCOM; reset by SCOM
    thrctl_misc_dbg_in  <= or_thrctl(48 to 54) or (thrctl_out(48 to 54) and and_thrctl(48 to 54));
 
+   -- Spare bits: set by SCOM; reset by SCOM
    thrctl_spare_in  <= or_thrctl(55 to 59) or (thrctl_out(55 to 59) and and_thrctl(55 to 59));
 
 
    thrctl1_d  <= thrctl_stop_in & thrctl_step_in & thrctl_run_in & thrctl_pm_in;
    thrctl2_d  <= thrctl_misc_dbg_in & thrctl_spare_in;
  
+   --                      Stop(32:35)         Step(36:39)         Run(40:43)
    thrctl_out <= tidn_32 & thrctl1_q(0 to 3) & thrctl1_q(4 to 7) & thrctl1_q(8 to 11) &   
+   --            PM(44:47)             Misc_Debug(48:54)   Spare Ltchs(55:59)
                  thrctl1_q(12 to 15) & thrctl2_q(0 to 6) & thrctl2_q(7 to 11) & x"0";
 
 
+-----------------------------------------------------------------------
+-- PC Unit Configuration Register 0
+   -- PCCR0 RW address        = 51
+   -- PCCR0 WO with and-mask  = 52
+   -- PCCR0 WO with or-mask   = 53
 
    or_pccr0_load  <=      (scaddr_v(51) or scaddr_v(53)) and sc_wr_q;
    and_pccr0_ones <=  not((scaddr_v(51) or scaddr_v(52)) and sc_wr_q);
@@ -686,11 +787,22 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
    and_pccr0 <= gate_and(and_pccr0_load, sc_wdata) or gate_and(and_pccr0_ones, andmask_ones);
 
 
+   -- PCCR0(32:38) are pervasive modes and miscellaneous controls:
+   -- 32 = Enable Debug mode
+   -- 33 = Enable Ram mode
+   -- 34 = Enable Error Inject mode
+   -- 35 = Enable External Debug Stop
+   -- 36 = Disable xstop reporting in Ram mode
+   -- 37 = Enable fast clockstop
+   -- 38 = Disable power savings
    pccr0_pervModes_in  <= or_pccr0(32 to 38) or (pccr0_out(32 to 38) and and_pccr0(32 to 38));
 
+   -- Spare bits: set by SCOM; reset by SCOM
    pccr0_spare_in  <= or_pccr0(39 to 43) or (pccr0_out(39 to 43) and and_pccr0(39 to 43));
 
 
+   -- PCCR0(48:51) is the Recoverable Error Counter
+   -- Incremented when gated by a new recoverable error; PCCR0 parity recalculated.
    incr_recErrCntr     <=  recErrCntr_q(0 to 3) + "0001";
    recErrCntr_pargen   <=  xor_reduce(incr_recErrCntr & pccr0_out(32 to 43) & pccr0_out(52 to 63));
 
@@ -699,13 +811,16 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
                            recErrCntr_q(0 to 3);
  
 
+   -- PCCR0(52:63) are the Debug Action Selects:
    pccr0_dbgActSel_in  <= or_pccr0(52 to 63) or (pccr0_out(52 to 63) and and_pccr0(52 to 63));
 
 
+   --  Load Register
    pccr0_d      <=  pccr0_pervModes_in & pccr0_spare_in & pccr0_dbgActSel_in;
 
    pccr0_out    <=  tidn_32 & pccr0_q(0 to 11) & x"0" & recErrCntr_q & pccr0_q(12 to pccr0_size-1);
 
+   --  Parity Bit
    pccr0_par_in   <= pccr0_d & recErrCntr_in(0 to 3);
    pccr0_par_d(0) <= parity_gen_even(pccr0_par_in) when (gate_and(sc_wr_q, or_reduce(scaddr_v(51 to 53))))='1' else
                      recErrCntr_pargen   when  rg_rg_gateRecErrCntr = '1'      else
@@ -716,6 +831,11 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
 
 
 
+-----------------------------------------------------------------------
+-- Special Attention and Mask Register
+   -- SPATTN RW address       = 54
+   -- SPATTN WO with and-mask = 55
+   -- SPATTN WO with or-mask  = 56
 
    or_spattn_load  <=      (scaddr_v(54) or scaddr_v(56)) and sc_wr_q;
    and_spattn_ones <=  not((scaddr_v(54) or scaddr_v(55)) and sc_wr_q);
@@ -727,6 +847,8 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
    spattn_unused    <= (others => '0');
 
 
+   -- Special Attention Data:
+   -- attn_instr: Attention signal generated by attn instruction
    spattn_attn_instr_in  <= attn_instr_int(0 to 3)  or  or_spattn(32 to 35)  or 
                             (spattn_out(32 to 35)  and  and_spattn(32 to 35)) ;
 
@@ -735,12 +857,14 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
    spattn_data_d   <= spattn_attn_instr_in;
 
 
+   -- Special Attention Mask: set by SCOM; reset by SCOM
    spattn_mask_d <= or_spattn(48 to (48 + spattn_size-1))   or
                    (spattn_out(48 to (48 + spattn_size-1)) and and_spattn(48 to (48 + spattn_size-1)));
  
    spattn_out <= tidn_32 & spattn_data_q & spattn_unused & spattn_mask_q & spattn_unused ;    
 
 
+   --  Parity Bit
    spattn_par_d(0) <= parity_gen_even(spattn_mask_d) when (gate_and(sc_wr_q, or_reduce(scaddr_v(54 to 56))))='1' else
                       spattn_par_q(0);
 
@@ -748,42 +872,62 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
                       (sc_wr_q and or_reduce(scaddr_v(54 to 56)) and sc_parity_error_inject);
 
 
+-----------------------------------------------------------------------
+-- Debug Select Registers
+   -- ABDSR RW address   = 59
+   -- IDSR  RW address   = 60
+   -- MPDSR RW address   = 61
+   -- XDSR1 RW address   = 62
+   -- XDSR2 RW address   = 63
 
    abdsr_data_in <= sc_wdata(32 to 63) when (scaddr_v(59) and sc_wr_q) = '1' else abdsr_out(32 to 63);
    abdsr_d       <= abdsr_data_in;
+   --  AXU + BX debug + trigger mux controls
    abdsr_out <= tidn_32 & abdsr_q(0 to 31);
+   --  Parity Bit
    abdsr_par_d(0) <= sc_wparity when (scaddr_v(59) and sc_wr_q) = '1' else  abdsr_par_q(0);
    abdsr_par_err  <= xor_reduce(abdsr_q) xor abdsr_par_q(0);
 
 
    idsr_data_in <= sc_wdata(32 to 63) when (scaddr_v(60) and sc_wr_q) = '1' else idsr_out(32 to 63);
    idsr_d       <= idsr_data_in;
+   --  IU debug + trigger mux controls
    idsr_out <= tidn_32 & idsr_q(0 to 31);
+   --  Parity Bit
    idsr_par_d(0) <= sc_wparity when (scaddr_v(60) and sc_wr_q) = '1' else  idsr_par_q(0);
    idsr_par_err  <= xor_reduce(idsr_q) xor idsr_par_q(0);
 
 
    mpdsr_data_in <= sc_wdata(32 to 63) when (scaddr_v(61) and sc_wr_q) = '1' else mpdsr_out(32 to 63);
    mpdsr_d       <= mpdsr_data_in;
+   -- MMU + PC debug + trigger mux controls
    mpdsr_out <= tidn_32 & mpdsr_q(0 to 31);
+   --  Parity Bit
    mpdsr_par_d(0) <= sc_wparity when (scaddr_v(61) and sc_wr_q) = '1' else  mpdsr_par_q(0);
    mpdsr_par_err  <= xor_reduce(mpdsr_q) xor mpdsr_par_q(0);
 
 
    xdsr1_data_in <= sc_wdata(32 to 63) when (scaddr_v(62) and sc_wr_q) = '1' else xdsr1_out(32 to 63);
    xdsr1_d       <= xdsr1_data_in;
+   -- XU Mux1+2 debug + trigger mux controls
    xdsr1_out <= tidn_32 & xdsr1_q(0 to 31);
+   --  Parity Bit
    xdsr1_par_d(0)  <= sc_wparity when (scaddr_v(62) and sc_wr_q) = '1' else  xdsr1_par_q(0);
    xdsr1_par_err_d <= xor_reduce(xdsr1_q) xor xdsr1_par_q(0);
 
 
    xdsr2_data_in <= sc_wdata(32 to 63) when (scaddr_v(63) and sc_wr_q) = '1' else xdsr2_out(32 to 63);
    xdsr2_d       <= xdsr2_data_in;
+   -- XU Mux3+4 debug + trigger mux controls
    xdsr2_out <= tidn_32 & xdsr2_q(0 to 31);
+   --  Parity Bit
    xdsr2_par_d(0) <= sc_wparity when (scaddr_v(63) and sc_wr_q) = '1' else  xdsr2_par_q(0);
    xdsr2_par_err  <= xor_reduce(xdsr2_q) xor xdsr2_par_q(0);
 
 
+-----------------------------------------------------------------------
+-- Error Inject Register
+   -- ERRINJ RW address = 9
    errinj_thread_in  <=  sc_wdata(32 to 35) when (scaddr_v(9) and sc_wr_q) = '1' else
                          errinj_out(32 to 35);
 
@@ -792,9 +936,13 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
 
    errinj_d <= errinj_thread_in & errinj_errtype_in;
 
+   --                      Thread Select       Rsvd    Error Inject Sel
    errinj_out <= tidn_32 & errinj_q(0 to 3) & "0000" & errinj_q(4 to 18) & (55 to 63 => '0');
 
 
+--=====================================================================
+-- SCOM Register Read
+--=====================================================================
    scaddr_fir <= scaddr_v(0)  or scaddr_v(3)  or scaddr_v(4)  or scaddr_v(6)  or
                  scaddr_v(5)  or scaddr_v(19) or    
                  scaddr_v(10) or scaddr_v(13) or scaddr_v(14) or scaddr_v(16) or
@@ -819,6 +967,10 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
                 
 
 
+--=====================================================================
+-- Output + Signal Assignments
+--=====================================================================
+-- RAM Command Signals
    ram_mode_d     <= ram_enab_d and ramc_out(44);
    ram_execute_d  <= ram_mode_d and ramc_out(47);
    ram_thread_d   <= ramc_out(45 to 46);
@@ -856,6 +1008,9 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
    ram_msrovrde_d         <= ram_mode_d and ramc_out(53);
    pc_xu_msrovride_de     <= ram_msrovrde_q;
 
+-----------------------------------------------------------------------
+-- Thread Control Signals
+   --  an_ac_debug_stop, when enabled, forces all threads to stop
    external_debug_stop <= gate_and(pccr0_out(35), (0 to 3=> ext_debug_stop_q));
 
    tx_stop_d   <= ct_rg_pm_thread_stop  or  external_debug_stop  or 
@@ -868,6 +1023,7 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
 
    ac_an_pm_thread_running     <= thrctl_out(40 to 43);
 
+   -- Creating single cycle pulse when THRCTL[Tx_UDE] bits become active
    ude_dly_d(0 to 3)           <= thrctl_out(48 to 51);
    force_ude_pulse(0 to 3)     <= thrctl_out(48 to 51) and not ude_dly_q(0 to 3); 
    tx_ude_d                    <= gate_and(debug_mode_d, force_ude_pulse(0 to 3));
@@ -882,6 +1038,8 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
    decrem_dis_d                <= debug_mode_d and thrctl_out(54);
    pc_xu_decrem_dis_on_stop    <= decrem_dis_q;
 
+-----------------------------------------------------------------------
+-- PC Configuration Signals
    trace_bus_enable_d      <= pccr0_out(32) or sp_rg_trace_bus_enable;
 
    pc_fu_trace_bus_enable  <= trace_bus_enable_q;      
@@ -891,13 +1049,16 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
    pc_xu_trace_bus_enable  <= trace_bus_enable_q;
    rg_db_trace_bus_enable  <= trace_bus_enable_q;
 
+   -- ACT control for latches gated with debug_mode.
    debug_mode_d         <= pccr0_out(32);
    debug_mode_act       <= debug_mode_d or debug_mode_q; 
 
+   -- ACT control for latches gated with ram_enable.
    ram_enab_d           <= pccr0_out(33);
    ram_enab_act         <= ram_enab_d or ram_enab_q;
    ram_enab_scom_act    <= ram_enab_act or scom_act;
 
+   -- ACT control for latches gated with errinj_enable.
    errinj_enab_d        <= pccr0_out(34);
    errinj_enab_act      <= errinj_enab_d or errinj_enab_q;
    errinj_enab_scom_act <= errinj_enab_act or scom_act;
@@ -913,14 +1074,19 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
 
    pc_xu_dbg_action <= pccr0_out(52 to 63); 
 
+-----------------------------------------------------------------------
+-- Special Attention Signals
 
   spattn_out_masked  <=  spattn_data_q and not spattn_mask_q ;
 
+  -- Drive out special attention signals (thread specific)
   ac_an_special_attn(0) <= spattn_out_masked(0);
   ac_an_special_attn(1) <= spattn_out_masked(1);
   ac_an_special_attn(2) <= spattn_out_masked(2);
   ac_an_special_attn(3) <= spattn_out_masked(3);
 
+-----------------------------------------------------------------------
+-- Debug Select Controls
    pc_fu_debug_mux1_ctrls  <= abdsr_out(32 to 47);
    pc_bx_debug_mux1_ctrls  <= abdsr_out(48 to 63);
 
@@ -935,6 +1101,8 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
    pc_xu_debug_mux3_ctrls  <= xdsr2_out(32 to 47);
    pc_xu_debug_mux4_ctrls  <= xdsr2_out(48 to 63);
 
+-----------------------------------------------------------------------
+-- Error Injection Signals
    inj_icache_parity_d            <= errinj_enab_d and errinj_out(40);
    inj_icachedir_parity_d         <= errinj_enab_d and errinj_out(41);
    inj_dcache_parity_d            <= errinj_enab_d and errinj_out(42);
@@ -967,6 +1135,9 @@ unused_signals  <= or_reduce(or_ramc(0 to 31)    & or_ramc(36 to 43)    & or_ram
    pc_xu_inj_dcachedir_multihit     <= inj_dcachedir_multihit_q;
 
 
+--=====================================================================
+-- FIR Related Registers and Error Reporting
+--=====================================================================
 fir_regs: entity work.pcq_regs_fir
   generic map( expand_type => expand_type )
   port map
@@ -990,12 +1161,14 @@ fir_regs: entity work.pcq_regs_fir
    , func_scan_in               => fir_func_si             
    , bcfg_scan_out              => fir_mode_so             
    , func_scan_out              => fir_func_so            
+   -- SCOM Satellite Interface
    , sc_active                  => scom_act      
    , sc_wr_q                    => sc_wr_q        
    , sc_addr_v                  => scaddr_v      
    , sc_wdata                   => sc_wdata       
    , sc_wparity                 => sc_wparity     
    , sc_rdata                   => fir_data_out     
+   -- FIR and Error Signals
    , ac_an_special_attn           => attn_instr_int         
    , ac_an_checkstop              => ac_an_checkstop
    , ac_an_local_checkstop        => ac_an_local_checkstop
@@ -1054,7 +1227,9 @@ fir_regs: entity work.pcq_regs_fir
    , rg_rg_errinj_shutoff         => rg_rg_errinj_shutoff
    , rg_rg_maxRecErrCntrValue     => rg_rg_maxRecErrCntrValue
    , rg_rg_gateRecErrCntr         => rg_rg_gateRecErrCntr
+   -- Performance Event Signals
    , pc_xu_cache_par_err_event  => pc_xu_cache_par_err_event
+   -- Trace/Trigger Signals
    , dbg_fir0_err               => dbg_fir0_err 
    , dbg_fir1_err               => dbg_fir1_err 
    , dbg_fir2_err               => dbg_fir2_err 
@@ -1070,35 +1245,42 @@ fir_regs: entity work.pcq_regs_fir
   rg_ck_fast_xstop    <= rg_rg_fast_xstop_enable and rg_rg_any_fir_xstop ;
 
 
+--=====================================================================
+-- Trace/Trigger Signals
+--=====================================================================
   dbg_scom_rdata   <=  sc_rdata(0 to 63);
 
   dbg_scom_wdata   <=  sc_wdata(0 to 63);
 
   dbg_scom_decaddr <=  scaddr_v_q(0 to 63);
 
-  dbg_scom_misc    <=  scom_act            & 
-                       sc_req_q            & 
-                       sc_wr_q             & 
-                       scaddr_nvld_q       & 
-                       sc_wr_nvld_q        & 
-                       sc_rd_nvld_q        & 
-                       scaddr_fir          & 
-                       sc_parity_error_inject  & 
-                       sc_wparity          ; 
+  dbg_scom_misc    <=  scom_act            & --  0
+                       sc_req_q            & --  1
+                       sc_wr_q             & --  2
+                       scaddr_nvld_q       & --  3
+                       sc_wr_nvld_q        & --  4
+                       sc_rd_nvld_q        & --  5
+                       scaddr_fir          & --  6
+                       sc_parity_error_inject  & --  7
+                       sc_wparity          ; --  8
 
-  dbg_ram_thrctl   <=  ramc_out(47)        & 
-                       ramc_out(61)        & 
-                       ramc_out(62)        & 
-                       ramc_out(63)        & 
-                       ramc_out(45 to 46)  & 
-                       ram_mode_q          & 
-                       xu_ram_done_q       & 
-                       fu_ram_done_q       & 
-                       tx_stop_q           & 
-                       tx_step_q           & 
-                       thrctl_out(40 to 43) ; 
+  dbg_ram_thrctl   <=  ramc_out(47)        & --  0    (RAM execute)
+                       ramc_out(61)        & --  1    (RAM interrupt)
+                       ramc_out(62)        & --  2    (RAM error)
+                       ramc_out(63)        & --  3    (RAM done)
+                       ramc_out(45 to 46)  & --  4:5  (RAM thread)
+                       ram_mode_q          & --  6
+                       xu_ram_done_q       & --  7
+                       fu_ram_done_q       & --  8
+                       tx_stop_q           & --  9:12
+                       tx_step_q           & -- 13:16
+                       thrctl_out(40 to 43) ; -- 17:20 (xu_pc_run)
 
 
+--=====================================================================
+-- Latches
+--=====================================================================
+-- debug config ring registers start
 axbx_dbgsel_reg: tri_rlmreg_p  
   generic map (width => abdsr_q'length, init => 0, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1344,6 +1526,8 @@ dcfg_stage1: tri_rlmreg_p
             dout(2)   => errinj_enab_q,
             dout(3)   => trace_bus_enable_q,
             dout(4)   => xdsr1_par_err_q );
+-- debug config ring registers end
+-- boot config ring registers start
 thrctl1_reg: tri_rlmreg_p
   generic map (width => thrctl1_size, init => 0, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1478,6 +1662,9 @@ bcfg_stage2: tri_ser_rlmreg_p
             dout(6)        => decrem_dis_q,   
             dout(7 to 10)  => ude_dly_q,
             dout(11 to 14) => tx_ude_q );
+-- boot config ring registers end
+-- core config ring registers start
+-- NOTE: CCFG ring not used in PCQ; latch added for timing.
 ccfg_repwr: tri_slat_scan  
    generic map (width => 1, init => "0", expand_type => expand_type)
    port map ( vd    => vdd,
@@ -1486,6 +1673,8 @@ ccfg_repwr: tri_slat_scan
               lclk  => cfg_slat_lclk,
               scan_in(0)  => ccfg_scan_in,
               scan_out(0) => ccfg_scan_out );
+-- core config ring registers end
+-- func ring registers start
 rami_reg: tri_rlmreg_p  
   generic map (width => rami_q'length, init => 0, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1730,7 +1919,12 @@ func_stage3: tri_ser_rlmreg_p
             dout(7)        => xu_ram_done_q,
             dout(8)        => fu_ram_done_q,
             dout(9 to 10)  => ram_thread_q(0 to 1) );
+-- func ring registers end
 
+--=====================================================================
+-- additional LCB Staging
+--=====================================================================
+-- Config ring thold staging - power managaged
 cfg_slat_thold_b <= NOT lcb_cfg_sl_thold_0;
 cfg_slat_force   <= lcb_sg_0;
 
@@ -1747,6 +1941,7 @@ lcbs_cfg: tri_lcbs
       lclk        => cfg_slat_lclk );
 
 
+-- Config ring thold staging - NOT power managed
 lcbor_cfgslp: tri_lcbor
 generic map (expand_type => expand_type )
 port map (
@@ -1775,6 +1970,7 @@ port map (
     lclk        => cfgslp_lclk );
 
 
+-- Func ring thold staging - NOT power managed
 lcbor_funcslp: tri_lcbor
 generic map (expand_type => expand_type )
 port map (
@@ -1787,17 +1983,26 @@ port map (
 
 
 
+--=====================================================================
+-- Scan Connections
+--=====================================================================
+-- Boot config ring
+-- includes latches in pcq_regs along with the pcq_regs_fir boot scan ring
 bcfg_siv(0 TO bcfg_right) <=  bcfg_scan_in & bcfg_sov(0 to bcfg_right-1);
 fir_mode_si <=  bcfg_sov(bcfg_right);
 bcfg_scan_out  <=  fir_mode_so and scan_dis_dc_b;
 
+-- Func config ring
+-- includes latches in pcq_regs along with the pcq_regs_fir func scan ring
 func_siv(0 TO func_right) <=  func_scan_in & func_sov(0 to func_right-1);
 fir_func_si  <=  func_sov(func_right);
 func_scan_out  <=  fir_func_so and scan_dis_dc_b;
 
+-- Debug config ring
+-- includes just pcq_regs latches
 dcfg_siv(0 TO dcfg_right) <=  dcfg_scan_in & dcfg_sov(0 to dcfg_right-1);
 dcfg_scan_out  <=  dcfg_sov(dcfg_right) and scan_dis_dc_b;
 
 
+-----------------------------------------------------------------------
 end pcq_regs;
-

@@ -7,6 +7,7 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU_A Decode
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
@@ -172,6 +173,7 @@ end xuq_dec_a;
 ARCHITECTURE XUQ_DEC_A
           OF XUQ_DEC_A
           IS
+--@@  Signal Declarations
 SIGNAL TBL_3SRC_DEC_PT                   : STD_ULOGIC_VECTOR(1 TO 15)  := 
 (OTHERS=> 'U');
 SIGNAL TBL_GPR0_ZERO_PT                  : STD_ULOGIC_VECTOR(1 TO 33)  := 
@@ -388,7 +390,7 @@ signal rf0_tid                                                          : std_ul
 signal rf0_use_imm                                                      : std_ulogic;
 signal is2_act                                                          : std_ulogic;
 signal rf0_instr                                                        : std_ulogic_vector(0 to 31);
-  BEGIN 
+  BEGIN --@@ START OF EXECUTABLE CODE FOR XUQ_DEC_A
 
 fxa_fxb_rf0_spr_tid                  <=  rf0_tid or rf0_ucode_val_q;
 fxa_fxb_rf0_cpl_act                  <=  or_reduce(rf0_tid or rf0_ucode_val_q);
@@ -631,6 +633,40 @@ dec_debug(88 TO 175) <=  rf0_val_q                  &
                            rf0_recirc_ctr_start       &     
                            rf1_muldiv_coll_q          &     
                            back_inv_val_q;
+--
+-- Final Table Listing
+--          *INPUTS*===============*OUTPUTS*========================*
+--          |                      |                                |
+--          | rf0_instr_q          |                                |
+--          | |      rf0_instr_q   |                                |
+--          | |      | rf0_instr_q | rf0_recirc_ctr_init            |
+--          | |      | |           | |        rf0_singlcyc_op       |
+--          | |      | |           | |        | rf0_multicyc_op     |
+--          | |      | |           | |        | | rf0_divide        |
+--          | |      | |           | |        | | | rf0_multiply    |
+--          | |      | |           | |        | | | | rf0_is_mfocrf |
+--          | |      | |           | |        | | | | |             |
+--          | 000000 1 2222222223  | |        | | | | |             |
+--          | 012345 1 1234567890  | 01234567 | | | | |             |
+--          *TYPE*=================+================================+
+--          | PPPPPP P PPPPPPPPPP  | PPPPPPPP P P P P P             |
+--          *POLARITY*------------>| ++++++++ + + + + +             |
+--          *PHASE*--------------->| TTTTTTTT T T T T T             |
+--          *TERMS*================+================================+
+--    1     | 011111 1 0000010011  | ........ . . . . 1             |
+--    2     | 011111 - 1-11101001  | .......1 . . . . .             |
+--    3     | 011111 - -011101011  | ........ 1 . . 1 .             |
+--    4     | 011111 - -00-001011  | ........ 1 . . 1 .             |
+--    5     | 011111 - -011101001  | ......1. . 1 . 1 .             |
+--    6     | 011111 - -110-01001  | 1......1 . 1 1 . .             |
+--    7     | 011111 - -00-001001  | ......11 . 1 . 1 .             |
+--    8     | 011111 - -110-01011  | .1.....1 . 1 1 . .             |
+--    9     | 011111 - -111-01011  | ..1....1 . 1 1 . .             |
+--   10     | 011111 - -111-01001  | .1.....1 . 1 1 . .             |
+--   11     | 000111 - ----------  | .......1 . 1 . 1 .             |
+--          *=======================================================*
+--
+-- Table TBL_RF0_DEC Signal Assignments for Product Terms
 MQQ1:TBL_RF0_DEC_PT(1) <=
     Eq(( RF0_INSTR_Q(00) & RF0_INSTR_Q(01) & 
     RF0_INSTR_Q(02) & RF0_INSTR_Q(03) & 
@@ -727,6 +763,7 @@ MQQ11:TBL_RF0_DEC_PT(11) <=
     RF0_INSTR_Q(02) & RF0_INSTR_Q(03) & 
     RF0_INSTR_Q(04) & RF0_INSTR_Q(05)
      ) , STD_ULOGIC_VECTOR'("000111"));
+-- Table TBL_RF0_DEC Signal Assignments for Outputs
 MQQ12:RF0_RECIRC_CTR_INIT(0) <= 
     (TBL_RF0_DEC_PT(6));
 MQQ13:RF0_RECIRC_CTR_INIT(1) <= 
@@ -767,6 +804,32 @@ MQQ23:RF0_MULTIPLY <=
 MQQ24:RF0_IS_MFOCRF <= 
     (TBL_RF0_DEC_PT(1));
 
+--
+-- Final Table Listing
+--          *INPUTS*=============*OUTPUTS*=================*
+--          |                    |                         |
+--          | rf0_instr_q        | rf0_derat_is_extload    |
+--          | |      rf0_instr_q | | rf0_derat_is_extstore |
+--          | |      |           | | |                     |
+--          | 000000 2222222223  | | |                     |
+--          | 012345 1234567890  | | |                     |
+--          *TYPE*===============+=========================+
+--          | PPPPPP PPPPPPPPPP  | P P                     |
+--          *POLARITY*---------->| + +                     |
+--          *PHASE*------------->| T T                     |
+--          *TERMS*==============+=========================+
+--    1     | 011111 1110110110  | . 1                     |
+--    2     | 011111 1111111111  | . 1                     |
+--    3     | 011111 1111011111  | 1 .                     |
+--    4     | 011111 00000111-1  | 1 .                     |
+--    5     | 011111 00100111-1  | . 1                     |
+--    6     | 011111 0-00-11111  | 1 .                     |
+--    7     | 011111 000--11111  | 1 .                     |
+--    8     | 011111 0011-11111  | . 1                     |
+--    9     | 011111 0-10011111  | . 1                     |
+--          *==============================================*
+--
+-- Table TBL_RF0_EPID_DEC Signal Assignments for Product Terms
 MQQ25:TBL_RF0_EPID_DEC_PT(1) <=
     Eq(( RF0_INSTR_Q(00) & RF0_INSTR_Q(01) & 
     RF0_INSTR_Q(02) & RF0_INSTR_Q(03) & 
@@ -851,6 +914,7 @@ MQQ33:TBL_RF0_EPID_DEC_PT(9) <=
     RF0_INSTR_Q(26) & RF0_INSTR_Q(27) & 
     RF0_INSTR_Q(28) & RF0_INSTR_Q(29) & 
     RF0_INSTR_Q(30) ) , STD_ULOGIC_VECTOR'("011111010011111"));
+-- Table TBL_RF0_EPID_DEC Signal Assignments for Outputs
 MQQ34:RF0_DERAT_IS_EXTLOAD <= 
     (TBL_RF0_EPID_DEC_PT(3) OR TBL_RF0_EPID_DEC_PT(4)
      OR TBL_RF0_EPID_DEC_PT(6) OR TBL_RF0_EPID_DEC_PT(7)
@@ -860,6 +924,40 @@ MQQ35:RF0_DERAT_IS_EXTSTORE <=
      OR TBL_RF0_EPID_DEC_PT(5) OR TBL_RF0_EPID_DEC_PT(8)
      OR TBL_RF0_EPID_DEC_PT(9));
 
+--
+-- Final Table Listing
+--          *INPUTS*========================*OUTPUTS*===========*
+--          |                               |                   |
+--          | rf0_instr_q                   |                   |
+--          | |                             | rf0_3source_instr |
+--          | |      rf0_instr_q            | |                 |
+--          | |      |          rf0_instr_q | |                 |
+--          | |      |          |           | |                 |
+--          | 000000 2222222223 33          | |                 |
+--          | 012345 1234567890 01          | |                 |
+--          *TYPE*==========================+===================+
+--          | PPPPPP PPPPPPPPPP PP          | P                 |
+--          *POLARITY*--------------------->| +                 |
+--          *PHASE*------------------------>| T                 |
+--          *TERMS*=========================+===================+
+--    1     | 011111 0-1001011- --          | 1                 |
+--    2     | 011111 1111010010 --          | 1                 |
+--    3     | 011111 1110-10110 --          | 1                 |
+--    4     | 011111 10100101-0 --          | 1                 |
+--    5     | 011111 001001-1-1 --          | 1                 |
+--    6     | 011111 0010-101-1 --          | 1                 |
+--    7     | 011111 001-01-111 --          | 1                 |
+--    8     | 011111 001--10111 --          | 1                 |
+--    9     | 011111 0-1001-111 --          | 1                 |
+--   10     | 011111 0-10-10111 --          | 1                 |
+--   11     | 011111 001-01011- --          | 1                 |
+--   12     | 10-10- ---------- --          | 1                 |
+--   13     | 111110 ---------- 0-          | 1                 |
+--   14     | 1001-- ---------- --          | 1                 |
+--   15     | 10-1-1 ---------- --          | 1                 |
+--          *===================================================*
+--
+-- Table TBL_3SRC_DEC Signal Assignments for Product Terms
 MQQ36:TBL_3SRC_DEC_PT(1) <=
     Eq(( RF0_INSTR_Q(00) & RF0_INSTR_Q(01) & 
     RF0_INSTR_Q(02) & RF0_INSTR_Q(03) & 
@@ -977,6 +1075,7 @@ MQQ50:TBL_3SRC_DEC_PT(15) <=
     Eq(( RF0_INSTR_Q(00) & RF0_INSTR_Q(01) & 
     RF0_INSTR_Q(03) & RF0_INSTR_Q(05)
      ) , STD_ULOGIC_VECTOR'("1011"));
+-- Table TBL_3SRC_DEC Signal Assignments for Outputs
 MQQ51:RF0_3SOURCE_INSTR <= 
     (TBL_3SRC_DEC_PT(1) OR TBL_3SRC_DEC_PT(2)
      OR TBL_3SRC_DEC_PT(3) OR TBL_3SRC_DEC_PT(4)
@@ -987,6 +1086,58 @@ MQQ51:RF0_3SOURCE_INSTR <=
      OR TBL_3SRC_DEC_PT(13) OR TBL_3SRC_DEC_PT(14)
      OR TBL_3SRC_DEC_PT(15));
 
+--
+-- Final Table Listing
+--          *INPUTS*========================*OUTPUTS*==============*
+--          |                               |                      |
+--          | rf0_instr_q                   | rf0_gpr0_zero        |
+--          | |      rf0_instr_q            | |                    |
+--          | |      |          rf0_instr_q | |                    |
+--          | |      |          |  rf0_s1_q | |                    |
+--          | |      |          |  |        | |                    |
+--          | 000000 2222222223 33 000000   | |                    |
+--          | 012345 1234567890 01 012345   | |                    |
+--          *TYPE*==========================+======================+
+--          | PPPPPP PPPPPPPPPP PP PPPPPP   | P                    |
+--          *POLARITY*--------------------->| +                    |
+--          *PHASE*------------------------>| T                    |
+--          *TERMS*=========================+======================+
+--    1     | 0-1111 0010-00110 -- 000000   | 1                    |
+--    2     | 0-1111 00000101-- -- 000000   | 1                    |
+--    3     | 0-1111 0--001011- -- 000000   | 1                    |
+--    4     | 0-1111 00111-0110 -- 000000   | 1                    |
+--    5     | 0-1111 1-11110110 -- 000000   | 1                    |
+--    6     | 0-1111 00--01011- -- 000000   | 1                    |
+--    7     | 0-1111 0--001-111 -- 000000   | 1                    |
+--    8     | 0-1111 -11-010110 -- 000000   | 1                    |
+--    9     | 0-1111 10-00101-0 -- 000000   | 1                    |
+--   10     | 0-1111 110-110011 -- 000000   | 1                    |
+--   11     | 0-1111 11101-0110 -- 000000   | 1                    |
+--   12     | 0-1111 1111--1111 -- 000000   | 1                    |
+--   13     | 0-1111 110-010010 -- 000000   | 1                    |
+--   14     | 011111 0010100011 -- ------   | 1                    |
+--   15     | 0-1111 0-11100110 -- 000000   | 1                    |
+--   16     | 011111 0011-01110 -- ------   | 1                    |
+--   17     | 0-1111 11-0010-10 -- 000000   | 1                    |
+--   18     | 0-1111 0-00--1111 -- 000000   | 1                    |
+--   19     | 0-1111 0000110011 -- 000000   | 1                    |
+--   20     | 0-1111 10--010101 -- 000000   | 1                    |
+--   21     | 0-1111 00-1--1111 -- 000000   | 1                    |
+--   22     | 0-1111 00-001-1-1 -- 000000   | 1                    |
+--   23     | 0-1111 01010101-1 -- 000000   | 1                    |
+--   24     | 0-1111 0-100-0110 -- 000000   | 1                    |
+--   25     | 0-1111 00-10101-0 -- 000000   | 1                    |
+--   26     | 0-1111 0000010-10 -- 000000   | 1                    |
+--   27     | 0-1111 0010010-11 -- 000000   | 1                    |
+--   28     | 10---0 ---------- -- 000000   | 1                    |
+--   29     | 0-1111 0000-10110 -- 000000   | 1                    |
+--   30     | 1-1010 ---------- -0 000000   | 1                    |
+--   31     | 1-1-10 ---------- 00 000000   | 1                    |
+--   32     | 0-1111 -----01111 -- 000000   | 1                    |
+--   33     | -0111- ---------- -- 000000   | 1                    |
+--          *======================================================*
+--
+-- Table TBL_GPR0_ZERO Signal Assignments for Product Terms
 MQQ52:TBL_GPR0_ZERO_PT(1) <=
     Eq(( RF0_INSTR_Q(00) & RF0_INSTR_Q(02) & 
     RF0_INSTR_Q(03) & RF0_INSTR_Q(04) & 
@@ -1343,6 +1494,7 @@ MQQ84:TBL_GPR0_ZERO_PT(33) <=
     RF0_S1_Q(02) & RF0_S1_Q(03) & 
     RF0_S1_Q(04) & RF0_S1_Q(05)
      ) , STD_ULOGIC_VECTOR'("0111000000"));
+-- Table TBL_GPR0_ZERO Signal Assignments for Outputs
 MQQ85:RF0_GPR0_ZERO <= 
     (TBL_GPR0_ZERO_PT(1) OR TBL_GPR0_ZERO_PT(2)
      OR TBL_GPR0_ZERO_PT(3) OR TBL_GPR0_ZERO_PT(4)
@@ -1362,6 +1514,40 @@ MQQ85:RF0_GPR0_ZERO <=
      OR TBL_GPR0_ZERO_PT(31) OR TBL_GPR0_ZERO_PT(32)
      OR TBL_GPR0_ZERO_PT(33));
 
+--
+-- Final Table Listing
+--          *INPUTS*========================*OUTPUTS*===================*
+--          |                               |                           |
+--          | rf0_instr_q                   |                           |
+--          | |      rf0_instr_q            |                           |
+--          | |      |          rf0_instr_q |                           |
+--          | |      |          |           |                           |
+--          | |      |          |           | rf0_use_imm               |
+--          | 000000 2222222223 33          | |                         |
+--          | 012345 1234567890 01          | |                         |
+--          *TYPE*==========================+===========================+
+--          | PPPPPP PPPPPPPPPP PP          | P                         |
+--          *POLARITY*--------------------->| +                         |
+--          *PHASE*------------------------>| T                         |
+--          *TERMS*=========================+===========================+
+--    1     | 011--1 -0-1101000 --          | 1                         |
+--    2     | 011--1 10-1010101 --          | 1                         |
+--    3     | 011--1 0010-00011 --          | 1                         |
+--    4     | 011--1 0-11010011 --          | 1                         |
+--    5     | 011--1 00100100-0 --          | 1                         |
+--    6     | 011--1 -011-010-0 --          | 1                         |
+--    7     | -0-01- ---------- --          | 1                         |
+--    8     | -01--0 ---------- --          | 1                         |
+--    9     | 0110-- ---------- --          | 1                         |
+--   10     | 0-110- ---------- --          | 1                         |
+--   11     | --1010 ---------- -0          | 1                         |
+--   12     | 1-1-10 ---------- 0-          | 1                         |
+--   13     | 10---- ---------- --          | 1                         |
+--   14     | 01-0-0 ---------- --          | 1                         |
+--   15     | -0--11 ---------- --          | 1                         |
+--          *===========================================================*
+--
+-- Table TBL_USE_IMM Signal Assignments for Product Terms
 MQQ86:TBL_USE_IMM_PT(1) <=
     Eq(( RF0_INSTR_Q(00) & RF0_INSTR_Q(01) & 
     RF0_INSTR_Q(02) & RF0_INSTR_Q(05) & 
@@ -1441,6 +1627,7 @@ MQQ99:TBL_USE_IMM_PT(14) <=
 MQQ100:TBL_USE_IMM_PT(15) <=
     Eq(( RF0_INSTR_Q(01) & RF0_INSTR_Q(04) & 
     RF0_INSTR_Q(05) ) , STD_ULOGIC_VECTOR'("011"));
+-- Table TBL_USE_IMM Signal Assignments for Outputs
 MQQ101:RF0_USE_IMM <= 
     (TBL_USE_IMM_PT(1) OR TBL_USE_IMM_PT(2)
      OR TBL_USE_IMM_PT(3) OR TBL_USE_IMM_PT(4)
@@ -2546,4 +2733,3 @@ mark_unused(spare_1_q);
 siv(0 TO siv'right) <=  sov(1 to siv'right) & scan_in;
 scan_out  <=  sov(0);
 END XUQ_DEC_A;
-

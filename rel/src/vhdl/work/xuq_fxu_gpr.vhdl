@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XUQ_FXU GPR Top
+--
 LIBRARY ieee;       USE ieee.std_logic_1164.all;
                     USE ieee.numeric_std.all;
 LIBRARY ibm;        
@@ -23,10 +25,12 @@ entity xuq_fxu_gpr is
         regsize                             : integer := 64;
         threads                             : integer := 4);
     port (
+        -- Clocks and Scan Cntls
         vdd                                 : inout power_logic;
         gnd                                 : inout power_logic;
         nclk                                : in clk_logic;
 
+        -- Pervasive
         d_mode_dc                           : in std_ulogic;
         delay_lclkr_dc                      : in std_ulogic;
         clkoff_dc_b                         : in std_ulogic;
@@ -42,6 +46,7 @@ entity xuq_fxu_gpr is
         
         an_ac_scan_diag_dc                  : in  std_ulogic;
 
+        -- ABIST/LBIST
         lbist_en                            : in  std_ulogic;
         abist_en                            : in  std_ulogic;
         abist_raw_dc_b                      : in  std_ulogic;
@@ -60,15 +65,17 @@ entity xuq_fxu_gpr is
         w0e_data_abist                      : in  std_ulogic_vector(0 to 3);
         w0l_data_abist                      : in  std_ulogic_vector(0 to 3);
 
-        bo_enable_2                         : in  std_ulogic; 
-        pc_xu_bo_reset                      : in  std_ulogic; 
+        -- BOLT-ON
+        bo_enable_2                         : in  std_ulogic; -- general bolt-on enable, probably DC
+        pc_xu_bo_reset                      : in  std_ulogic; -- execute sticky bit decode
         pc_xu_bo_unload                     : in  std_ulogic;
         pc_xu_bo_load                       : in  std_ulogic;
-        pc_xu_bo_shdata                     : in  std_ulogic; 
-        pc_xu_bo_select                     : in  std_ulogic_vector(0 to 1); 
-        xu_pc_bo_fail                       : out std_ulogic_vector(0 to 1); 
+        pc_xu_bo_shdata                     : in  std_ulogic; -- shift data for timing write
+        pc_xu_bo_select                     : in  std_ulogic_vector(0 to 1); -- select for mask and hier writes
+        xu_pc_bo_fail                       : out std_ulogic_vector(0 to 1); -- fail/no-fix reg
         xu_pc_bo_diagout                    : out std_ulogic_vector(0 to 1);
 
+        -- LCB Signals
         lcb_fce_0                           : in  std_ulogic;
         lcb_scan_diag_dc                    : in  std_ulogic;
         lcb_scan_dis_dc_b                   : in  std_ulogic;
@@ -79,6 +86,7 @@ entity xuq_fxu_gpr is
         lcb_gptr_sl_thold_0                 : in  std_ulogic;
         lcb_bolt_sl_thold_0                 : in  std_ulogic;
 
+        -- Scanchains
         gpr_gptr_scan_in                    : in  std_ulogic;
         gpr_gptr_scan_out                   : out std_ulogic;
         gpr_time_scan_in                    : in  std_ulogic;
@@ -86,6 +94,7 @@ entity xuq_fxu_gpr is
         gpr_abst_scan_in                    : in  std_ulogic;
         gpr_abst_scan_out                   : out std_ulogic;
 
+        -- Parity
         pc_xu_inj_regfile_parity            : in std_ulogic_vector(0 to 3);
         xu_pc_err_regfile_parity            : out std_ulogic_vector(0 to threads-1);
         xu_pc_err_regfile_ue                : out std_ulogic_vector(0 to 3);
@@ -93,26 +102,32 @@ entity xuq_fxu_gpr is
         cpl_gpr_regfile_seq_beg             : in  std_ulogic;
         gpr_cpl_regfile_seq_end             : out std_ulogic;
 
-        r0_en                               : in  std_ulogic;                                       
-        r0_addr_func                        : in  std_ulogic_vector(0 to 7);                        
-        r0_data_out                         : out std_ulogic_vector(64-regsize to 69+regsize/8);    
+        -- Read Port: 0
+        r0_en                               : in  std_ulogic;                                       -- Read enable
+        r0_addr_func                        : in  std_ulogic_vector(0 to 7);                        -- Read Address
+        r0_data_out                         : out std_ulogic_vector(64-regsize to 69+regsize/8);    -- Read Data
 
+        -- Read Port: 1
         r1_en                               : in  std_ulogic;
         r1_addr_func                        : in  std_ulogic_vector(0 to 7);
         r1_data_out                         : out std_ulogic_vector(64-regsize to 69+regsize/8);
 
+        -- Read Port: 2
         r2_en                               : in  std_ulogic;
         r2_addr_func                        : in  std_ulogic_vector(0 to 7);
         r2_data_out                         : out std_ulogic_vector(64-regsize to 69+regsize/8);
 
+        -- Read Port: 3
         r3_en                               : in  std_ulogic := '0';
         r3_addr_func                        : in  std_ulogic_vector(0 to 7) := "00000000";
         r3_data_out                         : out std_ulogic_vector(64-regsize to 69+regsize/8) := (others=>'0');
 
+        -- Write Port: Early
         w_e_act                             : in  std_ulogic;
         w_e_addr_func                       : in  std_ulogic_vector(0 to 7);
         w_e_data_func                       : in  std_ulogic_vector(64-regsize to 63);
 
+        -- Write Port: Late
         w_l_act                             : in  std_ulogic;
         w_l_addr_func                       : in  std_ulogic_vector(0 to 7);
         w_l_data_func                       : in  std_ulogic_vector(64-regsize to 69+regsize/8);
@@ -130,6 +145,9 @@ architecture xuq_fxu_gpr of xuq_fxu_gpr is
     constant tidn                                                   : std_ulogic := '0';
     subtype s3                                                      is std_ulogic_vector(0 to 2);
 
+    ---------------------------------------------------------------------
+    -- Signals
+    ---------------------------------------------------------------------
     signal siv_abst, sov_abst                                       : std_ulogic_vector(0 to 7);
     signal siv_time, sov_time                                       : std_ulogic_vector(0 to 1);
     
@@ -182,48 +200,54 @@ architecture xuq_fxu_gpr of xuq_fxu_gpr is
     signal w_e_tid                                                  : std_ulogic_vector(0 to threads-1);
     signal perr_inj                                                 : std_ulogic;
 
-   signal ex3_regfile_err_det_q,    ex2_regfile_err_det          : std_ulogic;                               
-   signal gpr_do0_par_err_q                                      : std_ulogic;                               
-   signal gpr_do1_par_err_q                                      : std_ulogic;                               
-   signal gpr_do2_par_err_q                                      : std_ulogic;                               
-   signal gpr_do3_par_err_q                                      : std_ulogic;                               
-   signal r0_array_data_q                                        : std_ulogic_vector(0 to 63+regsize/8);     
-   signal r0_read_addr_q                                         : std_ulogic_vector(0 to 7);                
-   signal r0_read_addr_1_q                                       : std_ulogic_vector(0 to 7);                
-   signal r0_read_addr_2_q                                       : std_ulogic_vector(0 to 7);                
-   signal r0_read_enable_q                                       : std_ulogic;                               
-   signal r0_read_val_q                                          : std_ulogic;                               
-   signal r1_array_data_q                                        : std_ulogic_vector(0 to 63+regsize/8);     
-   signal r1_read_addr_q                                         : std_ulogic_vector(0 to 7);                
-   signal r1_read_addr_1_q                                       : std_ulogic_vector(0 to 7);                
-   signal r1_read_addr_2_q                                       : std_ulogic_vector(0 to 7);                
-   signal r1_read_enable_q                                       : std_ulogic;                               
-   signal r1_read_val_q                                          : std_ulogic;                               
-   signal r2_array_data_q                                        : std_ulogic_vector(0 to 63+regsize/8);     
-   signal r2_read_addr_q                                         : std_ulogic_vector(0 to 7);                
-   signal r2_read_addr_1_q                                       : std_ulogic_vector(0 to 7);                
-   signal r2_read_addr_2_q                                       : std_ulogic_vector(0 to 7);                
-   signal r2_read_enable_q                                       : std_ulogic;                               
-   signal r2_read_val_q                                          : std_ulogic;                               
-   signal r3_array_data_q                                        : std_ulogic_vector(0 to 63+regsize/8);     
-   signal r3_read_enable_q                                       : std_ulogic;                               
-   signal r3_read_val_q                                          : std_ulogic;                               
-   signal perr_addr_q,               perr_addr_d                 : std_ulogic_vector(0 to 7);                
-   signal perr_direction_q,          perr_direction_d            : std_ulogic_vector(0 to 1);                
-   signal perr_inj_q                                             : std_ulogic_vector(0 to 3);                
-   signal perr_sm_q,                 perr_sm_d                   : std_ulogic_vector(0 to 4);                
-   signal perr_write_data_q,         perr_write_data_d           : std_ulogic_vector(64-regsize to 69+regsize/8);
-   signal err_regfile_parity_q,      err_regfile_parity_d        : std_ulogic_vector(0 to threads-1);        
-   signal err_regfile_ue_q,          err_regfile_ue_d            : std_ulogic_vector(0 to threads-1);        
-   signal err_seq_0_q                                            : std_ulogic;                               
-   signal wthru_r0_w_e_q,            wthru_r0_w_e_d              : std_ulogic;                               
-   signal wthru_r0_w_l_q,            wthru_r0_w_l_d              : std_ulogic;                               
-   signal wthru_r1_w_e_q,            wthru_r1_w_e_d              : std_ulogic;                               
-   signal wthru_r1_w_l_q,            wthru_r1_w_l_d              : std_ulogic;                               
-   signal wthru_r2_w_e_q,            wthru_r2_w_e_d              : std_ulogic;                               
-   signal wthru_r2_w_l_q,            wthru_r2_w_l_d              : std_ulogic;                               
-   signal wthru_r3_w_e_q,            wthru_r3_w_e_d              : std_ulogic;                               
-   signal wthru_r3_w_l_q,            wthru_r3_w_l_d              : std_ulogic;                               
+    ---------------------------------------------------------------------
+    -- Latches
+    ---------------------------------------------------------------------
+   signal ex3_regfile_err_det_q,    ex2_regfile_err_det          : std_ulogic;                               -- input=>ex2_regfile_err_det        , act=>tiup                 , scan=>Y, needs_sreset=>0
+   signal gpr_do0_par_err_q                                      : std_ulogic;                               -- input=>gpr_do0_par_err            , act=>tiup                 , scan=>Y, needs_sreset=>0
+   signal gpr_do1_par_err_q                                      : std_ulogic;                               -- input=>gpr_do1_par_err            , act=>tiup                 , scan=>Y, needs_sreset=>0
+   signal gpr_do2_par_err_q                                      : std_ulogic;                               -- input=>gpr_do2_par_err            , act=>tiup                 , scan=>Y, needs_sreset=>0
+   signal gpr_do3_par_err_q                                      : std_ulogic;                               -- input=>gpr_do3_par_err            , act=>tiup                 , scan=>Y, needs_sreset=>0
+   signal r0_array_data_q                                        : std_ulogic_vector(0 to 63+regsize/8);     -- input=>r0_array_data              , act=>r0_read_enable_q     , scan=>Y, needs_sreset=>0
+   signal r0_read_addr_q                                         : std_ulogic_vector(0 to 7);                -- input=>r0_read_addr               , act=>r0_read_enable       , scan=>N, needs_sreset=>0
+   signal r0_read_addr_1_q                                       : std_ulogic_vector(0 to 7);                -- input=>r0_read_addr_q             , act=>r0_read_enable_q     , scan=>Y, needs_sreset=>0
+   signal r0_read_addr_2_q                                       : std_ulogic_vector(0 to 7);                -- input=>r0_read_addr_1_q           , act=>r0_read_val_q        , scan=>N, needs_sreset=>0
+   signal r0_read_enable_q                                       : std_ulogic;                               -- input=>r0_read_enable             , act=>tiup                 , scan=>N, needs_sreset=>1
+   signal r0_read_val_q                                          : std_ulogic;                               -- input=>r0_read_enable_q           , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal r1_array_data_q                                        : std_ulogic_vector(0 to 63+regsize/8);     -- input=>r1_array_data              , act=>r1_read_enable_q     , scan=>Y, needs_sreset=>0
+   signal r1_read_addr_q                                         : std_ulogic_vector(0 to 7);                -- input=>r1_read_addr               , act=>r1_read_enable       , scan=>N, needs_sreset=>0
+   signal r1_read_addr_1_q                                       : std_ulogic_vector(0 to 7);                -- input=>r1_read_addr_q             , act=>r1_read_enable_q     , scan=>Y, needs_sreset=>0
+   signal r1_read_addr_2_q                                       : std_ulogic_vector(0 to 7);                -- input=>r1_read_addr_1_q           , act=>r1_read_val_q        , scan=>N, needs_sreset=>0
+   signal r1_read_enable_q                                       : std_ulogic;                               -- input=>r1_read_enable             , act=>tiup                 , scan=>N, needs_sreset=>1
+   signal r1_read_val_q                                          : std_ulogic;                               -- input=>r1_read_enable_q           , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal r2_array_data_q                                        : std_ulogic_vector(0 to 63+regsize/8);     -- input=>r2_array_data              , act=>r2_read_enable_q     , scan=>Y, needs_sreset=>0
+   signal r2_read_addr_q                                         : std_ulogic_vector(0 to 7);                -- input=>r2_read_addr               , act=>r2_read_enable       , scan=>N, needs_sreset=>0
+   signal r2_read_addr_1_q                                       : std_ulogic_vector(0 to 7);                -- input=>r2_read_addr_q             , act=>r2_read_enable_q     , scan=>Y, needs_sreset=>0
+   signal r2_read_addr_2_q                                       : std_ulogic_vector(0 to 7);                -- input=>r2_read_addr_1_q           , act=>r2_read_val_q        , scan=>N, needs_sreset=>0
+   signal r2_read_enable_q                                       : std_ulogic;                               -- input=>r2_read_enable             , act=>tiup                 , scan=>N, needs_sreset=>1
+   signal r2_read_val_q                                          : std_ulogic;                               -- input=>r2_read_enable_q           , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal r3_array_data_q                                        : std_ulogic_vector(0 to 63+regsize/8);     -- input=>r3_array_data              , act=>r3_read_enable_q     , scan=>Y, needs_sreset=>0
+   signal r3_read_enable_q                                       : std_ulogic;                               -- input=>r3_read_enable             , act=>tiup                 , scan=>N, needs_sreset=>1
+   signal r3_read_val_q                                          : std_ulogic;                               -- input=>r3_read_enable_q           , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal perr_addr_q,               perr_addr_d                 : std_ulogic_vector(0 to 7);                -- input=>perr_addr_d                , act=>tiup                 , scan=>Y, needs_sreset=>0
+   signal perr_direction_q,          perr_direction_d            : std_ulogic_vector(0 to 1);                -- input=>perr_direction_d           , act=>tiup                 , scan=>Y, needs_sreset=>0
+   signal perr_inj_q                                             : std_ulogic_vector(0 to 3);                -- input=>pc_xu_inj_regfile_parity   , act=>tiup                 , scan=>Y, needs_sreset=>0
+   signal perr_sm_q,                 perr_sm_d                   : std_ulogic_vector(0 to 4);                -- input=>perr_sm_d                  , act=>tiup                 , scan=>Y, needs_sreset=>1, init=>2**(perr_sm_q'length-1)
+   signal perr_write_data_q,         perr_write_data_d           : std_ulogic_vector(64-regsize to 69+regsize/8);-- input=>perr_write_data_d      , act=>perr_sm_q(2)         , scan=>Y, needs_sreset=>0
+   signal err_regfile_parity_q,      err_regfile_parity_d        : std_ulogic_vector(0 to threads-1);        -- input=>err_regfile_parity_d       , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal err_regfile_ue_q,          err_regfile_ue_d            : std_ulogic_vector(0 to threads-1);        -- input=>err_regfile_ue_d           , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal err_seq_0_q                                            : std_ulogic;                               -- input=>cpl_gpr_regfile_seq_beg    , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal wthru_r0_w_e_q,            wthru_r0_w_e_d              : std_ulogic;                               -- input=>wthru_r0_w_e_d             , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal wthru_r0_w_l_q,            wthru_r0_w_l_d              : std_ulogic;                               -- input=>wthru_r0_w_l_d             , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal wthru_r1_w_e_q,            wthru_r1_w_e_d              : std_ulogic;                               -- input=>wthru_r1_w_e_d             , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal wthru_r1_w_l_q,            wthru_r1_w_l_d              : std_ulogic;                               -- input=>wthru_r1_w_l_d             , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal wthru_r2_w_e_q,            wthru_r2_w_e_d              : std_ulogic;                               -- input=>wthru_r2_w_e_d             , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal wthru_r2_w_l_q,            wthru_r2_w_l_d              : std_ulogic;                               -- input=>wthru_r2_w_l_d             , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal wthru_r3_w_e_q,            wthru_r3_w_e_d              : std_ulogic;                               -- input=>wthru_r3_w_e_d             , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal wthru_r3_w_l_q,            wthru_r3_w_l_d              : std_ulogic;                               -- input=>wthru_r3_w_l_d             , act=>tiup                 , scan=>Y, needs_sreset=>1
+    ---------------------------------------------------------------------
+    -- Scanchain
+    ---------------------------------------------------------------------
    constant ex3_regfile_err_det_offset                : integer := 0;
    constant gpr_do0_par_err_offset                    : integer := ex3_regfile_err_det_offset     + 1;
    constant gpr_do1_par_err_offset                    : integer := gpr_do0_par_err_offset         + 1;
@@ -263,6 +287,9 @@ architecture xuq_fxu_gpr of xuq_fxu_gpr is
 begin
 
 
+    ---------------------------------------------------------------------
+    -- Pervasive
+    ---------------------------------------------------------------------
     tri_err_in                  <= err_regfile_parity_q & err_regfile_ue_q;
 
     xu_gpr_err_rpt : entity tri.tri_direct_err_rpt(tri_direct_err_rpt)
@@ -279,6 +306,9 @@ begin
     xu_pc_err_regfile_ue        <= tri_err_out(4 to 7);
 
 
+    ---------------------------------------------------------------------
+    -- Parity Generation / Error injection
+    ---------------------------------------------------------------------
 gpr_64b_par_gen : if regsize = 64 generate
     w_e_parity(0)   <= xor_reduce(w_e_data_func(0  to 7 ));
     w_e_parity(1)   <= xor_reduce(w_e_data_func(8  to 15));
@@ -297,6 +327,9 @@ gpr_32b_par_gen : if regsize = 32 generate
     w_e_parity(7)   <= xor_reduce(w_e_data_func(56 to 63));
 end generate;
 
+    ---------------------------------------------------------------------
+    -- Assign outputs
+    ---------------------------------------------------------------------
     r0_data_out                 <= r0_array_data(64-regsize to 69+regsize/8);
     r1_data_out                 <= r1_array_data(64-regsize to 69+regsize/8);
     r2_data_out                 <= r2_array_data(64-regsize to 69+regsize/8);
@@ -335,6 +368,11 @@ end generate;
     w1e_data(64-regsize)                  <= w_e_data(64-regsize); 
     w1e_data(65-regsize to 69+regsize/8)  <= w_e_data(65-regsize to 69+regsize/8);
 
+    ---------------------------------------------------------------------
+    -- Read Enables and Addresses
+    ---------------------------------------------------------------------
+    -- Ports 1 and 3 are used for reading out data for error correction.
+    -- Enables
     r0_read_enable              <= r0_en or lbist_en;
     with perr_sm_q(1) select
         r1_read_enable          <=(r1_en or lbist_en) when '0',
@@ -344,6 +382,7 @@ end generate;
         r3_read_enable          <=(r3_en or lbist_en) when '0',
                                    '1'                when others;
 
+    -- Addresses
     r0_read_addr                <= r0_addr_func;
     with perr_sm_q(1) select
         r1_read_addr            <= r1_addr_func     when '0',
@@ -353,6 +392,10 @@ end generate;
         r3_read_addr            <= (others=>tidn)   when '0',
                                    perr_addr_q      when others;
 
+    ---------------------------------------------------------------------
+    -- Writeback
+    ---------------------------------------------------------------------
+    -- Use early port to write back parity data
     with perr_sm_q(3) select
         w_e_enable              <= w_e_act              when '0',
                                    '1'                  when others;
@@ -363,7 +406,15 @@ end generate;
                                    perr_addr_q          when others;
     w_l_addr                    <= w_l_addr_func;
 
+    ---------------------------------------------------------------------
+    -- Parity Checking, Error Correction
+    ---------------------------------------------------------------------
     
+    -- Arg... what a mess
+    -- RF0  r0_read_enable    r0_read_addr
+    -- RF1  r0_read_enable_q  r0_read_addr_q    r0_array_data
+    -- EX1  r0_read_val_q     r0_read_addr_1_q  r0_array_data_q   gpr_do0_par_err
+    -- EX2                    r0_read_addr_2_q                    gpr_do0_par_err_q
     
 gpr_parity_chk : for i in (8-regsize/8) to 7 generate
     gpr_do0_par(i)              <= xor_reduce(r0_array_data_q(8*i to 8*i+7));
@@ -377,24 +428,35 @@ end generate;
     gpr_do2_par_err             <= r2_read_val_q and (r2_array_data_q(64 to 63+regsize/8) /= gpr_do2_par);
     gpr_do3_par_err             <= r3_read_val_q and (r3_array_data_q(64 to 63+regsize/8) /= gpr_do3_par);
 
+    -- Parity error detected
     ex2_regfile_err_det         <= perr_sm_q(0) and (gpr_do0_par_err_q or gpr_do1_par_err_q or gpr_do2_par_err_q);
     gpr_cpl_ex3_regfile_err_det <= ex3_regfile_err_det_q;
     
 
+    -- Save the offending address on any parity error and hold.
     perr_addr_d                 <= r0_read_addr_2_q when (gpr_do0_par_err_q and perr_sm_q(0)) = '1' else
                                    r1_read_addr_2_q when (gpr_do1_par_err_q and perr_sm_q(0)) = '1' else
                                    r2_read_addr_2_q when (gpr_do2_par_err_q and perr_sm_q(0)) = '1' else
                                    perr_addr_q;
-    perr_direction_d            <= "10"         when ((gpr_do0_par_err_q or gpr_do1_par_err_q) and perr_sm_q(0)) = '1' else    
-                                   "01"         when ( gpr_do2_par_err_q                       and perr_sm_q(0)) = '1' else    
+    -- Save the direction of transfer
+    perr_direction_d            <= "10"         when ((gpr_do0_par_err_q or gpr_do1_par_err_q) and perr_sm_q(0)) = '1' else    -- gpr_b writes to gpr_a
+                                   "01"         when ( gpr_do2_par_err_q                       and perr_sm_q(0)) = '1' else    -- gpr_a writes to gpr_b
                                    perr_direction_q;
 
+    -- Save data read out to write in next cycle
     perr_write_data_sel         <= perr_direction_q and (0 to 1 => perr_sm_q(2));
     with perr_write_data_sel select
         perr_write_data_d       <= r1_array_data    when "01",
                                    r3_array_data    when "10",
                                    (others=>tidn)   when others;
                                                                     
+    ---------------------------------------------------------------------
+    -- State Machine
+    ---------------------------------------------------------------------
+    -- State 0 = 1000 = Default, no parity error
+    -- State 1 = 0100 = Parity error detected.  Flush System, read out both entries
+    -- State 2 = 0010 = Write back corrected entry
+    -- State 3 = 0001 = Flag Unrecoverable Error
 
     perr_sm_d                   <= ("10000"     and (0 to 4 => perr_sm_next(0))) or
                                    ("01000"     and (0 to 4 => perr_sm_next(1))) or
@@ -403,13 +465,17 @@ end generate;
                                    ("00001"     and (0 to 4 => perr_sm_next(4))) or
                                    (perr_sm_q   and (0 to 4 => not (or_reduce(perr_sm_next))));
 
+    -- Go to State 0 at the end of the sequence.  That's either after a UE, or writeback is done
     perr_sm_next(0)             <= perr_sm_q(4);
-    gpr_cpl_regfile_seq_end     <= perr_sm_q(3);  
+    gpr_cpl_regfile_seq_end     <= perr_sm_q(3);  -- fix later to 4
 
+    -- Go to State 1 when a parity error is detected.
     perr_sm_next(1)             <= perr_sm_q(0) and err_seq_0_q;
 
+    -- Go to State 2 when both sets of data have been read out
     perr_sm_next(2)             <= perr_sm_q(1);
     
+    -- Go to State 3 after read has completed, check for parity error
     perr_sm_next(3)             <= perr_sm_q(2);
     perr_sm_next(4)             <= perr_sm_q(3);
 
@@ -419,6 +485,8 @@ end generate;
                            "0010"   when "10",
                            "0001"   when others;
 
+    -- Check for parity error on the read that holds the "corrected data"
+    -- If we get a parity error here, this is not correctable
     perr_ue                   <= perr_sm_q(4) and
                                 ((perr_direction_q(0) and gpr_do3_par_err_q) or
                                  (perr_direction_q(1) and gpr_do1_par_err_q));
@@ -428,6 +496,9 @@ end generate;
     err_regfile_parity_d        <= gate(perr_tid,perr_ce);
     err_regfile_ue_d            <= gate(perr_tid,perr_ue);
 
+    ---------------------------------------------------------------------
+    -- GPR Write-through
+    ---------------------------------------------------------------------
     wthru_r0_w_e_d         <= (r0_addr_func = w_e_addr_func) and w_e_act;
     wthru_r1_w_e_d         <= (r1_addr_func = w_e_addr_func) and w_e_act;
     wthru_r2_w_e_d         <= (r2_addr_func = w_e_addr_func) and w_e_act;
@@ -450,6 +521,9 @@ end generate;
                               wthru_r2_w_e_q & wthru_r2_w_l_q &
                               wthru_r3_w_e_q & wthru_r3_w_l_q;
 
+    ---------------------------------------------------------------------
+    -- ABIST Scan Ring
+    ---------------------------------------------------------------------
     xu_gpr_a : entity tri.tri_144x78_2r2w_eco(tri_144x78_2r2w_eco)
     generic map(
        expand_type              => expand_type)
@@ -669,6 +743,9 @@ port map (
     arr_mpw1_dc_b(8)             <= lcb_mpw1_dc_b(2);
     arr_mpw1_dc_b(9)             <= lcb_mpw1_dc_b(2);
             
+    ---------------------------------------------------------------------
+    -- Latches
+    ---------------------------------------------------------------------
    ex3_regfile_err_det_latch : tri_rlmlatch_p
      generic map (init => 0, expand_type => expand_type, needs_sreset => 0)
      port map (nclk    => nclk, vd => vdd, gd => gnd,

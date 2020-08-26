@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU SPR - Wrapper
+--
 library ieee,ibm,support,work,tri,clib; 
 use ieee.std_logic_1164.all;
 use support.power_logic_pkg.all;
@@ -25,6 +27,7 @@ generic(
 port(
    nclk                             : in  clk_logic;
    
+   -- CHIP IO
    an_ac_coreid                     : in  std_ulogic_vector(54 to 61);
    spr_pvr_version_dc               : in  std_ulogic_vector(8 to 15);
    spr_pvr_revision_dc              : in  std_ulogic_vector(12 to 15);
@@ -80,20 +83,24 @@ port(
    gptr_scan_in                     : in  std_ulogic;
    gptr_scan_out                    : out std_ulogic;
 
+   -- Decode
    dec_spr_rf0_tid                  : in  std_ulogic_vector(0 to threads-1);
    dec_spr_rf0_instr                : in  std_ulogic_vector(0 to 31);
    dec_spr_rf1_val                  : in  std_ulogic_vector(0 to threads-1);
    dec_spr_ex1_epid_instr           : in  std_ulogic;
    dec_spr_ex4_val                  : in  std_ulogic_vector(0 to threads-1);
 
+   -- Read Data
    spr_byp_ex3_spr_rt               : out std_ulogic_vector(64-regsize to 63);
 
    fxu_spr_ex1_rs2                  : in  std_ulogic_vector(42 to 55);
 
+   -- Write Data
    fxu_spr_ex1_rs0                  : in  std_ulogic_vector(52 to 63);
    fxu_spr_ex1_rs1                  : in  std_ulogic_vector(54 to 63);
    mux_spr_ex2_rt                   : in  std_ulogic_vector(64-regsize to 63);
 
+   -- Interrupt Interface
    cpl_spr_ex5_act                  : in  std_ulogic_vector(0 to threads-1);
    cpl_spr_ex5_int                  : in  std_ulogic_vector(0 to threads-1);
    cpl_spr_ex5_gint                 : in  std_ulogic_vector(0 to threads-1);
@@ -113,6 +120,7 @@ port(
    cpl_spr_ex5_dbsr_ide             : in  std_ulogic_vector(0 to threads-1);
    spr_cpl_dbsr_ide                 : out std_ulogic_vector(0 to threads-1);
    
+   -- Async Interrupt Req Interface
    spr_cpl_external_mchk            : out std_ulogic_vector(0 to threads-1);
    spr_cpl_ext_interrupt            : out std_ulogic_vector(0 to threads-1);
    spr_cpl_dec_interrupt            : out std_ulogic_vector(0 to threads-1);
@@ -132,18 +140,21 @@ port(
    cpl_spr_ex5_gcdbell_taken        : in  std_ulogic_vector(0 to threads-1);
    cpl_spr_ex5_gmcdbell_taken       : in  std_ulogic_vector(0 to threads-1);
 
+   -- DBELL Int
    lsu_xu_dbell_val                 : in  std_ulogic;
    lsu_xu_dbell_type                : in  std_ulogic_vector(0 to 4);
    lsu_xu_dbell_brdcast             : in  std_ulogic;
    lsu_xu_dbell_lpid_match          : in  std_ulogic;
    lsu_xu_dbell_pirtag              : in  std_ulogic_vector(50 to 63);
 
+   -- Slow SPR Bus
    xu_lsu_slowspr_val              : out std_ulogic;
    xu_lsu_slowspr_rw               : out std_ulogic;
    xu_lsu_slowspr_etid             : out std_ulogic_vector(0 to 1);
    xu_lsu_slowspr_addr             : out std_ulogic_vector(11 to 20);
    xu_lsu_slowspr_data             : out std_ulogic_vector(64-regsize to 63);
 
+   -- DCR Bus
    ac_an_dcr_act                    : out std_ulogic;
    ac_an_dcr_val                    : out std_ulogic;
    ac_an_dcr_read                   : out std_ulogic;
@@ -152,9 +163,11 @@ port(
    ac_an_dcr_addr                   : out std_ulogic_vector(11 to 20);
    ac_an_dcr_data                   : out std_ulogic_vector(64-regsize to 63);
 
+   -- Flush
    xu_ex4_flush                     : in  std_ulogic_vector(0 to threads-1);
    xu_ex5_flush                     : in  std_ulogic_vector(0 to threads-1);
 
+   -- Trap
    spr_cpl_fp_precise               : out std_ulogic_vector(0 to threads-1);
    spr_cpl_ex3_spr_hypv             : out std_ulogic;
    spr_cpl_ex3_spr_illeg            : out std_ulogic;
@@ -162,6 +175,7 @@ port(
    spr_cpl_ex3_ct_le                : out std_ulogic_vector(0 to threads-1);
    spr_cpl_ex3_ct_be                : out std_ulogic_vector(0 to threads-1);
    
+   -- Run State
    cpl_spr_stop                     : in  std_ulogic_vector(0 to threads-1);
    xu_pc_running                    : out std_ulogic_vector(0 to threads-1);
    xu_iu_run_thread                 : out std_ulogic_vector(0 to threads-1);
@@ -170,6 +184,7 @@ port(
    spr_cpl_ex2_run_ctl_flush        : out std_ulogic_vector(0 to threads-1);
    xu_pc_spr_ccr0_we                : out std_ulogic_vector(0 to threads-1);
 
+   -- Quiesce
    iu_xu_quiesce                    : in std_ulogic_vector(0 to threads-1);
    lsu_xu_quiesce                   : in std_ulogic_vector(0 to threads-1);
    mm_xu_quiesce                    : in std_ulogic_vector(0 to threads-1);
@@ -177,10 +192,12 @@ port(
    cpl_spr_quiesce                  : in std_ulogic_vector(0 to threads-1);
    spr_cpl_quiesce                  : out std_ulogic_vector(0 to threads-1);
 
+   -- PCCR0
    pc_xu_extirpts_dis_on_stop       : in  std_ulogic;
    pc_xu_timebase_dis_on_stop       : in  std_ulogic;
    pc_xu_decrem_dis_on_stop         : in  std_ulogic;
 
+   -- MSR Override
    pc_xu_ram_mode                   : in  std_ulogic;
    pc_xu_ram_thread                 : in  std_ulogic_vector(0 to 1);
    pc_xu_msrovride_enab             : in  std_ulogic;
@@ -188,13 +205,16 @@ port(
    pc_xu_msrovride_gs               : in  std_ulogic;  
    pc_xu_msrovride_de               : in  std_ulogic;  
    
+   -- LiveLock
    cpl_spr_ex5_instr_cpl            : in  std_ulogic_vector(0 to threads-1);
    xu_pc_err_llbust_attempt         : out std_ulogic_vector(0 to threads-1);
    xu_pc_err_llbust_failed          : out std_ulogic_vector(0 to threads-1);   
 
+   -- XER
    spr_byp_ex4_is_mtxer             : out std_ulogic_vector(0 to threads-1);
    spr_byp_ex4_is_mfxer             : out std_ulogic_vector(0 to threads-1);   
 
+   -- Resets
    pc_xu_reset_wd_complete          : in  std_ulogic;
    pc_xu_reset_1_complete           : in  std_ulogic;
    pc_xu_reset_2_complete           : in  std_ulogic;
@@ -204,19 +224,23 @@ port(
    ac_tc_reset_3_request            : out std_ulogic;
    ac_tc_reset_wd_request           : out std_ulogic;
    
+   -- Err Inject
    pc_xu_inj_llbust_attempt         : in  std_ulogic_vector(0 to threads-1);
    pc_xu_inj_llbust_failed          : in  std_ulogic_vector(0 to threads-1);
    pc_xu_inj_wdt_reset              : in  std_ulogic_vector(0 to threads-1);
    xu_pc_err_wdt_reset              : out std_ulogic_vector(0 to threads-1);
 
+   -- Parity
    spr_cpl_ex3_sprg_ce              : out std_ulogic;
    spr_cpl_ex3_sprg_ue              : out std_ulogic;
    pc_xu_inj_sprg_ecc               : in  std_ulogic_vector(0 to threads-1);
    xu_pc_err_sprg_ecc               : out std_ulogic_vector(0 to threads-1);
 
+   -- Perf
    spr_perf_tx_events               : out std_ulogic_vector(0 to 8*threads-1);
    xu_lsu_mtspr_trace_en            : out std_ulogic_vector(0 to threads-1);
 
+   -- SPRs
    cpl_spr_dbcr0_edm                : in  std_ulogic_vector(0 to threads-1);
    spr_bit_act                      : out std_ulogic;
    spr_xucr0_clkg_ctl               : out std_ulogic_vector(0 to 3);
@@ -292,14 +316,16 @@ port(
 	spr_msr_ds                       : out std_ulogic_vector(0 to threads-1);
 	spr_msrp_uclep                   : out std_ulogic_vector(0 to threads-1);
 
-   bo_enable_2                      : in  std_ulogic; 
-   pc_xu_bo_reset                   : in  std_ulogic; 
-   pc_xu_bo_unload                  : in  std_ulogic; 
-   pc_xu_bo_repair                  : in  std_ulogic; 
-   pc_xu_bo_shdata                  : in  std_ulogic; 
-   pc_xu_bo_select                  : in  std_ulogic; 
-   xu_pc_bo_fail                    : out std_ulogic; 
+   -- BOLT-ON
+   bo_enable_2                      : in  std_ulogic; -- general bolt-on enable
+   pc_xu_bo_reset                   : in  std_ulogic; -- reset
+   pc_xu_bo_unload                  : in  std_ulogic; -- unload sticky bits
+   pc_xu_bo_repair                  : in  std_ulogic; -- execute sticky bit decode
+   pc_xu_bo_shdata                  : in  std_ulogic; -- shift data for timing write and diag loop
+   pc_xu_bo_select                  : in  std_ulogic; -- select for mask and hier writes
+   xu_pc_bo_fail                    : out std_ulogic; -- fail/no-fix reg
    xu_pc_bo_diagout                 : out std_ulogic;
+   -- ABIST
    an_ac_lbist_ary_wrt_thru_dc      : in  std_ulogic;
    pc_xu_abist_ena_dc               : in  std_ulogic;
    pc_xu_abist_g8t_wenb             : in  std_ulogic;
@@ -313,6 +339,7 @@ port(
    pc_xu_abist_g8t_bw_1             : in  std_ulogic;
    pc_xu_abist_g8t_bw_0             : in  std_ulogic;
    
+   -- Debug
    lsu_xu_cmd_debug                 : in  std_ulogic_vector(0 to 175);
    pc_xu_trace_bus_enable           : in  std_ulogic;
    spr_debug_mux_ctrls              : in  std_ulogic_vector(0 to 15);
@@ -321,6 +348,7 @@ port(
    spr_trigger_data_in              : in  std_ulogic_vector(0 to 11);
    spr_trigger_data_out             : out std_ulogic_vector(0 to 11);
    
+   -- Power
    vcs                              : inout power_logic;
    vdd                              : inout power_logic;
    gnd                              : inout power_logic
@@ -333,14 +361,16 @@ end xuq_spr;
 architecture xuq_spr of xuq_spr is
 
 
+-- FUNC Latches
 signal reset_1_request_q, reset_1_request_d  : std_ulogic;
 signal reset_2_request_q, reset_2_request_d  : std_ulogic;
 signal reset_3_request_q, reset_3_request_d  : std_ulogic;
 signal reset_wd_request_q,reset_wd_request_d : std_ulogic;
-signal trace_bus_enable_q                                     : std_ulogic;                  
-signal debug_mux_ctrls_q                                      : std_ulogic_vector(0 to 15);  
-signal debug_data_out_q,          debug_data_out_d            : std_ulogic_vector(0 to 87);  
-signal trigger_data_out_q,        trigger_data_out_d          : std_ulogic_vector(0 to 11);  
+signal trace_bus_enable_q                                     : std_ulogic;                  -- input=>pc_xu_trace_bus_enable     , act=>tiup                 , scan=>Y, sleep=>Y, needs_sreset=>0
+signal debug_mux_ctrls_q                                      : std_ulogic_vector(0 to 15);  -- input=>spr_debug_mux_ctrls        , act=>trace_bus_enable_q   , scan=>Y, sleep=>Y, needs_sreset=>0
+signal debug_data_out_q,          debug_data_out_d            : std_ulogic_vector(0 to 87);  -- input=>debug_data_out_d           , act=>trace_bus_enable_q   , scan=>Y, sleep=>Y, needs_sreset=>0
+signal trigger_data_out_q,        trigger_data_out_d          : std_ulogic_vector(0 to 11);  -- input=>trigger_data_out_d         , act=>trace_bus_enable_q   , scan=>Y, sleep=>Y, needs_sreset=>0
+-- Scanchains
 constant trace_bus_enable_offset             : integer := 0;
 constant debug_mux_ctrls_offset              : integer := trace_bus_enable_offset        + 1;
 constant debug_data_out_offset               : integer := debug_mux_ctrls_offset         + debug_mux_ctrls_q'length;
@@ -349,15 +379,17 @@ constant xu_spr_cspr_offset                  : integer := trigger_data_out_offse
 constant scan_right                          : integer := xu_spr_cspr_offset             + 1;
 signal siv                                   : std_ulogic_vector(0 to scan_right-1);
 signal sov                                   : std_ulogic_vector(0 to scan_right-1);
-signal abist_g8t_wenb_q                      : std_ulogic;                        
-signal abist_waddr_0_q                       : std_ulogic_vector(4 to 9);         
-signal abist_di_0_q                          : std_ulogic_vector(0 to 3);         
-signal abist_g8t1p_renb_0_q                  : std_ulogic;                        
-signal abist_raddr_0_q                       : std_ulogic_vector(4 to 9);         
-signal abist_wl32_comp_ena_q                 : std_ulogic;                        
-signal abist_g8t_dcomp_q                     : std_ulogic_vector(0 to 3);         
-signal abist_g8t_bw_1_q                      : std_ulogic;                        
-signal abist_g8t_bw_0_q                      : std_ulogic;                        
+-- ABST Latches
+signal abist_g8t_wenb_q                      : std_ulogic;                        -- pc_xu_abist_g8t_wenb
+signal abist_waddr_0_q                       : std_ulogic_vector(4 to 9);         -- pc_xu_abist_waddr_0
+signal abist_di_0_q                          : std_ulogic_vector(0 to 3);         -- pc_xu_abist_di_0
+signal abist_g8t1p_renb_0_q                  : std_ulogic;                        -- pc_xu_abist_g8t1p_renb_0
+signal abist_raddr_0_q                       : std_ulogic_vector(4 to 9);         -- pc_xu_abist_raddr_0
+signal abist_wl32_comp_ena_q                 : std_ulogic;                        -- pc_xu_abist_wl32_comp_ena
+signal abist_g8t_dcomp_q                     : std_ulogic_vector(0 to 3);         -- pc_xu_abist_g8t_dcomp
+signal abist_g8t_bw_1_q                      : std_ulogic;                        -- pc_xu_abist_g8t_bw_1
+signal abist_g8t_bw_0_q                      : std_ulogic;                        -- pc_xu_abist_g8t_bw_0
+-- Scanchains
 constant xu_spr_aspr_offset_abst             : integer := 1;
 constant abist_g8t_wenb_offset_abst          : integer := xu_spr_aspr_offset_abst             + 1;
 constant abist_waddr_0_offset_abst           : integer := abist_g8t_wenb_offset_abst          + 1;
@@ -369,6 +401,7 @@ constant abist_g8t_dcomp_offset_abst         : integer := abist_wl32_comp_ena_of
 constant abist_g8t_bw_1_offset_abst          : integer := abist_g8t_dcomp_offset_abst         + abist_g8t_dcomp_q'length;
 constant abist_g8t_bw_0_offset_abst          : integer := abist_g8t_bw_1_offset_abst          + 1;
 constant scan_right_abst                     : integer := abist_g8t_bw_0_offset_abst          + 2;
+-- Scanchain Repower
 signal siv_abst                        : std_ulogic_vector(0 to scan_right_abst-1);
 signal sov_abst                        : std_ulogic_vector(0 to scan_right_abst-1);
 signal siv_bcfg                        : std_ulogic_vector(0 to 2);
@@ -386,6 +419,7 @@ signal sov_repr                        : std_ulogic_vector(0 to 2);
 signal func_scan_rpwr_in               : std_ulogic_vector(0 to threads+1);
 signal func_scan_rpwr_out              : std_ulogic_vector(0 to threads+1);
 signal func_scan_gate_out              : std_ulogic_vector(0 to threads+1);
+-- Signals
 signal g8t_clkoff_dc_b                 : std_ulogic;
 signal g8t_d_mode_dc                   : std_ulogic;
 signal g8t_mpw1_dc_b                   : std_ulogic_vector(0 to 4);
@@ -557,6 +591,7 @@ generic map(
    spr_xucr0_init_mod               => spr_xucr0_init_mod)
 port map(
    nclk                             => nclk,
+   -- CHIP IO
    an_ac_sleep_en                   => an_ac_sleep_en,
    an_ac_reservation_vld            => an_ac_reservation_vld,
    an_ac_tb_update_enable           => an_ac_tb_update_enable,
@@ -597,16 +632,20 @@ port map(
    ccfg_scan_in                     => siv_ccfg(1),
    ccfg_scan_out                    => sov_ccfg(1),
    cspr_tspr_rf1_act                => cspr_tspr_rf1_act,
+   -- Decode
    dec_spr_rf0_tid                  => dec_spr_rf0_tid,
    dec_spr_rf0_instr                => dec_spr_rf0_instr,
    dec_spr_rf1_val                  => dec_spr_rf1_val,
    dec_spr_ex4_val                  => dec_spr_ex4_val,
+   -- Read Data
    tspr_cspr_ex3_tspr_rt            => tspr_cspr_ex3_tspr_rt,
    spr_byp_ex3_spr_rt               => spr_byp_ex3_spr_rt,
+   -- Write Data
    mux_spr_ex2_rt                   => mux_spr_ex2_rt,
    fxu_spr_ex1_rs0                  => fxu_spr_ex1_rs0,
    fxu_spr_ex1_rs1                  => fxu_spr_ex1_rs1,
    ex5_spr_wd                       => ex5_spr_wd,
+   -- SPRT Interface
    cspr_tspr_ex1_instr              => cspr_tspr_ex1_instr,
    cspr_tspr_ex2_tid                => cspr_tspr_ex2_tid,
    cspr_tspr_ex5_is_mtmsr           => cspr_tspr_ex5_is_mtmsr,
@@ -617,20 +656,24 @@ port map(
    cspr_tspr_timebase_taps          => cspr_tspr_timebase_taps,
    timer_update                     => timer_update,
    cspr_tspr_dec_dbg_dis            => cspr_tspr_dec_dbg_dis,
+   -- Illegal SPR
    tspr_cspr_illeg_mtspr_b          => tspr_cspr_illeg_mtspr_b,
    tspr_cspr_illeg_mfspr_b          => tspr_cspr_illeg_mfspr_b,
    tspr_cspr_hypv_mtspr             => tspr_cspr_hypv_mtspr,
    tspr_cspr_hypv_mfspr             => tspr_cspr_hypv_mfspr,
+   -- Array SPRs
    cspr_aspr_ex5_we                 => cspr_aspr_ex5_we,
    cspr_aspr_ex5_waddr              => cspr_aspr_ex5_waddr,
    cspr_aspr_rf1_re                 => cspr_aspr_rf1_re,
    cspr_aspr_rf1_raddr              => cspr_aspr_rf1_raddr,
    aspr_cspr_ex1_rdata              => aspr_cspr_ex1_rdata(64-regsize to 72-(64/regsize)),
+   -- Slow SPR Bus
    xu_lsu_slowspr_val               => xu_lsu_slowspr_val,
    xu_lsu_slowspr_rw                => xu_lsu_slowspr_rw,
    xu_lsu_slowspr_etid              => xu_lsu_slowspr_etid,
    xu_lsu_slowspr_addr              => xu_lsu_slowspr_addr,
    xu_lsu_slowspr_data              => xu_lsu_slowspr_data,
+   -- DCR Bus
    ac_an_dcr_act                    => ac_an_dcr_act,
    ac_an_dcr_val                    => ac_an_dcr_val,
    ac_an_dcr_read                   => ac_an_dcr_read,
@@ -638,15 +681,19 @@ port map(
    ac_an_dcr_etid                   => ac_an_dcr_etid,
    ac_an_dcr_addr                   => ac_an_dcr_addr,
    ac_an_dcr_data                   => ac_an_dcr_data,
+   -- Flush
    xu_ex4_flush                     => xu_ex4_flush,
    xu_ex5_flush                     => xu_ex5_flush,
+   -- Trap
    spr_cpl_ex3_spr_hypv             => spr_cpl_ex3_spr_hypv,
    spr_cpl_ex3_spr_illeg            => spr_cpl_ex3_spr_illeg,
    spr_cpl_ex3_spr_priv             => spr_cpl_ex3_spr_priv,
+   -- Run State
    cpl_spr_stop                     => cpl_spr_stop,
    xu_iu_run_thread                 => xu_iu_run_thread,
    spr_cpl_ex2_run_ctl_flush        => spr_cpl_ex2_run_ctl_flush,
    xu_pc_spr_ccr0_we                => xu_pc_spr_ccr0_we,
+   -- Quiesce
    iu_xu_quiesce                    => iu_xu_quiesce,
    lsu_xu_quiesce                   => lsu_xu_quiesce,
    mm_xu_quiesce                    => mm_xu_quiesce,
@@ -654,18 +701,22 @@ port map(
    cpl_spr_quiesce                  => cpl_spr_quiesce,
    xu_pc_running                    => xu_pc_running,
    spr_cpl_quiesce                  => spr_cpl_quiesce,
+   -- PCCR0
    pc_xu_extirpts_dis_on_stop       => pc_xu_extirpts_dis_on_stop,
    pc_xu_timebase_dis_on_stop       => pc_xu_timebase_dis_on_stop,
    pc_xu_decrem_dis_on_stop         => pc_xu_decrem_dis_on_stop,
+   -- MSR Override
    pc_xu_ram_mode                   => pc_xu_ram_mode,
    pc_xu_ram_thread                 => pc_xu_ram_thread,
    pc_xu_msrovride_enab             => pc_xu_msrovride_enab,
    cspr_tspr_msrovride_en           => cspr_tspr_msrovride_en,
    cspr_tspr_ram_mode               => cspr_tspr_ram_mode,
+   -- LiveLock
    cspr_tspr_llen                   => cspr_tspr_llen,
    cspr_tspr_llpri                  => cspr_tspr_llpri,
    tspr_cspr_lldet                  => tspr_cspr_lldet,
    tspr_cspr_llpulse                => tspr_cspr_llpulse,
+   -- Reset
    pc_xu_reset_wd_complete          => pc_xu_reset_wd_complete,
    pc_xu_reset_1_complete           => pc_xu_reset_1_complete,
    pc_xu_reset_2_complete           => pc_xu_reset_2_complete,
@@ -674,6 +725,7 @@ port map(
    reset_1_complete                 => reset_1_complete,
    reset_2_complete                 => reset_2_complete,
    reset_3_complete                 => reset_3_complete,
+   -- Async Interrupt Req Interface
    cspr_tspr_crit_mask              => cspr_tspr_crit_mask,
    cspr_tspr_ext_mask               => cspr_tspr_ext_mask,
    cspr_tspr_dec_mask               => cspr_tspr_dec_mask,
@@ -682,6 +734,7 @@ port map(
    cspr_tspr_udec_mask              => cspr_tspr_udec_mask,
    cspr_tspr_perf_mask              => cspr_tspr_perf_mask,
    tspr_cspr_pm_wake_up             => tspr_cspr_pm_wake_up,
+   -- DBELL
    spr_cpl_dbell_interrupt          => spr_cpl_dbell_interrupt,
    spr_cpl_cdbell_interrupt         => spr_cpl_cdbell_interrupt,
    spr_cpl_gdbell_interrupt         => spr_cpl_gdbell_interrupt,
@@ -699,14 +752,18 @@ port map(
    lsu_xu_dbell_brdcast             => lsu_xu_dbell_brdcast,
    lsu_xu_dbell_lpid_match          => lsu_xu_dbell_lpid_match,
    lsu_xu_dbell_pirtag              => lsu_xu_dbell_pirtag,
+   -- Parity
    spr_cpl_ex3_sprg_ce              => spr_cpl_ex3_sprg_ce,
    spr_cpl_ex3_sprg_ue              => spr_cpl_ex3_sprg_ue,
    pc_xu_inj_sprg_ecc               => pc_xu_inj_sprg_ecc,
    xu_pc_err_sprg_ecc               => xu_pc_err_sprg_ecc,
+   -- Debug
    tspr_cspr_freeze_timers          => tspr_cspr_freeze_timers,
    tspr_cspr_async_int              => tspr_cspr_async_int,
+   -- Perf
    spr_perf_tx_events               => spr_perf_tx_events,
    xu_lsu_mtspr_trace_en            => xu_lsu_mtspr_trace_en,
+   -- SPRs
    lsu_xu_spr_xucr0_cslc_xuop       => lsu_xu_spr_xucr0_cslc_xuop,
    lsu_xu_spr_xucr0_cslc_binv       => lsu_xu_spr_xucr0_cslc_binv,
    lsu_xu_spr_xucr0_clo             => lsu_xu_spr_xucr0_clo,
@@ -748,6 +805,7 @@ port map(
 	xu_lsu_spr_xucr0_wlk             => xu_lsu_spr_xucr0_wlk,
    cspr_debug0                      => cspr_debug0,
    cspr_debug1                      => cspr_debug1,
+   -- Power
    vdd                              => vdd,
    gnd                              => gnd
 );
@@ -762,6 +820,7 @@ generic map(
    eff_ifar                         => eff_ifar)
 port map(
    nclk                             => nclk,
+   -- CHIP IO
    an_ac_ext_interrupt              => an_ac_ext_interrupt(t),
    an_ac_crit_interrupt             => an_ac_crit_interrupt(t),
    an_ac_perf_interrupt             => an_ac_perf_interrupt(t),
@@ -769,6 +828,7 @@ port map(
    ac_tc_machine_check              => ac_tc_machine_check(t),
    an_ac_external_mchk              => an_ac_external_mchk(t),
    instr_trace_mode                 => instr_trace_mode(t),
+   -- Act
    d_mode_dc                        => d_mode_dc,
    delay_lclkr_dc(0)                => delay_lclkr_dc,
    mpw1_dc_b(0)                     => mpw1_dc_b,
@@ -791,9 +851,11 @@ port map(
    dcfg_scan_in                     => siv_dcfg(1+t),
    dcfg_scan_out                    => sov_dcfg(1+t),
    cspr_tspr_rf1_act                => cspr_tspr_rf1_act,
+   -- Read Interface
    cspr_tspr_ex1_instr              => cspr_tspr_ex1_instr,
    cspr_tspr_ex2_tid                => cspr_tspr_ex2_tid(t),
    tspr_cspr_ex3_tspr_rt            => tspr_cspr_ex3_tspr_rt(regsize*t to regsize*(t+1)-1),
+   -- Write Interface
    dec_spr_ex4_val                  => dec_spr_ex4_val(t),
    cspr_tspr_ex5_is_mtmsr           => cspr_tspr_ex5_is_mtmsr,
    cspr_tspr_ex5_is_mtspr           => cspr_tspr_ex5_is_mtspr,
@@ -802,10 +864,12 @@ port map(
    cspr_tspr_ex5_instr              => cspr_tspr_ex5_instr,
    ex5_spr_wd                       => ex5_spr_wd(64-regsize to 63),
    cspr_tspr_dec_dbg_dis            => cspr_tspr_dec_dbg_dis(t),
+   -- Illegal SPR
    tspr_cspr_illeg_mtspr_b          => tspr_cspr_illeg_mtspr_b(t),
    tspr_cspr_illeg_mfspr_b          => tspr_cspr_illeg_mfspr_b(t),
    tspr_cspr_hypv_mtspr             => tspr_cspr_hypv_mtspr(t),
    tspr_cspr_hypv_mfspr             => tspr_cspr_hypv_mfspr(t),
+   -- Interrupt Interface
    cpl_spr_ex5_act                  => cpl_spr_ex5_act(t),
    cpl_spr_ex5_int                  => cpl_spr_ex5_int(t),
    cpl_spr_ex5_gint                 => cpl_spr_ex5_gint(t),
@@ -824,6 +888,7 @@ port map(
    cpl_spr_ex5_force_gsrr           => cpl_spr_ex5_force_gsrr(t),
    cpl_spr_ex5_dbsr_ide             => cpl_spr_ex5_dbsr_ide(t),
    spr_cpl_dbsr_ide                 => spr_cpl_dbsr_ide(t),
+   -- Async Interrupt Req Interface
    spr_cpl_external_mchk            => spr_cpl_external_mchk(t),
    spr_cpl_ext_interrupt            => spr_cpl_ext_interrupt(t),
    spr_cpl_dec_interrupt            => spr_cpl_dec_interrupt(t),
@@ -841,23 +906,29 @@ port map(
    cspr_tspr_perf_mask              => cspr_tspr_perf_mask(t),
    tspr_cspr_pm_wake_up             => tspr_cspr_pm_wake_up(t),
    tspr_cspr_async_int              => tspr_cspr_async_int(3*t to 3*(t+1)-1),
+   -- ICSWX
    dec_spr_ex1_epid_instr           => dec_spr_ex1_epid_instr,
    fxu_spr_ex1_rs2                  => fxu_spr_ex1_rs2,
    spr_cpl_ex3_ct_be                => spr_cpl_ex3_ct_be(t),   
    spr_cpl_ex3_ct_le                => spr_cpl_ex3_ct_le(t),
+   -- DBELL Int
    cspr_tspr_dbell_pirtag           => cspr_tspr_dbell_pirtag,
    tspr_cspr_gpir_match             => tspr_cspr_gpir_match(t),
    cspr_tspr_timebase_taps          => cspr_tspr_timebase_taps,
    timer_update                     => timer_update,
+   -- Debug
    spr_cpl_iac1_en                  => spr_cpl_iac1_en(t),
    spr_cpl_iac2_en                  => spr_cpl_iac2_en(t),
    spr_cpl_iac3_en                  => spr_cpl_iac3_en(t),
    spr_cpl_iac4_en                  => spr_cpl_iac4_en(t),
    tspr_cspr_freeze_timers          => tspr_cspr_freeze_timers(t),
+   -- Flush
    xu_ex4_flush                     => xu_ex4_flush(t),
    xu_ex5_flush                     => xu_ex5_flush(t),
+   -- Run State
    xu_iu_single_instr_mode          => xu_iu_single_instr_mode(t),
    xu_iu_raise_iss_pri              => xu_iu_raise_iss_pri(t),
+   -- LiveLock
    cpl_spr_ex5_instr_cpl            => cpl_spr_ex5_instr_cpl(t),
    cspr_tspr_llen                   => cspr_tspr_llen(t),
    cspr_tspr_llpri                  => cspr_tspr_llpri(t),
@@ -868,8 +939,10 @@ port map(
    pc_xu_inj_llbust_attempt         => pc_xu_inj_llbust_attempt(t),
    pc_xu_inj_llbust_failed          => pc_xu_inj_llbust_failed(t),
    pc_xu_inj_wdt_reset              => pc_xu_inj_wdt_reset(t),
+   -- XER
    spr_byp_ex4_is_mtxer             => spr_byp_ex4_is_mtxer(t),
    spr_byp_ex4_is_mfxer             => spr_byp_ex4_is_mfxer(t),
+   -- Resets
    reset_wd_complete                => reset_wd_complete,
    reset_1_complete                 => reset_1_complete,
    reset_2_complete                 => reset_2_complete,
@@ -879,11 +952,13 @@ port map(
    reset_3_request                  => reset_3_request(t),
    reset_wd_request                 => reset_wd_request(t),
    xu_pc_err_wdt_reset              => xu_pc_err_wdt_reset(t),
+   -- MSR Override
    cspr_tspr_ram_mode               => cspr_tspr_ram_mode(t),
    cspr_tspr_msrovride_en           => cspr_tspr_msrovride_en(t),
    pc_xu_msrovride_pr               => pc_xu_msrovride_pr,
    pc_xu_msrovride_gs               => pc_xu_msrovride_gs,
    pc_xu_msrovride_de               => pc_xu_msrovride_de,
+   -- SPRs
    cpl_spr_dbcr0_edm                => cpl_spr_dbcr0_edm(t),
    lsu_xu_spr_epsc_egs              => lsu_xu_spr_epsc_egs(t),
    lsu_xu_spr_epsc_epr              => lsu_xu_spr_epsc_epr(t),
@@ -923,6 +998,7 @@ port map(
 	spr_msr_ds                       => spr_msr_ds(t),
 	spr_msrp_uclep                   => spr_msrp_uclep(t),
    tspr_debug                       => tspr_debug(12*t to 12*(t+1)-1),
+   -- Power
    vdd                              => vdd,
    gnd                              => gnd
 );
@@ -943,18 +1019,22 @@ port map (
    ary_nsl_thold_0                     => ary_nsl_thold_0,
    time_sl_thold_0                     => time_sl_thold_0,
    repr_sl_thold_0                     => repr_sl_thold_0,
+   -- Reads
    rd0_act                             => cspr_aspr_rf1_re,
    rd0_adr                             => cspr_aspr_rf1_raddr,
    do0                                 => aspr_cspr_ex1_rdata,  
+   -- Writes
    wr_act            					   => cspr_aspr_ex5_we,
    wr_adr            					   => cspr_aspr_ex5_waddr,
    di                				      => ex5_spr_wd,     
+   -- Scan
    abst_scan_in                        => siv_abst(xu_spr_aspr_offset_abst),
    abst_scan_out                       => sov_abst(xu_spr_aspr_offset_abst),
    time_scan_in                        => siv_time(1),
    time_scan_out                       => sov_time(1),
    repr_scan_in                        => siv_repr(1),
    repr_scan_out                       => sov_repr(1),
+   -- Misc Pervasive
    scan_dis_dc_b                       => an_ac_scan_dis_dc_b,
    scan_diag_dc                        => an_ac_scan_diag_dc,
    ccflush_dc                          => pc_xu_ccflush_dc,   
@@ -963,20 +1043,22 @@ port map (
    mpw1_dc_b                           => g8t_mpw1_dc_b,
    mpw2_dc_b                           => g8t_mpw2_dc_b,
    delay_lclkr_dc                      => g8t_delay_lclkr_dc,
+   -- BOLT-ON
    lcb_bolt_sl_thold_0                 => bolt_sl_thold_0,
-   pc_bo_enable_2                      => bo_enable_2,                       
-   pc_bo_reset                         => pc_xu_bo_reset,                    
-   pc_bo_unload                        => pc_xu_bo_unload,                   
-   pc_bo_repair                        => pc_xu_bo_repair,                   
-   pc_bo_shdata                        => pc_xu_bo_shdata,                   
-   pc_bo_select                        => pc_xu_bo_select,                   
-   bo_pc_failout                       => xu_pc_bo_fail,                     
+   pc_bo_enable_2                      => bo_enable_2,                       -- general bolt-on enable
+   pc_bo_reset                         => pc_xu_bo_reset,                    -- reset
+   pc_bo_unload                        => pc_xu_bo_unload,                   -- unload sticky bits
+   pc_bo_repair                        => pc_xu_bo_repair,                   -- execute sticky bit decode
+   pc_bo_shdata                        => pc_xu_bo_shdata,                   -- shift data for timing write and diag loop
+   pc_bo_select                        => pc_xu_bo_select,                   -- select for mask and hier writes
+   bo_pc_failout                       => xu_pc_bo_fail,                     -- fail/no-fix reg
    bo_pc_diagloop                      => xu_pc_bo_diagout, 
    tri_lcb_mpw1_dc_b                   => mpw1_dc_b,
    tri_lcb_mpw2_dc_b                   => mpw2_dc_b,
    tri_lcb_delay_lclkr_dc              => delay_lclkr_dc,
    tri_lcb_clkoff_dc_b                 => clkoff_dc_b,
    tri_lcb_act_dis_dc                  => tidn,
+   -- ABIST
    abist_bw_odd                        => abist_g8t_bw_1_q,
    abist_bw_even                       => abist_g8t_bw_0_q, 
    tc_lbist_ary_wrt_thru_dc            => an_ac_lbist_ary_wrt_thru_dc,
@@ -1022,6 +1104,7 @@ spr_trigger_data_out <= trigger_data_out_q;
 spr_debug_data_out   <= debug_data_out_q;
 
 
+-- FUNC Latch Instances
 reset_1_request_latch : tri_regk
   generic map (width => 1, init => 0, expand_type => expand_type, needs_sreset => 1)
   port map (nclk    => nclk, vd => vdd, gd => gnd,
@@ -1114,6 +1197,7 @@ trigger_data_out_latch : tri_rlmreg_p
             scout   => sov(trigger_data_out_offset to trigger_data_out_offset + trigger_data_out_q'length-1),
             din     => trigger_data_out_d,
             dout    => trigger_data_out_q);
+-- ABST Latch Instances
 abist_g8t_wenb_latch : tri_rlmlatch_p
   generic map (init => 0, expand_type => expand_type, needs_sreset => 1)
   port map (nclk    => nclk, vd => vdd, gd => gnd,
@@ -1376,6 +1460,9 @@ func_scan_out_latch : tri_regs
             scout   => func_scan_gate_out,
             dout    => open);
 
+-------------------------------------------------
+-- Pervasive
+-------------------------------------------------
 lcbctrl_g8t: tri_lcbcntl_array_mac
   generic map (expand_type => expand_type)
 port map (

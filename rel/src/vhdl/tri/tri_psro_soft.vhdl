@@ -18,10 +18,10 @@ use support.power_logic_pkg.all;
 
 entity tri_psro_soft is
   port (
-         vdd            : inout power_logic;            
-         gnd            : inout power_logic;            
-         psro_enable    : in std_ulogic_vector(0 to 2); 
-         psro_ringsig   : out std_ulogic                
+         vdd            : inout power_logic;            -- Local Voltage Grid
+         gnd            : inout power_logic;            -- Local Gnd
+         psro_enable    : in std_ulogic_vector(0 to 2); -- From pervasive
+         psro_ringsig   : out std_ulogic                -- These need to be triple buffered
        );
 
 -- synopsys translate_off

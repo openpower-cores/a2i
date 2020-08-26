@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU LSU L1 Data Cache
+--
 
 library ibm, ieee, work, tri, support;
 use ibm.std_ulogic_support.all;
@@ -17,41 +19,48 @@ use ieee.numeric_std.all;
 use tri.tri_latches_pkg.all;
 use support.power_logic_pkg.all;
 
+-- ##########################################################################################
+-- VHDL Contents
+-- 1) Staging Latches
+-- 2) Exception Handling
+-- 3) Flush Generation
+-- ##########################################################################################
 
 entity xuq_lsu_dc is
-generic(expand_type     : integer := 2;		
-        l_endian_m      : integer := 1;         
-        regmode         : integer := 6;         
-        dc_size         : natural := 14;        
-        parBits         : natural := 4;         
-	real_data_add	: integer := 42);	
+generic(expand_type     : integer := 2;		-- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
+        l_endian_m      : integer := 1;         -- 1 = little endian mode enabled, 0 = little endian mode disabled
+        regmode         : integer := 6;         -- Register Mode 5 = 32bit, 6 = 64bit
+        dc_size         : natural := 14;        -- 2^14 = 16384 Bytes L1 D$
+        parBits         : natural := 4;         -- Number of Parity Bits
+	real_data_add	: integer := 42);	-- 42 bit real address
 port(
 
+     -- Execution Pipe Inputs
      xu_lsu_rf0_act             :in  std_ulogic;
      xu_lsu_rf1_cmd_act         :in  std_ulogic;
-     xu_lsu_rf1_axu_op_val      :in  std_ulogic;                        
-     xu_lsu_rf1_axu_ldst_falign :in  std_ulogic;                        
-     xu_lsu_rf1_axu_ldst_fexcpt :in  std_ulogic;                        
-     xu_lsu_rf1_cache_acc       :in  std_ulogic;                        
-     xu_lsu_rf1_thrd_id         :in  std_ulogic_vector(0 to 3);         
-     xu_lsu_rf1_optype1         :in  std_ulogic;                        
-     xu_lsu_rf1_optype2         :in  std_ulogic;                        
-     xu_lsu_rf1_optype4         :in  std_ulogic;                        
-     xu_lsu_rf1_optype8         :in  std_ulogic;                        
-     xu_lsu_rf1_optype16        :in  std_ulogic;                        
-     xu_lsu_rf1_optype32        :in  std_ulogic;                        
-     xu_lsu_rf1_target_gpr      :in  std_ulogic_vector(0 to 8);         
-     xu_lsu_rf1_mtspr_trace     :in  std_ulogic;                        
-     xu_lsu_rf1_load_instr      :in  std_ulogic;                        
-     xu_lsu_rf1_store_instr     :in  std_ulogic;                        
-     xu_lsu_rf1_dcbf_instr      :in  std_ulogic;                        
-     xu_lsu_rf1_sync_instr      :in  std_ulogic;                        
-     xu_lsu_rf1_l_fld           :in  std_ulogic_vector(0 to 1);         
-     xu_lsu_rf1_dcbi_instr      :in  std_ulogic;                        
-     xu_lsu_rf1_dcbz_instr      :in  std_ulogic;                        
-     xu_lsu_rf1_dcbt_instr      :in  std_ulogic;                        
-     xu_lsu_rf1_dcbtst_instr    :in  std_ulogic;                        
-     xu_lsu_rf1_th_fld          :in  std_ulogic_vector(0 to 4);         
+     xu_lsu_rf1_axu_op_val      :in  std_ulogic;                        -- Operation is from the AXU
+     xu_lsu_rf1_axu_ldst_falign :in  std_ulogic;                        -- AXU force alignment indicator
+     xu_lsu_rf1_axu_ldst_fexcpt :in  std_ulogic;                        -- AXU force alignment exception on misaligned access
+     xu_lsu_rf1_cache_acc       :in  std_ulogic;                        -- Cache Access is Valid, Op that touches directory
+     xu_lsu_rf1_thrd_id         :in  std_ulogic_vector(0 to 3);         -- Thread ID
+     xu_lsu_rf1_optype1         :in  std_ulogic;                        -- 1 Byte Load/Store
+     xu_lsu_rf1_optype2         :in  std_ulogic;                        -- 2 Byte Load/Store
+     xu_lsu_rf1_optype4         :in  std_ulogic;                        -- 4 Byte Load/Store
+     xu_lsu_rf1_optype8         :in  std_ulogic;                        -- 8 Byte Load/Store
+     xu_lsu_rf1_optype16        :in  std_ulogic;                        -- 16 Byte Load/Store
+     xu_lsu_rf1_optype32        :in  std_ulogic;                        -- 32 Byte Load/Store
+     xu_lsu_rf1_target_gpr      :in  std_ulogic_vector(0 to 8);         -- Target GPR, needed for reloads
+     xu_lsu_rf1_mtspr_trace     :in  std_ulogic;                        -- Operation is a mtspr trace instruction
+     xu_lsu_rf1_load_instr      :in  std_ulogic;                        -- Operation is a Load instruction
+     xu_lsu_rf1_store_instr     :in  std_ulogic;                        -- Operation is a Store instruction
+     xu_lsu_rf1_dcbf_instr      :in  std_ulogic;                        -- Operation is a DCBF instruction
+     xu_lsu_rf1_sync_instr      :in  std_ulogic;                        -- Operation is a SYNC instruction
+     xu_lsu_rf1_l_fld           :in  std_ulogic_vector(0 to 1);         -- DCBF/SYNC L Field
+     xu_lsu_rf1_dcbi_instr      :in  std_ulogic;                        -- Operation is a DCBI instruction
+     xu_lsu_rf1_dcbz_instr      :in  std_ulogic;                        -- Operation is a DCBZ instruction
+     xu_lsu_rf1_dcbt_instr      :in  std_ulogic;                        -- Operation is a DCBT instruction
+     xu_lsu_rf1_dcbtst_instr    :in  std_ulogic;                        -- Operation is a DCBTST instruction
+     xu_lsu_rf1_th_fld          :in  std_ulogic_vector(0 to 4);         -- TH/CT Field for Cache Management instructions
      xu_lsu_rf1_dcbtls_instr    :in  std_ulogic;
      xu_lsu_rf1_dcbtstls_instr  :in  std_ulogic;
      xu_lsu_rf1_dcblc_instr     :in  std_ulogic;
@@ -67,65 +76,70 @@ port(
      xu_lsu_rf1_ldawx_instr     :in  std_ulogic;
      xu_lsu_rf1_wclr_instr      :in  std_ulogic;
      xu_lsu_rf1_wchk_instr      :in  std_ulogic;
-     xu_lsu_rf1_lock_instr      :in  std_ulogic;                        
-     xu_lsu_rf1_mutex_hint      :in  std_ulogic;                        
-     xu_lsu_rf1_mbar_instr      :in  std_ulogic;                        
+     xu_lsu_rf1_lock_instr      :in  std_ulogic;                        -- Operation is a LOCK instruction
+     xu_lsu_rf1_mutex_hint      :in  std_ulogic;                        -- Mutex Hint For larx instructions
+     xu_lsu_rf1_mbar_instr      :in  std_ulogic;                        -- Operation is an MBAR instruction
      xu_lsu_rf1_is_msgsnd       :in  std_ulogic;
-     xu_lsu_rf1_dci_instr       :in  std_ulogic;                        
-     xu_lsu_rf1_ici_instr       :in  std_ulogic;                        
-     xu_lsu_rf1_algebraic       :in  std_ulogic;                        
-     xu_lsu_rf1_byte_rev        :in  std_ulogic;                        
-     xu_lsu_rf1_src_gpr         :in  std_ulogic;                        
-     xu_lsu_rf1_src_axu         :in  std_ulogic;                        
-     xu_lsu_rf1_src_dp          :in  std_ulogic;                        
-     xu_lsu_rf1_targ_gpr        :in  std_ulogic;                        
-     xu_lsu_rf1_targ_axu        :in  std_ulogic;                        
-     xu_lsu_rf1_targ_dp         :in  std_ulogic;                        
-     xu_lsu_ex4_val             :in  std_ulogic_vector(0 to 3);         
+     xu_lsu_rf1_dci_instr       :in  std_ulogic;                        -- DCI instruction is valid
+     xu_lsu_rf1_ici_instr       :in  std_ulogic;                        -- ICI instruction is valid
+     xu_lsu_rf1_algebraic       :in  std_ulogic;                        -- Operation is an Algebraic Load instruction
+     xu_lsu_rf1_byte_rev        :in  std_ulogic;                        -- Operation is a Byte Reversal Load/Store instruction
+     xu_lsu_rf1_src_gpr         :in  std_ulogic;                        -- Source is the GPR's for mfloat and mDCR ops
+     xu_lsu_rf1_src_axu         :in  std_ulogic;                        -- Source is the AXU's for mfloat and mDCR ops
+     xu_lsu_rf1_src_dp          :in  std_ulogic;                        -- Source is the BOX's for mfloat and mDCR ops
+     xu_lsu_rf1_targ_gpr        :in  std_ulogic;                        -- Target is the GPR's for mfloat and mDCR ops
+     xu_lsu_rf1_targ_axu        :in  std_ulogic;                        -- Target is the AXU's for mfloat and mDCR ops
+     xu_lsu_rf1_targ_dp         :in  std_ulogic;                        -- Target is the BOX's for mfloat and mDCR ops
+     xu_lsu_ex4_val             :in  std_ulogic_vector(0 to 3);         -- There is a valid Instruction in EX4
 
-     xu_lsu_rf1_src0_vld        :in  std_ulogic;                        
-     xu_lsu_rf1_src0_reg        :in  std_ulogic_vector(0 to 7);         
-     xu_lsu_rf1_src1_vld        :in  std_ulogic;                        
-     xu_lsu_rf1_src1_reg        :in  std_ulogic_vector(0 to 7);         
-     xu_lsu_rf1_targ_vld        :in  std_ulogic;                        
-     xu_lsu_rf1_targ_reg        :in  std_ulogic_vector(0 to 7);         
+     -- Dependency Checking on loadmisses
+     xu_lsu_rf1_src0_vld        :in  std_ulogic;                        -- Source0 is Valid
+     xu_lsu_rf1_src0_reg        :in  std_ulogic_vector(0 to 7);         -- Source0 Register
+     xu_lsu_rf1_src1_vld        :in  std_ulogic;                        -- Source1 is Valid
+     xu_lsu_rf1_src1_reg        :in  std_ulogic_vector(0 to 7);         -- Source1 Register
+     xu_lsu_rf1_targ_vld        :in  std_ulogic;                        -- Target is Valid
+     xu_lsu_rf1_targ_reg        :in  std_ulogic_vector(0 to 7);         -- Target Register
 
+     -- Physical Address in EX2
      ex2_p_addr_lwr             :in  std_ulogic_vector(52 to 63);
-     ex2_lm_dep_hit             :in  std_ulogic;                        
+     ex2_lm_dep_hit             :in  std_ulogic;                        -- Sources for Op match target in loadmiss queue
 
-     ex3_wimge_w_bit            :in  std_ulogic;                        
-     ex3_wimge_i_bit            :in  std_ulogic;                        
-     ex3_wimge_e_bit            :in  std_ulogic;                        
+     ex3_wimge_w_bit            :in  std_ulogic;                        -- WIMGE bits in EX3
+     ex3_wimge_i_bit            :in  std_ulogic;                        -- WIMGE bits in EX3
+     ex3_wimge_e_bit            :in  std_ulogic;                        -- WIMGE bits in EX3
      ex3_p_addr                 :in  std_ulogic_vector(64-real_data_add to 51);
-     ex3_ld_queue_full          :in  std_ulogic;                        
-     ex3_stq_flush              :in  std_ulogic;                        
-     ex3_ig_flush               :in  std_ulogic;                        
-     ex3_hit                    :in  std_ulogic;                        
-     ex4_miss                   :in  std_ulogic;                        
-     ex4_snd_ld_l2              :in  std_ulogic;                        
+     ex3_ld_queue_full          :in  std_ulogic;                        -- LSQ load queue full
+     ex3_stq_flush              :in  std_ulogic;                        -- LSQ store queue full
+     ex3_ig_flush               :in  std_ulogic;                        -- LSQ I=G=1 flush
+     ex3_hit                    :in  std_ulogic;                        -- EX3 Load/Store Hit
+     ex4_miss                   :in  std_ulogic;                        -- EX4 Load/Store Miss
+     ex4_snd_ld_l2              :in  std_ulogic;                        -- Request is being sent to the L2
      derat_xu_ex3_noop_touch    :in  std_ulogic_vector(0 to 3);
-     ex3_cClass_collision       :in  std_ulogic;                        
-     ex2_lockwatchSet_rel_coll  :in  std_ulogic;                        
-     ex3_wclr_all_flush         :in  std_ulogic;                        
-     rel_dcarr_val_upd          :in  std_ulogic;                        
+     ex3_cClass_collision       :in  std_ulogic;                        -- Thread Collision with same Congruence Class and Way
+     ex2_lockwatchSet_rel_coll  :in  std_ulogic;                        -- DCBT[ST]LS or WatchSet instruction collided with Reload Clear Stage
+     ex3_wclr_all_flush         :in  std_ulogic;                        -- Watch clear all in pipe flushing other threads in pipe
+     rel_dcarr_val_upd          :in  std_ulogic;                        -- Reload Data Array Update Valid
 
+     -- Data Cache Config Bits
      xu_lsu_mtspr_trace_en      :in  std_ulogic_vector(0 to 3);
-     spr_xucr0_clkg_ctl_b1      :in  std_ulogic;                        
-     xu_lsu_spr_xucr0_aflsta    :in  std_ulogic;                        
-     xu_lsu_spr_xucr0_flsta     :in  std_ulogic;                        
-     xu_lsu_spr_xucr0_l2siw     :in  std_ulogic;                        
-     xu_lsu_spr_xucr0_dcdis     :in  std_ulogic;                        
-     xu_lsu_spr_xucr0_wlk       :in  std_ulogic;                        
-     xu_lsu_spr_ccr2_dfrat      :in  std_ulogic;                        
-     xu_lsu_spr_xucr0_flh2l2    :in  std_ulogic;                        
-     xu_lsu_spr_xucr0_cls       :in  std_ulogic;                        
-     xu_lsu_spr_msr_cm          :in  std_ulogic_vector(0 to 3);         
+     spr_xucr0_clkg_ctl_b1      :in  std_ulogic;                        -- Override Clock Gating
+     xu_lsu_spr_xucr0_aflsta    :in  std_ulogic;                        -- Force load/store Alignment Exception (AXU)
+     xu_lsu_spr_xucr0_flsta     :in  std_ulogic;                        -- Force load/store Alignment Exception (XU)
+     xu_lsu_spr_xucr0_l2siw     :in  std_ulogic;                        -- L2 store interface width
+     xu_lsu_spr_xucr0_dcdis     :in  std_ulogic;                        -- Data Cache Disable
+     xu_lsu_spr_xucr0_wlk       :in  std_ulogic;                        -- Data Cache Way Locking Enable
+     xu_lsu_spr_ccr2_dfrat      :in  std_ulogic;                        -- Force Real Address Translation
+     xu_lsu_spr_xucr0_flh2l2    :in  std_ulogic;                        -- Force L1 load hits to L2
+     xu_lsu_spr_xucr0_cls       :in  std_ulogic;                        -- Cacheline Size = 1 => 128Byte size, 0 => 64Byte size
+     xu_lsu_spr_msr_cm          :in  std_ulogic_vector(0 to 3);         -- 64bit mode enable
 
-     xu_lsu_msr_gs              :in  std_ulogic_vector(0 to 3);         
-     xu_lsu_msr_pr              :in  std_ulogic_vector(0 to 3);         
+     -- MSR[GS,PR] bits, indicates which state we are running in
+     xu_lsu_msr_gs              :in  std_ulogic_vector(0 to 3);         -- Guest State
+     xu_lsu_msr_pr              :in  std_ulogic_vector(0 to 3);         -- Problem State
 
-     an_ac_flh2l2_gate          :in  std_ulogic;                        
+     an_ac_flh2l2_gate          :in  std_ulogic;                        -- Gate L1 Hit forwarding SPR config bit
 
+     -- Stage Flush from Instruction Flush Unit
      xu_lsu_rf1_flush           :in  std_ulogic_vector(0 to 3);
      xu_lsu_ex1_flush           :in  std_ulogic_vector(0 to 3);
      xu_lsu_ex2_flush           :in  std_ulogic_vector(0 to 3);
@@ -133,6 +147,7 @@ port(
      xu_lsu_ex4_flush           :in  std_ulogic_vector(0 to 3);
      xu_lsu_ex5_flush           :in  std_ulogic_vector(0 to 3);
 
+     -- Slow SPR Bus
      xu_lsu_slowspr_val         :in  std_ulogic;
      xu_lsu_slowspr_rw          :in  std_ulogic;
      xu_lsu_slowspr_etid        :in  std_ulogic_vector(0 to 1);
@@ -146,14 +161,15 @@ port(
      slowspr_data_out           :out std_ulogic_vector(64-(2**REGMODE) to 63);
      slowspr_done_out           :out std_ulogic;
 
-     ldq_rel_data_val_early     :in  std_ulogic;                        
-     ldq_rel_stg24_val          :in  std_ulogic;                        
-     ldq_rel_axu_val            :in  std_ulogic;                        
-     ldq_rel_thrd_id            :in  std_ulogic_vector(0 to 3);         
+     -- L2 Operation Flush
+     ldq_rel_data_val_early     :in  std_ulogic;                        -- Reload Interface ACT
+     ldq_rel_stg24_val          :in  std_ulogic;                        -- Reload Stages 2 and 4 are valid
+     ldq_rel_axu_val            :in  std_ulogic;                        -- Reload is for a Vector Register
+     ldq_rel_thrd_id            :in  std_ulogic_vector(0 to 3);         -- Thread ID of the reload
      ldq_rel_ta_gpr             :in  std_ulogic_vector(0 to 8);
-     ldq_rel_upd_gpr            :in  std_ulogic;                        
-     ldq_rel_ci                 :in  std_ulogic;                        
-     is2_l2_inv_val             :in  std_ulogic;                        
+     ldq_rel_upd_gpr            :in  std_ulogic;                        -- Reload data should be written to GPR (DCB ops don't write to GPRs)
+     ldq_rel_ci                 :in  std_ulogic;                        -- Cache-Inhibited Reload is Valid
+     is2_l2_inv_val             :in  std_ulogic;                        -- L2 Back-Invalidate is Valid
 
      ex3_wayA_tag               :in  std_ulogic_vector(64-real_data_add to 63-(dc_size-3));
      ex3_wayB_tag               :in  std_ulogic_vector(64-real_data_add to 63-(dc_size-3));
@@ -181,14 +197,16 @@ port(
      ex4_way_h_dir              :in  std_ulogic_vector(0 to 5);
      ex4_dir_lru                :in  std_ulogic_vector(0 to 6);
 
-     ex1_src0_vld               :out std_ulogic;                        
-     ex1_src0_reg               :out std_ulogic_vector(0 to 7);         
-     ex1_src1_vld               :out std_ulogic;                        
-     ex1_src1_reg               :out std_ulogic_vector(0 to 7);         
-     ex1_targ_vld               :out std_ulogic;                        
-     ex1_targ_reg               :out std_ulogic_vector(0 to 7);         
-     ex1_check_watch            :out std_ulogic_vector(0 to 3);         
+     -- Dependency Checking on loadmisses
+     ex1_src0_vld               :out std_ulogic;                        -- Source0 is Valid
+     ex1_src0_reg               :out std_ulogic_vector(0 to 7);         -- Source0 Register
+     ex1_src1_vld               :out std_ulogic;                        -- Source1 is Valid
+     ex1_src1_reg               :out std_ulogic_vector(0 to 7);         -- Source1 Register
+     ex1_targ_vld               :out std_ulogic;                        -- Target is Valid
+     ex1_targ_reg               :out std_ulogic_vector(0 to 7);         -- Target Register
+     ex1_check_watch            :out std_ulogic_vector(0 to 3);         -- Instructions that need to wait for ldawx to complete in loadmiss queue
 
+     -- Execution Pipe Outputs
      ex1_lsu_64bit_agen         :out std_ulogic;
      ex1_frc_align2             :out std_ulogic;
      ex1_frc_align4             :out std_ulogic;
@@ -263,10 +281,11 @@ port(
      ex3_blkable_touch          :out std_ulogic;
      ex3_l2_request             :out std_ulogic;
      ex3_ldq_potential_flush    :out std_ulogic;
-     ex7_targ_match             :out std_ulogic;                
-     ex8_targ_match             :out std_ulogic;                
+     ex7_targ_match             :out std_ulogic;                -- EX6vsEX5 matched
+     ex8_targ_match             :out std_ulogic;                -- EX7vsEX6 or EX7vsEX5 matched
      ex4_ld_entry               :out std_ulogic_vector(0 to 67);
 
+     -- Physical Address in EX3
      ex3_lock_en                :out std_ulogic;
      ex3_cache_en               :out std_ulogic;
      ex3_cache_inh              :out std_ulogic;
@@ -282,6 +301,7 @@ port(
      ex5_load_op_hit            :out std_ulogic;
      ex4_axu_op_val             :out std_ulogic;
 
+     -- SPR's
      spr_xucr2_rmt              :out std_ulogic_vector(0 to 31);
      spr_xucr0_wlck             :out std_ulogic;
      spr_dvc1_act               :out std_ulogic;
@@ -289,28 +309,34 @@ port(
      spr_dvc1_dbg               :out std_ulogic_vector(64-(2**regmode) to 63);
      spr_dvc2_dbg               :out std_ulogic_vector(64-(2**regmode) to 63);
 
-     lsu_xu_spr_xucr0_cul       :out std_ulogic;                        
-     spr_xucr0_cls              :out std_ulogic;                        
+     -- SPR status
+     lsu_xu_spr_xucr0_cul       :out std_ulogic;                        -- Cache Lock unable to lock
+     spr_xucr0_cls              :out std_ulogic;                        -- Cacheline Size
      agen_xucr0_cls             :out std_ulogic;
 
+     -- Directory Read interface
      dir_arr_rd_is2_val         :out std_ulogic;
      dir_arr_rd_congr_cl        :out std_ulogic_vector(0 to 4);
 
+     -- Interrupt Generation
      lsu_xu_ex3_align           :out std_ulogic_vector(0 to 3);         
      lsu_xu_ex3_dsi             :out std_ulogic_vector(0 to 3);         
      lsu_xu_ex3_inval_align_2ucode :out std_ulogic;                        
 
-     ex2_stg_flush              :out std_ulogic;                        
-     ex3_stg_flush              :out std_ulogic;                        
-     ex4_stg_flush              :out std_ulogic;                        
-     ex5_stg_flush              :out std_ulogic;                        
-     lsu_xu_ex3_n_flush_req     :out std_ulogic;                        
-     lsu_xu_ex3_dep_flush       :out std_ulogic;                        
+     -- Flush Pipe Outputs
+     ex2_stg_flush              :out std_ulogic;                        -- Flush Instructions in EX2
+     ex3_stg_flush              :out std_ulogic;                        -- Flush Instructions in EX3
+     ex4_stg_flush              :out std_ulogic;                        -- Flush Instructions in EX4
+     ex5_stg_flush              :out std_ulogic;                        -- Flush Instructions in EX5
+     lsu_xu_ex3_n_flush_req     :out std_ulogic;                        -- Data Cache Instruction Flush in EX3
+     lsu_xu_ex3_dep_flush       :out std_ulogic;                        -- RAW/WAW Dependency Flush
 
+     -- Back-invalidate
      rf1_l2_inv_val             :out std_ulogic;
      ex1_agen_binv_val          :out std_ulogic;
      ex1_l2_inv_val             :out std_ulogic;
 
+     -- Update Data Array Valid
      rel_upd_dcarr_val          :out std_ulogic;
 
      lsu_xu_ex4_cr_upd          :out std_ulogic;
@@ -325,9 +351,11 @@ port(
      xu_fu_ex5_load_val         :out std_ulogic_vector(0 to 3);
      xu_fu_ex5_load_tag         :out std_ulogic_vector(0 to 8);
 
+     -- ICBI Interface
      xu_iu_ex6_icbi_val         :out std_ulogic_vector(0 to 3);
      xu_iu_ex6_icbi_addr        :out std_ulogic_vector(64-real_data_add to 57);    
 
+     -- DERAT SlowSPR Regs
      xu_derat_epsc_wr           :out std_ulogic_vector(0 to 3);
      xu_derat_eplc_wr           :out std_ulogic_vector(0 to 3);
      xu_derat_eplc0_epr         :out std_ulogic;
@@ -371,9 +399,11 @@ port(
      xu_derat_epsc3_elpid       :out std_ulogic_vector(40 to 47);
      xu_derat_epsc3_epid        :out std_ulogic_vector(50 to 63);
 
+     -- Debug Data
      dc_fgen_dbg_data           :out std_ulogic_vector(0 to 1);
      dc_cntrl_dbg_data          :out std_ulogic_vector(0 to 66);
 
+     -- ACT signals
      ex1_stg_act                :out std_ulogic;
      ex2_stg_act                :out std_ulogic;
      ex3_stg_act                :out std_ulogic;
@@ -388,6 +418,7 @@ port(
      rel2_stg_act               :out std_ulogic;
      rel3_stg_act               :out std_ulogic;
 
+     -- Pervasive
      vdd                        :inout power_logic;
      gnd                        :inout power_logic;
      nclk                       :in  clk_logic;
@@ -410,13 +441,23 @@ port(
 -- synopsys translate_off
 -- synopsys translate_on
 end xuq_lsu_dc;
+----
 architecture xuq_lsu_dc of xuq_lsu_dc is
 
+----------------------------
+-- components
+----------------------------
 
+----------------------------
+-- constants
+----------------------------
 constant dccntrl_offset         :natural := 0;
 constant dcfgen_offset          :natural := dccntrl_offset + 1;
 constant scan_right             :natural := dcfgen_offset + 1 - 1;
 
+----------------------------
+-- signals
+----------------------------
 signal stg_flush_rf1            :std_ulogic;
 signal stg_flush_ex1            :std_ulogic;
 signal stg_flush_ex2            :std_ulogic;
@@ -453,7 +494,13 @@ signal sov                      :std_ulogic_vector(0 to scan_right);
 
 begin
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Inputs
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Data Cache Staging Latches and Control
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 l1dccntrl : entity work.xuq_lsu_dc_cntrl(xuq_lsu_dc_cntrl)
 generic map(expand_type         => expand_type,
             regmode             => regmode,
@@ -462,6 +509,7 @@ generic map(expand_type         => expand_type,
             real_data_add	=> real_data_add)
 port map(
 
+     -- Execution Pipe Inputs
      xu_lsu_rf0_act             => xu_lsu_rf0_act,
      xu_lsu_rf1_cmd_act         => xu_lsu_rf1_cmd_act,
      xu_lsu_rf1_axu_op_val      => xu_lsu_rf1_axu_op_val,
@@ -518,6 +566,7 @@ port map(
      xu_lsu_rf1_targ_dp         => xu_lsu_rf1_targ_dp,
      xu_lsu_ex4_val             => xu_lsu_ex4_val,
 
+     -- Dependency Checking on loadmisses
      xu_lsu_rf1_src0_vld        => xu_lsu_rf1_src0_vld,
      xu_lsu_rf1_src0_reg        => xu_lsu_rf1_src0_reg,
      xu_lsu_rf1_src1_vld        => xu_lsu_rf1_src1_vld,
@@ -525,6 +574,7 @@ port map(
      xu_lsu_rf1_targ_vld        => xu_lsu_rf1_targ_vld,
      xu_lsu_rf1_targ_reg        => xu_lsu_rf1_targ_reg,
 
+     -- Back-Invalidate
      is2_l2_inv_val             => is2_l2_inv_val,
 
      ex3_wayA_tag               => ex3_wayA_tag,
@@ -566,6 +616,7 @@ port map(
      ex4_snd_ld_l2              => ex4_snd_ld_l2,
      ex3_excp_det               => ex3_excp_det,
 
+     -- Stage Flush
      rf1_stg_flush              => stg_flush_rf1,
      ex1_stg_flush              => stg_flush_ex1,
      ex2_stg_flush              => stg_flush_ex2,
@@ -573,6 +624,7 @@ port map(
      ex4_stg_flush              => stg_flush_ex4,
      ex5_stg_flush              => stg_flush_ex5,
 
+     -- Data Cache Config
      xu_lsu_mtspr_trace_en      => xu_lsu_mtspr_trace_en,
      spr_xucr0_clkg_ctl_b1      => spr_xucr0_clkg_ctl_b1,
      xu_lsu_spr_xucr0_wlk       => xu_lsu_spr_xucr0_wlk,
@@ -587,6 +639,7 @@ port map(
 
      an_ac_flh2l2_gate          => an_ac_flh2l2_gate,
 
+     -- Slow SPR Bus
      xu_lsu_slowspr_val         => xu_lsu_slowspr_val,
      xu_lsu_slowspr_rw          => xu_lsu_slowspr_rw,
      xu_lsu_slowspr_etid        => xu_lsu_slowspr_etid,
@@ -607,6 +660,7 @@ port map(
      ldq_rel_ta_gpr             => ldq_rel_ta_gpr,
      ldq_rel_upd_gpr            => ldq_rel_upd_gpr,
 
+     -- Dependency Checking on loadmisses
      ex1_src0_vld               => ex1_src0_vld,
      ex1_src0_reg               => ex1_src0_reg,
      ex1_src1_vld               => ex1_src1_vld,
@@ -615,6 +669,7 @@ port map(
      ex1_targ_reg               => ex1_targ_reg,
      ex1_check_watch            => ex1_check_watch,
 
+     -- Execution Pipe Outputs
      ex1_lsu_64bit_agen         => ex1_lsu_64bit_agen,
      ex1_frc_align2             => ex1_frc_align2,
      ex1_frc_align4             => ex1_frc_align4,
@@ -736,17 +791,21 @@ port map(
      spr_dvc1_dbg               => spr_dvc1_dbg,
      spr_dvc2_dbg               => spr_dvc2_dbg,
 
+     -- SPR status
      lsu_xu_spr_xucr0_cul       => lsu_xu_spr_xucr0_cul,
      spr_xucr0_cls              => spr_xucr0_cls,
      agen_xucr0_cls             => agen_xucr0_cls,
 
+     -- Directory Read interface
      dir_arr_rd_is2_val         => dir_arr_rd_is2_val,
      dir_arr_rd_congr_cl        => dir_arr_rd_congr_cl,
 
+     -- Back-invalidate
      rf1_l2_inv_val             => rf1_l2_inv_val,
      ex1_agen_binv_val          => ex1_agen_binv_val,
      ex1_l2_inv_val             => ex1_l2_inv_val,
 
+     -- Update Data Array Valid
      rel_upd_dcarr_val          => rel_upd_dcarr_val,
 
      lsu_xu_ex4_cr_upd          => lsu_xu_ex4_cr_upd,
@@ -760,9 +819,11 @@ port map(
      xu_fu_ex5_load_val         => xu_fu_ex5_load_val,
      xu_fu_ex5_load_tag         => xu_fu_ex5_load_tag,
 
+     -- ICBI Interface
      xu_iu_ex6_icbi_val         => xu_iu_ex6_icbi_val,
      xu_iu_ex6_icbi_addr        => xu_iu_ex6_icbi_addr,
 
+     -- DERAT SlowSPR Regs
      xu_derat_epsc_wr           => xu_derat_epsc_wr,
      xu_derat_eplc_wr           => xu_derat_eplc_wr,
      xu_derat_eplc0_epr         => xu_derat_eplc0_epr,
@@ -808,6 +869,7 @@ port map(
 
      dc_cntrl_dbg_data          => dc_cntrl_dbg_data,
 
+     -- ACT signals
      ex1_stg_act                => ex1_stg_act,
      ex2_stg_act                => ex2_stg_act,
      ex3_stg_act                => ex3_stg_act,
@@ -822,6 +884,7 @@ port map(
      rel2_stg_act               => rel2_stg_act,
      rel3_stg_act               => rel3_stg_act,
 
+     -- Pervasive
      vdd                        => vdd,
      gnd                        => gnd,
      nclk                       => nclk,
@@ -843,6 +906,9 @@ port map(
 );
 
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Flush Generation
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 lsufgen : entity work.xuq_lsu_fgen(xuq_lsu_fgen)
 generic map(expand_type         => expand_type,
@@ -921,6 +987,9 @@ port map(
      scan_out                   => sov(dcfgen_offset)
 );
 
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+-- Outputs
+-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ex2_stg_flush             <= stg_flush_ex2;
 ex3_stg_flush             <= stg_flush_ex3;
 ex4_stg_flush             <= stg_flush_ex4;
@@ -934,4 +1003,3 @@ siv(0 to scan_right) <= sov(1 to scan_right) & scan_in;
 scan_out <= sov(0);
 
 end xuq_lsu_dc;
-

@@ -28,7 +28,7 @@ library work;
 use work.iuq_pkg.all;
 
 entity iuq_ram is
-generic(expand_type : integer := 2 ); 
+generic(expand_type : integer := 2 ); -- 0 = ibm umbra, 1 = xilinx, 2 = ibm mpg
 port(
      pc_iu_ram_instr            : in  std_ulogic_vector(0 to 31);
      pc_iu_ram_instr_ext        : in  std_ulogic_vector(0 to 3);
@@ -40,6 +40,7 @@ port(
      rm_ib_iu4_force_ram        : out std_ulogic;
      rm_ib_iu4_instr            : out std_ulogic_vector(0 to 35);
 
+     --pervasive
      vdd                        : inout power_logic;
      gnd                        : inout power_logic;
      nclk                       : in  clk_logic;
@@ -63,16 +64,23 @@ port(
 -- synopsys translate_on
 
 end iuq_ram;
+----
 architecture iuq_ram of iuq_ram is
 
+----------------------------
+-- constants
+----------------------------
 
-
+--scan chain
 constant ram_val_offset         : natural := 0;
 constant ram_iss_offset         : natural := ram_val_offset     + 4;
 constant ram_instr_offset       : natural := ram_iss_offset     + 4;
 constant ram_force_offset       : natural := ram_instr_offset   + 36;
 constant scan_right             : natural := ram_force_offset   + 1-1;
 
+----------------------------
+-- signals
+----------------------------
 
 signal tiup                     : std_ulogic;
 
@@ -101,24 +109,32 @@ begin
 
 tiup    <= '1';
 
+-------------------------------------------------
+-- logic
+-------------------------------------------------
 
 
 
 
 ram_iss_d       <= xu_iu_ram_issue;
-ram_val_d       <= ram_iss_q and not ram_iss_d; 
+ram_val_d       <= ram_iss_q and not ram_iss_d; --detect falling edge of ram issue
 ram_valid       <= or_reduce(ram_iss_q);
 
 
 ram_instr_d     <= pc_iu_ram_instr & pc_iu_ram_instr_ext;
 ram_force_d     <= pc_iu_ram_force_cmplt;
 
+-------------------------------------------------
+-- outputs
+-------------------------------------------------
 
 rm_ib_iu4_val           <= ram_val_q;
 rm_ib_iu4_instr         <= ram_instr_q;
 rm_ib_iu4_force_ram     <= ram_force_q;
 
-
+-------------------------------------------------
+-- latches
+-------------------------------------------------
 
 ram_iss_reg: tri_rlmreg_p
   generic map (width => 4, init => 0, expand_type => expand_type)
@@ -194,6 +210,9 @@ ram_force_reg: tri_rlmlatch_p
             dout        => ram_force_q);
 
 
+-------------------------------------------------
+-- pervasive
+-------------------------------------------------
 
 perv_2to1_reg: tri_plat
   generic map (width => 2, expand_type => expand_type)
@@ -227,6 +246,9 @@ perv_lcbor: tri_lcbor
             thold_b     => pc_iu_func_sl_thold_0_b);
 
 
+-------------------------------------------------
+-- scan
+-------------------------------------------------
 
 siv(0 to scan_right)    <= scan_in & sov(0 to scan_right-1);
 scan_out                <= sov(scan_right);

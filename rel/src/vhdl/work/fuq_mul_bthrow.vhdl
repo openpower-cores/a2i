@@ -21,14 +21,14 @@ use ibm.std_ulogic_mux_support.all;
 entity fuq_mul_bthrow is
   port(
     x       : in  std_ulogic_vector(0 to 53);
-    s_neg   : in  std_ulogic;                  
-    s_x     : in  std_ulogic;                  
-    s_x2    : in  std_ulogic;                  
-    hot_one : out std_ulogic;                  
-    q       : out std_ulogic_vector(0 to 54)); 
+    s_neg   : in  std_ulogic;                  -- negate the row
+    s_x     : in  std_ulogic;                  -- shift by 1
+    s_x2    : in  std_ulogic;                  -- shift by 2
+    hot_one : out std_ulogic;                  -- lsb term for row below
+    q       : out std_ulogic_vector(0 to 54)); -- final output
 
 
-end fuq_mul_bthrow;  
+end fuq_mul_bthrow;  -- ENTITY
 
 architecture fuq_mul_bthrow of fuq_mul_bthrow is
 
@@ -44,515 +44,509 @@ architecture fuq_mul_bthrow of fuq_mul_bthrow is
 
 begin
 
- unused <= left(0) ; 
+ unused <= left(0) ; -- dangling pin from edge bit
 
+--//###############################################################
+--# A row of the repeated part of the booth_mux row
+--//###############################################################
   u00 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => tidn ,  
-      RIGHT => left(1) ,  
-      LEFT  => left(0) ,  
-      Q     => q(0));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => tidn ,  --i--  ********
+      RIGHT => left(1) ,  --i--  [n+1]
+      LEFT  => left(0) ,  --o--  [n]
+      Q     => q(0));  --o--
 
   u01 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(0) ,  
-      RIGHT => left(2) ,  
-      LEFT  => left(1) ,  
-      Q     => q(1));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(0) ,  --i--  [n-1]
+      RIGHT => left(2) ,  --i--  [n+1]
+      LEFT  => left(1) ,  --o--  [n]
+      Q     => q(1));  --o--
 
   u02 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(1) ,  
-      RIGHT => left(3) ,  
-      LEFT  => left(2) ,  
-      Q     => q(2));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(1) ,  --i--
+      RIGHT => left(3) ,  --i--
+      LEFT  => left(2) ,  --o--
+      Q     => q(2));  --o--
 
   u03 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(2) ,  
-      RIGHT => left(4) ,  
-      LEFT  => left(3) ,  
-      Q     => q(3));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(2) ,  --i--
+      RIGHT => left(4) ,  --i--
+      LEFT  => left(3) ,  --o--
+      Q     => q(3));  --o--
 
   u04 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(3) ,  
-      RIGHT => left(5) ,  
-      LEFT  => left(4) ,  
-      Q     => q(4));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(3) ,  --i--
+      RIGHT => left(5) ,  --i--
+      LEFT  => left(4) ,  --o--
+      Q     => q(4));  --o--
 
   u05 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(4) ,  
-      RIGHT => left(6) ,  
-      LEFT  => left(5) ,  
-      Q     => q(5));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(4) ,  --i--
+      RIGHT => left(6) ,  --i--
+      LEFT  => left(5) ,  --o--
+      Q     => q(5));  --o--
 
   u06 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(5) ,  
-      RIGHT => left(7) ,  
-      LEFT  => left(6) ,  
-      Q     => q(6));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(5) ,  --i--
+      RIGHT => left(7) ,  --i--
+      LEFT  => left(6) ,  --o--
+      Q     => q(6));  --o--
 
   u07 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(6) ,  
-      RIGHT => left(8) ,  
-      LEFT  => left(7) ,  
-      Q     => q(7));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(6) ,  --i--
+      RIGHT => left(8) ,  --i--
+      LEFT  => left(7) ,  --o--
+      Q     => q(7));  --o--
 
   u08 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(7) ,  
-      RIGHT => left(9) ,  
-      LEFT  => left(8) ,  
-      Q     => q(8));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(7) ,  --i--
+      RIGHT => left(9) ,  --i--
+      LEFT  => left(8) ,  --o--
+      Q     => q(8));  --o--
 
   u09 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(8) ,  
-      RIGHT => left(10) ,  
-      LEFT  => left(9) ,  
-      Q     => q(9));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(8) ,  --i--
+      RIGHT => left(10) ,  --i--
+      LEFT  => left(9) ,  --o--
+      Q     => q(9));  --o--
 
   u10 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(9) ,  
-      RIGHT => left(11) ,  
-      LEFT  => left(10) ,  
-      Q     => q(10));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(9) ,  --i--
+      RIGHT => left(11) ,  --i--
+      LEFT  => left(10) ,  --o--
+      Q     => q(10));  --o--
 
   u11 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(10) ,  
-      RIGHT => left(12) ,  
-      LEFT  => left(11) ,  
-      Q     => q(11));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(10) ,  --i--
+      RIGHT => left(12) ,  --i--
+      LEFT  => left(11) ,  --o--
+      Q     => q(11));  --o--
 
   u12 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(11) ,  
-      RIGHT => left(13) ,  
-      LEFT  => left(12) ,  
-      Q     => q(12));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(11) ,  --i--
+      RIGHT => left(13) ,  --i--
+      LEFT  => left(12) ,  --o--
+      Q     => q(12));  --o--
 
   u13 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(12) ,  
-      RIGHT => left(14) ,  
-      LEFT  => left(13) ,  
-      Q     => q(13));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(12) ,  --i--
+      RIGHT => left(14) ,  --i--
+      LEFT  => left(13) ,  --o--
+      Q     => q(13));  --o--
 
   u14 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(13) ,  
-      RIGHT => left(15) ,  
-      LEFT  => left(14) ,  
-      Q     => q(14));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(13) ,  --i--
+      RIGHT => left(15) ,  --i--
+      LEFT  => left(14) ,  --o--
+      Q     => q(14));  --o--
 
   u15 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(14) ,  
-      RIGHT => left(16) ,  
-      LEFT  => left(15) ,  
-      Q     => q(15));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(14) ,  --i--
+      RIGHT => left(16) ,  --i--
+      LEFT  => left(15) ,  --o--
+      Q     => q(15));  --o--
 
   u16 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(15) ,  
-      RIGHT => left(17) ,  
-      LEFT  => left(16) ,  
-      Q     => q(16));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(15) ,  --i--
+      RIGHT => left(17) ,  --i--
+      LEFT  => left(16) ,  --o--
+      Q     => q(16));  --o--
 
   u17 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(16) ,  
-      RIGHT => left(18) ,  
-      LEFT  => left(17) ,  
-      Q     => q(17));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(16) ,  --i--
+      RIGHT => left(18) ,  --i--
+      LEFT  => left(17) ,  --o--
+      Q     => q(17));  --o--
 
   u18 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(17) ,  
-      RIGHT => left(19) ,  
-      LEFT  => left(18) ,  
-      Q     => q(18));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(17) ,  --i--
+      RIGHT => left(19) ,  --i--
+      LEFT  => left(18) ,  --o--
+      Q     => q(18));  --o--
 
   u19 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(18) ,  
-      RIGHT => left(20) ,  
-      LEFT  => left(19) ,  
-      Q     => q(19));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(18) ,  --i--
+      RIGHT => left(20) ,  --i--
+      LEFT  => left(19) ,  --o--
+      Q     => q(19));  --o--
 
   u20 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(19) ,  
-      RIGHT => left(21) ,  
-      LEFT  => left(20) ,  
-      Q     => q(20));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(19) ,  --i--
+      RIGHT => left(21) ,  --i--
+      LEFT  => left(20) ,  --o--
+      Q     => q(20));  --o--
 
   u21 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(20) ,  
-      RIGHT => left(22) ,  
-      LEFT  => left(21) ,  
-      Q     => q(21));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(20) ,  --i--
+      RIGHT => left(22) ,  --i--
+      LEFT  => left(21) ,  --o--
+      Q     => q(21));  --o--
 
   u22 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(21) ,  
-      RIGHT => left(23) ,  
-      LEFT  => left(22) ,  
-      Q     => q(22));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(21) ,  --i--
+      RIGHT => left(23) ,  --i--
+      LEFT  => left(22) ,  --o--
+      Q     => q(22));  --o--
 
   u23 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(22) ,  
-      RIGHT => left(24) ,  
-      LEFT  => left(23) ,  
-      Q     => q(23));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(22) ,  --i--
+      RIGHT => left(24) ,  --i--
+      LEFT  => left(23) ,  --o--
+      Q     => q(23));  --o--
 
   u24 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(23) ,  
-      RIGHT => left(25) ,  
-      LEFT  => left(24) ,  
-      Q     => q(24));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(23) ,  --i--
+      RIGHT => left(25) ,  --i--
+      LEFT  => left(24) ,  --o--
+      Q     => q(24));  --o--
 
   u25 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(24) ,  
-      RIGHT => left(26) ,  
-      LEFT  => left(25) ,  
-      Q     => q(25));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(24) ,  --i--
+      RIGHT => left(26) ,  --i--
+      LEFT  => left(25) ,  --o--
+      Q     => q(25));  --o--
 
   u26 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(25) ,  
-      RIGHT => left(27) ,  
-      LEFT  => left(26) ,  
-      Q     => q(26));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(25) ,  --i--
+      RIGHT => left(27) ,  --i--
+      LEFT  => left(26) ,  --o--
+      Q     => q(26));  --o--
 
   u27 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(26) ,  
-      RIGHT => left(28) ,  
-      LEFT  => left(27) ,  
-      Q     => q(27));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(26) ,  --i--
+      RIGHT => left(28) ,  --i--
+      LEFT  => left(27) ,  --o--
+      Q     => q(27));  --o--
 
   u28 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(27) ,  
-      RIGHT => left(29) ,  
-      LEFT  => left(28) ,  
-      Q     => q(28));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(27) ,  --i--
+      RIGHT => left(29) ,  --i--
+      LEFT  => left(28) ,  --o--
+      Q     => q(28));  --o--
 
   u29 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(28) ,  
-      RIGHT => left(30) ,  
-      LEFT  => left(29) ,  
-      Q     => q(29));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(28) ,  --i--
+      RIGHT => left(30) ,  --i--
+      LEFT  => left(29) ,  --o--
+      Q     => q(29));  --o--
 
   u30 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(29) ,  
-      RIGHT => left(31) ,  
-      LEFT  => left(30) ,  
-      Q     => q(30));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(29) ,  --i--
+      RIGHT => left(31) ,  --i--
+      LEFT  => left(30) ,  --o--
+      Q     => q(30));  --o--
 
   u31 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(30) ,  
-      RIGHT => left(32) ,  
-      LEFT  => left(31) ,  
-      Q     => q(31));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(30) ,  --i--
+      RIGHT => left(32) ,  --i--
+      LEFT  => left(31) ,  --o--
+      Q     => q(31));  --o--
 
   u32 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(31) ,  
-      RIGHT => left(33) ,  
-      LEFT  => left(32) ,  
-      Q     => q(32));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(31) ,  --i--
+      RIGHT => left(33) ,  --i--
+      LEFT  => left(32) ,  --o--
+      Q     => q(32));  --o--
 
   u33 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(32) ,  
-      RIGHT => left(34) ,  
-      LEFT  => left(33) ,  
-      Q     => q(33));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(32) ,  --i--
+      RIGHT => left(34) ,  --i--
+      LEFT  => left(33) ,  --o--
+      Q     => q(33));  --o--
 
   u34 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(33) ,  
-      RIGHT => left(35) ,  
-      LEFT  => left(34) ,  
-      Q     => q(34));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(33) ,  --i--
+      RIGHT => left(35) ,  --i--
+      LEFT  => left(34) ,  --o--
+      Q     => q(34));  --o--
 
   u35 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(34) ,  
-      RIGHT => left(36) ,  
-      LEFT  => left(35) ,  
-      Q     => q(35));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(34) ,  --i--
+      RIGHT => left(36) ,  --i--
+      LEFT  => left(35) ,  --o--
+      Q     => q(35));  --o--
 
   u36 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(35) ,  
-      RIGHT => left(37) ,  
-      LEFT  => left(36) ,  
-      Q     => q(36));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(35) ,  --i--
+      RIGHT => left(37) ,  --i--
+      LEFT  => left(36) ,  --o--
+      Q     => q(36));  --o--
 
   u37 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(36) ,  
-      RIGHT => left(38) ,  
-      LEFT  => left(37) ,  
-      Q     => q(37));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(36) ,  --i--
+      RIGHT => left(38) ,  --i--
+      LEFT  => left(37) ,  --o--
+      Q     => q(37));  --o--
 
   u38 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(37) ,  
-      RIGHT => left(39) ,  
-      LEFT  => left(38) ,  
-      Q     => q(38));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(37) ,  --i--
+      RIGHT => left(39) ,  --i--
+      LEFT  => left(38) ,  --o--
+      Q     => q(38));  --o--
 
   u39 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(38) ,  
-      RIGHT => left(40) ,  
-      LEFT  => left(39) ,  
-      Q     => q(39));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(38) ,  --i--
+      RIGHT => left(40) ,  --i--
+      LEFT  => left(39) ,  --o--
+      Q     => q(39));  --o--
 
   u40 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(39) ,  
-      RIGHT => left(41) ,  
-      LEFT  => left(40) ,  
-      Q     => q(40));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(39) ,  --i--
+      RIGHT => left(41) ,  --i--
+      LEFT  => left(40) ,  --o--
+      Q     => q(40));  --o--
 
   u41 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(40) ,  
-      RIGHT => left(42) ,  
-      LEFT  => left(41) ,  
-      Q     => q(41));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(40) ,  --i--
+      RIGHT => left(42) ,  --i--
+      LEFT  => left(41) ,  --o--
+      Q     => q(41));  --o--
 
   u42 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(41) ,  
-      RIGHT => left(43) ,  
-      LEFT  => left(42) ,  
-      Q     => q(42));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(41) ,  --i--
+      RIGHT => left(43) ,  --i--
+      LEFT  => left(42) ,  --o--
+      Q     => q(42));  --o--
 
   u43 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(42) ,  
-      RIGHT => left(44) ,  
-      LEFT  => left(43) ,  
-      Q     => q(43));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(42) ,  --i--
+      RIGHT => left(44) ,  --i--
+      LEFT  => left(43) ,  --o--
+      Q     => q(43));  --o--
 
   u44 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(43) ,  
-      RIGHT => left(45) ,  
-      LEFT  => left(44) ,  
-      Q     => q(44));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(43) ,  --i--
+      RIGHT => left(45) ,  --i--
+      LEFT  => left(44) ,  --o--
+      Q     => q(44));  --o--
 
   u45 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(44) ,  
-      RIGHT => left(46) ,  
-      LEFT  => left(45) ,  
-      Q     => q(45));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(44) ,  --i--
+      RIGHT => left(46) ,  --i--
+      LEFT  => left(45) ,  --o--
+      Q     => q(45));  --o--
 
   u46 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(45) ,  
-      RIGHT => left(47) ,  
-      LEFT  => left(46) ,  
-      Q     => q(46));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(45) ,  --i--
+      RIGHT => left(47) ,  --i--
+      LEFT  => left(46) ,  --o--
+      Q     => q(46));  --o--
 
   u47 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(46) ,  
-      RIGHT => left(48) ,  
-      LEFT  => left(47) ,  
-      Q     => q(47));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(46) ,  --i--
+      RIGHT => left(48) ,  --i--
+      LEFT  => left(47) ,  --o--
+      Q     => q(47));  --o--
 
   u48 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(47) ,  
-      RIGHT => left(49) ,  
-      LEFT  => left(48) ,  
-      Q     => q(48));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(47) ,  --i--
+      RIGHT => left(49) ,  --i--
+      LEFT  => left(48) ,  --o--
+      Q     => q(48));  --o--
 
   u49 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(48) ,  
-      RIGHT => left(50) ,  
-      LEFT  => left(49) ,  
-      Q     => q(49));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(48) ,  --i--
+      RIGHT => left(50) ,  --i--
+      LEFT  => left(49) ,  --o--
+      Q     => q(49));  --o--
 
   u50 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(49) ,  
-      RIGHT => left(51) ,  
-      LEFT  => left(50) ,  
-      Q     => q(50));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(49) ,  --i--
+      RIGHT => left(51) ,  --i--
+      LEFT  => left(50) ,  --o--
+      Q     => q(50));  --o--
 
   u51 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(50) ,  
-      RIGHT => left(52) ,  
-      LEFT  => left(51) ,  
-      Q     => q(51));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(50) ,  --i--
+      RIGHT => left(52) ,  --i--
+      LEFT  => left(51) ,  --o--
+      Q     => q(51));  --o--
 
   u52 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(51) ,  
-      RIGHT => left(53) ,  
-      LEFT  => left(52) ,  
-      Q     => q(52));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(51) ,  --i--
+      RIGHT => left(53) ,  --i--
+      LEFT  => left(52) ,  --o--
+      Q     => q(52));  --o--
 
   u53 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(52) ,  
-      RIGHT => left(54) ,  
-      LEFT  => left(53) ,  
-      Q     => q(53));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(52) ,  --i--
+      RIGHT => left(54) ,  --i--
+      LEFT  => left(53) ,  --o--
+      Q     => q(53));  --o--
 
   u54 : entity work.fuq_mul_bthmux(fuq_mul_bthmux)     port map(
-      SNEG  => s_neg ,  
-      SX    => s_x ,  
-      SX2   => s_x2 ,  
-      X     => x(53) ,  
-      RIGHT => s_neg ,  
-      LEFT  => left(54) ,  
-      Q     => q(54));  
+      SNEG  => s_neg ,  --i--
+      SX    => s_x ,  --i--
+      SX2   => s_x2 ,  --i--
+      X     => x(53) ,  --i--
+      RIGHT => s_neg ,  --i--
+      LEFT  => left(54) ,  --o--
+      Q     => q(54));  --o--
 
-
+  -- For negate -A = !A + 1 ... this term is the plus 1.
+  -- this has same bit weight as LSB, so it jumps down a row to free spot in compressor tree.
 
   u55: hot_one <=    ( s_neg and (s_x or s_x2) );
 
-end;  
-
-
-
-
-
-
-
-
-
-
+end;  -- fuq_mul_bthrow ARCHITECTURE

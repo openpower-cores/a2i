@@ -25,7 +25,7 @@ library tri;
 use tri.tri_latches_pkg.all;
 
 entity fuq_perv is
-generic(expand_type : integer := 2 ); 
+generic(expand_type : integer := 2 ); -- 0 = ibm umbra, 1 = xilinx, 2 = ibm mpg
 port(
      vdd                        : inout power_logic;
      gnd                        : inout power_logic;
@@ -57,8 +57,8 @@ port(
      delay_lclkr_dc             : out std_ulogic_vector(0 to 9);
      mpw1_dc_b                  : out std_ulogic_vector(0 to 9);
      mpw2_dc_b                  : out std_ulogic_vector(0 to 1);
-     repr_scan_in               : in  std_ulogic;                 
-     repr_scan_out              : out std_ulogic;                 
+     repr_scan_in               : in  std_ulogic;                 --tc_ac_repr_scan_in(2)
+     repr_scan_out              : out std_ulogic;                 --tc_ac_repr_scan_in(2)
      gptr_scan_in               : in  std_ulogic;
      gptr_scan_out              : out std_ulogic
 );
@@ -187,6 +187,17 @@ perv_1to0_reg: tri_plat
 
   gptr_sl_thold_0 <= gptr_sl_thold_0_int;
 
+-- Pipeline mapping of mpw1_b and delay_lclkr, mpw2_b
+-- RF0  8       1
+-- RF1  0       0
+-- EX1  1       0
+-- EX2  2       0
+-- EX3  3       0
+-- EX4  4       0
+-- EX5  5       1
+-- EX6  6       1
+-- EX7  7       1
+-- Ctrl 9       1
 perv_lcbctrl0: tri_lcbcntl_mac
   generic map (expand_type => expand_type)
   port map (
@@ -221,14 +232,17 @@ perv_lcbctrl1: tri_lcbcntl_mac
             mpw2_dc_b      => prv_mpw2_dc_b(1),
             scan_out       => gptr_scan_out);
 
+--Outputs
    delay_lclkr_dc(0 to 9) <= prv_delay_lclkr_dc(0 to 9);
    mpw1_dc_b(0 to 9)      <= prv_mpw1_dc_b(0 to 9);
    mpw2_dc_b(0 to 1)      <= prv_mpw2_dc_b(0 to 1);
 
+--never disable act pins, they are used functionally
   prv_act_dis <= '0';
   act_dis     <= prv_act_dis;
   clkoff_dc_b <= prv_clkoff_dc_b;
 
+-- Repower latch for repr scan ins/outs
     repr_sl_lcbor_0: tri_lcbor generic map (expand_type => expand_type ) port map (
         clkoff_b     => prv_clkoff_dc_b,
         thold        => repr_sl_thold_0,  
@@ -252,11 +266,14 @@ perv_lcbctrl1: tri_lcbcntl_mac
              gd       => gnd,
              scin(0)  => repr_scan_in,
              scout(0) => repr_scan_out,
+            ---------------------------------------------
              din(0)  => repr_in,
+            ---------------------------------------------
              dout(0) => repr_UNUSED
+            ---------------------------------------------
              );
 
+-- Unused logic
    spare_unused <= pc_fu_func_slp_sl_thold_3(1);
 
 end fuq_perv;
-

@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--
+--  Description: Pervasive ABIST ASIC Bolt-On
+--
+--*****************************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 library ibm;
@@ -20,13 +25,14 @@ use tri.tri_latches_pkg.all;
 
 entity pcq_abist_bolton_frontend is
   generic(
-    expand_type  :       integer := 2;  
+    expand_type  :       integer := 2;  -- 0 = ibm (Umbra), 1 = non-ibm, 2 = ibm (MPG)
     num_backends :       integer := 44);
   port(
     vdd          : inout power_logic;
     gnd          : inout power_logic;
     nclk         : in    clk_logic;
 
+-- BISTCNTL interface
     bcreset     : in std_ulogic;
     bcdata      : in std_ulogic;
     bcshcntl    : in std_ulogic;
@@ -36,6 +42,7 @@ entity pcq_abist_bolton_frontend is
     bo_enable   : in std_ulogic;
     bo_go       : in std_ulogic;
 
+-- daisy chain
     donein       : in  std_ulogic;
     sdin         : in  std_ulogic;
     doneout      : out std_ulogic;
@@ -46,41 +53,46 @@ entity pcq_abist_bolton_frontend is
     waitout      : out std_ulogic;
     failout      : out std_ulogic;
 
-    abist_done           : in  std_ulogic;  
-    abist_start_test_int : out std_ulogic;  
-    abist_start_test     : in  std_ulogic;  
-    abist_si             : out std_ulogic;  
+-- abist engine
+    abist_done           : in  std_ulogic;  -- bist engine done
+    abist_start_test_int : out std_ulogic;  -- start bist
+    abist_start_test     : in  std_ulogic;  -- start bist
+    abist_si             : out std_ulogic;  -- to SI of bist engine (reg write)
     abist_mode_dc        : in  std_ulogic;
     abist_mode_dc_int    : out std_ulogic;
 
+-- back ends
     bo_unload  : out std_ulogic;
     bo_load    : out std_ulogic;
-    bo_repair  : out std_ulogic;   
-    bo_reset   : out std_ulogic;   
-    bo_shdata  : out std_ulogic;  
-    bo_select  : out std_ulogic_vector(0 to num_backends-1);  
-    bo_fail    : in  std_ulogic_vector(0 to num_backends-1);  
-    bo_diagout : in  std_ulogic_vector(0 to num_backends-1);  
+    bo_repair  : out std_ulogic;   -- load repair reg
+    bo_reset   : out std_ulogic;   -- reset backends
+    bo_shdata  : out std_ulogic;  -- shift data for timing and signature write and diag loop
+    bo_select  : out std_ulogic_vector(0 to num_backends-1);  -- select for mask and hier writes
+    bo_fail    : in  std_ulogic_vector(0 to num_backends-1);  -- fail/no-fix
+    bo_diagout : in  std_ulogic_vector(0 to num_backends-1);  -- to diag mux
 
+-- thold / scan
     lbist_ac_mode_dc   : in  std_ulogic;
     ck_bo_sl_thold_6   : in  std_ulogic;
-    ck_bo_sl_thold_0   : in  std_ulogic;  
-    ck_bo_sg_0         : in  std_ulogic;  
+    ck_bo_sl_thold_0   : in  std_ulogic;  -- local thold
+    ck_bo_sg_0         : in  std_ulogic;  -- local scan gate
     lcb_mpw1_dc_b      : in  std_ulogic;
     lcb_mpw2_dc_b      : in  std_ulogic;
     lcb_delay_lclkr_dc : in  std_ulogic;
     lcb_clkoff_dc_b    : in  std_ulogic;
     lcb_act_dis_dc     : in  std_ulogic;
-    scan_in            : in  std_ulogic;  
-    scan_out           : out std_ulogic;  
+    scan_in            : in  std_ulogic;  -- scan in for frontend regs
+    scan_out           : out std_ulogic;  -- scan out for frontend regs
 
-    bo_pc_abst_sl_thold_6    : out std_ulogic;   
-    bo_pc_pc_abst_sl_thold_6 : out std_ulogic;   
-    bo_pc_ary_nsl_thold_6    : out std_ulogic;   
-    bo_pc_func_sl_thold_6    : out std_ulogic;   
-    bo_pc_time_sl_thold_6    : out std_ulogic;   
-    bo_pc_repr_sl_thold_6    : out std_ulogic;   
-    bo_pc_sg_6               : out std_ulogic);  
+-- top level thold / sg outputs, may be again overrided in leaves
+    bo_pc_abst_sl_thold_6    : out std_ulogic;   -- thold to abist registers
+    bo_pc_pc_abst_sl_thold_6 : out std_ulogic;   -- thold to bist engine
+    bo_pc_ary_nsl_thold_6    : out std_ulogic;   -- thold to arrays
+    bo_pc_func_sl_thold_6    : out std_ulogic;   -- thold to staging latches
+    bo_pc_time_sl_thold_6    : out std_ulogic;   -- thold to timing regs
+    bo_pc_repr_sl_thold_6    : out std_ulogic;   -- thold to repair regs
+    bo_pc_sg_6               : out std_ulogic);  -- scan enable to all registers,
+                                   -- actual shifting controlled by tholds
 
 -- synopsys translate_off
 
@@ -89,6 +101,9 @@ entity pcq_abist_bolton_frontend is
 end pcq_abist_bolton_frontend;
 
 architecture pcq_abist_bolton_frontend of pcq_abist_bolton_frontend is
+--=====================================================================
+-- Types and Constants
+--=====================================================================
 
   subtype Rstate is integer range 0 to 13;
   subtype Tstate is std_ulogic_vector(Rstate);
@@ -117,8 +132,8 @@ architecture pcq_abist_bolton_frontend of pcq_abist_bolton_frontend is
   subtype Tcounter is std_ulogic_vector(0 to 11);
   subtype Tdiagptr is std_ulogic_vector(0 to 7);
 
-  constant Rdiagptr_enable   : integer := 0;  
-  constant Rdiagptr_override : integer := 7;  
+  constant Rdiagptr_enable   : integer := 0;  -- bit set to 0: diag rotate disabled, no arrays selected during hierarchical writes
+  constant Rdiagptr_override : integer := 7;  -- bit set to 0: bits 1-7 select array for diag/hierarchical write; bit set to 1: all arrays selected for hier. write
 
   subtype  Rbackend_select is integer range 1 to 6;
   subtype  Tdiagdecr is std_ulogic_vector(0 to 31);
@@ -153,6 +168,9 @@ architecture pcq_abist_bolton_frontend of pcq_abist_bolton_frontend is
     false => '0' ,
     true  => '1');
 
+--=====================================================================
+-- State Machine Constants
+--=====================================================================
   constant SC_IDLE         : integer := 0;
   constant SC_ENUM         : integer := 1;
   constant SC_WRITE        : integer := 2;
@@ -185,30 +203,34 @@ architecture pcq_abist_bolton_frontend of pcq_abist_bolton_frontend is
   constant MODE_ENUM       : Tmode   := "001";
   constant MODE_READ       : Tmode   := "010";
   constant MODE_WRITE      : Tmode   := "011";
-  constant ADDR_BISTMASK   : Tw_addr := X"0";   
-  constant ADDR_MEMMASK    : Tw_addr := X"1";   
-  constant ADDR_DIAGPTR    : Tw_addr := X"2";   
-  constant ADDR_RBISTMASK  : Tr_addr := X"00";  
-  constant ADDR_RMEMMASK   : Tr_addr := X"01";  
-  constant ADDR_RDIAGPTR   : Tr_addr := X"02";  
-  constant ADDR_ABIST      : Tw_addr := X"B";   
-  constant ADDR_TIMING     : Tw_addr := X"C";   
-  constant ADDR_SIGNATURE  : Tw_addr := X"D";   
-  constant ADDR_DIAGCOUNT  : Tw_addr := X"E";   
-  constant ADDR_RDIAGCOUNT : Tr_addr := X"0E";  
-  constant ADDR_TYPE       : Tr_addr := X"10";  
-  constant ADDR_ENUM       : Tr_addr := X"11";  
-  constant ADDR_BISTDONE   : Tr_addr := X"12";  
-  constant ADDR_WAIT       : Tr_addr := X"13";  
-  constant ADDR_FAIL       : Tr_addr := X"14";  
+  constant ADDR_BISTMASK   : Tw_addr := X"0";   -- control reg 0
+  constant ADDR_MEMMASK    : Tw_addr := X"1";   -- control reg 1
+  constant ADDR_DIAGPTR    : Tw_addr := X"2";   -- control reg 2
+  constant ADDR_RBISTMASK  : Tr_addr := X"00";  -- read control reg 0
+  constant ADDR_RMEMMASK   : Tr_addr := X"01";  -- read control reg 1
+  constant ADDR_RDIAGPTR   : Tr_addr := X"02";  -- read control reg 2
+  constant ADDR_ABIST      : Tw_addr := X"B";   -- control reg B
+  constant ADDR_TIMING     : Tw_addr := X"C";   -- control reg C
+  constant ADDR_SIGNATURE  : Tw_addr := X"D";   -- control reg D
+  constant ADDR_DIAGCOUNT  : Tw_addr := X"E";   -- control reg E
+  constant ADDR_RDIAGCOUNT : Tr_addr := X"0E";  -- read control reg E
+  constant ADDR_TYPE       : Tr_addr := X"10";  -- status reg 0
+  constant ADDR_ENUM       : Tr_addr := X"11";  -- status reg 1
+  constant ADDR_BISTDONE   : Tr_addr := X"12";  -- status reg 2
+  constant ADDR_WAIT       : Tr_addr := X"13";  -- status reg 3
+  constant ADDR_FAIL       : Tr_addr := X"14";  -- status reg 4
 
 
+--=====================================================================
+-- Signal Declarations
+--=====================================================================
 
   signal state_q, state_d                                         : Tstate;
   signal instruction_d, instruction_q                             : Tinstruction;
   signal shift_instruction, shift_write                           : std_ulogic;
   signal shuttle_select, shuttle_d, shuttle_q                     : Tshuttle;
   signal shift_shuttle                                            : std_ulogic;
+--
   signal enum_d, enum_q                                           : Tenum;
   signal clear_enum, count_enum                                   : std_ulogic;
   signal mode                                                     : Tmode;
@@ -249,6 +271,9 @@ begin
 
   sg_int <= '0' when bo_enable = '1' else ck_bo_sg_0;
 
+--=====================================================================
+-- Shuttle and Diagloop
+--=====================================================================
   shift_shuttle <= bcshdata_ff and ((s_idle and pos(mode = MODE_READ)) or (s_idle and pos(mode = MODE_RUN)) or s_diagrot or s_read) and bo_enable;
 
   shuttle : process (bistdone_q, bistmask_q, bo_fail_ff, diagdecr_q, diagptr_q,
@@ -280,6 +305,9 @@ begin
   diagloop_out_int <= or_reduce(diagmux_and) and diagptr_q(Rdiagptr_enable) and s_diagrot;
   diagloop_out_d   <= diagloop_out_int and not lbist_ac_mode_dc;
 
+--=====================================================================
+-- Instruction register & universal registers
+--=====================================================================
   shift_instruction <= bcshctrl_ff and (s_idle or s_irload) and bo_enable;
   instruction_d     <= instruction_q(1 to instruction_q'right) & bcdata_ff;
   abist_si          <= bcdata_ff and not bcreset_ff;
@@ -305,6 +333,9 @@ begin
   write_signature <= shift_write and reg_select and pos(w_reg_addr = ADDR_SIGNATURE);
   write_abist_d   <= shift_write and reg_select and pos(w_reg_addr = ADDR_ABIST) and not lbist_ac_mode_dc;
 
+--=====================================================================
+-- Backend selection from diagptr
+--=====================================================================
   bo_select_decoder : for i in bo_select'range generate
   begin
     bo_select_int(i) <= (diagptr_q(Rdiagptr_override) or pos(diagptr_q(Rbackend_select) = i))
@@ -314,35 +345,50 @@ begin
 
   bo_repair   <= s_4 and not lbist_ac_mode_dc;
   bo_unload   <= (s_3 or s_3pre) and not lbist_ac_mode_dc;
-  bo_reset    <= bcreset_ff or s_clear or (s_runbst and abist_done) or (s_3pre and count_done) or (s_3 and count_done) or lbist_ac_mode_dc;  
+  bo_reset    <= bcreset_ff or s_clear or (s_runbst and abist_done) or (s_3pre and count_done) or (s_3 and count_done) or lbist_ac_mode_dc;  -- reset fail/nofix bits during warmup, reset counters at end of a state
   bo_shdata   <= '0'             when lbist_ac_mode_dc = '1' else shuttle_d(shuttle_d'left) when s_diagrot = '1' else bcdata_ff and not bcreset_ff;
   bo_load     <= (write_signature) and not lbist_ac_mode_dc;
   bo_fail_pre <= (others => '0') when lbist_ac_mode_dc = '1' else bo_fail;
 
+--=====================================================================
+-- Counters
+--=====================================================================
   count_done <= pos(count_q = X"000");
   bistdone_d <= '0' when s_0 = '1' or s_clear = '1' else '1' when (s_4 = '1' and count_done = '1') or diagdecr_zero = '1' else bistdone_q;
 
+--=====================================================================
+-- Enumeration counter
+--=====================================================================
   clear_enum <= s_idle and bcexe_ff and pos(mode = MODE_ENUM);
   count_enum <= s_enum;
   enum_d     <= (others => '0') when clear_enum = '1' else enum_q + 1 when count_enum = '1' else enum_q;
 
+--=====================================================================
+-- Daisy Chain FFs
+--=====================================================================
   done_d <= donein and (bistmask_q or bistdone_q or (s_idle and pos(mode = MODE_ENUM)) or s_enum);
   wait_d <= waitin and bistdone_q and diagdecr_q(Rdiagdecr_evs);
   fail_d <= failin or (not bistmask_q and s_idle and or_reduce(bo_fail_ff and memmask_q));
 
+--=====================================================================
+-- Thold/SG Decoder
+--=====================================================================
   bo_pc_abst_sl_thold_6 <= ck_bo_sl_thold_6 when (bcreset_ff or s_3_delayed or s_clear)='1' 
                            else '0' when (s_1 or s_2 or s_runbst)='1' and diagdecr_zero='0' 
 			   else '1';
   bo_pc_ary_nsl_thold_6 <= not(bcreset_ff or s_2 or s_runbst);
   bo_pc_func_sl_thold_6 <= not(s_0 or s_1 or s_2 or s_runbst);
-  bo_pc_time_sl_thold_6 <= ck_bo_sl_thold_6 when (write_timing)='1' else '1'; 
-  bo_pc_repr_sl_thold_6 <= ck_bo_sl_thold_6 when (s_4_delayed or s_3pre_delayed)='1' else '1'; 
+  bo_pc_time_sl_thold_6 <= ck_bo_sl_thold_6 when (write_timing)='1' else '1'; -- not during reset
+  bo_pc_repr_sl_thold_6 <= ck_bo_sl_thold_6 when (s_4_delayed or s_3pre_delayed)='1' else '1'; -- not during reset
   
   bo_pc_sg_6 <= bcreset_ff or write_abist_q or write_timing or s_4_delayed or s_3_delayed or s_3pre_delayed or s_clear;
   abist_start_test_int <= s_runbst and not abist_done when bo_enable='1' else abist_start_test;
   bo_pc_pc_abst_sl_thold_6 <= ck_bo_sl_thold_6 when write_abist_q='1' else '0' when (s_1 or s_2 or bcreset_ff or s_runbst)='1' else '1';
   abist_mode_dc_int <= s_0 or s_1 or s_2 or s_runbst when bo_enable='1' else abist_mode_dc;
 
+--=====================================================================
+-- State Transitions
+--=====================================================================
   trans : process (abist_done, bcexe_ff, bcreset_ff, bcshctrl_ff, bcshdata_ff,
                    bo_go_ff, count_done, count_q, diagdecr_q(Rdiagdecr_evs), diagdecr_zero,
                    done_q, instruction_q(Raccumulate), instruction_q(RFARR),
@@ -449,6 +495,9 @@ begin
     end if;
   end process;
 
+--=====================================================================
+-- Latches
+--=====================================================================
 input_reg: entity tri.tri_boltreg_p  
   generic map (width => scan_offset_1 - scan_offset_0, init => 0, expand_type => expand_type)
   port map (vd      => vdd,
@@ -742,6 +791,9 @@ int_scan_in(0) <= scan_in and not bo_enable;
 int_scan_in(1 to int_scan_in'right) <= int_scan_out(0 to int_scan_out'right-1);
 scan_out <= int_scan_out(int_scan_out'right);
 
+--=====================================================================
+-- Thold/SG Staging
+--=====================================================================
 lcbor_func: entity tri.tri_lcbor
 generic map (expand_type => expand_type )
 port map (
@@ -752,4 +804,5 @@ port map (
     forcee => force_func,
     thold_b  => ck_bo_sl_thold_0_b );
 
+-----------------------------------------------------------------------
 end pcq_abist_bolton_frontend;

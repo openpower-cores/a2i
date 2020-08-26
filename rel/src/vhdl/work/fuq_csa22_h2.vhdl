@@ -32,13 +32,8 @@ ARCHITECTURE fuq_csa22_h2 OF fuq_csa22_h2 IS
 BEGIN
 
   u_22nandc: car_b <= not( a and b );
-  u_22nands: sum_b <= not( car_b and (a or b) ); 
+  u_22nands: sum_b <= not( car_b and (a or b) ); -- this is equiv to an xnor
   u_22invc:  car   <= not car_b;
   u_22invs:  sum   <= not sum_b ;
 
 END;
-
-
-
-
-

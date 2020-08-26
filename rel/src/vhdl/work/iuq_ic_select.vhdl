@@ -9,6 +9,13 @@
 
 			
 
+--********************************************************************
+--*
+--* TITLE: Instruction Select
+--*
+--* NAME: iuq_ic_select.vhdl
+--*
+--*********************************************************************
 library ieee,ibm,support,tri,work;
 use ieee.std_logic_1164.all;
 use ibm.std_ulogic_unsigned.all;
@@ -214,6 +221,7 @@ constant xu_iu_flush_offset             : natural := spr_idir_row_offset + 6;
 constant scan_right                     : natural := xu_iu_flush_offset + 4 - 1;
 subtype s3 is std_ulogic_vector(0 to 2);
 signal tiup                     : std_ulogic;
+-- Latches
 signal an_ac_back_inv_d         : std_ulogic;
 signal an_ac_back_inv_l2        : std_ulogic;
 signal an_ac_back_inv_target_d  : std_ulogic;
@@ -249,6 +257,7 @@ signal iu5_ifar_d               : EFF_IFAR;
 signal iu5_ifar_l2              : EFF_IFAR;
 signal all_stages_flush_prev_d  : std_ulogic_vector(0 to 3);
 signal all_stages_flush_prev_l2 : std_ulogic_vector(0 to 3);
+-- Current IFARs for each of the threads
 signal iu0_ifar0_d              : EFF_IFAR;
 signal iu0_ifar0_l2             : EFF_IFAR;
 signal iu0_ifar1_d              : EFF_IFAR;
@@ -261,6 +270,7 @@ signal iu0_2ucode_d             : std_ulogic_vector(0 to 3);
 signal iu0_2ucode_l2            : std_ulogic_vector(0 to 3);
 signal iu0_2ucode_type_d        : std_ulogic_vector(0 to 3);
 signal iu0_2ucode_type_l2       : std_ulogic_vector(0 to 3);
+-- Used to keep track of the commands in flight to IB
 signal iu0_high_sent1_d         : std_ulogic_vector(0 to 3);
 signal iu0_high_sent1_l2        : std_ulogic_vector(0 to 3);
 signal iu0_low_sent1_d          : std_ulogic_vector(0 to 3);
@@ -281,6 +291,7 @@ signal high_mask_d              : std_ulogic_vector(0 to 3);
 signal high_mask_l2             : std_ulogic_vector(0 to 3);
 signal low_mask_d               : std_ulogic_vector(0 to 3);
 signal low_mask_l2              : std_ulogic_vector(0 to 3);
+-- Latches for BP output
 signal iu1_bp_val_d             : std_ulogic;
 signal iu1_bp_val_l2            : std_ulogic;
 signal iu1_bp_tid_d             : std_ulogic_vector(0 to 3);
@@ -305,12 +316,14 @@ signal back_inv                 : std_ulogic;
 signal iu5_act                  : std_ulogic;
 signal iu0_high_act             : std_ulogic;
 signal iu0_low_act              : std_ulogic;
+-- XU ICBI Buffers
 signal xu_icbi_buffer0_act      : std_ulogic;
 signal xu_icbi_buffer123_act    : std_ulogic;
 signal xu_icbi_buffer_val       : std_ulogic_vector(0 to 3);
 signal l2_icbi_ack              : std_ulogic_vector(0 to 3);
 signal block_spr_idir_read      : std_ulogic;
 signal iu0_spr_idir_read        : std_ulogic;
+-- IU0
 signal iu1_icm_flush_tid        : std_ulogic_vector(0 to 3);
 signal hold_iu0_v               : std_ulogic_vector(0 to 3);
 signal iu0_hold_ecc             : std_ulogic;
@@ -348,6 +361,7 @@ signal iu0_ifar                 : EFF_IFAR;
 signal iu0_2ucode               : std_ulogic;
 signal iu0_2ucode_type          : std_ulogic;
 signal iu1_bp_act               : std_ulogic;
+-- scan
 signal siv                      : std_ulogic_vector(0 to scan_right);
 signal sov                      : std_ulogic_vector(0 to scan_right);
 -- synopsys translate_off
@@ -364,6 +378,7 @@ signal md_did3no2_d   : std_ulogic;
 signal md_did2no0_d   : std_ulogic;
 signal md_did2no1_d   : std_ulogic;
 signal md_did1no0_d   : std_ulogic;
+--priority map signals
 signal hi_n230, hi_n231, hi_n232    : std_ulogic;
 signal hi_n220, hi_n221, hi_n210    : std_ulogic;
 signal md_n230, md_n231, md_n232    : std_ulogic;
@@ -405,9 +420,12 @@ signal no_hi_v_b : std_ulogic;
 signal pri_rand                 : std_ulogic_vector(0 to 5);
 -- synopsys translate_off
 -- synopsys translate_on
-  BEGIN 
+  BEGIN --@@ START OF EXECUTABLE CODE FOR IUQ_IC_SELECT
 
 tiup  <=  '1';
+-----------------------------------------------------------------------
+-- Latch Inputs
+-----------------------------------------------------------------------
 xu_iu_run_thread_d  <=  xu_iu_run_thread;
 iu5_ifar_d  <=  bp_ib_iu4_ifar;
 iu5_act  <=  spr_ic_clockgate_dis or or_reduce(iu0_high_sent4_l2) or or_reduce(iu0_low_sent4_l2);
@@ -425,6 +443,12 @@ iu0_high_act  <=  spr_ic_clockgate_dis or
 iu0_low_act  <=  spr_ic_clockgate_dis or
     or_reduce((low_mask_l2 and not high_mask_l2) or iu0_low_sent1_l2 or iu0_low_sent2_l2 or
               iu0_low_sent3_l2 or iu0_low_sent4_l2 or icm_ics_load_tid);
+-----------------------------------------------------------------------
+-- XU ICBI Buffers
+-----------------------------------------------------------------------
+-- New: Use buffer0_act to hold buffer0 during feedback case (buffer_val(0) and back_inv_l2)
+-- Don't need to change other buffers unless buffer0 is blocked by back_inv_l2, or one of upper buffers already has a valid entry
+--xu_icbi_buffer_act <= xu_icbi_buffer_val(0);
 xu_icbi_buffer123_act  <=  (xu_icbi_buffer_val(0) and back_inv_l2) or xu_icbi_buffer_val(1);
 xu_icbi_buffer0_act  <=  not (xu_icbi_buffer_val(0) and back_inv_l2);
 xu_icbi_buffer_val(0) <=  or_reduce(xu_icbi_buffer0_val_tid_l2);
@@ -445,6 +469,7 @@ xu_icbi_buffer2_val_tid_d  <=  xu_iu_ex6_icbi_val           when ((xu_icbi_buffe
 xu_icbi_buffer3_val_tid_d  <=  xu_iu_ex6_icbi_val           when (xu_icbi_buffer_val(2) and not xu_icbi_buffer_val(3) and back_inv_l2) = '1'
                         else xu_icbi_buffer3_val_tid_l2   when back_inv_l2 = '1'
                         else "0000";
+-- Feedback path is now covered by act pin
 xu_icbi_buffer0_addr_d  <=  
                           xu_icbi_buffer1_addr_l2         when (xu_icbi_buffer_val(1) and not back_inv_l2) = '1'
                      else xu_iu_ex6_icbi_addr;
@@ -466,12 +491,18 @@ xu_icbi_buffer3_addr_d  <=  xu_iu_ex6_icbi_addr             when (xu_icbi_buffer
 ic_fdep_icbi_ack  <=  l2_icbi_ack when spr_ic_icbi_ack_en_l2 = '1'
                else "0000"      when back_inv_l2 = '1'
                else xu_icbi_buffer0_val_tid_l2;
+-----------------------------------------------------------------------
+-- SPR IDir Read
+-----------------------------------------------------------------------
 block_spr_idir_read  <=  iu0_inval or icm_ics_hold_iu0;
 spr_idir_read_d  <=   spr_ic_idir_read or
                    (spr_idir_read_l2 and block_spr_idir_read);
 spr_idir_row_d  <=  spr_ic_idir_row;
 iu0_spr_idir_read  <=  spr_idir_read_l2 and not block_spr_idir_read;
 ics_icd_iu0_spr_idir_read  <=  iu0_spr_idir_read;
+-----------------------------------------------------------------------
+-- IU0
+-----------------------------------------------------------------------
 iu1_icm_flush_tid  <=  (gate_and( (icd_ics_iu1_valid and icm_ics_iu1_ecc_flush) , icd_ics_iu1_tid)) and not all_stages_flush_prev_l2;
 hold_iu0_v  <=  ( 0 to 3 => icm_ics_hold_iu0);
 iu0_hold_ecc  <=  icm_ics_iu1_ecc_flush;
@@ -495,6 +526,9 @@ ics_icd_iu1_flush_tid  <=  iu1_flush_tid;
 ics_icd_iu2_flush_tid  <=  iu2_flush_tid;
 ics_icm_iu2_flush_tid  <=  iu2_flush_tid or all_stages_flush_tid;
 ics_icm_iu3_flush_tid  <=  all_stages_flush_tid;
+-- Look at uc_flush pre_iu0 to avoid timing problems in hold_thread_iu0.
+-- BP hold occurs same cycle as BP redirect, so don't need to check again in iu0
+-- hold_thread_iu0 conditions need to be checked both pre_iu0 & in iu0.
 hold_thread_pre_iu0(0) <=  uc_ic_hold_thread(0)   or uc_flush_tid(0)   or
                            (bp_ic_iu5_hold_tid(0)   and not xu_iu_flush(0))   or
                             icm_ics_hold_thread(0);
@@ -531,6 +565,57 @@ low_mask_d(2) <=  ib_ic_below_water(2)   and not iu0_low_sentall4(2)   and
 low_mask_d(3) <=  ib_ic_below_water(3)   and not iu0_low_sentall4(3)   and
     (ib_ic_empty(3)   or not iu0_high_sentall4(3))   and
     not hold_thread_pre_iu0(3)   and not hold_thread_iu0(3)   and not back_inv and not (or_reduce(xu_icbi_buffer0_val_tid_d)) and not spr_idir_read_d;
+---- Round robin q for selecting the next thread
+--?TABLE select_next LISTING(final) OPTIMIZE PARMS(ON-SET, OFF-SET);
+--*INPUTS*==============================*OUTPUTS*===============*
+--|                                     |                       |
+--| iu0_last_tid_high_l2                |  next_high_valid      |
+--| |     high_mask_l2                  |  | next_low_valid     |
+--| |     |                             |  | |  next_tid        |
+--| |     |       iu0_last_tid_low_l2   |  | |  |               |
+--| |     |       |     low_mask_l2     |  | |  |               |
+--| |     |       |     |               |  | |  |               |
+--| |     |       |     |               |  | |  |               |
+--| 0123  0123    0123  0123            |  | |  0123            |
+--*TYPE*================================+=======================+
+--| PPPP  PPPP    PPPP  PPPP            |  P P  PPPP            |
+--*OPTIMIZE*--------------------------->|  A A  BBBB            |
+--*TERMS*===============================+=======================+
+--| 1000  -1--    ----  ----            |  1 0  0100            |
+--| 1000  -01-    ----  ----            |  1 0  0010            |
+--| 1000  -001    ----  ----            |  1 0  0001            |
+--| 1000  1000    ----  ----            |  1 0  1000            |
+--| 0100  --1-    ----  ----            |  1 0  0010            |
+--| 0100  --01    ----  ----            |  1 0  0001            |
+--| 0100  1-00    ----  ----            |  1 0  1000            |
+--| 0100  0100    ----  ----            |  1 0  0100            |
+--| 0010  ---1    ----  ----            |  1 0  0001            |
+--| 0010  1--0    ----  ----            |  1 0  1000            |
+--| 0010  01-0    ----  ----            |  1 0  0100            |
+--| 0010  0010    ----  ----            |  1 0  0010            |
+--| 0001  1---    ----  ----            |  1 0  1000            |
+--| 0001  01--    ----  ----            |  1 0  0100            |
+--| 0001  001-    ----  ----            |  1 0  0010            |
+--| 0001  0001    ----  ----            |  1 0  0001            |
+--| ----  0000    1000  -1--            |  0 1  0100            |
+--| ----  0000    1000  -01-            |  0 1  0010            |
+--| ----  0000    1000  -001            |  0 1  0001            |
+--| ----  0000    1000  1000            |  0 1  1000            |
+--| ----  0000    0100  --1-            |  0 1  0010            |
+--| ----  0000    0100  --01            |  0 1  0001            |
+--| ----  0000    0100  1-00            |  0 1  1000            |
+--| ----  0000    0100  0100            |  0 1  0100            |
+--| ----  0000    0010  ---1            |  0 1  0001            |
+--| ----  0000    0010  1--0            |  0 1  1000            |
+--| ----  0000    0010  01-0            |  0 1  0100            |
+--| ----  0000    0010  0010            |  0 1  0010            |
+--| ----  0000    0001  1---            |  0 1  1000            |
+--| ----  0000    0001  01--            |  0 1  0100            |
+--| ----  0000    0001  001-            |  0 1  0010            |
+--| ----  0000    0001  0001            |  0 1  0001            |
+--| ----  0000    ----  0000            |  0 0  ----            |
+--*END*=================================+=======================+
+--?TABLE END select_next;
 next_low_valid   <=  or_reduce(low_mask_l2) and not or_reduce(high_mask_l2);
 next_high_valid  <=  or_reduce(high_mask_l2);
 highpri_v_b0      <=  not high_mask_l2;
@@ -591,6 +676,7 @@ md_sel_nand30:  md_later(0) <=  not (md_l01 and md_l02 and md_l03);
 md_sel_nand201: md_l01           <=  not (md_did0no1 and medpri_v(1));
 md_sel_nand202: md_l02           <=  not (md_did0no2 and medpri_v(2));
 md_sel_nand203: md_l03           <=  not (md_did0no3 and medpri_v(3));
+-- reorder high
 hi_sel_inv0:            hi_sel_b(0) <=  not hi_sel(0);
 hi_sel_inv1:            hi_sel_b(1) <=  not hi_sel(1);
 hi_sel_inv2:            hi_sel_b(2) <=  not hi_sel(2);
@@ -613,6 +699,7 @@ hi_reord_inv13:         hi_did1no3       <=  not hi_did3no1;
 hi_reord_inv01:         hi_did0no1       <=  not hi_did1no0;
 hi_reord_inv02:         hi_did0no2       <=  not hi_did2no0;
 hi_reord_inv03:         hi_did0no3       <=  not hi_did3no0;
+-- reorder med
 md_sel_inv0:            md_sel_b(0) <=  not md_sel(0);
 md_sel_inv1:            md_sel_b(1) <=  not md_sel(1);
 md_sel_inv2:            md_sel_b(2) <=  not md_sel(2);
@@ -635,6 +722,7 @@ md_reord_inv13:         md_did1no3       <=  not md_did3no1;
 md_reord_inv01:         md_did0no1       <=  not md_did1no0;
 md_reord_inv02:         md_did0no2       <=  not md_did2no0;
 md_reord_inv03:         md_did0no3       <=  not md_did3no0;
+--issue select
 nohi_nor21:     no_hi_v_n01              <=  not (highpri_v(0) or highpri_v(1));
 nohi_nor22:     no_hi_v_n23              <=  not (highpri_v(2) or highpri_v(3));
 nohi_nand2:     no_hi_v_b                <=  not (no_hi_v_n01 and no_hi_v_n23);
@@ -651,6 +739,7 @@ nexttid0_fnand2: next_tid(0) <=  not (issselhi_b(0) and issselmd_b(0));
 nexttid1_fnand2: next_tid(1) <=  not (issselhi_b(1) and issselmd_b(1));
 nexttid2_fnand2: next_tid(2) <=  not (issselhi_b(2) and issselmd_b(2));
 nexttid3_fnand2: next_tid(3) <=  not (issselhi_b(3) and issselmd_b(3));
+-- end of mapping section
 iu0_ifar_early_proc: process(
                           ib_ic_iu5_redirect_tid, iu5_ifar_l2,
                           bp_ic_iu5_redirect_tid, bp_ic_iu5_redirect_ifar,
@@ -802,6 +891,7 @@ end process;
 iu0_ifar0_mux:   
 iu0_ifar0_pre_cm    <=  xu_iu_iu0_flush_ifar0     when xu_iu_flush(0)   = '1'
                  else iu0_ifar0_early;
+-- Zero out ifar(0:31) when xu_iu_msr_cm(0)   = '0'
 iu0_ifar0:   for i in EFF_IFAR'left to EFF_IFAR'right generate
 begin
   R0:if(i <  32) generate begin iu0_ifar0_d(i)   <= iu0_ifar0_pre_cm(i)   and xu_iu_msr_cm(0);
@@ -819,6 +909,7 @@ iu0_2ucode_type_d(0) <=  xu_iu_flush_2ucode_type(0)    when xu_iu_flush(0)   = '
 iu0_ifar1_mux:   
 iu0_ifar1_pre_cm    <=  xu_iu_iu0_flush_ifar1     when xu_iu_flush(1)   = '1'
                  else iu0_ifar1_early;
+-- Zero out ifar(0:31) when xu_iu_msr_cm(1)   = '0'
 iu0_ifar1:   for i in EFF_IFAR'left to EFF_IFAR'right generate
 begin
   R0:if(i <  32) generate begin iu0_ifar1_d(i)   <= iu0_ifar1_pre_cm(i)   and xu_iu_msr_cm(1);
@@ -836,6 +927,7 @@ iu0_2ucode_type_d(1) <=  xu_iu_flush_2ucode_type(1)    when xu_iu_flush(1)   = '
 iu0_ifar2_mux:   
 iu0_ifar2_pre_cm    <=  xu_iu_iu0_flush_ifar2     when xu_iu_flush(2)   = '1'
                  else iu0_ifar2_early;
+-- Zero out ifar(0:31) when xu_iu_msr_cm(2)   = '0'
 iu0_ifar2:   for i in EFF_IFAR'left to EFF_IFAR'right generate
 begin
   R0:if(i <  32) generate begin iu0_ifar2_d(i)   <= iu0_ifar2_pre_cm(i)   and xu_iu_msr_cm(2);
@@ -853,6 +945,7 @@ iu0_2ucode_type_d(2) <=  xu_iu_flush_2ucode_type(2)    when xu_iu_flush(2)   = '
 iu0_ifar3_mux:   
 iu0_ifar3_pre_cm    <=  xu_iu_iu0_flush_ifar3     when xu_iu_flush(3)   = '1'
                  else iu0_ifar3_early;
+-- Zero out ifar(0:31) when xu_iu_msr_cm(3)   = '0'
 iu0_ifar3:   for i in EFF_IFAR'left to EFF_IFAR'right generate
 begin
   R0:if(i <  32) generate begin iu0_ifar3_d(i)   <= iu0_ifar3_pre_cm(i)   and xu_iu_msr_cm(3);
@@ -920,6 +1013,7 @@ ics_icd_iu0_inval  <=  iu0_inval;
 ics_icm_iu0_inval  <=  iu0_inval;
 ics_icm_iu0_inval_addr  <=  an_ac_back_inv_addr_l2(52 to 57) when back_inv_l2_clone = '1'
                      else xu_icbi_buffer0_addr_l2(52 to 57);
+-- Mux back inv address while waiting for thread select, for timing
 iu0_ifar0_or_back_inv_addr(EFF_IFAR'left TO 51) <= 
                     back_inv_addr_ext(EFF_IFAR'left to 51)   when back_inv_l2 = '1'
                else xu_icbi_addr_ext(EFF_IFAR'left to 51)    when xu_icbi_buffer_val(0) = '1'
@@ -941,6 +1035,9 @@ iu0_2ucode  <=  or_reduce(next_tid and iu0_2ucode_l2);
 iu0_2ucode_type  <=  or_reduce(next_tid and iu0_2ucode_type_l2);
 ics_icd_iu0_2ucode  <=  iu0_2ucode;
 ics_icd_iu0_2ucode_type  <=  iu0_2ucode_type;
+-----------------------------------------------------------------------
+-- IU1 BP
+-----------------------------------------------------------------------
 iu1_bp_val_d  <=  icm_ics_iu0_preload_val or iu0_valid;
 iu1_bp_tid_d  <=  icm_ics_iu0_preload_tid   when icm_ics_iu0_preload_val = '1'
            else next_tid;
@@ -951,6 +1048,9 @@ iu1_bp_act  <=  spr_ic_clockgate_dis or
 ic_bp_iu1_val  <=  iu1_bp_val_l2;
 ic_bp_iu1_tid  <=  iu1_bp_tid_d;
 ic_bp_iu1_ifar  <=  iu1_bp_ifar_l2(52 to 59);
+-----------------------------------------------------------------------
+-- Access ERAT
+-----------------------------------------------------------------------
 iu_ierat_iu0_val  <=  iu0_early_valid;
 iu_ierat_iu0_thdid  <=  next_tid;
 ierat_ifar: for i in 0 to 51 generate
@@ -961,13 +1061,23 @@ R1:if(i >= EFF_IFAR'left) generate
 begin iu_ierat_iu0_ifar(i) <=  iu0_ifar(i);
 end generate;
 end generate;
+-----------------------------------------------------------------------
+-- Access IDIR
+-----------------------------------------------------------------------
 ics_icd_dir_rd_act  <=  (iu0_early_valid and not icm_ics_hold_iu0 and not iu0_hold_ecc) or back_inv_l2 or xu_icbi_buffer_val(0) or
     spr_idir_read_l2;
 ics_icd_data_rd_act  <=  iu0_early_valid;
+-----------------------------------------------------------------------
+-- Performance Events
+-----------------------------------------------------------------------
+-- Reload Collisions
+--      - (high_mask or low_mask) and miss_iu0_hold
 perf_event_t0_d(2) <=  (high_mask_l2(0)   or low_mask_l2(0))   and icm_ics_hold_iu0;
 perf_event_t1_d(2) <=  (high_mask_l2(1)   or low_mask_l2(1))   and icm_ics_hold_iu0;
 perf_event_t2_d(2) <=  (high_mask_l2(2)   or low_mask_l2(2))   and icm_ics_hold_iu0;
 perf_event_t3_d(2) <=  (high_mask_l2(3)   or low_mask_l2(3))   and icm_ics_hold_iu0;
+-- IU0 Redirected
+--      - any flush condition
 perf_event_t0_d(3) <=  all_stages_flush_tid(0)   or iu0_flush_tid(0);
 perf_event_t1_d(3) <=  all_stages_flush_tid(1)   or iu0_flush_tid(1);
 perf_event_t2_d(3) <=  all_stages_flush_tid(2)   or iu0_flush_tid(2);
@@ -976,6 +1086,9 @@ ic_perf_event_t0    <=  perf_event_t0_l2;
 ic_perf_event_t1    <=  perf_event_t1_l2;
 ic_perf_event_t2    <=  perf_event_t2_l2;
 ic_perf_event_t3    <=  perf_event_t3_l2;
+-----------------------------------------------------------------------
+-- Debug Bus
+-----------------------------------------------------------------------
 sel_dbg_data(0 TO 6) <=  xu_iu_flush_l2(0)   & uc_flush_tid(0)   & ib_ic_iu5_redirect_tid(0)   &
     bp_ic_iu5_redirect_tid(0)   & icd_ics_iu3_parity_flush(0)   & icd_ics_iu2_miss_flush_prev(0)   & ierat_iu_iu2_flush_req(0);
 sel_dbg_data(8 TO 14) <=  xu_iu_flush_l2(1)   & uc_flush_tid(1)   & ib_ic_iu5_redirect_tid(1)   &
@@ -991,6 +1104,7 @@ sel_dbg_data(31) <=  icd_ics_iu1_valid;
 sel_dbg_data(32 TO 35) <=  icd_ics_iu1_tid;
 sel_dbg_data(36 TO 39) <=  ib_ic_empty;
 sel_dbg_data(40 TO 43) <=  ib_ic_below_water;
+--pri took
 sel_dbg_data(44 TO 49) <=  hi_did3no0 & hi_did3no1 & hi_did3no2 & hi_did2no0 & hi_did2no1 & hi_did1no0;
 sel_dbg_data(50 TO 55) <=  md_did3no0 & md_did3no1 & md_did3no2 & md_did2no0 & md_did2no1 & md_did1no0;
 sel_dbg_data(56 TO 59) <=  high_mask_l2;
@@ -1007,6 +1121,9 @@ sel_dbg_data(78 TO 82) <=  xu_iu_run_thread_l2(2)   & uc_ic_hold_thread(2)   &
     bp_ic_iu5_hold_tid(2)   & icm_ics_hold_thread_dbg(2)   & ierat_iu_hold_req(2);
 sel_dbg_data(83 TO 87) <=  xu_iu_run_thread_l2(3)   & uc_ic_hold_thread(3)   &
     bp_ic_iu5_hold_tid(3)   & icm_ics_hold_thread_dbg(3)   & ierat_iu_hold_req(3);
+-----------------------------------------------------------------------
+-- Latches
+-----------------------------------------------------------------------
 an_ac_back_inv_latch: tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1296,6 +1413,8 @@ all_stages_flush_prev_latch: tri_rlmreg_p
             scout   => sov(all_stages_flush_prev_offset to all_stages_flush_prev_offset + all_stages_flush_prev_l2'length-1),
             din     => all_stages_flush_prev_d,
             dout    => all_stages_flush_prev_l2);
+-- IU0
+-- split up ifar latches - rlmreg can only init 31 bits at a time
 iu0_ifar0a_latch:   tri_rlmreg_p
   generic map (width => EFF_IFAR'length/2, init => ((2**(EFF_IFAR'length/2 - 1)-1)*2+1), needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1908,6 +2027,7 @@ xu_iu_flush_latch: tri_rlmreg_p
             scout   => sov(xu_iu_flush_offset to xu_iu_flush_offset + xu_iu_flush_l2'length-1),
             din     => xu_iu_flush,
             dout    => xu_iu_flush_l2);
+-- Note: ic_dir has spares with slp thold, if needed
 spare_latch: tri_rlmreg_p
   generic map (width => spare_l2'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1925,7 +2045,9 @@ spare_latch: tri_rlmreg_p
             scout   => sov(spare_offset to spare_offset + spare_l2'length-1),
             din     => spare_l2,
             dout    => spare_l2);
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv(0 TO scan_right) <=  sov(1 to scan_right) & func_scan_in;
 func_scan_out  <=  sov(0) and an_ac_scan_dis_dc_b;
 END IUQ_IC_SELECT;
-

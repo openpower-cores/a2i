@@ -19,11 +19,11 @@ library tri;
 use tri.tri_latches_pkg.all;
 
 entity xuq_alu_mask is  generic(expand_type: integer := 2 );   port (
-        mb              :in std_ulogic_vector(0 to 5); 
-        me_b            :in std_ulogic_vector(0 to 5); 
-        zm              :in std_ulogic;                
+        mb              :in std_ulogic_vector(0 to 5); -- where the mask begins
+        me_b            :in std_ulogic_vector(0 to 5); -- where the mask ends
+        zm              :in std_ulogic;                -- set mask to all zeroes. ... not a rot/sh op ... all bits are shifted out
         mb_gt_me        :in std_ulogic;
-        mask            :out std_ulogic_vector(0 to 63)  
+        mask            :out std_ulogic_vector(0 to 63)  -- mask shows which rotator bits to keep in the result.
 );
 
 -- synopsys translate_off
@@ -50,22 +50,19 @@ architecture xuq_alu_mask of xuq_alu_mask is
    signal me_msk01bbb, me_msk01bb :std_ulogic_vector(1 to 3);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 begin
 
+   -- -----------------------------------------------------------------------------------------
+   -- generate the MB mask
+   -- -----------------------------------------------------------------------------------------
+   --        0123
+   --       ------
+   --  00 => 1111  (ge)
+   --  01 => 0111
+   --  10 => 0011
+   --  11 => 0001
 
+              -- level 1 (4 bit results) ------------ <3 loads on input>
 
    u_mb_msk45_0: mb_msk45(0) <= not( mb(4) or   mb(5) );
    u_mb_msk45_1: mb_msk45(1) <= not( mb(4)            );
@@ -80,7 +77,7 @@ begin
    u_mb_msk45b0: mb_msk45_b(0) <= not( mb_msk45(0) );
    u_mb_msk45b1: mb_msk45_b(1) <= not( mb_msk45(1) );
    u_mb_msk45b2: mb_msk45_b(2) <= not( mb_msk45(2) );
-   u_mb_msk23b0: mb_msk23_b(0) <= not( mb_msk23(0) ); 
+   u_mb_msk23b0: mb_msk23_b(0) <= not( mb_msk23(0) ); -- 7 loads on output
    u_mb_msk23b1: mb_msk23_b(1) <= not( mb_msk23(1) );
    u_mb_msk23b2: mb_msk23_b(2) <= not( mb_msk23(2) );
    u_mb_msk01b0: mb_msk01_b(0) <= not( mb_msk01(0) );
@@ -88,6 +85,7 @@ begin
    u_mb_msk01b2: mb_msk01_b(2) <= not( mb_msk01(2) );
 
 
+              -- level 2 (16 bit results) -------------
 
    u_mb_msk25_0:  mb_msk25(0)  <= not(                     mb_msk23_b(0) or  mb_msk45_b(0)    );
    u_mb_msk25_1:  mb_msk25(1)  <= not(                     mb_msk23_b(0) or  mb_msk45_b(1)    );
@@ -130,6 +128,7 @@ begin
    u_mb_msk01bbb1: mb_msk01bbb(1) <= not( mb_msk01bb(1) );
    u_mb_msk01bbb2: mb_msk01bbb(2) <= not( mb_msk01bb(2) );
 
+              -- level 3 -------------------------------------------------------
    u_mb_mask_0:  mb_mask(0)  <= not(                      mb_msk01bbb(0) or  mb_msk25_b(0)    );
    u_mb_mask_1:  mb_mask(1)  <= not(                      mb_msk01bbb(0) or  mb_msk25_b(1)    );
    u_mb_mask_2:  mb_mask(2)  <= not(                      mb_msk01bbb(0) or  mb_msk25_b(2)    );
@@ -197,7 +196,11 @@ begin
 
 
 
+   -- -----------------------------------------------------------------------------------------
+   -- generate the ME mask
+   -- -----------------------------------------------------------------------------------------
 
+              -- level 1 (4 bit results) ------------ <3 loads on input>
 
    u_me_msk45_1: me_msk45(1) <= not( me_b(4) and  me_b(5) );
    u_me_msk45_2: me_msk45(2) <= not( me_b(4)              );
@@ -215,7 +218,7 @@ begin
    u_me_msk45b1: me_msk45_b(1) <= not( me_msk45(1) );
    u_me_msk45b2: me_msk45_b(2) <= not( me_msk45(2) );
    u_me_msk45b3: me_msk45_b(3) <= not( me_msk45(3) );
-   u_me_msk23b1: me_msk23_b(1) <= not( me_msk23(1) ); 
+   u_me_msk23b1: me_msk23_b(1) <= not( me_msk23(1) ); -- 7 loads on output
    u_me_msk23b2: me_msk23_b(2) <= not( me_msk23(2) );
    u_me_msk23b3: me_msk23_b(3) <= not( me_msk23(3) );
    u_me_msk01b1: me_msk01_b(1) <= not( me_msk01(1) );
@@ -223,23 +226,24 @@ begin
    u_me_msk01b3: me_msk01_b(3) <= not( me_msk01(3) );
 
 
+            -- level 2 (16 bit results) -------------
 
 
-   u_me_msk25_1:  me_msk25(1)  <= not( me_msk23_b(1) and                     me_msk45_b(1)    ); 
-   u_me_msk25_2:  me_msk25(2)  <= not( me_msk23_b(1) and                     me_msk45_b(2)    ); 
-   u_me_msk25_3:  me_msk25(3)  <= not( me_msk23_b(1) and                     me_msk45_b(3)    ); 
-   u_me_msk25_4:  me_msk25(4)  <= not( me_msk23_b(1)                                          ); 
-   u_me_msk25_5:  me_msk25(5)  <= not( me_msk23_b(2) and ( me_msk23_b(1) or  me_msk45_b(1) )  ); 
-   u_me_msk25_6:  me_msk25(6)  <= not( me_msk23_b(2) and ( me_msk23_b(1) or  me_msk45_b(2) )  ); 
-   u_me_msk25_7:  me_msk25(7)  <= not( me_msk23_b(2) and ( me_msk23_b(1) or  me_msk45_b(3) )  ); 
-   u_me_msk25_8:  me_msk25(8)  <= not( me_msk23_b(2)                                          ); 
-   u_me_msk25_9:  me_msk25(9)  <= not( me_msk23_b(3) and ( me_msk23_b(2) or  me_msk45_b(1) )  ); 
-   u_me_msk25_10: me_msk25(10) <= not( me_msk23_b(3) and ( me_msk23_b(2) or  me_msk45_b(2) )  ); 
-   u_me_msk25_11: me_msk25(11) <= not( me_msk23_b(3) and ( me_msk23_b(2) or  me_msk45_b(3) )  ); 
-   u_me_msk25_12: me_msk25(12) <= not( me_msk23_b(3)                                          ); 
-   u_me_msk25_13: me_msk25(13) <= not(                     me_msk23_b(3) or  me_msk45_b(1)    ); 
-   u_me_msk25_14: me_msk25(14) <= not(                     me_msk23_b(3) or  me_msk45_b(2)    ); 
-   u_me_msk25_15: me_msk25(15) <= not(                     me_msk23_b(3) or  me_msk45_b(3)    ); 
+   u_me_msk25_1:  me_msk25(1)  <= not( me_msk23_b(1) and                     me_msk45_b(1)    ); -- amt >=  1    4:15 + 1:3
+   u_me_msk25_2:  me_msk25(2)  <= not( me_msk23_b(1) and                     me_msk45_b(2)    ); -- amt >=  2    4:15 + 2:3
+   u_me_msk25_3:  me_msk25(3)  <= not( me_msk23_b(1) and                     me_msk45_b(3)    ); -- amt >=  3    4:15 + 3:3
+   u_me_msk25_4:  me_msk25(4)  <= not( me_msk23_b(1)                                          ); -- amt >=  4    4:15
+   u_me_msk25_5:  me_msk25(5)  <= not( me_msk23_b(2) and ( me_msk23_b(1) or  me_msk45_b(1) )  ); -- amt >=  5    8:15 + (4:15 * 1:3)
+   u_me_msk25_6:  me_msk25(6)  <= not( me_msk23_b(2) and ( me_msk23_b(1) or  me_msk45_b(2) )  ); -- amt >=  6    8:15 + (4:15 * 2:3)
+   u_me_msk25_7:  me_msk25(7)  <= not( me_msk23_b(2) and ( me_msk23_b(1) or  me_msk45_b(3) )  ); -- amt >=  7    8:15 + (4:15 * 3:3)
+   u_me_msk25_8:  me_msk25(8)  <= not( me_msk23_b(2)                                          ); -- amt >=  8    8:15
+   u_me_msk25_9:  me_msk25(9)  <= not( me_msk23_b(3) and ( me_msk23_b(2) or  me_msk45_b(1) )  ); -- amt >=  9   12:15 + (8:15 * 1:3)
+   u_me_msk25_10: me_msk25(10) <= not( me_msk23_b(3) and ( me_msk23_b(2) or  me_msk45_b(2) )  ); -- amt >= 10   12:15 + (8:15 * 2:3)
+   u_me_msk25_11: me_msk25(11) <= not( me_msk23_b(3) and ( me_msk23_b(2) or  me_msk45_b(3) )  ); -- amt >= 11   12:15 + (8:15 * 3:3)
+   u_me_msk25_12: me_msk25(12) <= not( me_msk23_b(3)                                          ); -- amt >= 12   12:15
+   u_me_msk25_13: me_msk25(13) <= not(                     me_msk23_b(3) or  me_msk45_b(1)    ); -- amt >= 13   12:15 & 1:3
+   u_me_msk25_14: me_msk25(14) <= not(                     me_msk23_b(3) or  me_msk45_b(2)    ); -- amt >= 14   12:15 & 2:3
+   u_me_msk25_15: me_msk25(15) <= not(                     me_msk23_b(3) or  me_msk45_b(3)    ); -- amt >= 15   12:15 & 3:3
 
    u_me_msk01bb1: me_msk01bb(1) <= not( me_msk01_b(1) );
    u_me_msk01bb2: me_msk01bb(2) <= not( me_msk01_b(2) );
@@ -267,6 +271,7 @@ begin
    u_me_msk01bbb3: me_msk01bbb(3) <= not( me_msk01bb(3) );
 
 
+            -- level 3 (16 bit results) -------------
 
                  me_mask(0)  <= tiup ;
    u_me_mask_1:  me_mask(1)  <= not( me_msk01bbb(1) and                     me_msk25_b(1)     );
@@ -334,10 +339,18 @@ begin
    u_me_mask_63: me_mask(63) <= not(                     me_msk01bbb(3) or  me_msk25_b(15)    );
 
 
+   -- ------------------------------------------------------------------------------------------
+   -- Generally the mask starts at bit MB[] and ends at bit ME[] ... (MB[] and ME[])
+   -- For non-rotate/shift operations the mask is forced to zero by the ZM control.
+   -- There are 3 rotate-word operations where MB could be greater than ME.
+   -- in that case the mask is speced to be  (MB[] or ME[]).
+   -- For those cases, the mask always comes from the instruction bits, is always word mode,
+   -- and the MB>ME compare can be done during the instruction decode cycle.
+   -- -------------------------------------------------------------------------------------------
 
-   mask_en_and <= not mb_gt_me and not zm ; 
-   mask_en_mb <=      mb_gt_me and not zm ; 
-   mask_en_me <=      mb_gt_me and not zm ; 
+   mask_en_and <= not mb_gt_me and not zm ; -- could restrict this to only rotates if shifts included below
+   mask_en_mb <=      mb_gt_me and not zm ; -- could alternatively include shift right
+   mask_en_me <=      mb_gt_me and not zm ; -- could alternatively include shift left
 
    u_mask0: mask0_b(0 to 63) <= not( mb_mask(0 to 63) and me_mask(0 to 63) and (0 to 63=> mask_en_and) );
    u_mask1: mask1_b(0 to 63) <= not( mb_mask(0 to 63) and                      (0 to 63=> mask_en_mb)  );
@@ -347,4 +360,3 @@ begin
 
 
 end architecture xuq_alu_mask;
-

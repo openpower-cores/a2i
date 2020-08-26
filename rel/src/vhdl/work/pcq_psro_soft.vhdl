@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--
+--  Description: Core PSRO Sensor
+--
+--*****************************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all ;
 library support;
@@ -16,10 +21,10 @@ library tri;
 
 entity pcq_psro_soft is
   port (
-         vdd               : inout power_logic; 
-         gnd               : inout power_logic; 
-         pcq_psro_enable   : in std_ulogic_vector(0 to 2); 
-         psro_pcq_ringsig  : out std_ulogic 
+         vdd               : inout power_logic; -- Local Voltage Grid
+         gnd               : inout power_logic; -- Local Gnd
+         pcq_psro_enable   : in std_ulogic_vector(0 to 2); -- from perv
+         psro_pcq_ringsig  : out std_ulogic -- to the PBus, these need to be triple buffered
        );
 
 end pcq_psro_soft;
@@ -32,7 +37,7 @@ begin
     port map
     ( vdd           => vdd                      ,
       gnd           => gnd                      ,
-      psro_enable   => pcq_psro_enable(0 to 2)  , 
+      psro_enable   => pcq_psro_enable(0 to 2)  ,
       psro_ringsig  => psro_pcq_ringsig         );
 
 end pcq_psro_soft;

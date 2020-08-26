@@ -7,6 +7,10 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_plat.vhdl
+-- *! DESCRIPTION : Non-scannable pipeline latch
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
@@ -22,10 +26,10 @@ entity tri_plat is
   generic (
     width       : positive range 1 to 65536 := 1 ;
     offset      : natural range 0 to 65535  := 0 ;
-    init        : integer := 0;  
+    init        : integer := 0;  -- will be converted to the least signficant 31 bits of init_v
     synthclonedlatch : string                    := "" ;
     flushlat         : boolean                   := true ;
-    expand_type : integer := 1 ); 
+    expand_type : integer := 1 ); -- 1 = non-ibm, 2 = ibm (MPG)
 
   port (
     vd      : inout power_logic;
@@ -45,7 +49,7 @@ architecture tri_plat of tri_plat is
 
   constant init_v : std_ulogic_vector(0 to width-1) := std_ulogic_vector( to_unsigned( init, width ) );
 
-begin  
+begin  -- tri_plat
 
   a: if expand_type /= 2 generate
     signal int_din : std_ulogic_vector(0 to width-1);
@@ -77,4 +81,3 @@ begin
   end generate a;
 
 end tri_plat;
-

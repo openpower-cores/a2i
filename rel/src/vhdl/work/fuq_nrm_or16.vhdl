@@ -21,7 +21,7 @@ library ieee,ibm,support,tri,work;
 
  
 entity fuq_nrm_or16 is
-generic(       expand_type               : integer := 2  ); 
+generic(       expand_type               : integer := 2  ); -- 0 - ibm tech, 1 - other );
 port(
       f_add_ex4_res    :in   std_ulogic_vector(0 to 162) ;
       ex4_or_grp16     :out  std_ulogic_vector(0 to 10)  
@@ -29,7 +29,7 @@ port(
 
 
 
-end fuq_nrm_or16; 
+end fuq_nrm_or16; -- ENTITY
 
 architecture fuq_nrm_or16 of fuq_nrm_or16 is
 
@@ -88,10 +88,12 @@ signal g10_or16_b :std_ulogic ;
 
 begin
 
+--===============================================================--
 
 
-u_or_inv:  ex4_res_b(0 to 162) <= not f_add_ex4_res(0 to 162); 
+u_or_inv:  ex4_res_b(0 to 162) <= not f_add_ex4_res(0 to 162); -- small
 
+--===============================================================--
 
 
 u_g00_or02_0: g00_or02(0) <= not( ex4_res_b(  0) and ex4_res_b(  1) ); 
@@ -187,6 +189,7 @@ u_g10_or02_3: g10_or02(3) <= not( ex4_res_b(158) and ex4_res_b(159) );
 u_g10_or02_4: g10_or02(4) <= not( ex4_res_b(160) and ex4_res_b(161) ); 
 u_g10_or02_5: g10_or02(5) <= not( ex4_res_b(162)                    ); 
 
+--===============================================================--
 
 u_g00_or04_0: g00_or04_b(0) <= not( g00_or02(0) or g00_or02(1) ); 
 u_g00_or04_1: g00_or04_b(1) <= not( g00_or02(2) or g00_or02(3) ); 
@@ -275,6 +278,7 @@ u_g10_or08_0: g10_or08(0) <= not( g10_or04_b(0) and g10_or04_b(1) );
 u_g10_or08_1: g10_or08(1) <= not( g10_or04_b(2)                   ); 
 
 
+--===============================================================--
 
 u_g00_or16_0: g00_or16_b <= not( g00_or08(0)    );
 u_g01_or16_0: g01_or16_b <= not( g01_or08(0) or g01_or08(1) ); 
@@ -288,21 +292,21 @@ u_g08_or16_0: g08_or16_b <= not( g08_or08(0) or g08_or08(1) );
 u_g09_or16_0: g09_or16_b <= not( g09_or08(0) or g09_or08(1) ); 
 u_g10_or16_0: g10_or16_b <= not( g10_or08(0) or g10_or08(1) ); 
 
+--===============================================================--
 
 
+--/////////////////////////////////////////////////////////--
 
-u_g00_drv: ex4_or_grp16(0)  <= not( g00_or16_b  ); 
-u_g01_drv: ex4_or_grp16(1)  <= not( g01_or16_b  ); 
-u_g02_drv: ex4_or_grp16(2)  <= not( g02_or16_b  ); 
-u_g03_drv: ex4_or_grp16(3)  <= not( g03_or16_b  ); 
-u_g04_drv: ex4_or_grp16(4)  <= not( g04_or16_b  ); 
-u_g05_drv: ex4_or_grp16(5)  <= not( g05_or16_b  ); 
-u_g06_drv: ex4_or_grp16(6)  <= not( g06_or16_b  ); 
-u_g07_drv: ex4_or_grp16(7)  <= not( g07_or16_b  ); 
-u_g08_drv: ex4_or_grp16(8)  <= not( g08_or16_b  ); 
-u_g09_drv: ex4_or_grp16(9)  <= not( g09_or16_b  ); 
-u_g10_drv: ex4_or_grp16(10) <= not( g10_or16_b  ); 
+u_g00_drv: ex4_or_grp16(0)  <= not( g00_or16_b  ); --output--
+u_g01_drv: ex4_or_grp16(1)  <= not( g01_or16_b  ); --output--
+u_g02_drv: ex4_or_grp16(2)  <= not( g02_or16_b  ); --output--
+u_g03_drv: ex4_or_grp16(3)  <= not( g03_or16_b  ); --output--
+u_g04_drv: ex4_or_grp16(4)  <= not( g04_or16_b  ); --output--
+u_g05_drv: ex4_or_grp16(5)  <= not( g05_or16_b  ); --output--
+u_g06_drv: ex4_or_grp16(6)  <= not( g06_or16_b  ); --output--
+u_g07_drv: ex4_or_grp16(7)  <= not( g07_or16_b  ); --output--
+u_g08_drv: ex4_or_grp16(8)  <= not( g08_or16_b  ); --output--
+u_g09_drv: ex4_or_grp16(9)  <= not( g09_or16_b  ); --output--
+u_g10_drv: ex4_or_grp16(10) <= not( g10_or16_b  ); --output--
 
-end; 
-
-
+end; -- fuq_nrm_or16 ARCHITECTURE

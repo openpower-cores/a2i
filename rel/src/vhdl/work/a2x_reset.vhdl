@@ -11,6 +11,7 @@ library ieee;
 use ieee.std_logic_1164.ALL;
 use ieee.numeric_std.all;
 
+-- both resets are negative-active!
 
 entity a2x_reset is
   port (
@@ -53,12 +54,12 @@ begin
    
       reset_in_q <= reset_in;
       
-      if (reset_in_q = '1' and reset_in = '0') then   
+      if (reset_in_q = '1' and reset_in = '0') then   -- edge-trigger hi->lo
          counter_q <= (others => '0');
-	   elsif (leq(counter_q, reset_period)) then     
+	   elsif (leq(counter_q, reset_period)) then     -- reset period
          counter_q <= inc(counter_q);	
 	      reset_q <= '0';
-	   else                                            
+	   else                                            -- normal
          counter_q <= counter_q;	
 	      reset_q <= '1';
 	   end if;
@@ -70,4 +71,3 @@ begin
   reset <= reset_q;  
 
 end architecture a2x_reset;
-

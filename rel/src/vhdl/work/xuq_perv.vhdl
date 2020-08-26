@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Pervasive
+--
 library ieee,ibm,support,tri,work;
 use ieee.std_logic_1164.all;
 use ibm.std_ulogic_support.all;
@@ -17,7 +19,7 @@ use tri.tri_latches_pkg.all;
 use work.xuq_pkg.all;
 
 entity xuq_perv is
-generic(expand_type : integer := 2 ); 
+generic(expand_type : integer := 2 ); -- 0 = ibm umbra, 1 = xilinx, 2 = ibm mpg
 port(
    vdd                        : inout power_logic;
    gnd                        : inout power_logic;

@@ -8,6 +8,13 @@
 -- license is available.
 
 			
+--********************************************************************
+--*
+--* TITLE: Instruction buffer wrapper
+--*
+--* NAME: iuq_ib_buff_wrap.vhdl
+--*
+--*********************************************************************
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -339,4 +346,3 @@ port map(
       iu_au_ib1_data                    => iu_au_ib1_data_t3
 );
 end iuq_ib_buff_wrap;
-

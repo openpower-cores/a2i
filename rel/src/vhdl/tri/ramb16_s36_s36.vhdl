@@ -154,25 +154,48 @@ WEB_t  <= WEB & WEB & WEB & WEB;
 
 
 
+   -- BRAM_TDP_MACRO: True Dual Port RAM
+   --                 Virtex-7
+   -- Xilinx HDL Language Template, version 2019.1
+
+   -- Note -  This Unimacro model assumes the port directions to be "downto".
+   --         Simulation of this model with "to" in the port directions could lead to erroneous results.
+
+   --------------------------------------------------------------------------
+   -- DATA_WIDTH_A/B | BRAM_SIZE | RAM Depth | ADDRA/B Width | WEA/B Width --
+   -- ===============|===========|===========|===============|=============--
+   --     19-36      |  "36Kb"   |    1024   |    10-bit     |    4-bit    -- * using
+   --     10-18      |  "36Kb"   |    2048   |    11-bit     |    2-bit    --
+   --     10-18      |  "18Kb"   |    1024   |    10-bit     |    2-bit    --
+   --      5-9       |  "36Kb"   |    4096   |    12-bit     |    1-bit    --
+   --      5-9       |  "18Kb"   |    2048   |    11-bit     |    1-bit    --
+   --      3-4       |  "36Kb"   |    8192   |    13-bit     |    1-bit    --
+   --      3-4       |  "18Kb"   |    4096   |    12-bit     |    1-bit    --
+   --        2       |  "36Kb"   |   16384   |    14-bit     |    1-bit    --
+   --        2       |  "18Kb"   |    8192   |    13-bit     |    1-bit    --
+   --        1       |  "36Kb"   |   32768   |    15-bit     |    1-bit    --
+   --        1       |  "18Kb"   |   16384   |    14-bit     |    1-bit    --
+   --------------------------------------------------------------------------
    
    BRAM_0 : BRAM_TDP_MACRO
    generic map (
-      BRAM_SIZE => "36Kb", 
-      DEVICE => "7SERIES", 
-      DOA_REG => 0, 
-      DOB_REG => 0, 
-      INIT_A => INIT_A, 
-      INIT_B => INIT_B, 
+      BRAM_SIZE => "36Kb", -- Target BRAM, "18Kb" or "36Kb"
+      DEVICE => "7SERIES", -- Target Device: "VIRTEX5", "VIRTEX6", "7SERIES", "SPARTAN6"
+      DOA_REG => 0, -- Optional port A output register (0 or 1)
+      DOB_REG => 0, -- Optional port B output register (0 or 1)
+      INIT_A => INIT_A, -- Initial values on A output port
+      INIT_B => INIT_B, -- Initial values on B output port
       INIT_FILE => "NONE",
-      READ_WIDTH_A => 36,   
-      READ_WIDTH_B => 36,   
+      READ_WIDTH_A => 36,   -- Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+      READ_WIDTH_B => 36,   -- Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
       SIM_COLLISION_CHECK => "NONE",
-      SRVAL_A => SRVAL_A,   
-      SRVAL_B => SRVAL_A,   
-      WRITE_MODE_A => WRITE_MODE_A, 
-      WRITE_MODE_B => WRITE_MODE_B, 
-      WRITE_WIDTH_A => 36, 
-      WRITE_WIDTH_B => 36, 
+      SRVAL_A => SRVAL_A,   -- Set/Reset value for A port output
+      SRVAL_B => SRVAL_A,   -- Set/Reset value for B port output
+      WRITE_MODE_A => WRITE_MODE_A, -- "WRITE_FIRST", "READ_FIRST" or "NO_CHANGE"
+      WRITE_MODE_B => WRITE_MODE_B, -- "WRITE_FIRST", "READ_FIRST" or "NO_CHANGE"
+      WRITE_WIDTH_A => 36, -- Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+      WRITE_WIDTH_B => 36, -- Valid values are 1-36 (19-36 only valid when BRAM_SIZE="36Kb")
+      -- The following INIT_xx declarations specify the initial contents of the RAM
       INIT_00 => INIT_00,
       INIT_01 => INIT_01,
       INIT_02 => INIT_02,
@@ -238,6 +261,7 @@ WEB_t  <= WEB & WEB & WEB & WEB;
       INIT_3E => INIT_3E,
       INIT_3F => INIT_3F,
       
+      -- The next set of INIT_xx are valid when configured as 36Kb
       INIT_40 => X"0000000000000000000000000000000000000000000000000000000000000000",
       INIT_41 => X"0000000000000000000000000000000000000000000000000000000000000000",
       INIT_42 => X"0000000000000000000000000000000000000000000000000000000000000000",
@@ -303,6 +327,7 @@ WEB_t  <= WEB & WEB & WEB & WEB;
       INIT_7E => X"0000000000000000000000000000000000000000000000000000000000000000",
       INIT_7F => X"0000000000000000000000000000000000000000000000000000000000000000",
       
+      -- The next set of INITP_xx are for the parity bits
       INITP_00 => INITP_00,
       INITP_01 => INITP_01,
       INITP_02 => INITP_02,
@@ -312,6 +337,7 @@ WEB_t  <= WEB & WEB & WEB & WEB;
       INITP_06 => INITP_06,
       INITP_07 => INITP_07,
       
+      -- The next set of INIT_xx are valid when configured as 36Kb
       INITP_08 => X"0000000000000000000000000000000000000000000000000000000000000000",
       INITP_09 => X"0000000000000000000000000000000000000000000000000000000000000000",
       INITP_0A => X"0000000000000000000000000000000000000000000000000000000000000000",
@@ -322,24 +348,25 @@ WEB_t  <= WEB & WEB & WEB & WEB;
       INITP_0F => X"0000000000000000000000000000000000000000000000000000000000000000"
    )
    port map (
-      DOA => DOUTA,     
-      DOB => DOUTB,     
-      ADDRA => ADDRA_10,  
-      ADDRB => ADDRB_10,  
-      CLKA => CLKA,     
-      CLKB => CLKB,     
-      DIA => DINA,      
-      DIB => DINB,      
-      ENA => ENA,       
-      ENB => ENB,       
-      REGCEA => '1',    
-      REGCEB => '1',    
-      RSTA => SSRA_t,   
-      RSTB => SSRB_t,   
-      WEA => WEA_t,     
-      WEB => WEB_t      
+      DOA => DOUTA,     -- Output port-A data, width defined by READ_WIDTH_A parameter
+      DOB => DOUTB,     -- Output port-B data, width defined by READ_WIDTH_B parameter
+      ADDRA => ADDRA_10,  -- Input port-A address, width defined by Port A depth
+      ADDRB => ADDRB_10,  -- Input port-B address, width defined by Port B depth
+      CLKA => CLKA,     -- 1-bit input port-A clock
+      CLKB => CLKB,     -- 1-bit input port-B clock
+      DIA => DINA,      -- Input port-A data, width defined by WRITE_WIDTH_A parameter
+      DIB => DINB,      -- Input port-B data, width defined by WRITE_WIDTH_B parameter
+      ENA => ENA,       -- 1-bit input port-A enable
+      ENB => ENB,       -- 1-bit input port-B enable
+      REGCEA => '1',    -- REGCEA, -- 1-bit input port-A output register enable
+      REGCEB => '1',    -- REGCEB, -- 1-bit input port-B output register enable
+      RSTA => SSRA_t,   -- 1-bit input port-A reset
+      RSTB => SSRB_t,   -- 1-bit input port-B reset
+      WEA => WEA_t,     -- Input port-A write enable, width defined by Port A depth
+      WEB => WEB_t      -- Input port-B write enable, width defined by Port B depth
    );
    
+-- End of BRAM_TDP_MACRO_inst instantiation
 
 
 end RAMB16_S36_S36;

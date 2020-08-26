@@ -7,6 +7,10 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_lcbs.vhdl
+-- *! DESCRIPTION : Wrapper for slat LCB
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
@@ -14,12 +18,10 @@ library ieee; use ieee.std_logic_1164.all;
 library support; 
                  use support.power_logic_pkg.all;
 library tri; use tri.tri_latches_pkg.all;
--- pragma translate_off
--- pragma translate_on
 
 entity tri_lcbs is
 
-  generic ( expand_type : integer := 1 ); 
+  generic ( expand_type : integer := 1 ); -- 1 = non-ibm, 2 = ibm (MPG)
 
   port (
         vd          : inout power_logic;
@@ -32,10 +34,6 @@ entity tri_lcbs is
         lclk        : out   clk_logic
        );
 
-  -- synopsys translate_off
-
-  -- synopsys translate_on
-
 end entity tri_lcbs;
 
 architecture tri_lcbs of tri_lcbs is
@@ -44,13 +42,11 @@ begin
 
   a: if expand_type = 1 generate
     signal unused : std_ulogic;
-    -- synopsys translate_off
-    -- synopsys translate_on
   begin
+    -- No scan chain in this methodology
     dclk <= thold_b;
     lclk <= nclk;
     unused <= delay_lclkr or forcee;
   end generate a;
 
 end tri_lcbs;
-

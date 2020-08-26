@@ -7,6 +7,10 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : tri_nand2_nlats.vhdl
+-- *! DESCRIPTION : n-bit scannable m/s latch, for bit stacking, with nand2 gate in front
+-- *!****************************************************************
 
 library ieee;    use ieee.std_logic_1164.all;
                  use ieee.numeric_std.all;
@@ -23,8 +27,8 @@ entity tri_nand2_nlats is
             init               : std_ulogic_vector         := "0" ; 
             synthclonedlatch   : string                    := "" ;
             btr                : string                    := "NLA0001_X1_A12TH" ;
-            needs_sreset : integer := 1 ; 
-            expand_type : integer := 1 ); 
+            needs_sreset : integer := 1 ; -- for inferred latches
+            expand_type : integer := 1 ); -- 1 = non-ibm, 2 = ibm (MPG)
   port (
         vd       : inout power_logic;
         gd       : inout power_logic;
@@ -37,10 +41,6 @@ entity tri_nand2_nlats is
         A2       : in    std_ulogic_vector(offset to offset+width-1); 
         QB       : out   std_ulogic_vector(offset to offset+width-1)
        );
-
-  -- synopsys translate_off
-
-  -- synopsys translate_on
 
 end entity tri_nand2_nlats;
 
@@ -72,7 +72,7 @@ begin
 
     vsreset <= (0 to width-1 => sreset);
     vsreset_b <= (0 to width-1 => not sreset);
-    din   <= A1 and A2;         
+    din   <= A1 and A2;         -- Output is inverted, so just AND2 here
     int_din <= (vsreset_b and din) or
                (vsreset and init_v(0 to width-1));
 
@@ -96,6 +96,8 @@ begin
   end generate a;
 
 
+  --=====================================================
+  --== non inverting latch with nand2 gate in front
+  --=====================================================
 
 end tri_nand2_nlats;
-

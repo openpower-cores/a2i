@@ -7,6 +7,9 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU SPR - DVC compare component
+--
+
 library ieee,ibm;
 use ieee.std_logic_1164.all;
 use ibm.std_ulogic_function_support.all;
@@ -31,6 +34,7 @@ port(
 end xuq_spr_dvccmp;
 architecture xuq_spr_dvccmp of xuq_spr_dvccmp is
 
+-- Signals
 signal cmp_mask_or,cmp_mask_and     : std_ulogic_vector(8-regsize/8 to 7);
 signal cmp_and,cmp_or,cmp_andor     : std_ulogic;
 

@@ -280,6 +280,7 @@ end iuq_fxu_issue;
 ARCHITECTURE IUQ_FXU_ISSUE
           OF IUQ_FXU_ISSUE
           IS
+-- scan chain connenctions
 constant uc_flush_tid_offset            : natural := 0;
 constant xu_iu_need_hole_offset         : natural := uc_flush_tid_offset + 4;
 constant xu_iu_xucr0_rel_offset         : natural := xu_iu_need_hole_offset + 1;
@@ -334,6 +335,7 @@ signal trace_bus_enable_d                   : std_ulogic;
 signal trace_bus_enable_q                   : std_ulogic;
 signal event_bus_enable_d                   : std_ulogic;
 signal event_bus_enable_q                   : std_ulogic;
+-- signals for hooking up scanchains
 signal siv                      : std_ulogic_vector(0 to scan_right);
 signal sov                      : std_ulogic_vector(0 to scan_right);
 signal tiup                     : std_ulogic;
@@ -364,6 +366,9 @@ signal gap_l2_rel_hole          : std_ulogic;
 signal dcache_rel_hole          : std_ulogic;
 signal dcache_rel_tag_2nd_beat  : std_ulogic;
 signal dcache_binv_hole         : std_ulogic;
+-------------------------------------------------------------------------
+-- is2 early indicators
+-------------------------------------------------------------------------
 signal is2_vld_d                : std_ulogic_vector(0 to 3);
 signal hole_delay0_d            : std_ulogic_vector(0 to 1);
 signal hole_delay1_d            : std_ulogic_vector(0 to 1);
@@ -382,6 +387,9 @@ signal hole0_b                  : std_ulogic;
 signal hole1_b                  : std_ulogic;
 signal hole2_b                  : std_ulogic;
 signal hole3_b                  : std_ulogic;
+-------------------------------------------------------------------------
+-- priority latch signals
+-------------------------------------------------------------------------
 signal low_pri_rf0_d          : std_ulogic_vector(0 to 3);
 signal low_pri_rf1_d          : std_ulogic_vector(0 to 3);
 signal low_pri_ex1_d          : std_ulogic_vector(0 to 3);
@@ -442,9 +450,11 @@ signal med_pri_mask_din       : std_ulogic_vector(0 to 3);
 signal low_pri_en               : std_ulogic_vector(0 to 3);
 signal low_pri_val              : std_ulogic_vector(0 to 3);
 signal pri_rand                 : std_ulogic_vector(0 to 5);
+-- signals used for selecting next thread
 signal high_priority_valids     : std_ulogic_vector(0 to 3);
 signal med_priority_valids      : std_ulogic_vector(0 to 3);
 signal n_thread                 : std_ulogic_vector(0 to 3);
+------
 signal uc_flush_tid_d           : std_ulogic_vector(0 to 3);
 signal uc_flush_tid_l2          : std_ulogic_vector(0 to 3);
 signal int_is2_vld              : std_ulogic;
@@ -486,6 +496,7 @@ signal md_did3no2_d   : std_ulogic;
 signal md_did2no0_d   : std_ulogic;
 signal md_did2no1_d   : std_ulogic;
 signal md_did1no0_d   : std_ulogic;
+--priority map signals
 signal hi_n230, hi_n231, hi_n232    : std_ulogic;
 signal hi_n220, hi_n221, hi_n210    : std_ulogic;
 signal md_n230, md_n231, md_n232    : std_ulogic;
@@ -525,12 +536,18 @@ signal md_l12,  md_l13,  md_l10 : std_ulogic;
 signal md_l01,  md_l02,  md_l03 : std_ulogic;
 signal take, take_b : std_ulogic_vector(0 to 3);
 signal no_hi_v_b : std_ulogic;
-  BEGIN 
+-------------------------------------------------------------------------
+-- Pipe blockers
+-------------------------------------------------------------------------
+  BEGIN --@@ START OF EXECUTABLE CODE FOR IUQ_FXU_ISSUE
 
 tiup  <=  '1';
 act_dis  <=  '0';
 d_mode   <=  '0';
 mpw2_b   <=  '1';
+-------------------------------------------------
+-- pervasive
+-------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 2, expand_type => expand_type)
   port map (vd          => vdd,
@@ -559,6 +576,9 @@ perv_lcbor: tri_lcbor
             act_dis     => act_dis,
             forcee => forcee,
             thold_b     => pc_iu_func_sl_thold_0_b);
+-----------------------------------------------------------------------
+-- latch definition
+-----------------------------------------------------------------------
 uc_flush_tid_latch: tri_rlmreg_p
   generic map (width => uc_flush_tid_l2'length, init => 0, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1309,6 +1329,7 @@ rf0_ldst_tag: tri_rlmreg_p
             scout   => sov(rf0_ldst_tag_offset to rf0_ldst_tag_offset + rf0_ldst_tag_l2'length-1),
             din     => rf0_ldst_tag_d,
             dout    => rf0_ldst_tag_l2);
+--added for priority mapping
 rf0_took_latch:  tri_rlmreg_p 
   generic map (init => 65, expand_type => expand_type, width => 12)
   port map (
@@ -1394,6 +1415,9 @@ pri_rand(0 TO 5) <=  "001000" when spr_fiss_pri_rand(0 to 4) = "00000" else
                     "110110" when spr_fiss_pri_rand(0 to 4) = "11101" else  
                     "000111" when spr_fiss_pri_rand(0 to 4) = "11110" else  
                     "111000" ;
+-----------------------------------------------------------------------
+-- hole delays for multiplier
+-----------------------------------------------------------------------
 hole0_nor2:   hole0      <=  not (hole0_b   or xu_iu_is2_flush_tid(0));
 hole0_b                  <=  not (((n_thread(0)   and fdep_fiss_t0_is2_hole_delay(0))   or hole_delay0_l2(0))   and not uc_flush_tid_l2(0));
 hole_delay0_d(0) <=       ((n_thread(0)   and fdep_fiss_t0_is2_hole_delay(1))   or hole_delay0_l2(1))   and not uc_flush_tid_l2(0)   and not xu_iu_is2_flush_tid(0);
@@ -1410,6 +1434,9 @@ hole3_nor2:   hole3      <=  not (hole3_b   or xu_iu_is2_flush_tid(3));
 hole3_b                  <=  not (((n_thread(3)   and fdep_fiss_t3_is2_hole_delay(0))   or hole_delay3_l2(0))   and not uc_flush_tid_l2(3));
 hole_delay3_d(0) <=       ((n_thread(3)   and fdep_fiss_t3_is2_hole_delay(1))   or hole_delay3_l2(1))   and not uc_flush_tid_l2(3)   and not xu_iu_is2_flush_tid(3);
 hole_delay3_d(1) <=        (n_thread(3)   and fdep_fiss_t3_is2_hole_delay(2))                           and not uc_flush_tid_l2(3)   and not xu_iu_is2_flush_tid(3);
+-----------------------------------------------------------------------
+-- early indicators
+-----------------------------------------------------------------------
 is1_dep_hit(0) <=  not(fdep_fiss_t0_is1_xu_dep_hit_b) or not(i_axu_is1_dep_hit_t0_b);
 is1_dep_hit(1) <=  not(fdep_fiss_t1_is1_xu_dep_hit_b) or not(i_axu_is1_dep_hit_t1_b);
 is1_dep_hit(2) <=  not(fdep_fiss_t2_is1_xu_dep_hit_b) or not(i_axu_is1_dep_hit_t2_b);
@@ -1428,8 +1455,256 @@ is2_stall(2) <=  (not next_tid(2) and is2_vld_l2(2)) or (not i_afi_is2_take_t(2)
 is2_stall(3) <=  (not next_tid(3) and is2_vld_l2(3)) or (not i_afi_is2_take_t(3) and i_afd_is2_t3_instr_v);
 high_priority_valids     <=  high_pri_mask_l2;
 med_priority_valids      <=  med_pri_mask_l2;
+---- round robin high priority select
+--?TABLE select_high LISTING(final) OPTIMIZE PARMS(ON-SET, OFF-SET);
+--*INPUTS*======================*OUTPUTS*=============*
+--|                             |                     |
+--| high_pri_last_l2            |  next_high_valid    |
+--| |     high_priority_valids  |  |  next_high_tid   |
+--| |     |                     |  |  |               |
+--| |     |                     |  |  |               |
+--| |     |                     |  |  |               |
+--| 0123  0123                  |  |  0123            |
+--*TYPE*========================+=====================+
+--| PPPP  PPPP                  |  P  PPPP            |
+--*TERMS*=======================+=====================+
+--| 1000  0000                  |  0  ----            |
+--| 1000  -1--                  |  1  0100            |
+--| 1000  -01-                  |  1  0010            |
+--| 1000  -001                  |  1  0001            |
+--| 1000  1000                  |  1  1000            |
+--| 0100  0000                  |  0  ----            |
+--| 0100  --1-                  |  1  0010            |
+--| 0100  --01                  |  1  0001            |
+--| 0100  1-00                  |  1  1000            |
+--| 0100  0100                  |  1  0100            |
+--| 0010  0000                  |  0  ----            |
+--| 0010  ---1                  |  1  0001            |
+--| 0010  1--0                  |  1  1000            |
+--| 0010  01-0                  |  1  0100            |
+--| 0010  0010                  |  1  0010            |
+--| 0001  0000                  |  0  ----            |
+--| 0001  1---                  |  1  1000            |
+--| 0001  01--                  |  1  0100            |
+--| 0001  001-                  |  1  0010            |
+--| 0001  0001                  |  1  0001            |
+--*END*=========================+=====================+
+--?TABLE END select_high;
+---- round robin low priority select
+--?TABLE select_low LISTING(final) OPTIMIZE PARMS(ON-SET, OFF-SET);
+--*INPUTS*======================*OUTPUTS*=============*
+--|                             |                     |
+--| low_pri_last_l2             |  next_low_valid     |
+--| |     low_priority_valids   |  |  next_low_tid    |
+--| |     |                     |  |  |               |
+--| |     |                     |  |  |               |
+--| |     |                     |  |  |               |
+--| 0123  0123                  |  |  0123            |
+--*TYPE*========================+=====================+
+--| PPPP  PPPP                  |  P  PPPP            |
+--*TERMS*=======================+=====================+
+--| 1000  0000                  |  0  ----            |
+--| 1000  -1--                  |  1  0100            |
+--| 1000  -01-                  |  1  0010            |
+--| 1000  -001                  |  1  0001            |
+--| 1000  1000                  |  1  1000            |
+--| 0100  0000                  |  0  ----            |
+--| 0100  --1-                  |  1  0010            |
+--| 0100  --01                  |  1  0001            |
+--| 0100  1-00                  |  1  1000            |
+--| 0100  0100                  |  1  0100            |
+--| 0010  0000                  |  0  ----            |
+--| 0010  ---1                  |  1  0001            |
+--| 0010  1--0                  |  1  1000            |
+--| 0010  01-0                  |  1  0100            |
+--| 0010  0010                  |  1  0010            |
+--| 0001  0000                  |  0  ----            |
+--| 0001  1---                  |  1  1000            |
+--| 0001  01--                  |  1  0100            |
+--| 0001  001-                  |  1  0010            |
+--| 0001  0001                  |  1  0001            |
+--*END*=========================+=====================+
+--?TABLE END select_low;
+--?TABLE select_pri LISTING(final) OPTIMIZE PARMS(ON-SET, OFF-SET);
+--*INPUTS*======================================================*OUTPUTS*===============*
+--|                                                             |                       |
+--| low_pri_en                                                  |                       |
+--| |   low_pri_last_l2             high_pri_last_l2            |  next_low_valid       |
+--| |   |     low_priority_valids   |     high_priority_valids  |  | next_high_valid    |
+--| |   |     |                     |     |                     |  | |  next_tid        |
+--| |   |     |                     |     |                     |  | |  |               |
+--| |   |     |                     |     |                     |  | |  |               |
+--| |   0123  0123                  0123  0123                  |  | |  0123            |
+--*TYPE*========================================================+=======================+
+--| S   PPPP  PPPP                  PPPP  PPPP                  |  P P  SSSS            |
+--*TERMS*=======================================================+=======================+
+--| -   ----  0000                  ----  0000                  |  0 0  0000            |
+--| 1   ----  0000                  1000  -1--                  |  0 1  0100            |
+--| 1   ----  0000                  1000  -01-                  |  0 1  0010            |
+--| 1   ----  0000                  1000  -001                  |  0 1  0001            |
+--| 1   ----  0000                  1000  1000                  |  0 1  1000            |
+--| 1   ----  0000                  0100  --1-                  |  0 1  0010            |
+--| 1   ----  0000                  0100  --01                  |  0 1  0001            |
+--| 1   ----  0000                  0100  1-00                  |  0 1  1000            |
+--| 1   ----  0000                  0100  0100                  |  0 1  0100            |
+--| 1   ----  0000                  0010  ---1                  |  0 1  0001            |
+--| 1   ----  0000                  0010  1--0                  |  0 1  1000            |
+--| 1   ----  0000                  0010  01-0                  |  0 1  0100            |
+--| 1   ----  0000                  0010  0010                  |  0 1  0010            |
+--| 1   ----  0000                  0001  1---                  |  0 1  1000            |
+--| 1   ----  0000                  0001  01--                  |  0 1  0100            |
+--| 1   ----  0000                  0001  001-                  |  0 1  0010            |
+--| 1   ----  0000                  0001  0001                  |  0 1  0001            |
+--| 1   1000  -1--                  ----  ----                  |  1 0  0100            |
+--| 1   1000  -01-                  ----  ----                  |  1 0  0010            |
+--| 1   1000  -001                  ----  ----                  |  1 0  0001            |
+--| 1   1000  1000                  ----  ----                  |  1 0  1000            |
+--| 1   0100  --1-                  ----  ----                  |  1 0  0010            |
+--| 1   0100  --01                  ----  ----                  |  1 0  0001            |
+--| 1   0100  1-00                  ----  ----                  |  1 0  1000            |
+--| 1   0100  0100                  ----  ----                  |  1 0  0100            |
+--| 1   0010  ---1                  ----  ----                  |  1 0  0001            |
+--| 1   0010  1--0                  ----  ----                  |  1 0  1000            |
+--| 1   0010  01-0                  ----  ----                  |  1 0  0100            |
+--| 1   0010  0010                  ----  ----                  |  1 0  0010            |
+--| 1   0001  1---                  ----  ----                  |  1 0  1000            |
+--| 1   0001  01--                  ----  ----                  |  1 0  0100            |
+--| 1   0001  001-                  ----  ----                  |  1 0  0010            |
+--| 1   0001  0001                  ----  ----                  |  1 0  0001            |
+--| 0   1000  -1--                  ----  0000                  |  1 0  0100            |
+--| 0   1000  -01-                  ----  0000                  |  1 0  0010            |
+--| 0   1000  -001                  ----  0000                  |  1 0  0001            |
+--| 0   1000  1000                  ----  0000                  |  1 0  1000            |
+--| 0   0100  --1-                  ----  0000                  |  1 0  0010            |
+--| 0   0100  --01                  ----  0000                  |  1 0  0001            |
+--| 0   0100  1-00                  ----  0000                  |  1 0  1000            |
+--| 0   0100  0100                  ----  0000                  |  1 0  0100            |
+--| 0   0010  ---1                  ----  0000                  |  1 0  0001            |
+--| 0   0010  1--0                  ----  0000                  |  1 0  1000            |
+--| 0   0010  01-0                  ----  0000                  |  1 0  0100            |
+--| 0   0010  0010                  ----  0000                  |  1 0  0010            |
+--| 0   0001  1---                  ----  0000                  |  1 0  1000            |
+--| 0   0001  01--                  ----  0000                  |  1 0  0100            |
+--| 0   0001  001-                  ----  0000                  |  1 0  0010            |
+--| 0   0001  0001                  ----  0000                  |  1 0  0001            |
+--| 0   ----  ----                  1000  -1--                  |  0 1  0100            |
+--| 0   ----  ----                  1000  -01-                  |  0 1  0010            |
+--| 0   ----  ----                  1000  -001                  |  0 1  0001            |
+--| 0   ----  ----                  1000  1000                  |  0 1  1000            |
+--| 0   ----  ----                  0100  --1-                  |  0 1  0010            |
+--| 0   ----  ----                  0100  --01                  |  0 1  0001            |
+--| 0   ----  ----                  0100  1-00                  |  0 1  1000            |
+--| 0   ----  ----                  0100  0100                  |  0 1  0100            |
+--| 0   ----  ----                  0010  ---1                  |  0 1  0001            |
+--| 0   ----  ----                  0010  1--0                  |  0 1  1000            |
+--| 0   ----  ----                  0010  01-0                  |  0 1  0100            |
+--| 0   ----  ----                  0010  0010                  |  0 1  0010            |
+--| 0   ----  ----                  0001  1---                  |  0 1  1000            |
+--| 0   ----  ----                  0001  01--                  |  0 1  0100            |
+--| 0   ----  ----                  0001  001-                  |  0 1  0010            |
+--| 0   ----  ----                  0001  0001                  |  0 1  0001            |
+--*END*=========================================================+=======================+
+--?TABLE END select_pri;
+--?TABLE select_pri LISTING(final) OPTIMIZE PARMS(ON-SET, OFF-SET);
+--*INPUTS*=====================================================*OUTPUTS*==============*
+--|                                                            |                      |
+--|                                                            |                      |
+--|    med_pri_last_l2             high_pri_last_l2            | next_med_valid       |
+--|    |     med_priority_valids   |     high_priority_valids  | | next_high_valid    |
+--|    |     |                     |     |                     | | |  next_tid        |
+--|    |     |                     |     |                     | | |  |               |
+--|    |     |                     |     |                     | | |  |               |
+--|    0123  0123                  0123  0123                  | | |  0123            |
+--*TYPE*=======================================================+======================+
+--|    PPPP  PPPP                  PPPP  PPPP                  | P P  SSSS            |
+--*TERMS*======================================================+======================+
+--|    ----  0000                  ----  0000                  | 0 0  0000            |
+--|    1000  -1--                  ----  0000                  | 1 0  0100            |
+--|    1000  -01-                  ----  0000                  | 1 0  0010            |
+--|    1000  -001                  ----  0000                  | 1 0  0001            |
+--|    1000  1000                  ----  0000                  | 1 0  1000            |
+--|    0100  --1-                  ----  0000                  | 1 0  0010            |
+--|    0100  --01                  ----  0000                  | 1 0  0001            |
+--|    0100  1-00                  ----  0000                  | 1 0  1000            |
+--|    0100  0100                  ----  0000                  | 1 0  0100            |
+--|    0010  ---1                  ----  0000                  | 1 0  0001            |
+--|    0010  1--0                  ----  0000                  | 1 0  1000            |
+--|    0010  01-0                  ----  0000                  | 1 0  0100            |
+--|    0010  0010                  ----  0000                  | 1 0  0010            |
+--|    0001  1---                  ----  0000                  | 1 0  1000            |
+--|    0001  01--                  ----  0000                  | 1 0  0100            |
+--|    0001  001-                  ----  0000                  | 1 0  0010            |
+--|    0001  0001                  ----  0000                  | 1 0  0001            |
+--|    ----  ----                  1000  -1--                  | 0 1  0100            |
+--|    ----  ----                  1000  -01-                  | 0 1  0010            |
+--|    ----  ----                  1000  -001                  | 0 1  0001            |
+--|    ----  ----                  1000  1000                  | 0 1  1000            |
+--|    ----  ----                  0100  --1-                  | 0 1  0010            |
+--|    ----  ----                  0100  --01                  | 0 1  0001            |
+--|    ----  ----                  0100  1-00                  | 0 1  1000            |
+--|    ----  ----                  0100  0100                  | 0 1  0100            |
+--|    ----  ----                  0010  ---1                  | 0 1  0001            |
+--|    ----  ----                  0010  1--0                  | 0 1  1000            |
+--|    ----  ----                  0010  01-0                  | 0 1  0100            |
+--|    ----  ----                  0010  0010                  | 0 1  0010            |
+--|    ----  ----                  0001  1---                  | 0 1  1000            |
+--|    ----  ----                  0001  01--                  | 0 1  0100            |
+--|    ----  ----                  0001  001-                  | 0 1  0010            |
+--|    ----  ----                  0001  0001                  | 0 1  0001            |
+--*END*========================================================+======================+
+--?TABLE END select_pri;
+--?TABLE select_pri LISTING(final) OPTIMIZE PARMS(ON-SET, OFF-SET);
+--*INPUTS*=====================================================*OUTPUTS*===========*
+--|                                                            |                   |
+--|                                                            |                   |
+--|    med_pri_last_l2             high_pri_last_l2            |                   |
+--|    |     med_priority_valids   |     high_priority_valids  |                   |
+--|    |     |                     |     |                     |   next_tid        |
+--|    |     |                     |     |                     |   |               |
+--|    |     |                     |     |                     |   |               |
+--|    0123  0123                  0123  0123                  |   0123            |
+--*TYPE*=======================================================+===================+
+--|    PPPP  PPPP                  PPPP  PPPP                  |   SSSS            |
+--*TERMS*======================================================+===================+
+--|    ----  0000                  ----  0000                  |   0000            |
+--|    1000  -1--                  ----  0000                  |   0100            |
+--|    1000  -01-                  ----  0000                  |   0010            |
+--|    1000  -001                  ----  0000                  |   0001            |
+--|    1000  1000                  ----  0000                  |   1000            |
+--|    0100  --1-                  ----  0000                  |   0010            |
+--|    0100  --01                  ----  0000                  |   0001            |
+--|    0100  1-00                  ----  0000                  |   1000            |
+--|    0100  0100                  ----  0000                  |   0100            |
+--|    0010  ---1                  ----  0000                  |   0001            |
+--|    0010  1--0                  ----  0000                  |   1000            |
+--|    0010  01-0                  ----  0000                  |   0100            |
+--|    0010  0010                  ----  0000                  |   0010            |
+--|    0001  1---                  ----  0000                  |   1000            |
+--|    0001  01--                  ----  0000                  |   0100            |
+--|    0001  001-                  ----  0000                  |   0010            |
+--|    0001  0001                  ----  0000                  |   0001            |
+--|    ----  ----                  1000  -1--                  |   0100            |
+--|    ----  ----                  1000  -01-                  |   0010            |
+--|    ----  ----                  1000  -001                  |   0001            |
+--|    ----  ----                  1000  1000                  |   1000            |
+--|    ----  ----                  0100  --1-                  |   0010            |
+--|    ----  ----                  0100  --01                  |   0001            |
+--|    ----  ----                  0100  1-00                  |   1000            |
+--|    ----  ----                  0100  0100                  |   0100            |
+--|    ----  ----                  0010  ---1                  |   0001            |
+--|    ----  ----                  0010  1--0                  |   1000            |
+--|    ----  ----                  0010  01-0                  |   0100            |
+--|    ----  ----                  0010  0010                  |   0010            |
+--|    ----  ----                  0001  1---                  |   1000            |
+--|    ----  ----                  0001  01--                  |   0100            |
+--|    ----  ----                  0001  001-                  |   0010            |
+--|    ----  ----                  0001  0001                  |   0001            |
+--*END*========================================================+===================+
+--?TABLE END select_pri;
+--replaced priority table with mapped books
 highpri_v_b0      <=  not high_priority_valids;
 medpri_v_b0       <=  not med_priority_valids;
+-- selection priority among high priority threads only
 highpri0v_inv:  highpri_v(0) <=  not highpri_v_b0(0);
 highpri1v_inv:  highpri_v(1) <=  not highpri_v_b0(1);
 highpri2v_inv:  highpri_v(2) <=  not highpri_v_b0(2);
@@ -1458,6 +1733,7 @@ hi_sel_nand30:  hi_later(0) <=  not (hi_l01 and hi_l02 and hi_l03);
 hi_sel_nand201: hi_l01           <=  not (hi_did0no1 and highpri_v(1));
 hi_sel_nand202: hi_l02           <=  not (hi_did0no2 and highpri_v(2));
 hi_sel_nand203: hi_l03           <=  not (hi_did0no3 and highpri_v(3));
+-- selection priority among med priority threads only
 medpri0v_inv:   medpri_v(0) <=  not medpri_v_b0(0);
 medpri1v_inv:   medpri_v(1) <=  not medpri_v_b0(1);
 medpri2v_inv:   medpri_v(2) <=  not medpri_v_b0(2);
@@ -1486,6 +1762,7 @@ md_sel_nand30:  md_later(0) <=  not (md_l01 and md_l02 and md_l03);
 md_sel_nand201: md_l01           <=  not (md_did0no1 and medpri_v(1));
 md_sel_nand202: md_l02           <=  not (md_did0no2 and medpri_v(2));
 md_sel_nand203: md_l03           <=  not (md_did0no3 and medpri_v(3));
+-- reorder high
 hi_sel_inv0:            hi_sel_b(0) <=  not hi_sel(0);
 hi_sel_inv1:            hi_sel_b(1) <=  not hi_sel(1);
 hi_sel_inv2:            hi_sel_b(2) <=  not hi_sel(2);
@@ -1508,6 +1785,7 @@ hi_reord_inv13:         hi_did1no3       <=  not hi_did3no1;
 hi_reord_inv01:         hi_did0no1       <=  not hi_did1no0;
 hi_reord_inv02:         hi_did0no2       <=  not hi_did2no0;
 hi_reord_inv03:         hi_did0no3       <=  not hi_did3no0;
+-- reorder med
 md_sel_inv0:            md_sel_b(0) <=  not md_sel(0);
 md_sel_inv1:            md_sel_b(1) <=  not md_sel(1);
 md_sel_inv2:            md_sel_b(2) <=  not md_sel(2);
@@ -1530,6 +1808,7 @@ md_reord_inv13:         md_did1no3       <=  not md_did3no1;
 md_reord_inv01:         md_did0no1       <=  not md_did1no0;
 md_reord_inv02:         md_did0no2       <=  not md_did2no0;
 md_reord_inv03:         md_did0no3       <=  not md_did3no0;
+--issue select
 nohi_nor21:     no_hi_v_n01              <=  not (highpri_v(0) or highpri_v(1));
 nohi_nor22:     no_hi_v_n23              <=  not (highpri_v(2) or highpri_v(3));
 nohi_nand2:     no_hi_v_b                <=  not (no_hi_v_n01 and no_hi_v_n23);
@@ -1558,6 +1837,7 @@ take0_rp2_inv: fiss_fdep_is2_take0       <=  not(take_b(0));
 take1_rp2_inv: fiss_fdep_is2_take1       <=  not(take_b(1));
 take2_rp2_inv: fiss_fdep_is2_take2       <=  not(take_b(2));
 take3_rp2_inv: fiss_fdep_is2_take3       <=  not(take_b(3));
+-- end of mapping section
 xu_iu_ex6_ppc_cpl_d              <=  xu_iu_ex5_ppc_cpl;
 low_pri_en(0) <=  low_pri_counter0_l2(0 to 5) = low_pri_max0_l2(0 to 5) and not (next_tid(0) = '1' or i_afi_is2_take_t(0) = '1') and not low_pri_val(0);
 low_pri_en(1) <=  low_pri_counter1_l2(0 to 5) = low_pri_max1_l2(0 to 5) and not (next_tid(1) = '1' or i_afi_is2_take_t(1) = '1') and not low_pri_val(1);
@@ -1598,6 +1878,9 @@ low_pri_val(0 TO 3) <=  low_pri_rf0_l2(0 to 3) or
                                    low_pri_ex4_l2(0 to 3) or  
                                    low_pri_ex5_l2(0 to 3) or  
                                    low_pri_ex6_l2(0 to 3) ;
+-----------------------------------------------------------------------
+-- need hole
+-----------------------------------------------------------------------
 xu_iu_need_hole_d        <=  xu_iu_need_hole;
 xu_iu_xucr0_rel_d        <=  xu_iu_xucr0_rel;
 an_ac_back_inv_d         <=  an_ac_back_inv;
@@ -1612,6 +1895,9 @@ dcache_rel_hole          <= (gap_l2_rel_hole           and not xu_iu_xucr0_rel_l
                           (an_ac_reld_data_coming and     xu_iu_xucr0_rel_l2);
 dcache_binv_hole         <=  an_ac_back_inv_l2 and an_ac_back_inv_target_l2;
 need_hole                <=  dcache_binv_hole or dcache_rel_hole or xu_iu_need_hole_l2;
+-----------------------------------------------------------------------
+-- SPR settings
+-----------------------------------------------------------------------
 high_pri_mask_din  <=  spr_high_mask_l2 or      low_pri_en;
 med_pri_mask_din   <=  spr_med_mask_l2  and not low_pri_en;
 high_pri_mask_d    <=  gate(is2_vld_d and high_pri_mask_din, not (hole0 or hole1 or hole2 or hole3 or need_hole));
@@ -1624,7 +1910,11 @@ low_pri_max2_d    <=  spr_fiss_count2_max;
 low_pri_max3_d    <=  spr_fiss_count3_max;
 spr_high_mask_d   <=  spr_issue_high_mask;
 spr_med_mask_d    <=  spr_issue_med_mask;
+-----------------------------------------------------------------------
+-- issue muxing
+-----------------------------------------------------------------------
 n_thread  <=  next_tid;
+-- change all to proper 1-hot muxes
 int_is2_vld                      <=  (not xu_iu_is2_flush_tid(0) and not uc_flush_tid_l2(0) and n_thread(0)) or
                                    (not xu_iu_is2_flush_tid(1) and not uc_flush_tid_l2(1) and n_thread(1)) or
                                    (not xu_iu_is2_flush_tid(2) and not uc_flush_tid_l2(2) and n_thread(2)) or 
@@ -1637,6 +1927,7 @@ iu_xu_is2_instr_int              <=  gate(fdep_fiss_t0_is2_instr, n_thread(0)) o
                                    gate(fdep_fiss_t1_is2_instr, n_thread(1)) or
                                    gate(fdep_fiss_t2_is2_instr, n_thread(2)) or
                                    gate(fdep_fiss_t3_is2_instr, n_thread(3)) ;
+--xu is using these as standalone valids, so they should only propogate for a valid issue
 iu_xu_is2_ta_vld                 <=  (fdep_fiss_t0_is2_ta_vld and not fdep_fiss_t0_is2_to_ucode and not uc_flush_tid_l2(0) and n_thread(0)) or
                                    (fdep_fiss_t1_is2_ta_vld and not fdep_fiss_t1_is2_to_ucode and not uc_flush_tid_l2(1) and n_thread(1)) or
                                    (fdep_fiss_t2_is2_ta_vld and not fdep_fiss_t2_is2_to_ucode and not uc_flush_tid_l2(2) and n_thread(2)) or
@@ -1645,6 +1936,7 @@ iu_xu_is2_ta                     <=  gate(fdep_fiss_t0_is2_ta,  n_thread(0)) or
                                    gate(fdep_fiss_t1_is2_ta,  n_thread(1)) or
                                    gate(fdep_fiss_t2_is2_ta,  n_thread(2)) or
                                    gate(fdep_fiss_t3_is2_ta,  n_thread(3)) ;
+--xu is using these as standalone valids, so they should only propogate for a valid issue
 iu_xu_is2_s1_vld                 <=  (fdep_fiss_t0_is2_s1_vld and not uc_flush_tid_l2(0) and n_thread(0)) or
                                    (fdep_fiss_t1_is2_s1_vld and not uc_flush_tid_l2(1) and n_thread(1)) or
                                    (fdep_fiss_t2_is2_s1_vld and not uc_flush_tid_l2(2) and n_thread(2)) or
@@ -1653,6 +1945,7 @@ iu_xu_is2_s1                     <=  gate(fdep_fiss_t0_is2_s1,  n_thread(0)) or
                                    gate(fdep_fiss_t1_is2_s1,  n_thread(1)) or
                                    gate(fdep_fiss_t2_is2_s1,  n_thread(2)) or
                                    gate(fdep_fiss_t3_is2_s1,  n_thread(3)) ;
+--xu is using these as standalone valids, so they should only propogate for a valid issue
 iu_xu_is2_s2_vld                 <=  (fdep_fiss_t0_is2_s2_vld and not uc_flush_tid_l2(0) and n_thread(0)) or
                                    (fdep_fiss_t1_is2_s2_vld and not uc_flush_tid_l2(1) and n_thread(1)) or
                                    (fdep_fiss_t2_is2_s2_vld and not uc_flush_tid_l2(2) and n_thread(2)) or
@@ -1661,6 +1954,7 @@ iu_xu_is2_s2                     <=  gate(fdep_fiss_t0_is2_s2,  n_thread(0)) or
                                    gate(fdep_fiss_t1_is2_s2,  n_thread(1)) or
                                    gate(fdep_fiss_t2_is2_s2,  n_thread(2)) or
                                    gate(fdep_fiss_t3_is2_s2,  n_thread(3)) ;
+--xu is using these as standalone valids, so they should only propogate for a valid issue
 iu_xu_is2_s3_vld                 <=  (fdep_fiss_t0_is2_s3_vld and not uc_flush_tid_l2(0) and n_thread(0)) or
                                    (fdep_fiss_t1_is2_s3_vld and not uc_flush_tid_l2(1) and n_thread(1)) or
                                    (fdep_fiss_t2_is2_s3_vld and not uc_flush_tid_l2(2) and n_thread(2)) or
@@ -1764,6 +2058,7 @@ fiss_uc_is2_2ucode_type          <=  (fdep_fiss_t0_is2_2ucode_type and n_thread(
                                    (fdep_fiss_t1_is2_2ucode_type and n_thread(1)) or
                                    (fdep_fiss_t2_is2_2ucode_type and n_thread(2)) or
                                    (fdep_fiss_t3_is2_2ucode_type and n_thread(3)) ;
+--make local version of uc_flush for timing.  from iuq_uc.vhdl:
 uc_flush_tid_d(0) <=  n_thread(0) and fdep_fiss_t0_is2_to_ucode and not xu_iu_is2_flush_tid(0) and not uc_flush_tid_l2(0);
 uc_flush_tid_d(1) <=  n_thread(1) and fdep_fiss_t1_is2_to_ucode and not xu_iu_is2_flush_tid(1) and not uc_flush_tid_l2(1);
 uc_flush_tid_d(2) <=  n_thread(2) and fdep_fiss_t2_is2_to_ucode and not xu_iu_is2_flush_tid(2) and not uc_flush_tid_l2(2);
@@ -1789,6 +2084,9 @@ iu_fu_rf0_str_val        <=  rf0_str_val_l2;
 iu_fu_rf0_ldst_val       <=  rf0_ldst_val_l2;
 iu_fu_rf0_ldst_tid       <=  rf0_ldst_tid_l2;
 iu_fu_rf0_ldst_tag       <=  rf0_ldst_tag_l2;
+-----------------------------------------------------------------------
+-- Perf
+-----------------------------------------------------------------------
 perf_event_d(0) <=  i_afi_is2_take_t(0) and n_thread(0);
 perf_event_d(1) <=  i_afi_is2_take_t(1) and n_thread(1);
 perf_event_d(2) <=  i_afi_is2_take_t(2) and n_thread(2);
@@ -1817,6 +2115,8 @@ perf_event_d(24) <=  n_thread(0) and fdep_fiss_t0_is2_match;
 perf_event_d(25) <=  n_thread(1) and fdep_fiss_t1_is2_match;
 perf_event_d(26) <=  n_thread(2) and fdep_fiss_t2_is2_match;
 perf_event_d(27) <=  n_thread(3) and fdep_fiss_t3_is2_match;
+--ppc dispatch
+--is_ucode drops for last instruction of ucode routine, so ucode instructions are counted exactly one time
 perf_event_d(28) <=  i_afi_is2_take_t(0) or (n_thread(0) and not fdep_fiss_t0_is2_to_ucode and not fdep_fiss_t0_is2_is_ucode);
 perf_event_d(29) <=  i_afi_is2_take_t(1) or (n_thread(1) and not fdep_fiss_t1_is2_to_ucode and not fdep_fiss_t1_is2_is_ucode);
 perf_event_d(30) <=  i_afi_is2_take_t(2) or (n_thread(2) and not fdep_fiss_t2_is2_to_ucode and not fdep_fiss_t2_is2_is_ucode);
@@ -1853,6 +2153,9 @@ fiss_perf_event_t3(0 TO 7) <=  perf_event_l2(3)  &
                               perf_event_l2(23) &
                               perf_event_l2(27) &
                               perf_event_l2(31);
+-----------------------------------------------------------------------
+-- Debug
+-----------------------------------------------------------------------
 fiss_dbg_data(0 TO 3) <=  high_pri_mask_l2(0 to 3);
 fiss_dbg_data(4 TO 7) <=  med_pri_mask_l2(0 to 3);
 fiss_dbg_data(8) <=  hi_did3no0;
@@ -1879,7 +2182,9 @@ fiss_dbg_data_d(82) <=  iu_xu_is2_pred_update_int;
 fiss_dbg_data_d(83 TO 84) <=  iu_xu_is2_pred_taken_cnt_int(0 to 1);
 fiss_dbg_data_d(85 TO 87) <=  iu_xu_is2_error_int(0 to 2);
 fiss_dbg_data(44 TO 87) <=  fiss_dbg_data_l2(44 to 87);
+-----------------------------------------------------------------------
+-- scan
+-----------------------------------------------------------------------
 siv(0 TO scan_right) <=  sov(1 to scan_right) & scan_in;
 scan_out  <=  sov(0) and an_ac_scan_dis_dc_b;
 END IUQ_FXU_ISSUE;
-

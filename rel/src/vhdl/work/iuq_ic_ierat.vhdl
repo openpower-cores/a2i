@@ -9,6 +9,10 @@
 
 			
 
+--********************************************************************
+--* TITLE: Instruction Effective to Real Address Translation
+--* NAME: iuq_ic_ierat.vhdl
+--*********************************************************************
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -187,6 +191,7 @@ end iuq_ic_ierat;
 ARCHITECTURE IUQ_IC_IERAT
           OF IUQ_IC_IERAT
           IS
+--@@  Signal Declarations
 SIGNAL CAM_MASK_BITS_PT                  : STD_ULOGIC_VECTOR(1 TO 19)  := 
 (OTHERS=> 'U');
 SIGNAL IU1_FIRST_HIT_ENTRY_PT            : STD_ULOGIC_VECTOR(1 TO 15)  := 
@@ -201,6 +206,10 @@ SIGNAL LRU_WATERMARK_MASK_PT             : STD_ULOGIC_VECTOR(1 TO 15)  :=
 (OTHERS=> 'U');
 SIGNAL LRU_WAY_ENCODE_PT                 : STD_ULOGIC_VECTOR(1 TO 15)  := 
 (OTHERS=> 'U');
+----------------------------
+-- components
+----------------------------
+-- Instruction ERAT CAM/Array, 16-entry
 component tri_cam_16x143_1r1w1c
   generic (expand_type : integer := 2);  
   port (
@@ -274,6 +283,7 @@ component tri_cam_16x143_1r1w1c
    entry_valid                    :  out  std_ulogic_vector(0 to 15);
    rd_cam_data                    :  out  std_ulogic_vector(0 to cam_data_width-1);
 
+----- new ports for IO plus -----------------------
   bypass_mux_enab_np1   :  in  std_ulogic;		   
   bypass_attr_np1       :  in  std_ulogic_vector(0 to 20); 
   attr_np2	        :  out std_ulogic_vector(0 to 20);
@@ -281,6 +291,9 @@ component tri_cam_16x143_1r1w1c
 
   );
 END component;
+----------------------------
+-- constants
+----------------------------
 constant MMU_Mode_Value : std_ulogic := '0';
 constant TlbSel_Tlb : std_ulogic_vector(0 to 1) := "00";
 constant TlbSel_IErat : std_ulogic_vector(0 to 1) := "10";
@@ -327,10 +340,38 @@ constant PorSeq_Stg6 : std_ulogic_vector(0 to 2) := "101";
 constant PorSeq_Stg7 : std_ulogic_vector(0 to 2) := "111";
 constant Por_Wr_Entry_Num1   : std_ulogic_vector(0 to num_entry_log2-1) := "1110";
 constant Por_Wr_Entry_Num2   : std_ulogic_vector(0 to num_entry_log2-1) := "1111";
+-- wr_cam_data
+--  0:51  - EPN
+--  52  - X
+--  53:55  - SIZE
+--  56  - V
+--  57:60  - ThdID
+--  61:62  - Class
+--  63:64  - ExtClass | TID_NZ
+--  65  - TGS
+--  66  - TS
+--  67:74  - TID
+--  75:78  - epn_cmpmasks:  34_39, 40_43, 44_47, 48_51
+--  79:82  - xbit_cmpmasks: 34_51, 40_51, 44_51, 48_51
+--  83  - parity for 75:82
 constant Por_Wr_Cam_Data1   : std_ulogic_vector(0 to 83) := "0000000000000000000000000000000011111111111111111111" &
                                    '0' & "001" & '1' & "1111" & "00" & "00" & "00" & "00000000" & "11110000" & '0';
 constant Por_Wr_Cam_Data2   : std_ulogic_vector(0 to 83) := "0000000000000000000000000000000000000000000000000000" &
                                    '0' & "001" & '1' & "1111" & "00" & "10" & "00" & "00000000" & "11110000" & '0';
+-- 16x143 version, 42b RA
+-- wr_array_data
+--  0:29  - RPN
+--  30:31  - R,C
+--  32:33  - WLC
+--  34     - ResvAttr
+--  35     - VF
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
+--  51:60  - CAM parity
+--  61:67  - Array parity
 constant Por_Wr_Array_Data1 : std_ulogic_vector(0 to 67) := "111111111111111111111111111111" &
                                    "00" & "0000" & "0000" & "01010" & "01" & "00" & "01" & "0000001000" & "0000000";
 constant Por_Wr_Array_Data2 : std_ulogic_vector(0 to 67) := "000000000000000000000000000000" &
@@ -433,6 +474,7 @@ constant lru_offset                 : natural := eptr_offset + eptr_width;
 constant lru_update_event_offset    : natural := lru_offset + lru_width;
 constant lru_debug_offset           : natural := lru_update_event_offset + 9;
 constant scan_right_0               : natural := lru_debug_offset + 24 -1;
+-- NOTE:  scan_right_0 is maxed out! use scan_right_1 chain for new additions!
 constant snoop_val_offset           : natural := 0;
 constant spare_a_offset             : natural := snoop_val_offset + 3;
 constant snoop_attr_offset          : natural := spare_a_offset + 16;
@@ -470,6 +512,10 @@ constant an_ac_grffence_en_dc_offset   : natural := trace_bus_enable_offset + 1;
 constant scan_right_1               : natural := an_ac_grffence_en_dc_offset + 1 -1;
 constant bcfg_offset           : natural := 0;
 constant boot_scan_right       : natural := bcfg_offset + bcfg_width - 1;
+----------------------------
+-- signals
+----------------------------
+-- Latch signals
 signal ex1_valid_d,    ex1_valid_q           : std_ulogic_vector(0 to thdid_width-1);
 signal ex1_ttype_d,    ex1_ttype_q           : std_ulogic_vector(0 to ttype_width);
 signal ex1_ws_d,       ex1_ws_q              : std_ulogic_vector(0 to ws_width-1);
@@ -584,6 +630,7 @@ signal mchk_flash_inv_d, mchk_flash_inv_q    : std_ulogic_vector(0 to 3);
 signal mchk_flash_inv_enab  : std_ulogic;
 signal spare_q : std_ulogic_vector(0 to 31);
 signal bcfg_q, bcfg_q_b : std_ulogic_vector(0 to bcfg_width-1);
+-- logic signals
 signal iu2_isi_sig        : std_ulogic;
 signal iu2_miss_sig       : std_ulogic;
 signal iu2_parerr_sig     : std_ulogic;
@@ -637,9 +684,13 @@ signal comp_addr_mux1     : std_ulogic_vector(0 to 51);
 signal comp_addr_mux1_sel : std_ulogic;
 signal lru_way_is_written  : std_ulogic;
 signal lru_way_is_hit_entry  : std_ulogic;
+-- Added for timing changes
 signal ex1_pid_0,      ex1_pid_1             : std_ulogic_vector(0 to pid_width-1);
+-- CAM/Array signals
+-- Read Port
 signal   rd_val                         :  std_ulogic;
 signal   rw_entry                       :  std_ulogic_vector(0 to 3);
+-- Write Port
 signal   wr_array_par                   :  std_ulogic_vector(51 to 67);
 signal   wr_array_data_nopar            :  std_ulogic_vector(0 to array_data_width-1-10-7);
 signal   wr_array_data                  :  std_ulogic_vector(0 to array_data_width-1);
@@ -647,6 +698,7 @@ signal   wr_cam_data                    :  std_ulogic_vector(0 to cam_data_width
 signal   wr_array_val                   :  std_ulogic_vector(0 to 1);
 signal   wr_cam_val                     :  std_ulogic_vector(0 to 1);
 signal   wr_val_early                   :  std_ulogic;
+-- CAM Port
 signal   comp_request                   :  std_ulogic;
 signal   comp_addr                      :  std_ulogic_vector(0 to 51);
 signal   addr_enable                    :  std_ulogic_vector(0 to 1);
@@ -664,8 +716,10 @@ signal   comp_pid                       :  std_ulogic_vector(0 to 7);
 signal   pid_enable                     :  std_ulogic;
 signal   comp_invalidate                :  std_ulogic;
 signal   flash_invalidate               :  std_ulogic;
+-- Array Outputs
 signal   array_cmp_data                 :  std_ulogic_vector(0 to array_data_width-1);
 signal   rd_array_data                  :  std_ulogic_vector(0 to array_data_width-1);
+-- CAM Outputs
 signal   cam_cmp_data                   :  std_ulogic_vector(0 to cam_data_width-1);
 signal   cam_hit                        :  std_ulogic;
 signal   cam_hit_entry                  :  std_ulogic_vector(0 to 3);
@@ -676,10 +730,12 @@ signal   rd_cam_data                    :  std_ulogic_vector(0 to cam_data_width
 -- synopsys translate_on
 signal   cam_pgsize                     :  std_ulogic_vector(0 to 2);
 signal   ws0_pgsize                     :  std_ulogic_vector(0 to 3);
+-- new cam _np2 signals
 signal bypass_mux_enab_np1 : std_ulogic;
 signal bypass_attr_np1     : std_ulogic_vector(0 to 20);
 signal attr_np2            : std_ulogic_vector(0 to 20);
 signal rpn_np2             : std_ulogic_vector(22 to 51);
+-- Pervasive
 signal pc_sg_1         : std_ulogic;
 signal pc_sg_0         : std_ulogic;
 signal pc_func_sl_thold_1        : std_ulogic;
@@ -697,6 +753,7 @@ signal pc_cfg_slp_sl_force          : std_ulogic;
 signal lcb_dclk  : std_ulogic;
 signal lcb_lclk   : clk_logic;
 signal init_alias         : std_ulogic;
+-- Clock Gating
 signal iu1_stg_act_d, iu1_stg_act_q            :std_ulogic;
 signal iu2_stg_act_d, iu2_stg_act_q            :std_ulogic;
 signal iu3_stg_act_d, iu3_stg_act_q            :std_ulogic;
@@ -724,8 +781,11 @@ signal sov_1                      : std_ulogic_vector(0 to scan_right_1);
 signal bsiv                     : std_ulogic_vector(0 to boot_scan_right);
 signal bsov                     : std_ulogic_vector(0 to boot_scan_right);
 signal tiup                     : std_ulogic;
-  BEGIN 
+  BEGIN --@@ START OF EXECUTABLE CODE FOR IUQ_IC_IERAT
 
+-----------------------------------------------------------------------
+-- ACT Generation
+-----------------------------------------------------------------------
 iu1_stg_act_d  <=  comp_request or spr_ic_clockgate_dis;
 iu2_stg_act_d  <=  iu1_stg_act_q;
 iu3_stg_act_d  <=  iu2_stg_act_q;
@@ -752,20 +812,27 @@ lru_update_act  <=  ex6_stg_act_q or ex7_stg_act_q or lru_update_event_q(4) or l
 notlb_grffence_act  <=  (not(ccr2_notlb_q) or spr_ic_clockgate_dis) and not(an_ac_grffence_en_dc);
 debug_grffence_act  <=   trace_bus_enable_q and not(an_ac_grffence_en_dc);
 eratsx_data_act  <=   (iu1_stg_act_q or ex2_stg_act_q) and not(an_ac_grffence_en_dc);
+-----------------------------------------------------------------------
+-- Logic
+-----------------------------------------------------------------------
 tiup  <=  '1';
 init_alias  <=  pc_iu_init_reset;
+-- timing latches for the reloads
 tlb_rel_val_d   <=  mm_iu_ierat_rel_val;
 tlb_rel_data_d  <=  mm_iu_ierat_rel_data;
 tlb_rel_act_d   <=  mm_iu_ierat_rel_data(eratpos_relsoon);
 tlb_rel_act     <=  (tlb_rel_act_q and not(ccr2_notlb_q));
+-- timing latches for the ifrat delusional paranoia real mode
 ccr2_frat_paranoia_d(0 TO 8) <=   xu_iu_spr_ccr2_ifratsc;
 ccr2_frat_paranoia_d(9) <=   xu_iu_spr_ccr2_ifrat;
+--------------------------------------------------
 ex1_valid_d  <=  xu_iu_rf1_val and not(xu_rf1_flush);
 ex1_ttype_d(0 TO ttype_width-3) <=  xu_iu_rf1_is_eratre & xu_iu_rf1_is_eratwe & xu_iu_rf1_is_eratsx & xu_iu_rf1_is_eratilx;
 ex1_ttype_d(ttype_width-2 TO ttype_width) <=  xu_iu_rf1_t;
 ex1_ws_d  <=  xu_iu_rf1_ws;
 ex1_rs_is_d  <=  (others => '0');
 ex1_ra_entry_d  <=  (others => '0');
+-- state: 0:pr 1:hs 2:ds 3:cm
 ex1_state_d(0) <=  or_reduce(xu_iu_msr_pr and xu_iu_rf1_val);
 ex1_state_d(1) <=  (or_reduce(xu_iu_msr_hv and xu_iu_rf1_val) and not xu_iu_rf1_is_eratsx) or 
                    (or_reduce(mmucr0_gs_vec and xu_iu_rf1_val) and xu_iu_rf1_is_eratsx);
@@ -794,6 +861,7 @@ ex1_pid_1  <=  gate_and((xu_iu_rf1_val(0)='1'),mm_iu_ierat_pid0) or
 ex1_ieratre  <=  or_reduce(ex1_valid_q) and ex1_ttype_q(0) and ex1_tlbsel_q(0) and not ex1_tlbsel_q(1);
 ex1_ieratwe  <=  or_reduce(ex1_valid_q) and ex1_ttype_q(1) and ex1_tlbsel_q(0) and not ex1_tlbsel_q(1);
 ex1_ieratsx  <=  or_reduce(ex1_valid_q) and ex1_ttype_q(2) and ex1_tlbsel_q(0) and not ex1_tlbsel_q(1);
+--------------------------------------------------
 ex2_valid_d  <=  ex1_valid_q and not(xu_ex1_flush);
 ex2_ttype_d(0 TO ttype_width-3) <=  ex1_ttype_q(0 to ttype_width-3);
 ex2_ttype_d(ttype_width-2 TO ttype_width-1) <=  xu_iu_ex1_is_csync & xu_iu_ex1_is_isync;
@@ -804,6 +872,7 @@ ex2_state_d  <=  ex1_state_q;
 ex2_pid_d  <=  ex1_pid_q;
 ex2_extclass_d  <=  ex1_extclass_q;
 ex2_tlbsel_d  <=  ex1_tlbsel_q;
+--------------------------------------------------
 ex3_valid_d  <=  ex2_valid_q and not(xu_ex2_flush);
 ex3_ttype_d  <=  ex2_ttype_q;
 ex3_ws_d  <=  ex2_ws_q;
@@ -811,43 +880,55 @@ ex3_rs_is_d  <=  ex2_rs_is_q;
 ex3_ra_entry_d  <=  iu1_first_hit_entry when ex2_ttype_q(2 to 3)/="00" else ex2_ra_entry_q;
 ex3_tlbsel_d  <=  ex2_tlbsel_q;
 ex3_extclass_d  <=  ex2_extclass_q;
+-- state: 0:pr 1:hs 2:ds 3:cm
 ex3_state_d  <=  ex2_state_q;
 ex3_pid_d  <=   ex2_pid_q;
 ex3_ieratwe  <=  or_reduce(ex3_valid_q) and ex3_ttype_q(1) and ex3_tlbsel_q(0) and not ex3_tlbsel_q(1);
+--------------------------------------------------
 ex4_valid_d  <=  ex3_valid_q and not(xu_ex3_flush);
 ex4_ttype_d  <=  ex3_ttype_q;
 ex4_ws_d  <=  ex3_ws_q;
 ex4_rs_is_d  <=  ex3_rs_is_q;
 ex4_ra_entry_d  <=  ex3_ra_entry_q;
 ex4_tlbsel_d  <=  ex3_tlbsel_q;
+-- muxes for eratre and sending mmucr0 ExtClass,State,TID
 ex4_extclass_d  <=  rd_cam_data(63 to 64) when (ex3_valid_q/="0000" and ex3_ttype_q(0)='1' and ex3_ws_q="00")  
          else ex3_extclass_q;
+-- state: 0:pr 1:hs 2:ds 3:cm
 ex4_state_d  <=  ex3_state_q(0) & rd_cam_data(65 to 66) & ex3_state_q(3) when (ex3_valid_q/="0000" and ex3_ttype_q(0)='1' and ex3_ws_q="00")  
          else ex3_state_q;
 ex4_pid_d  <=  rd_cam_data(61 to 62) & rd_cam_data(57 to 60) & rd_cam_data(67 to 74) 
                when (ex3_valid_q/="0000" and ex3_ttype_q(0)='1' and ex3_ws_q="00")  
          else ex3_pid_q;
 ex4_ieratwe  <=  or_reduce(ex4_valid_q) and ex4_ttype_q(1) and ex4_tlbsel_q(0) and not ex4_tlbsel_q(1);
+--------------------------------------------------
 ex5_valid_d  <=  ex4_valid_q and not(xu_ex4_flush);
 ex5_ws_d  <=  ex4_ws_q;
 ex5_rs_is_d  <=  ex4_rs_is_q;
 ex5_ra_entry_d  <=  ex4_ra_entry_q;
+--  ttype <= 0:eratre & 1:eratwe & 2:eratsx & 3:eratilx & 4:csync & 5:isync;
 ex5_ttype_d(0 TO 5) <=  ex4_ttype_q(0 to 5);
+-- mmucr0: 0:1-ECL|TID_NZ, 2:3-tgs/ts, 4:5-tlbsel, 6:19-tid,
 ex5_extclass_d  <=  ex4_extclass_q;
+-- state: 0:pr 1:hs 2:ds 3:cm
 ex5_state_d  <=  ex4_state_q;
 ex5_pid_d  <=   ex4_pid_q;
 ex5_tlbsel_d  <=  ex4_tlbsel_q;
 ex5_data_in_d  <=  xu_iu_ex4_rs_data;
 ex5_ieratwe  <=  or_reduce(ex5_valid_q) and ex5_ttype_q(1) and ex5_tlbsel_q(0) and not ex5_tlbsel_q(1);
+--------------------------------------------------
 ex6_valid_d  <=  ex5_valid_q and not(xu_ex5_flush);
 ex6_ws_d  <=  ex5_ws_q;
 ex6_rs_is_d  <=  ex5_rs_is_q;
 ex6_ra_entry_d  <=  ex5_ra_entry_q;
+--  ttype <= 0:eratre & 1:eratwe & 2:eratsx & 3:eratilx & 4:csync & 5:isync;
 ex6_ttype_d(0 TO 3) <=  ex5_ttype_q(0 to 3);
+--  mmucr1_q: 0-IRRE, 1-REE, 2-CEE, 3-csync, 4-isync, 5:6-IPEI, 7:8-ICTID/ITTID
 ex6_ttype_d(4) <=  '1' when (ex5_ttype_q(4)='1' and mmucr1_q(3)='0' and ccr2_notlb_q=MMU_Mode_Value) 
               else '0';
 ex6_ttype_d(5) <=  '1' when (ex5_ttype_q(5)='1' and mmucr1_q(4)='0' and ccr2_notlb_q=MMU_Mode_Value) 
               else '0';
+-- mmucr0: 0:1-ECL|TID_NZ, 2:3-tgs/ts, 4:5-tlbsel, 6:19-tid,
 ex6_extclass_d  <=  mm_iu_ierat_mmucr0_0(0 to 1) 
                  when (ex5_valid_q="1000" and ex5_ttype_q(1)='1' and ex5_ws_q="00")  
                  else mm_iu_ierat_mmucr0_1(0 to 1) 
@@ -857,6 +938,7 @@ ex6_extclass_d  <=  mm_iu_ierat_mmucr0_0(0 to 1)
                  else mm_iu_ierat_mmucr0_3(0 to 1) 
                  when (ex5_valid_q="0001" and ex5_ttype_q(1)='1' and ex5_ws_q="00")  
        else ex5_extclass_q;
+-- state: 0:pr 1:hs 2:ds 3:cm
 ex6_state_d  <=  xu_iu_msr_pr(0) & mm_iu_ierat_mmucr0_0(2 to 3) & xu_iu_msr_cm(0) 
                  when (ex5_valid_q="1000" and ex5_ttype_q(1)='1' and ex5_ws_q="00")  
                  else xu_iu_msr_pr(1) & mm_iu_ierat_mmucr0_1(2 to 3) & xu_iu_msr_cm(1) 
@@ -886,11 +968,15 @@ ex6_tlbsel_d  <=  mm_iu_ierat_mmucr0_0(4 to 5)
        else ex5_tlbsel_q;
 ex6_data_in_d  <=  ex5_data_in_q;
 ex6_ieratwe  <=  or_reduce(ex6_valid_q) and ex6_ttype_q(1) and ex6_tlbsel_q(0) and not ex6_tlbsel_q(1);
+--------------------------------------------------
+-- for flushing
 ex7_valid_d  <=  ex6_valid_q;
 ex7_ttype_d  <=  ex6_ttype_q;
 ex7_tlbsel_d  <=  ex6_tlbsel_q;
 ex7_ieratwe  <=  or_reduce(ex7_valid_q) and ex7_ttype_q(1) and ex7_tlbsel_q(0) and not ex7_tlbsel_q(1);
+-- adding local iu2 flush request for timing
 iu1_valid_d  <=  iu_ierat_iu0_thdid and (0 to thdid_width-1 => iu_ierat_iu0_val) and not(iu_ierat_iu0_flush) and not(xu_iu_flush) and not(iu2_n_flush_req_q);
+-- state: 0:pr 1:hs 2:ds 3:cm
 iu1_state_d(0) <=  or_reduce(xu_iu_msr_pr and iu_ierat_iu0_thdid);
 iu1_state_d(1) <=  or_reduce(xu_iu_msr_hv and iu_ierat_iu0_thdid);
 iu1_state_d(2) <=  or_reduce(xu_iu_msr_is and iu_ierat_iu0_thdid);
@@ -899,11 +985,13 @@ iu1_pid_d  <=  ( mm_iu_ierat_pid0 and (0 to pid_width-1 => iu_ierat_iu0_thdid(0)
               ( mm_iu_ierat_pid1 and (0 to pid_width-1 => iu_ierat_iu0_thdid(1)) ) or
               ( mm_iu_ierat_pid2 and (0 to pid_width-1 => iu_ierat_iu0_thdid(2)) ) or
               ( mm_iu_ierat_pid3 and (0 to pid_width-1 => iu_ierat_iu0_thdid(3)) );
+-- adding local iu2 flush request for timing
 iu2_valid_d  <=  iu1_valid_q and not(iu_ierat_iu1_flush) and not(xu_iu_flush) and not(iu2_n_flush_req_q);
 iu2_state_d  <=  iu1_state_q;
 iu2_pid_d    <=  iu1_pid_q;
 iu_mm_ierat_flush_d  <=  iu_ierat_iu1_flush;
 mmucr1_d  <=  mm_iu_ierat_mmucr1;
+-- TIMING FIXES 2009/03/27
 MQQ1:IU1_MULTIHIT_B_PT(1) <=
     Eq(( ENTRY_MATCH(1) & ENTRY_MATCH(2) & 
     ENTRY_MATCH(3) & ENTRY_MATCH(4) & 
@@ -1048,6 +1136,7 @@ MQQ16:IU1_MULTIHIT_B_PT(16) <=
     ENTRY_MATCH(10) & ENTRY_MATCH(11) & 
     ENTRY_MATCH(12) & ENTRY_MATCH(13) & 
     ENTRY_MATCH(14) ) , STD_ULOGIC_VECTOR'("000000000000000"));
+-- Table IU1_MULTIHIT_B Signal Assignments for Outputs
 MQQ17:IU1_MULTIHIT_B <= 
     (IU1_MULTIHIT_B_PT(1) OR IU1_MULTIHIT_B_PT(2)
      OR IU1_MULTIHIT_B_PT(3) OR IU1_MULTIHIT_B_PT(4)
@@ -1062,6 +1151,41 @@ MQQ17:IU1_MULTIHIT_B <=
 iu1_multihit  <=  not iu1_multihit_b;
 iu2_multihit_b_pt_d  <=  iu1_multihit_b_pt;
 iu2_multihit_enab  <=  not or_reduce(iu2_multihit_b_pt_q);
+-- Encoder for the iu1 phase first hit entry number
+--
+-- Final Table Listing
+--      *INPUTS*==============*OUTPUTS*==============*
+--      |                     |                      |
+--      | entry_match         |  iu1_first_hit_entry |
+--      | |                   |  |                   |
+--      | |                   |  |                   |
+--      | |                   |  |                   |
+--      | |         111111    |  |                   |
+--      | 0123456789012345    |  0123                |
+--      *TYPE*================+======================+
+--      | PPPPPPPPPPPPPPPP    |  PPPP                |
+--      *POLARITY*----------->|  ++++                |
+--      *PHASE*-------------->|  TTTT                |
+--      *OPTIMIZE*----------->|   AAAA                 |
+--      *TERMS*===============+======================+
+--    1 | 0000000000000001    |  1111                |
+--    2 | 000000000000001-    |  111.                |
+--    3 | 00000000000001--    |  11.1                |
+--    4 | 0000000000001---    |  11..                |
+--    5 | 000000000001----    |  1.11                |
+--    6 | 00000000001-----    |  1.1.                |
+--    7 | 0000000001------    |  1..1                |
+--    8 | 000000001-------    |  1...                |
+--    9 | 00000001--------    |  .111                |
+--   10 | 0000001---------    |  .11.                |
+--   11 | 000001----------    |  .1.1                |
+--   12 | 00001-----------    |  .1..                |
+--   13 | 0001------------    |  ..11                |
+--   14 | 001-------------    |  ..1.                |
+--   15 | 01--------------    |  ...1                |
+--      *============================================*
+--
+-- Table IU1_FIRST_HIT_ENTRY Signal Assignments for Product Terms
 MQQ18:IU1_FIRST_HIT_ENTRY_PT(1) <=
     Eq(( ENTRY_MATCH(0) & ENTRY_MATCH(1) & 
     ENTRY_MATCH(2) & ENTRY_MATCH(3) & 
@@ -1156,6 +1280,7 @@ MQQ31:IU1_FIRST_HIT_ENTRY_PT(14) <=
 MQQ32:IU1_FIRST_HIT_ENTRY_PT(15) <=
     Eq(( ENTRY_MATCH(0) & ENTRY_MATCH(1)
      ) , STD_ULOGIC_VECTOR'("01"));
+-- Table IU1_FIRST_HIT_ENTRY Signal Assignments for Outputs
 MQQ33:IU1_FIRST_HIT_ENTRY(0) <= 
     (IU1_FIRST_HIT_ENTRY_PT(1) OR IU1_FIRST_HIT_ENTRY_PT(2)
      OR IU1_FIRST_HIT_ENTRY_PT(3) OR IU1_FIRST_HIT_ENTRY_PT(4)
@@ -1204,6 +1329,8 @@ iu2_first_hit_entry(3) <=
      or iu2_first_hit_entry_pt_q(13) or iu2_first_hit_entry_pt_q(15));
 iu2_cam_cmp_data_d    <=  cam_cmp_data;
 iu2_array_cmp_data_d  <=  array_cmp_data;
+-- cam translate, search applied in iu0 or ex1 -> cam_cmp_data in iu1 or ex2
+--              cam read applied in ex2 -> rd_cam_data in ex3
 iu2_miss_d(0) <=  (  or_reduce(iu1_valid_q and not(iu_ierat_iu1_flush) and not(xu_iu_flush) and not(iu2_n_flush_req_q)) and 
                              not iu1_flush_enab_q and not ccr2_frat_paranoia_q(9) );
 iu2_miss_d(1) <=  not cam_hit;
@@ -1221,6 +1348,22 @@ iu2_parerr_d(1) <=  ( cam_hit and iu1_multihit_b and
                             not iu1_flush_enab_q  and not ccr2_frat_paranoia_q(9) );
 iu2_parerr_sig  <=  (iu2_parerr_q(0) and iu2_cmp_data_parerr_epn) or   
                   (iu2_parerr_q(1) and iu2_cmp_data_parerr_rpn);
+-- 16x143 version, 42b RA
+-- wr_array_data
+--  0:29  - RPN
+--  30:31  - R,C
+--  32:33  - WLC
+--  34     - ResvAttr
+--  35     - VF
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
+--  51:60  - CAM parity
+--  61:67  - Array parity
+-- mmucr1_q: 0-IRRE, 1-REE, 2-CEE, 3-csync, 4-isync, 5:6-IPEI, 7:8-ICTID/ITTID
+-- state: 0:pr 1:hs 2:ds 3:cm
 iu2_isi_d(0) <=  ( or_reduce(iu1_valid_q and not(iu_ierat_iu1_flush) and not(xu_iu_flush) and not(iu2_n_flush_req_q)) 
                              and not iu1_flush_enab_q and  iu1_state_q(0) and not ccr2_frat_paranoia_q(9) );
 iu2_isi_d(2) <=  ( or_reduce(iu1_valid_q and not(iu_ierat_iu1_flush) and not(xu_iu_flush) and not(iu2_n_flush_req_q)) 
@@ -1267,6 +1410,7 @@ ex5_ieen_d(0 TO thdid_width-1) <=  (ex4_ieen_q(0 to thdid_width-1) and not(xu_ex
 ex5_ieen_d(thdid_width TO thdid_width+num_entry_log2-1) <=  ex4_ieen_q(thdid_width to thdid_width+num_entry_log2-1);
 ex6_ieen_d  <=  or_reduce(ex5_ieen_q(0 to thdid_width-1)) & 
                     ex5_ieen_q(thdid_width to thdid_width+num_entry_log2-1);
+--  This function is controlled by XUCR4.MMU_MCHK and CCR2.NOTLB  bits.
 mchk_flash_inv_d(0) <=  or_reduce(iu2_valid_q and not(xu_iu_flush) and not(iu2_n_flush_req_q));
 mchk_flash_inv_d(1) <=  iu2_parerr_sig;
 mchk_flash_inv_d(2) <=  iu2_multihit_sig;
@@ -1284,6 +1428,7 @@ iu2_n_flush_req_d  <=  (iu1_valid_q and not(iu_ierat_iu1_flush) and not(xu_iu_fl
                 else (iu1_valid_q and not(iu_ierat_iu1_flush) and not(xu_iu_flush) and not(iu2_n_flush_req_q) and not(tlb_miss_q)) 
                          when (cam_hit='0' and ccr2_notlb_q=MMU_Mode_Value and ccr2_frat_paranoia_q(9)='0')  
                 else (others => '0');
+-- adding frat paranoia for ra=ea
 hold_req_d(0) <=  '1' when por_hold_req(0)='1'
          else  '0' when ccr2_frat_paranoia_q(9)='1'
          else  '0' when (xu_iu_flush(0)='1'   or iu_ierat_iu1_flush(0)='1')
@@ -1324,6 +1469,8 @@ hold_req_d(3) <=  '1' when por_hold_req(3)='1'
          else  '1' when (iu1_valid_q(3)='1'   and iu_ierat_iu1_flush(3)='0'   and xu_iu_flush(3)='0'   and iu1_flush_enab_q='0'  
                               and iu2_n_flush_req_q(3)='0'   and tlb_miss_q(3)='1'   and ccr2_notlb_q=MMU_Mode_Value)  
          else hold_req_q(3);
+-- latch tlb missed response
+-- adding frat paranoia for ra=ea
 tlb_miss_d(0) <=  '0' when (ccr2_notlb_q/=MMU_Mode_Value or por_seq_q/=PorSeq_Idle or ccr2_frat_paranoia_q(9)='1')
                else '0' when xu_iu_flush(0)='1'
                else hold_req_q(0)   when (tlb_miss_q(0)='0'   and tlb_rel_val_q(0)='1'   and tlb_rel_val_q(4)='0')  
@@ -1340,6 +1487,7 @@ tlb_miss_d(3) <=  '0' when (ccr2_notlb_q/=MMU_Mode_Value or por_seq_q/=PorSeq_Id
                else '0' when xu_iu_flush(3)='1'
                else hold_req_q(3)   when (tlb_miss_q(3)='0'   and tlb_rel_val_q(3)='1'   and tlb_rel_val_q(4)='0')  
                else tlb_miss_q(3);
+-- latch tlb request is in progress for act pin on cam
 tlb_req_inprogress_d(0) <=  '0' when (ccr2_frat_paranoia_q(9)='1' or por_hold_req(0)='1'   or ccr2_notlb_q/=MMU_Mode_Value or tlb_rel_val_q(0)='1')   
          else  '0' when (xu_iu_flush(0)='0'   and iu2_valid_q(0)='1'   and hold_req_q(0)='0')    
          else  '1' when (iu2_tlbreq_q='1' and iu2_valid_q(0)='1'   and ccr2_notlb_q=MMU_Mode_Value)   
@@ -1505,6 +1653,8 @@ end generate gen32_holdreg;
 ex6_ieratwe_ws3    <=  or_reduce(ex6_valid_q) and ex6_ttype_q(1) and Eq(ex6_ws_q,"11") and Eq(ex6_tlbsel_q,TlbSel_IErat);
 watermark_d    <=  ex6_data_in_q(64-watermark_width to 63) when ex6_ieratwe_ws3='1'  
                   else watermark_q;
+-- mmucr1_q: 0-IRRE, 1-REE, 2-CEE, 3-csync, 4-isync, 5:6-IPEI, 7:8-ICTID/ITTID
+-- entry pointer for round-robin mode
 eptr_d  <=  (others => '0') when (ex6_ieratwe_ws3='1' and mmucr1_q(0)='1') 
     else  (others => '0') when (eptr_q="1111" or eptr_q=watermark_q) and 
                           ( (ex6_valid_q /= "0000" and ex6_ttype_q(1)='1' and ex6_ws_q="00" and 
@@ -1534,6 +1684,16 @@ eptr_p1  <=  "0001" when eptr_q="0000"
       else "0000";
 lru_way_is_written    <=  Eq(lru_way_encode, ex6_ra_entry_q);
 lru_way_is_hit_entry  <=  Eq(lru_way_encode, iu1_first_hit_entry);
+-- lru_update_event
+-- 0: tlb reload
+-- 1: invalidate snoop
+-- 2: csync or isync enabled
+-- 3: eratwe WS=0
+-- 4: fetch hit
+-- 5: iu2 cam write type events
+-- 6: iu2 cam invalidate type events
+-- 7: iu2 cam translation type events
+-- 8: iu2, superset of non-translation events
 lru_update_event_d(0) <=  ( tlb_rel_data_q(eratpos_wren) and or_reduce(tlb_rel_val_q(0 to 3)) and tlb_rel_val_q(4) );
 lru_update_event_d(1) <=   ( snoop_val_q(0) and snoop_val_q(1)  );
 lru_update_event_d(2) <=   ( or_reduce(ex6_valid_q) and (ex6_ttype_q(4) or ex6_ttype_q(5)) );
@@ -1546,6 +1706,9 @@ lru_update_event_d(6) <=  lru_update_event_q(1) or lru_update_event_q(2);
 lru_update_event_d(7) <=  ( or_reduce(iu1_valid_q and not(iu_ierat_iu1_flush) and not(xu_iu_flush) and not(iu2_n_flush_req_q)) 
                                    and not iu1_flush_enab_q and cam_hit and lru_way_is_hit_entry );
 lru_update_event_d(8) <=  lru_update_event_q(0) or lru_update_event_q(1) or lru_update_event_q(2) or lru_update_event_q(3);
+-- LRU next state.. update bits for which override is zero (Op=0)
+--   effective LRU is what is used to choose entry to update
+--     lru new value is valid 2 clocks after reload, invalidate, eratwe, or fetch hit
 lru_d(1) <=  '0' when ((ex6_ieratwe_ws3='1' and mmucr1_q(0)='0') or flash_invalidate='1') 
         else  '0' when lru_reset_vec(1)='1'   and mmucr1_q(0)='0' and lru_op_vec(1)='0'   and ccr2_frat_paranoia_q(9)='0' and 
                             (lru_update_event_q(8)='1' or (lru_update_event_q(4) and not(iu2_multihit_sig or iu2_parerr_sig or iu2_isi_sig))='1')
@@ -1651,6 +1814,7 @@ lru_d(15) <=  '0' when ((ex6_ieratwe_ws3='1' and mmucr1_q(0)='0') or flash_inval
                             (lru_update_event_q(8)='1' or (lru_update_event_q(4) and not(iu2_multihit_sig or iu2_parerr_sig or iu2_isi_sig))='1') 
         else lru_q(15);
 lru_eff(15) <=  (lru_vp_vec(15)  and lru_op_vec(15))  or (lru_q(15)  and not lru_op_vec(15));
+-- RMT override enable:  Op= OR(all RMT entries below and left of p) XOR OR(all RMT entries below and right of p)
 lru_op_vec(1) <=  (lru_rmt_vec(0) or lru_rmt_vec(1) or lru_rmt_vec(2) or lru_rmt_vec(3) or 
                       lru_rmt_vec(4) or lru_rmt_vec(5) or lru_rmt_vec(6) or lru_rmt_vec(7)) xor 
                  (lru_rmt_vec(8) or lru_rmt_vec(9) or lru_rmt_vec(10) or lru_rmt_vec(11) or 
@@ -1671,6 +1835,7 @@ lru_op_vec(12) <=  lru_rmt_vec(8) xor lru_rmt_vec(9);
 lru_op_vec(13) <=  lru_rmt_vec(10) xor lru_rmt_vec(11);
 lru_op_vec(14) <=  lru_rmt_vec(12) xor lru_rmt_vec(13);
 lru_op_vec(15) <=  lru_rmt_vec(14) xor lru_rmt_vec(15);
+-- RMT override value: Vp= OR(all RMT entries below and right of p)
 lru_vp_vec(1) <=  (lru_rmt_vec(8) or lru_rmt_vec(9) or lru_rmt_vec(10) or lru_rmt_vec(11) or 
                       lru_rmt_vec(12) or lru_rmt_vec(13) or lru_rmt_vec(14) or lru_rmt_vec(15));
 lru_vp_vec(2) <=  (lru_rmt_vec(4) or lru_rmt_vec(5) or lru_rmt_vec(6) or lru_rmt_vec(7));
@@ -1687,6 +1852,44 @@ lru_vp_vec(12) <=  lru_rmt_vec(9);
 lru_vp_vec(13) <=  lru_rmt_vec(11);
 lru_vp_vec(14) <=  lru_rmt_vec(13);
 lru_vp_vec(15) <=  lru_rmt_vec(15);
+-- mmucr1_q: 0-IRRE, 1-REE, 2-CEE, 3-csync, 4-isync, 5:6-IPEI, 7:8-ICTID/ITTID
+-- Encoder for the LRU watermark psuedo-RMT
+--
+-- Final Table Listing
+--      *INPUTS*==================*OUTPUTS*============*
+--      |                         |                    |
+--      | mmucr1_q                |  lru_rmt_vec       |
+--      | |         watermark_q   |  |                 |
+--      | |         |             |  |                 |
+--      | |         |             |  |                 |
+--      | |         |             |  |         111111  |
+--      | 012345678 0123          |  0123456789012345  |
+--      *TYPE*====================+====================+
+--      | PPPPPPPPP PPPP          |  PPPPPPPPPPPPPPPP  |
+--      *POLARITY*--------------->|  ++++++++++++++++  |
+--      *PHASE*------------------>|  TTTTTTTTTTTTTTTT  |
+--      *OPTIMIZE*--------------->|   AAAAAAAAAAAAAAAA   |
+--      *TERMS*===================+====================+
+--    1 | --------- 1111          |  ...............1  |
+--    2 | --------- -111          |  .......1........  |
+--    3 | --------- 1-11          |  ...........1....  |
+--    4 | --------- --11          |  ...1............  |
+--    5 | --------- 11-1          |  .............1..  |
+--    6 | --------- -1-1          |  .....1..........  |
+--    7 | --------- 1--1          |  .........1......  |
+--    8 | --------- ---1          |  .1..............  |
+--    9 | --------- 111-          |  .............11.  |
+--   10 | --------- -11-          |  .....11.........  |
+--   11 | --------- 1-1-          |  .........11.....  |
+--   12 | --------- --1-          |  .11.............  |
+--   13 | --------- 11--          |  .........1111...  |
+--   14 | --------- -1--          |  .1111...........  |
+--   15 | --------- 1---          |  .11111111.......  |
+--   16 | 1-------- ----          |  .111111111111111  |
+--   17 | --------- ----          |  1...............  |
+--      *==============================================*
+--
+-- Table LRU_RMT_VEC Signal Assignments for Product Terms
 MQQ37:LRU_RMT_VEC_PT(1) <=
     Eq(( WATERMARK_Q(0) & WATERMARK_Q(1) & 
     WATERMARK_Q(2) & WATERMARK_Q(3)
@@ -1733,6 +1936,7 @@ MQQ52:LRU_RMT_VEC_PT(16) <=
     Eq(( MMUCR1_Q(0) ) , STD_ULOGIC'('1'));
 MQQ53:LRU_RMT_VEC_PT(17) <=
     '1';
+-- Table LRU_RMT_VEC Signal Assignments for Outputs
 MQQ54:LRU_RMT_VEC(0) <= 
     (LRU_RMT_VEC_PT(17));
 MQQ55:LRU_RMT_VEC(1) <= 
@@ -1786,6 +1990,40 @@ MQQ69:LRU_RMT_VEC(15) <=
     (LRU_RMT_VEC_PT(1) OR LRU_RMT_VEC_PT(16)
     );
 
+--
+-- Final Table Listing
+--      *INPUTS*==================*OUTPUTS*===============*
+--      |                         |                       |
+--      | mmucr1_q                |  lru_watermark_mask   |
+--      | |         watermark_q   |  |                    |
+--      | |         |             |  |                    |
+--      | |         |             |  |                    |
+--      | |         |             |  |         111111     |
+--      | 012345678 0123          |  0123456789012345     |
+--      *TYPE*====================+=======================+
+--      | PPPPPPPPP PPPP          |  PPPPPPPPPPPPPPPP     |
+--      *POLARITY*--------------->|  ++++++++++++++++     |
+--      *PHASE*------------------>|  TTTTTTTTTTTTTTTT     |
+--      *OPTIMIZE*--------------->|   AAAAAAAAAAAAAAAA      |
+--      *TERMS*===================+=======================+
+--    1 | --------- 0000          |  .1..............     |
+--    2 | --------- -000          |  .........1......     |
+--    3 | --------- 0-00          |  .....1..........     |
+--    4 | --------- --00          |  .............1..     |
+--    5 | --------- 00-0          |  ...1............     |
+--    6 | --------- -0-0          |  ...........1....     |
+--    7 | --------- 0--0          |  .......1........     |
+--    8 | --------- ---0          |  ...............1     |
+--    9 | --------- 000-          |  ..11............     |
+--   10 | --------- -00-          |  ..........11....     |
+--   11 | --------- 0-0-          |  ......11........     |
+--   12 | --------- --0-          |  ..............11     |
+--   13 | --------- 00--          |  ....1111........     |
+--   14 | --------- -0--          |  ............1111     |
+--   15 | --------- 0---          |  ........11111111     |
+--      *=================================================*
+--
+-- Table LRU_WATERMARK_MASK Signal Assignments for Product Terms
 MQQ70:LRU_WATERMARK_MASK_PT(1) <=
     Eq(( WATERMARK_Q(0) & WATERMARK_Q(1) & 
     WATERMARK_Q(2) & WATERMARK_Q(3)
@@ -1828,6 +2066,7 @@ MQQ83:LRU_WATERMARK_MASK_PT(14) <=
     Eq(( WATERMARK_Q(1) ) , STD_ULOGIC'('0'));
 MQQ84:LRU_WATERMARK_MASK_PT(15) <=
     Eq(( WATERMARK_Q(0) ) , STD_ULOGIC'('0'));
+-- Table LRU_WATERMARK_MASK Signal Assignments for Outputs
 MQQ85:LRU_WATERMARK_MASK(0) <= 
     ('0');
 MQQ86:LRU_WATERMARK_MASK(1) <= 
@@ -1874,6 +2113,119 @@ MQQ100:LRU_WATERMARK_MASK(15) <=
     );
 
 entry_valid_watermarked  <=  entry_valid_q or lru_watermark_mask;
+-- lru_update_event
+-- 0: tlb reload
+-- 1: invalidate snoop
+-- 2: csync or isync enabled
+-- 3: eratwe WS=0
+-- 4: fetch hit
+-- 5: iu2 cam write type events
+-- 6: iu2 cam invalidate type events
+-- 7: iu2 cam translation type events
+-- 8: superset, ex2
+-- 9: superset, delayed to ex3
+-- logic for the LRU reset and set bit vectors
+-- ?TABLE lru_set_reset_vec LISTING(final) OPTIMIZE PARMS(ON-SET, OFF-SET);
+--
+-- Final Table Listing
+--      *INPUTS*======================================================*OUTPUTS*===========================*
+--      |                                                             |                                   |
+--      | lru_update_event_q                                          |  lru_reset_vec                    |
+--      | |         entry_valid_watermarked                           |  |                lru_set_vec     |
+--      | |         |                lru_q                            |  |                |               |
+--      | |         |                |               entry_match_q    |  |                |               |
+--      | |         |                |               |                |  |                |               |
+--      | |         |         111111 |        111111 |         111111 |  |        111111  |        111111 |
+--      | 012345678 0123456789012345 123456789012345 0123456789012345 |  123456789012345  123456789012345 |
+--      *TYPE*========================================================+===================================+
+--      | PPPPPPPPP PPPPPPPPPPPPPPPP PPPPPPPPPPPPPPP PPPPPPPPPPPPPPPP |  PPPPPPPPPPPPPPP  PPPPPPPPPPPPPPP |
+--      *POLARITY*--------------------------------------------------->|  +++++++++++++++  +++++++++++++++ |
+--      *PHASE*------------------------------------------------------>|  TTTTTTTTTTTTTTT  TTTTTTTTTTTTTTT |
+--      *OPTIMIZE*--------------------------------------------------->|   AAAAAAAAAAAAAAA  BBBBBBBBBBBBBBB  |
+--      *TERMS*=======================================================+===================================+
+--    1 | -----001- 1111111111111111 --------------- 0000000000000001 |  1.1...1.......1  ............... |
+--    2 | -----001- 1111111111111111 --------------- 000000000000001- |  1.1...1........  ............... |
+--    3 | -----001- 111111111111111- --------------- 000000000000001- |  ...............  ..............1 |
+--    4 | -----001- 1111111111111111 --------------- 00000000000001-- |  1.1..........1.  ............... |
+--    5 | -----001- 11111111111111-- --------------- 000000000000-1-- |  ...............  ......1........ |
+--    6 | -----001- 1111111111111111 --------------- 0000000000001--- |  1.1............  ......1......1. |
+--    7 | -----001- 1111111111111111 --------------- 000000000001---- |  1....1......1..  ............... |
+--    8 | -----001- 111111111111---- --------------- 00000000---1---- |  ...............  ..1............ |
+--    9 | -----001- 1111111111111111 --------------- 00000000001----- |  1....1.........  ..1.........1.. |
+--   10 | -----001- 1111111111111111 --------------- 0000000001------ |  1..........1...  ............... |
+--   11 | -----001- 1111111111111111 --------------- 00000000-1------ |  ...............  ..1..1......... |
+--   12 | -----001- 1111111111111111 --------------- 000000001------- |  ...............  ..1..1.....1... |
+--   13 | -----001- --------11111111 --------------- 000000001------- |  1..............  ............... |
+--   14 | -----001- 1111111111111111 --------------- 00000001-------- |  .1..1.....1....  ............... |
+--   15 | -----001- 11111111-------- --------------- -------1-------- |  ...............  1.............. |
+--   16 | -----001- 1111111111111111 --------------- 0000001--------- |  .1..1..........  1.........1.... |
+--   17 | -----001- 1111111111111111 --------------- 000001---------- |  .1.......1.....  ............... |
+--   18 | -----001- 1111111111111111 --------------- 0000-1---------- |  ...............  1...1.......... |
+--   19 | -----001- 1111111111111111 --------------- 00001----------- |  ...............  1...1....1..... |
+--   20 | -----001- ----111111111111 --------------- 00001----------- |  .1.............  ............... |
+--   21 | -----001- 1111111111111111 --------------- 0001------------ |  ...1....1......  ............... |
+--   22 | -----001- 1111111111111111 --------------- ---1------------ |  ...............  11............. |
+--   23 | -----001- 1111111111111111 --------------- 001------------- |  ...............  11......1...... |
+--   24 | -----001- --11111111111111 --------------- 001------------- |  ...1...........  ............... |
+--   25 | -----001- -111111111111111 --------------- 01-------------- |  .......1.......  ............... |
+--   26 | -----001- 1111111111111111 --------------- -1-------------- |  ...............  11.1........... |
+--   27 | -----001- 1111111111111111 --------------- 1--------------- |  ...............  11.1...1....... |
+--   28 | -----1--- 111111111111111- 1-1---1-------0 ---------------- |  ...............  ..............1 |
+--   29 | -----1--- 11111111111111-1 1-1---1-------1 ---------------- |  ..............1  ............... |
+--   30 | -----1--- 1111111111111-11 1-1---0------0- ---------------- |  ...............  .............1. |
+--   31 | -----1--- 111111111111-111 1-1---0------1- ---------------- |  .............1.  ............... |
+--   32 | -----1--- 11111111111-1111 1-0--1------0-- ---------------- |  ...............  ............1.. |
+--   33 | -----1--- 1111111111-11111 1-0--1------1-- ---------------- |  ............1..  ............... |
+--   34 | -----1--- 111111111-111111 1-0--0-----0--- ---------------- |  ...............  ...........1... |
+--   35 | -----1--- 11111111-1111111 1-0--0-----1--- ---------------- |  ...........1...  ............... |
+--   36 | -----1--- 1111111-11111111 01--1-----0---- ---------------- |  ...............  ..........1.... |
+--   37 | -----1--- 111111-111111111 01--1-----1---- ---------------- |  ..........1....  ............... |
+--   38 | -----1--- 11111-1111111111 01--0----0----- ---------------- |  ...............  .........1..... |
+--   39 | -----1--- 1111-11111111111 01--0----1----- ---------------- |  .........1.....  ............... |
+--   40 | -----1--- 111-111111111111 00-1----0------ ---------------- |  ...............  ........1...... |
+--   41 | -----1--- 11-1111111111111 00-1----1------ ---------------- |  ........1......  ............... |
+--   42 | -----1--- 1-11111111111111 00-0---0------- ---------------- |  ...............  .......1....... |
+--   43 | -----1--- -111111111111111 00-0---1------- ---------------- |  .......1.......  ............... |
+--   44 | -----1--- 11111111111111-- 1-1---0-------- ---------------- |  ...............  ......1........ |
+--   45 | -----1--- 111111111111--11 1-1---1-------- ---------------- |  ......1........  ............... |
+--   46 | -----1--- 1111111111--1111 1-0--0--------- ---------------- |  ...............  .....1......... |
+--   47 | -----1--- 11111111--111111 1-0--1--------- ---------------- |  .....1.........  ............... |
+--   48 | -----1--- 111111--11111111 01--0---------- ---------------- |  ...............  ....1.......... |
+--   49 | -----1--- 1111--1111111111 01--1---------- ---------------- |  ....1..........  ............... |
+--   50 | -----1--- 11--111111111111 00-0----------- ---------------- |  ...............  ...1........... |
+--   51 | -----1--- --11111111111111 00-1----------- ---------------- |  ...1...........  ............... |
+--   52 | -----1--- 111111111111---- 1-0------------ ---------------- |  ...............  ..1............ |
+--   53 | -----1--- 11111111----1111 1-1------------ ---------------- |  ..1............  ............... |
+--   54 | -----1--- 1111----11111111 00------------- ---------------- |  ...............  .1............. |
+--   55 | -----1--- ----111111111111 01------------- ---------------- |  .1.............  ............... |
+--   56 | -----1--- 11111111-------- 0-------------- ---------------- |  ...............  1.............. |
+--   57 | -----1--- --------11111111 1-------------- ---------------- |  1..............  ............... |
+--   58 | --------- 1111111111111110 --------------- ---------------- |  ...............  1.1...1.......1 |
+--   59 | --------- 111111111111110- --------------- ---------------- |  ..............1  1.1...1........ |
+--   60 | --------- 11111111111110-- --------------- ---------------- |  ...............  1.1..........1. |
+--   61 | --------- 111111111111-0-- --------------- ---------------- |  ......1........  ............... |
+--   62 | --------- 1111111111110--- --------------- ---------------- |  ......1......1.  1.1............ |
+--   63 | --------- 111111111110---- --------------- ---------------- |  ...............  1....1......1.. |
+--   64 | --------- 11111111---0---- --------------- ---------------- |  ..1............  ............... |
+--   65 | --------- 11111111110----- --------------- ---------------- |  ..1.........1..  1....1......... |
+--   66 | --------- 1111111110------ --------------- ---------------- |  ...............  1..........1... |
+--   67 | --------- 11111111-0------ --------------- ---------------- |  ..1..1.........  ............... |
+--   68 | --------- 111111110------- --------------- ---------------- |  ..1..1.....1...  1.............. |
+--   69 | --------- 11111110-------- --------------- ---------------- |  ...............  .1..1.....1.... |
+--   70 | --------- -------0-------- --------------- ---------------- |  1..............  ............... |
+--   71 | --------- 1111110--------- --------------- ---------------- |  1.........1....  .1..1.......... |
+--   72 | --------- 111110---------- --------------- ---------------- |  ...............  .1.......1..... |
+--   73 | --------- 1111-0---------- --------------- ---------------- |  1...1..........  ............... |
+--   74 | --------- 11110----------- --------------- ---------------- |  1...1....1.....  .1............. |
+--   75 | --------- 1110------------ --------------- ---------------- |  ...............  ...1....1...... |
+--   76 | --------- ---0------------ --------------- ---------------- |  11.............  ............... |
+--   77 | --------- 110------------- --------------- ---------------- |  11......1......  ...1........... |
+--   78 | --------- 10-------------- --------------- ---------------- |  ...............  .......1....... |
+--   79 | --------- -0-------------- --------------- ---------------- |  11.1...........  ............... |
+--   80 | --------- 0--------------- --------------- ---------------- |  11.1...1.......  ............... |
+--      *=================================================================================================*
+--
+-- Table LRU_SET_RESET_VEC Signal Assignments for Product Terms
 MQQ101:LRU_SET_RESET_VEC_PT(1) <=
     Eq(( LRU_UPDATE_EVENT_Q(5) & LRU_UPDATE_EVENT_Q(6) & 
     LRU_UPDATE_EVENT_Q(7) & ENTRY_VALID_WATERMARKED(0) & 
@@ -2725,6 +3077,7 @@ MQQ179:LRU_SET_RESET_VEC_PT(79) <=
     Eq(( ENTRY_VALID_WATERMARKED(1) ) , STD_ULOGIC'('0'));
 MQQ180:LRU_SET_RESET_VEC_PT(80) <=
     Eq(( ENTRY_VALID_WATERMARKED(0) ) , STD_ULOGIC'('0'));
+-- Table LRU_SET_RESET_VEC Signal Assignments for Outputs
 MQQ181:LRU_RESET_VEC(1) <= 
     (LRU_SET_RESET_VEC_PT(1) OR LRU_SET_RESET_VEC_PT(2)
      OR LRU_SET_RESET_VEC_PT(4) OR LRU_SET_RESET_VEC_PT(6)
@@ -2850,6 +3203,41 @@ MQQ210:LRU_SET_VEC(15) <=
     (LRU_SET_RESET_VEC_PT(3) OR LRU_SET_RESET_VEC_PT(28)
      OR LRU_SET_RESET_VEC_PT(58));
 
+-- Encoder for the LRU selected entry
+--
+-- Final Table Listing
+--      *INPUTS*==========================*OUTPUTS*==========*
+--      |                                 |                  |
+--      | mmucr1_q                        |  lru_way_encode  |
+--      | |         lru_eff               |  |               |
+--      | |         |                     |  |               |
+--      | |         |                     |  |               |
+--      | |         |        111111       |  |               |
+--      | 012345678 123456789012345       |  0123            |
+--      *TYPE*============================+==================+
+--      | PPPPPPPPP PPPPPPPPPPPPPPP       |  PPPP            |
+--      *POLARITY*----------------------->|  ++++            |
+--      *PHASE*-------------------------->|  TTTT            |
+--      *OPTIMIZE*----------------------->|   AAAA             |
+--      *TERMS*===========================+==================+
+--    1 | --------- 1-1---1-------1       |  ...1            |
+--    2 | --------- 1-1---0------1-       |  ...1            |
+--    3 | --------- 1-0--1------1--       |  ...1            |
+--    4 | --------- 1-0--0-----1---       |  ...1            |
+--    5 | --------- 01--1-----1----       |  ...1            |
+--    6 | --------- 01--0----1-----       |  ...1            |
+--    7 | --------- 00-1----1------       |  ...1            |
+--    8 | --------- 00-0---1-------       |  ...1            |
+--    9 | --------- 1-1---1--------       |  ..1.            |
+--   10 | --------- 1-0--1---------       |  ..1.            |
+--   11 | --------- 01--1----------       |  ..1.            |
+--   12 | --------- 00-1-----------       |  ..1.            |
+--   13 | --------- 1-1------------       |  .1..            |
+--   14 | --------- 01-------------       |  .1..            |
+--   15 | --------- 1--------------       |  1...            |
+--      *====================================================*
+--
+-- Table LRU_WAY_ENCODE Signal Assignments for Product Terms
 MQQ211:LRU_WAY_ENCODE_PT(1) <=
     Eq(( LRU_EFF(1) & LRU_EFF(3) & 
     LRU_EFF(7) & LRU_EFF(15)
@@ -2902,6 +3290,7 @@ MQQ224:LRU_WAY_ENCODE_PT(14) <=
      ) , STD_ULOGIC_VECTOR'("01"));
 MQQ225:LRU_WAY_ENCODE_PT(15) <=
     Eq(( LRU_EFF(1) ) , STD_ULOGIC'('1'));
+-- Table LRU_WAY_ENCODE Signal Assignments for Outputs
 MQQ226:LRU_WAY_ENCODE(0) <= 
     (LRU_WAY_ENCODE_PT(15));
 MQQ227:LRU_WAY_ENCODE(1) <= 
@@ -2918,6 +3307,7 @@ MQQ229:LRU_WAY_ENCODE(3) <=
      OR LRU_WAY_ENCODE_PT(7) OR LRU_WAY_ENCODE_PT(8)
     );
 
+-- power-on reset sequencer to load initial erat entries
 Por_Sequencer: PROCESS (por_seq_q, init_alias, bcfg_q(0 to 106))
 BEGIN
 por_wr_cam_val  <=  (others => '0');
@@ -2943,6 +3333,20 @@ CASE por_seq_q IS
           por_wr_cam_val <= (others => '1'); por_wr_array_val <= (others => '1');
           por_wr_entry <= Por_Wr_Entry_Num1;  
           por_wr_cam_data <= bcfg_q(0 to 51) & Por_Wr_Cam_Data1(52 to 83); 
+-- 16x143 version, 42b RA
+-- wr_array_data
+--  0:29  - RPN
+--  30:31  - R,C
+--  32:33  - WLC
+--  34     - ResvAttr
+--  35     - VF
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
+--  51:60  - CAM parity
+--  61:67  - Array parity
           por_wr_array_data <= bcfg_q(52 to 81) & Por_Wr_Array_Data1(30 to 35) & bcfg_q(82 to 85) & 
                                 Por_Wr_Array_Data1(40 to 43) & bcfg_q(86) & Por_Wr_Array_Data1(45 to 67); 
           por_hold_req <= (others => '1');
@@ -2986,6 +3390,7 @@ CASE por_seq_q IS
           por_seq_d <=  PorSeq_Idle;  
     END CASE;
 END PROCESS Por_Sequencer;
+-- page size 4b to 3b swizzles for cam write
 cam_pgsize(0 TO 2) <=  (CAM_PgSize_1GB  and (0 to 2 => Eq(ex6_data_in_q(56 to 59),WS0_PgSize_1GB)))
                   or (CAM_PgSize_16MB and (0 to 2 => Eq(ex6_data_in_q(56 to 59),WS0_PgSize_16MB)))
                   or (CAM_PgSize_1MB  and (0 to 2 => Eq(ex6_data_in_q(56 to 59),WS0_PgSize_1MB)))
@@ -2994,11 +3399,15 @@ cam_pgsize(0 TO 2) <=  (CAM_PgSize_1GB  and (0 to 2 => Eq(ex6_data_in_q(56 to 59
                                                         Eq(ex6_data_in_q(56 to 59),WS0_PgSize_16MB) or 
                                                         Eq(ex6_data_in_q(56 to 59),WS0_PgSize_1MB) or 
                                                         Eq(ex6_data_in_q(56 to 59),WS0_PgSize_64KB))));
+-- page size 3b to 4b swizzles for cam read
 ws0_pgsize(0 TO 3) <=  (WS0_PgSize_1GB  and (0 to 3 => Eq(rd_cam_data(53 to 55),CAM_PgSize_1GB)))
                    or (WS0_PgSize_16MB and (0 to 3 => Eq(rd_cam_data(53 to 55),CAM_PgSize_16MB)))
                    or (WS0_PgSize_1MB  and (0 to 3 => Eq(rd_cam_data(53 to 55),CAM_PgSize_1MB)))
                    or (WS0_PgSize_64KB and (0 to 3 => Eq(rd_cam_data(53 to 55),CAM_PgSize_64KB)))
                    or (WS0_PgSize_4KB  and (0 to 3 => Eq(rd_cam_data(53 to 55),CAM_PgSize_4KB)));
+-- CAM control signal assignments
+-- ttype: eratre & eratwe & eratsx & erativax;
+-- mmucr1_q: 0-IRRE, 1-REE, 2-CEE, 3-csync, 4-isync, 5:6-IPEI, 7:8-ICTID/ITTID
 rd_val             <=  or_reduce(ex2_valid_q) and ex2_ttype_q(0) and Eq(ex2_tlbsel_q, TlbSel_IErat);
 rw_entry           <=  ( por_wr_entry and (0 to 3 => or_reduce(por_seq_q)) )
                or (  eptr_q         and (0 to 3 => (or_reduce(tlb_rel_val_q(0 to 3)) and tlb_rel_val_q(4) and mmucr1_q(0))) )  
@@ -3006,15 +3415,72 @@ rw_entry           <=  ( por_wr_entry and (0 to 3 => or_reduce(por_seq_q)) )
                or (  eptr_q         and (0 to 3 => (or_reduce(ex6_valid_q) and ex6_ttype_q(1) and Eq(ex6_tlbsel_q, TlbSel_IErat) and not tlb_rel_val_q(4) and mmucr1_q(0))) )  
                or (  ex6_ra_entry_q and (0 to 3 => (or_reduce(ex6_valid_q) and ex6_ttype_q(1) and Eq(ex6_tlbsel_q, TlbSel_IErat) and not tlb_rel_val_q(4) and not mmucr1_q(0))) )  
                or (  ex2_ra_entry_q and (0 to 3 => (or_reduce(ex2_valid_q) and ex2_ttype_q(0) and not(or_reduce(ex6_valid_q) and ex6_ttype_q(1) and Eq(ex6_tlbsel_q, TlbSel_IErat)) and not tlb_rel_val_q(4))) );
+-- Write Port
 wr_cam_val            <=  por_wr_cam_val  when por_seq_q/=PorSeq_Idle 
                      else (others => '0') when (ex6_valid_q/="0000" and ex6_ttype_q(4 to 5)/="00")  
                      else (others => tlb_rel_data_q(eratpos_wren)) when (tlb_rel_val_q(0 to 3)/="0000" and tlb_rel_val_q(4)='1')  
                      else (others => '1') when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' and ex6_ws_q="00" and ex6_tlbsel_q=TlbSel_IErat)   
                      else  (others => '0');
+-- write port act pin
 wr_val_early        <=  or_reduce(por_seq_q) or 
                       or_reduce(tlb_req_inprogress_q) or 
                        (or_reduce(ex5_valid_q) and ex5_ttype_q(1) and Eq(ex5_ws_q,"00") and Eq(ex5_tlbsel_q,TlbSel_IErat)) or  
                        (or_reduce(ex6_valid_q) and ex6_ttype_q(1) and Eq(ex6_ws_q,"00") and Eq(ex6_tlbsel_q,TlbSel_IErat));
+-- tlb_low_data
+--  0:51  - EPN
+--  52:55  - SIZE (4b)
+--  56:59  - ThdID
+--  60:61  - Class
+--  62  - ExtClass
+--  63  - TID_NZ
+--  64:65  - reserved (2b)
+--  66:73  - 8b for LPID
+--  74:83  - parity 10bits
+-- wr_ws0_data (LO)
+--  0:51  - EPN
+--  52:53  - Class
+--  54  - V
+--  55  - X
+--  56:59  - SIZE
+--  60:63  - ThdID
+-- wr_cam_data
+--  0:51  - EPN
+--  52  - X
+--  53:55  - SIZE
+--  56  - V
+--  57:60  - ThdID
+--  61:62  - Class
+--  63:64  - ExtClass | TID_NZ
+--  65  - TGS
+--  66  - TS
+--  67:74  - TID
+--  75:78  - epn_cmpmasks:  34_39, 40_43, 44_47, 48_51
+--  79:82  - xbit_cmpmasks: 34_51, 40_51, 44_51, 48_51
+--  83  - parity for 75:82
+----------- this is what the erat expects on reload bus
+--  0:51  - EPN
+--  52  - X
+--  53:55  - SIZE
+--  56  - V
+--  57:60  - ThdID
+--  61:62  - Class
+--  63:64  - ExtClass | TID_NZ
+--  65  - write enable
+--  0:3 66:69 - reserved RPN
+--  4:33 70:99 - RPN
+--  34:35 100:101 - R,C
+--  36 102 - reserved
+--  37:38 103:104 - WLC
+--  39 105 - ResvAttr
+--  40 106 - VF
+--  41:44 107:110 - U0-U3
+--  45:49 111:115 - WIMGE
+--  50:51 116:117 - UX,SX
+--  52:53 118:119 - UW,SW
+--  54:55 120:121 - UR,SR
+--  56 122 - GS
+--  57 123 - TS
+--  58:65 124:131 - TID lsbs
 gen64_wr_cam_data: if rs_data_width = 64 generate
 wr_cam_data        <=  por_wr_cam_data when por_seq_q/=PorSeq_Idle 
               else (tlb_rel_data_q(0 to 64) & tlb_rel_data_q(122 to 131) & 
@@ -3039,6 +3505,60 @@ wr_cam_data        <=  por_wr_cam_data when por_seq_q/=PorSeq_Idle
                                when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' and ex6_ws_q="00")  
                 else  (others => '0');
 end generate gen32_wr_cam_data;
+--             cmpmask(0)    (1)     (2)    (3)    xbitmask(0)    (1)    (2)    (3)
+--   xbit  pgsize      34_39  40_43  44_47  48_51           34_39  40_43  44_47  48_51    size
+--    0     001          1      1      1      1               0      0      0      0       4K
+--    0     011          1      1      1      0               0      0      0      0       64K
+--    0     101          1      1      0      0               0      0      0      0       1M
+--    0     111          1      0      0      0               0      0      0      0       16M
+--    0     110          0      0      0      0               0      0      0      0       1G
+--    1     001          1      1      1      1               0      0      0      0       4K
+--    1     011          1      1      1      0               0      0      0      1       64K
+--    1     101          1      1      0      0               0      0      1      0       1M
+--    1     111          1      0      0      0               0      1      0      0       16M
+--    1     110          0      0      0      0               1      0      0      0       1G
+-- Encoder for the cam compare mask bits write data
+--
+-- Final Table Listing
+--      *INPUTS*==================*OUTPUTS*===================================*
+--      |                         |                                           |
+--      | tlb_rel_data_q          |  tlb_rel_cmpmask                          |
+--      | |    ex6_data_in_q      |  |    tlb_rel_xbitmask                    |
+--      | |    |                  |  |    |    tlb_rel_maskpar                |
+--      | |    |                  |  |    |    |  ex6_data_cmpmask            |
+--      | |    |                  |  |    |    |  |    ex6_data_xbitmask      |
+--      | |    |                  |  |    |    |  |    |    ex6_data_maskpar  |
+--      | |    |                  |  |    |    |  |    |    |                 |
+--      | 5555 55555              |  |    |    |  |    |    |                 |
+--      | 2345 56789              |  0123 0123 |  0123 0123 |                 |
+--      *TYPE*====================+===========================================+
+--      | PPPP PPPPP              |  PPPP PPPP P  PPPP PPPP P                 |
+--      *POLARITY*--------------->|  ++++ ++++ +  ++++ ++++ +                 |
+--      *PHASE*------------------>|  TTTT TTTT T  TTTT TTTT T                 |
+--      *OPTIMIZE*--------------->|   AAAA AAAA A  AAAA AAAA A                  |
+--      *TERMS*===================+===========================================+
+--    1 | ---- 11010              |  .... .... .  .... 1... 1                 |
+--    2 | ---- -0--0              |  .... .... .  1111 .... .                 |
+--    3 | ---- 10101              |  .... .... .  .... ..1. 1                 |
+--    4 | ---- 10011              |  .... .... .  1... ...1 .                 |
+--    5 | ---- 10111              |  .... .... .  1... .1.. .                 |
+--    6 | ---- 00-11              |  .... .... .  1... .... 1                 |
+--    7 | ---- -1--1              |  .... .... .  1111 .... .                 |
+--    8 | ---- --00-              |  .... .... .  ..11 .... .                 |
+--    9 | ---- ---0-              |  .... .... .  11.. .... .                 |
+--   10 | ---- -00--              |  .... .... .  .11. .... .                 |
+--   11 | ---- -11--              |  .... .... .  1111 .... .                 |
+--   12 | 1--0 -----              |  .... 1... 1  .... .... .                 |
+--   13 | 1111 -----              |  1... .1.. .  .... .... .                 |
+--   14 | 0-11 -----              |  1... .... 1  .... .... .                 |
+--   15 | -00- -----              |  ...1 .... .  .... .... .                 |
+--   16 | 110- -----              |  .... ..1. 1  .... .... .                 |
+--   17 | --0- -----              |  11.. .... .  .... .... .                 |
+--   18 | 101- -----              |  1... ...1 .  .... .... .                 |
+--   19 | -0-- -----              |  .11. .... .  .... .... .                 |
+--      *=====================================================================*
+--
+-- Table CAM_MASK_BITS Signal Assignments for Product Terms
 MQQ230:CAM_MASK_BITS_PT(1) <=
     Eq(( EX6_DATA_IN_Q(55) & EX6_DATA_IN_Q(56) & 
     EX6_DATA_IN_Q(57) & EX6_DATA_IN_Q(58) & 
@@ -3099,6 +3619,7 @@ MQQ247:CAM_MASK_BITS_PT(18) <=
     TLB_REL_DATA_Q(54) ) , STD_ULOGIC_VECTOR'("101"));
 MQQ248:CAM_MASK_BITS_PT(19) <=
     Eq(( TLB_REL_DATA_Q(53) ) , STD_ULOGIC'('0'));
+-- Table CAM_MASK_BITS Signal Assignments for Outputs
 MQQ249:TLB_REL_CMPMASK(0) <= 
     (CAM_MASK_BITS_PT(13) OR CAM_MASK_BITS_PT(14)
      OR CAM_MASK_BITS_PT(17) OR CAM_MASK_BITS_PT(18)
@@ -3157,6 +3678,53 @@ wr_array_val       <=  por_wr_array_val  when por_seq_q/=PorSeq_Idle
                 else  (others => '1') when (ex6_valid_q/="0000" and ex6_ttype_q(1)='1' 
                               and ex6_ws_q="00" and ex6_tlbsel_q=TlbSel_IErat)  
                  else  (others => '0');
+-- tlb_high_data
+--  84       -  0      - X-bit
+--  85:87    -  1:3    - reserved (3b)
+--  88:117   -  4:33   - RPN (30b)
+--  118:119  -  34:35  - R,C
+--  120:121  -  36:37  - WLC (2b)
+--  122      -  38     - ResvAttr
+--  123      -  39     - VF
+--  124      -  40     - IND
+--  125:128  -  41:44  - U0-U3
+--  129:133  -  45:49  - WIMGE
+--  134:136  -  50:52  - UX,UW,UR
+--  137:139  -  53:55  - SX,SW,SR
+--  140      -  56  - GS
+--  141      -  57  - TS
+--  142:143  -  58:59  - reserved (2b)
+--  144:149  -  60:65  - 6b TID msbs
+--  150:157  -  66:73  - 8b TID lsbs
+--  158:167  -  74:83  - parity 10bits
+-- 16x143 version, 42b RA
+-- wr_array_data
+--  0:29  - RPN
+--  30:31  - R,C
+--  32:33  - WLC
+--  34     - ResvAttr
+--  35     - VF
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
+--  51:60  - CAM parity
+--  61:67  - Array parity
+-- wr_ws1_data (HI)
+--  0:7  - unused
+--  8:9  - WLC
+--  10  - ResvAttr
+--  11  - unused
+--  12:15  - U0-U3
+--  16:17  - R,C
+--  18:21  - unused
+--  22:51  - RPN
+--  52:56  - WIMGE
+--  57  - VF (not supported in ierat)
+--  58:59  - UX,SX
+--  60:61  - UW,SW
+--  62:63  - UR,SR
 wr_array_data_nopar       <=  por_wr_array_data(0 to 50) when por_seq_q/=PorSeq_Idle
                   else (tlb_rel_data_q(70 to 101) & tlb_rel_data_q(103 to 121)) 
                                 when (tlb_rel_val_q(0 to 3)/="0000" and tlb_rel_val_q(4)='1')   
@@ -3173,6 +3741,7 @@ wr_array_data_nopar       <=  por_wr_array_data(0 to 50) when por_seq_q/=PorSeq_
                              rpn_holdreg3_q(12 to 15) & rpn_holdreg3_q(52 to 56) & rpn_holdreg3_q(58 to 63)) 
                                   when (ex6_valid_q(3)='1' and ex6_ttype_q(1)='1' and ex6_ws_q="00")   
                   else  (others => '0');
+-- PARITY DEF's
 wr_array_par(51) <=  xor_reduce(wr_cam_data(0 to 7));
 wr_array_par(52) <=  xor_reduce(wr_cam_data(8 to 15));
 wr_array_par(53) <=  xor_reduce(wr_cam_data(16 to 23));
@@ -3198,6 +3767,7 @@ wr_array_data(51 TO 67) <=  (wr_array_par(51 to 60) & wr_array_par(61 to 67))
                             (wr_array_par(61) xor mmucr1_q(6)) & wr_array_par(62 to 67))
                                    when (ex6_valid_q(0 to 3)/="0000" and ex6_ttype_q(1)='1' and ex6_ws_q="00")   
                       else (others => '0');
+-- Parity Checking
 unused_dc(22) <=  lcb_delay_lclkr_dc(1) or lcb_mpw1_dc_b(1);
 iu2_cmp_data_calc_par(50) <=  xor_reduce(iu2_cam_cmp_data_q(75 to 82));
 iu2_cmp_data_calc_par(51) <=  xor_reduce(iu2_cam_cmp_data_q(0 to 7));
@@ -3251,6 +3821,8 @@ parerr_gen3: if check_parity = 1 generate
 ex4_rd_data_parerr_epn      <=  or_reduce(ex4_rd_data_calc_par(50 to 60) xor (ex4_rd_cam_data_q(83) & ex4_rd_array_data_q(51 to 60)));
 ex4_rd_data_parerr_rpn      <=  or_reduce(ex4_rd_data_calc_par(61 to 67) xor ex4_rd_array_data_q(61 to 67));
 end generate parerr_gen3;
+-- end of parity checking
+-- CAM Port
 flash_invalidate                <=   Eq(por_seq_q,PorSeq_Stg1) or mchk_flash_inv_enab;
 comp_invalidate                 <=  '1' when (ex6_valid_q/="0000" and ex6_ttype_q(4 to 5)/="00")  
                              else '0' when (tlb_rel_val_q(0 to 3)/="0000" and tlb_rel_val_q(4)='1')   
@@ -3277,6 +3849,23 @@ comp_addr_mux1_sel   <=  (snoop_val_q(0) and snoop_val_q(1)) or ex1_ieratsx;
 comp_addr            <=  ( comp_addr_mux1 and (0 to 51 => comp_addr_mux1_sel) ) 
                     or ( ((0 to 31 => '0') & iu_ierat_iu0_ifar(32 to 51)) and (0 to 51 => not comp_addr_mux1_sel) );
 end generate gen32_comp_addr;
+-- ex1_rs_is(0 to 9) from erativax instr.
+--   RS(55)    -> ex1_rs_is(0)   -> snoop_attr(0)     -> Local
+--   RS(56:57) -> ex1_rs_is(1:2) -> snoop_attr(0:1)   -> IS
+--   RS(58:59) -> ex1_rs_is(3:4) -> snoop_attr(2:3)   -> Class
+--   n/a       ->  n/a           -> snoop_attr(4:5)   -> State
+--   n/a       ->  n/a           -> snoop_attr(6:13)  -> TID(6:13)
+--   RS(60:63) -> ex1_rs_is(5:8) -> snoop_attr(14:17) -> Size
+--   n/a       ->  n/a           -> snoop_attr(20:25) -> TID(0:5)
+-- snoop_attr:
+--          0 -> Local
+--        1:3 -> IS/Class: 0=all, 1=tid, 2=gs, 3=epn, 4=class0, 5=class1, 6=class2, 7=class3
+--        4:5 -> GS/TS
+--       6:13 -> TID(6:13)
+--      14:17 -> Size
+--      18    -> reserved for tlb, extclass_enable(0) for erats
+--      19    -> mmucsr0.tlb0fi for tlb, or TID_NZ for erats
+--      20:25 -> TID(0:5)
 addr_enable(0) <=   not(or_reduce(ex6_valid_q) and or_reduce(ex6_ttype_q(4 to 5))) and    
                     ( (snoop_val_q(0) and snoop_val_q(1) and not snoop_attr_q(1) and snoop_attr_q(2) and snoop_attr_q(3))  
                    or (or_reduce(ex1_valid_q) and ex1_ttype_q(2) and ex1_tlbsel_q(0) and not ex1_tlbsel_q(1) and not(snoop_val_q(0) and snoop_val_q(1))) 
@@ -3293,6 +3882,7 @@ comp_pgsize          <=  CAM_PgSize_1GB  when snoop_attr_q(14 to 17)=WS0_PgSize_
 pgsize_enable                   <=  '0' when (ex6_valid_q/="0000" and ex6_ttype_q(4 to 5)/="00")  
                              else '1' when (snoop_val_q(0 to 1)="11" and snoop_attr_q(0 to 3)="0011") 
                              else '0';
+-- mmucr1_q: 0-IRRE, 1-REE, 2-CEE, 3-csync, 4-isync, 5:6-IPEI, 7:8-ICTID/ITTID
 comp_class        <=  ( snoop_attr_q(20 to 21) and (0 to 1 => (snoop_val_q(0) and snoop_val_q(1) and mmucr1_q(7))) )      
                 or  ( snoop_attr_q(2 to 3)   and (0 to 1 => (snoop_val_q(0) and snoop_val_q(1) and not mmucr1_q(7))) ) 
                 or  ( ex1_pid_q(pid_width-14 to pid_width-13) and (0 to 1 => (not(snoop_val_q(0) and snoop_val_q(1)) and mmucr1_q(7) and ex1_ieratsx)) ) 
@@ -3307,11 +3897,26 @@ class_enable(1) <=  '0' when (mmucr1_q(7)='1')
                 else '0';
 class_enable(2) <=  '0' when (mmucr1_q(7)='0')  
                 else pid_enable;
+-- snoop_attr:
+--          0 -> Local
+--        1:3 -> IS/Class: 0=all, 1=tid, 2=gs, 3=epn, 4=class0, 5=class1, 6=class2, 7=class3
+--        4:5 -> GS/TS
+--       6:13 -> TID(6:13)
+--      14:17 -> Size
+--      18    -> reserved for tlb, extclass_enable(0) for erats
+--      19    -> mmucsr0.tlb0fi for tlb, or TID_NZ for erats
+--      20:25 -> TID(0:5)
+--comp_extclass                  <= (others => '0'); -- std_ulogic_vector(0 to 1);
+--extclass_enable                <=  10  when (ex6_valid_q/= 0000  and ex6_ttype_q(4 to 5)/= 00 )  -- csync or isync enabled
+--                             else  10  when (snoop_val_q(0 to 1)= 11 ) -- any invalidate snoop
+--                             else  00 ; -- std_ulogic;
 comp_extclass(0) <=  '0';
 comp_extclass(1) <=  snoop_attr_q(19);
 extclass_enable(0) <=  ( or_reduce(ex6_valid_q) and or_reduce(ex6_ttype_q(4 to 5)) )  
                                or ( snoop_val_q(0) and snoop_val_q(1) and snoop_attr_q(18) );
 extclass_enable(1) <=  ( snoop_val_q(0) and snoop_val_q(1) and not snoop_attr_q(1) and snoop_attr_q(3) );
+-- state: 0:pr 1:gs 2:is 3:cm
+-- cam state bits are 0:HS, 1:AS
 comp_state         <=  ( snoop_attr_q(4 to 5) and (0 to 1 => (snoop_val_q(0) and snoop_val_q(1) and not snoop_attr_q(1) and snoop_attr_q(2))) ) 
                   or ( ex1_state_q(1 to 2)  and (0 to 1 => (not(snoop_val_q(0) and snoop_val_q(1)) and ex1_ieratsx)) )  
                   or ( iu1_state_d(1 to 2)  and (0 to 1 => (not(snoop_val_q(0) and snoop_val_q(1)) and not ex1_ieratsx)) ) ;
@@ -3342,6 +3947,62 @@ pid_enable     <=   not(or_reduce(ex6_valid_q) and or_reduce(ex6_ttype_q(4 to 5)
                     ( (snoop_val_q(0) and snoop_val_q(1) and not snoop_attr_q(1) and snoop_attr_q(3))  
                    or (or_reduce(ex1_valid_q) and ex1_ttype_q(2) and ex1_tlbsel_q(0) and not ex1_tlbsel_q(1) and not(snoop_val_q(0) and snoop_val_q(1))) 
                    or (iu_ierat_iu0_val and not(snoop_val_q(0) and snoop_val_q(1))) );
+-- wr_cam_data
+--  0:51  - EPN
+--  52  - X
+--  53:55  - SIZE
+--  56  - V
+--  57:60  - ThdID
+--  61:62  - Class
+--  63:64  - ExtClass | TID_NZ
+--  65  - TGS
+--  66  - TS
+--  67:74  - TID
+--  75:78  - epn_cmpmasks:  34_39, 40_43, 44_47, 48_51
+--  79:82  - xbit_cmpmasks: 34_51, 40_51, 44_51, 48_51
+--  83  - parity for 75:82
+-- 16x143 version, 42b RA
+-- wr_array_data
+--  0:29  - RPN
+--  30:31  - R,C
+--  32:33  - WLC
+--  34     - ResvAttr
+--  35     - VF
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
+--  51:60  - CAM parity
+--  61:67  - Array parity
+-- wr_ws0_data (LO)
+--  0:51  - EPN
+--  52:53  - Class
+--  54  - V
+--  55  - X
+--  56:59  - SIZE
+--  60:63  - ThdID
+-- CAM.ExtClass - MMUCR ExtClass
+-- CAM.TS - MMUCR TS
+-- CAM.TID - MMUCR TID
+-- wr_ws1_data (HI)
+--  0:7  - unused
+--  8:9  - WLC
+--  10  - ResvAttr
+--  11  - unused
+--  12:15  - U0-U3
+--  16:17  - R,C
+--  18:21  - unused
+--  22:51  - RPN
+--  52:56  - WIMGE
+--  57  - VF (not supported in ierat)
+--  58:59  - UX,SX
+--  60:61  - UW,SW
+--  62:63  - UR,SR
+--                EPN                    Class                   V
+--                 X                 SIZE                 ThdID
+--                Unused      ResvAttr                  U0-U3                       R,C
+--                 RPN                      WIMGE                     Unused   UX,UW,UR,SX,SW,SR
 gen64_data_out: if data_out_width = 64 generate
 ex4_data_out_d  <=  ( ((0 to 31 => '0') & rd_cam_data(32 to 51) & rd_cam_data(61 to 62) & rd_cam_data(56) & 
                    rd_cam_data(52) & ws0_pgsize(0 to 3) & rd_cam_data(57 to 60)) 
@@ -3380,6 +4041,26 @@ ex4_data_out_d  <=  ( (rd_cam_data(32 to 51) & rd_cam_data(61 to 62) & rd_cam_da
             or  ( ((32 to 49 => '0') & ex3_eratsx_data_q(0 to 1) & (52 to 59 => '0') & ex3_eratsx_data_q(2 to 2+num_entry_log2-1))
                  and (64-data_out_width to 63 => (or_reduce(ex3_valid_q) and ex3_ttype_q(2))) );
 end generate gen32_data_out;
+-- ERAT outputs
+-- pass thru ifar offset bits depending on page size from cam entry
+--        wr_cam_data(75)   (76)    (77)   (78)           (79)   (80)   (81)   (82)
+--             cmpmask(0)    (1)     (2)    (3)    xbitmask(0)    (1)    (2)    (3)
+--   xbit  pgsize      34_39  40_43  44_47  48_51           34_39  40_43  44_47  48_51    size
+--    0     001          1      1      1      1               0      0      0      0       4K
+--    0     011          1      1      1      0               0      0      0      0       64K
+--    0     101          1      1      0      0               0      0      0      0       1M
+--    0     111          1      0      0      0               0      0      0      0       16M
+--    0     110          0      0      0      0               0      0      0      0       1G
+-- new cam _np2  bypass attributes (bit numbering per array)
+--  30:31  - R,C
+--  32:33  - WLC
+--  34  - ResvAttr
+--  35  - VF
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
 bypass_mux_enab_np1  <=  (ccr2_frat_paranoia_q(9) or iu_ierat_iu1_back_inv or an_ac_grffence_en_dc);
 bypass_attr_np1(0 TO 5) <=  (others => '0');
 bypass_attr_np1(6 TO 9) <=  ccr2_frat_paranoia_q(5 to 8);
@@ -3406,6 +4087,10 @@ iu_mm_ierat_mmucr1           <=  ex6_ieen_q(1 to num_entry_log2);
 iu_mm_ierat_mmucr1_we        <=  ex6_ieen_q(0);
 iu_xu_ierat_ex3_par_err  <=  ex3_parerr_q(0 to thdid_width-1) and (0 to thdid_width-1 => ex3_parerr_enab);
 iu_xu_ierat_ex4_par_err  <=  ex4_parerr_q(0 to thdid_width-1) and (0 to thdid_width-1 => ex4_parerr_enab);
+-- NOTE: example parity generation/checks in iuq_ic_dir.vhdl or xuq_lsu_dc_arr.vhdl.
+-----------------------------------------------------------------------
+-- CAM Instantiation
+-----------------------------------------------------------------------
 ierat_cam: entity tri.tri_cam_16x143_1r1w1c
   generic map (expand_type => expand_type)
   port map (
@@ -3482,15 +4167,27 @@ ierat_cam: entity tri.tri_cam_16x143_1r1w1c
    rd_cam_data                    => rd_cam_data,    
 
 
+----- new ports for IO plus -----------------------
 bypass_mux_enab_np1            =>  bypass_mux_enab_np1,   
    bypass_attr_np1                =>  bypass_attr_np1,       
    attr_np2	                  =>  attr_np2,              
    rpn_np2	                  =>  rpn_np2         
 
   );
+-- bypass attributes (bit numbering per array)
+--  30:31  - R,C
+--  32:33  - WLC
+--  34  - ResvAttr
+--  35  - VF
+--  36:39  - U0-U3
+--  40:44  - WIMGE
+--  45:46  - UX,SX
+--  47:48  - UW,SW
+--  49:50  - UR,SR
 ierat_iu_iu2_rpn            <=  rpn_np2;
 ierat_iu_iu2_wimge          <=  attr_np2(10 to 14);
 ierat_iu_iu2_u              <=  attr_np2(6 to 9);
+-- debug bus outputs
 iu1_debug_d(0) <=  comp_request;
 iu1_debug_d(1) <=  comp_invalidate;
 iu1_debug_d(2) <=  ( or_reduce(ex6_valid_q) and or_reduce(ex6_ttype_q(4 to 5)) );
@@ -3560,6 +4257,7 @@ ierat_iu_debug_group3(36 TO 51) <=  entry_match_q(0 to 15);
 ierat_iu_debug_group3(52 TO 67) <=  '0' & lru_q(1 to 15);
 ierat_iu_debug_group3(68 TO 83) <=  '0' & lru_debug_q(5 to 19);
 ierat_iu_debug_group3(84 TO 87) <=  lru_debug_q(20 to 23);
+-- unused spare signal assignments
 unused_dc(0) <=  mmucr1_q(2);
 unused_dc(1) <=  iu2_multihit_enab and or_reduce(iu2_first_hit_entry);
 unused_dc(2) <=  or_reduce(ex6_ttype_q(2 to 3)) and ex6_state_q(0);
@@ -3582,6 +4280,7 @@ unused_dc(18) <=  or_reduce(ex6_rs_is_q);
 unused_dc(19) <=  pc_func_sl_thold_0_b or pc_func_sl_force;
 unused_dc(20) <=  cam_mpw1_b(4) or cam_delay_lclkr(4);
 unused_dc(21) <=  or_reduce(ex1_ttype_q(ttype_width-2 to ttype_width));
+-- bit 22 used elsewhere
 unused_dc(23) <=  ex7_ttype_q(0);
 unused_dc(24) <=  or_reduce(ex7_ttype_q(2 TO 5));
 unused_dc(25) <=  or_reduce(por_wr_array_data(51 to 67));
@@ -3589,6 +4288,9 @@ unused_dc(26) <=  or_reduce(bcfg_q_b(87 to 102));
 unused_dc(27) <=  or_reduce(bcfg_q_b(103 to 106));
 unused_dc(28) <=  or_reduce(bcfg_q(108 to 122));
 unused_dc(29) <=  or_reduce(bcfg_q_b(107 to 122));
+-----------------------------------------------------------------------
+-- Latches
+-----------------------------------------------------------------------
 ex1_valid_latch: tri_rlmreg_p
   generic map (width => ex1_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -3742,6 +4444,7 @@ ex1_tlbsel_latch: tri_rlmreg_p
             scout   => sov_0(ex1_tlbsel_offset to ex1_tlbsel_offset+ex1_tlbsel_q'length-1),
             din     => ex1_tlbsel_d(0 to tlbsel_width-1),
             dout    => ex1_tlbsel_q(0 to tlbsel_width-1)  );
+-------------------------------------------------------------------------------
 ex2_valid_latch: tri_rlmreg_p
   generic map (width => ex2_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -3895,6 +4598,7 @@ ex2_tlbsel_latch: tri_rlmreg_p
             scout   => sov_0(ex2_tlbsel_offset to ex2_tlbsel_offset+ex2_tlbsel_q'length-1),
             din     => ex2_tlbsel_d(0 to tlbsel_width-1),
             dout    => ex2_tlbsel_q(0 to tlbsel_width-1)  );
+-------------------------------------------------------------------------------
 ex3_valid_latch: tri_rlmreg_p
   generic map (width => ex3_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4065,6 +4769,7 @@ ex3_eratsx_data_latch: tri_rlmreg_p
             scout   => sov_0(ex3_eratsx_data_offset to ex3_eratsx_data_offset+ex3_eratsx_data_q'length-1),
             din     => ex3_eratsx_data_d(0 to 2+num_entry_log2-1),
             dout    => ex3_eratsx_data_q(0 to 2+num_entry_log2-1)  );
+-------------------------------------------------------------------------------
 ex4_valid_latch: tri_rlmreg_p
   generic map (width => ex4_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4218,6 +4923,7 @@ ex4_tlbsel_latch: tri_rlmreg_p
             scout   => sov_0(ex4_tlbsel_offset to ex4_tlbsel_offset+ex4_tlbsel_q'length-1),
             din     => ex4_tlbsel_d(0 to tlbsel_width-1),
             dout    => ex4_tlbsel_q(0 to tlbsel_width-1)  );
+--------------------------------------------------
 ex4_data_out_latch: tri_rlmreg_p
   generic map (width => ex4_data_out_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4235,6 +4941,7 @@ ex4_data_out_latch: tri_rlmreg_p
             scout   => sov_0(ex4_data_out_offset to ex4_data_out_offset+ex4_data_out_q'length-1),
             din     => ex4_data_out_d(64-data_out_width to 63),
             dout    => ex4_data_out_q(64-data_out_width to 63)  );
+-------------------------------------------------------------------------------
 ex5_valid_latch: tri_rlmreg_p
   generic map (width => ex5_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4388,6 +5095,7 @@ ex5_tlbsel_latch: tri_rlmreg_p
             scout   => sov_0(ex5_tlbsel_offset to ex5_tlbsel_offset+ex5_tlbsel_q'length-1),
             din     => ex5_tlbsel_d(0 to tlbsel_width-1),
             dout    => ex5_tlbsel_q(0 to tlbsel_width-1)  );
+--------------------------------------------------
 ex5_data_in_latch: tri_rlmreg_p
   generic map (width => ex5_data_in_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4405,6 +5113,7 @@ ex5_data_in_latch: tri_rlmreg_p
             scout   => sov_0(ex5_data_in_offset to ex5_data_in_offset+ex5_data_in_q'length-1),
             din     => ex5_data_in_d(64-rs_data_width to 63),
             dout    => ex5_data_in_q(64-rs_data_width to 63)  );
+-------------------------------------------------------------------------------
 ex6_valid_latch: tri_rlmreg_p
   generic map (width => ex6_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4558,6 +5267,7 @@ ex6_tlbsel_latch: tri_rlmreg_p
             scout   => sov_0(ex6_tlbsel_offset to ex6_tlbsel_offset+ex6_tlbsel_q'length-1),
             din     => ex6_tlbsel_d(0 to tlbsel_width-1),
             dout    => ex6_tlbsel_q(0 to tlbsel_width-1)  );
+--------------------------------------------------
 ex6_data_in_latch: tri_rlmreg_p
   generic map (width => ex6_data_in_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4575,6 +5285,7 @@ ex6_data_in_latch: tri_rlmreg_p
             scout   => sov_0(ex6_data_in_offset to ex6_data_in_offset+ex6_data_in_q'length-1),
             din     => ex6_data_in_d(64-rs_data_width to 63),
             dout    => ex6_data_in_q(64-rs_data_width to 63)  );
+--------------------------------------------------
 ex7_valid_latch: tri_rlmreg_p
   generic map (width => ex7_valid_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -5357,6 +6068,7 @@ por_seq_latch: tri_rlmreg_p
             scout   => sov_1(por_seq_offset to por_seq_offset+por_seq_q'length-1),
             din     => por_seq_d(0 to por_seq_width-1),
             dout    => por_seq_q(0 to por_seq_width-1)  );
+-- timing latches for reloads
 tlb_rel_val_latch: tri_rlmreg_p
   generic map (width => tlb_rel_val_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -5748,6 +6460,7 @@ snoop_act_latch: tri_rlmlatch_p
             scout   => sov_1(snoop_act_offset),
             din     => mm_iu_ierat_snoop_coming,
             dout    => snoop_act_q);
+-- for debug trace bus latch act
 trace_bus_enable_latch: tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -5816,6 +6529,9 @@ spare_b_latch: tri_rlmreg_p
             scout   => sov_1(spare_b_offset to spare_b_offset+15),
             din     => spare_q(16 to 31),
             dout    => spare_q(16 to 31)  );
+--------------------------------------------------
+-- scan only latches for boot config
+--------------------------------------------------
 mpg_bcfg_gen: if expand_type /= 1 generate
 bcfg_epn_0to15_latch: tri_slat_scan
   generic map (width => 16, init => std_ulogic_vector( to_unsigned( bcfg_epn_0to15, 16 ) ), 
@@ -6128,6 +6844,9 @@ bcfg_spare_latch: tri_rlmreg_p
             din     => bcfg_q(107 to 122),
             dout    => bcfg_q(107 to 122)  );
 end generate fpga_bcfg_gen;
+--------------------------------------------------
+-- thold/sg latches
+--------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 4, expand_type => expand_type)
   port map (vd          => vdd,
@@ -6173,6 +6892,9 @@ perv_lcbor_func_slp_sl: tri_lcbor
             forcee => pc_func_slp_sl_force,
             thold_b     => pc_func_slp_sl_thold_0_b);
 mpg_bcfg_lcb_gen: if expand_type /= 1 generate
+--------------------------------------------------
+-- local clock buffer for boot config
+--------------------------------------------------
 bcfg_lcb: tri_lcbs
   generic map (expand_type => expand_type)
   port map (vd      => vdd,
@@ -6183,6 +6905,8 @@ bcfg_lcb: tri_lcbs
             thold_b     => pc_cfg_slp_sl_thold_0_b,
             dclk        => lcb_dclk,
             lclk        => lcb_lclk  );
+-- these terms in the absence of another lcbor component
+--  that drives the thold_b and force into the bcfg_lcb for slat's
 pc_cfg_slp_sl_thold_0_b  <=  NOT pc_cfg_slp_sl_thold_0;
 pc_cfg_slp_sl_force    <=  pc_sg_0;
 end generate mpg_bcfg_lcb_gen;
@@ -6196,6 +6920,9 @@ perv_lcbor_cfg_sl: tri_lcbor
             forcee => pc_cfg_slp_sl_force,
             thold_b     => pc_cfg_slp_sl_thold_0_b);
 end generate fpga_bcfg_lcb_gen;
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv_0(0 TO scan_right_0) <=  sov_0(1 to scan_right_0) & ac_func_scan_in(0);
 ac_func_scan_out(0) <=  sov_0(0);
 siv_1(0 TO scan_right_1) <=  sov_1(1 to scan_right_1) & ac_func_scan_in(1);
@@ -6203,4 +6930,3 @@ ac_func_scan_out(1) <=  sov_1(0);
 bsiv(0 TO boot_scan_right) <=  bsov(1 to boot_scan_right) & ac_ccfg_scan_in;
 ac_ccfg_scan_out  <=  bsov(0);
 END IUQ_IC_IERAT;
-

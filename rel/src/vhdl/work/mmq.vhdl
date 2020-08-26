@@ -321,6 +321,7 @@ an_ac_scan_dis_dc_b   : in std_ulogic;
 an_ac_scom_cch  	   : in std_ulogic;
 an_ac_scom_dch  	   : in std_ulogic;
 an_ac_checkstop 	   : in std_ulogic;
+--   _omm  suffix means output from mmu
 an_ac_back_inv_omm	         : out std_ulogic;
 an_ac_back_inv_addr_omm     : out std_ulogic_vector(64-real_addr_width to 63);
 an_ac_back_inv_target_omm_iua   : out std_ulogic_vector(0 to 1);
@@ -364,6 +365,7 @@ an_ac_scan_dis_dc_b_omm       : out std_ulogic;
 an_ac_scom_cch_omm  	   : out std_ulogic;
 an_ac_scom_dch_omm  	   : out std_ulogic;
 an_ac_checkstop_omm 	   : out std_ulogic;
+--   _imm  prefix means input to mmu
 ac_an_abst_scan_out_imm_iu    : in std_ulogic_vector(0 to 4);
 ac_an_abst_scan_out_imm_xu    : in std_ulogic_vector(7 to 9);
 ac_an_bcfg_scan_out_imm	   : in std_ulogic_vector(0 to 4);
@@ -550,6 +552,7 @@ ac_an_dcr_user  	   : out std_ulogic;
 ac_an_dcr_etid  	   : out std_ulogic_vector(0 to 1);
 ac_an_dcr_addr  	   : out std_ulogic_vector(11 to 20);
 ac_an_dcr_data	   : out std_ulogic_vector(64-spr_data_width to 63);
+-- Pass thru wires specifically for Bluegene, PC -> IU -> MMU -> L1P/TPB
 bg_ac_an_func_scan_ns_imm        : in  std_ulogic_vector(60 to 69);
 bg_ac_an_abst_scan_ns_imm        : in  std_ulogic_vector(10 to 11);
 bg_ac_an_func_scan_ns            : out std_ulogic_vector(60 to 69);
@@ -614,6 +617,7 @@ bg_pc_bo_select                    : out std_ulogic_vector(0 to 10);
 bg_pc_l1p_ccflush_dc               : out std_ulogic;
 bg_pc_l1p_abist_ena_dc             : out std_ulogic;
 bg_pc_l1p_abist_raw_dc_b           : out std_ulogic;
+-- Pass thru wires specifically for Bluegene, L1P/TPB -> MMU -> IU -> PC
 bg_an_ac_func_scan_sn              : in  std_ulogic_vector(60 to 69);
 bg_an_ac_abst_scan_sn              : in  std_ulogic_vector(10 to 11);
 bg_an_ac_func_scan_sn_omm          : out std_ulogic_vector(60 to 69);
@@ -629,6 +633,16 @@ constant MMU_Mode_Value : std_ulogic := '0';
 constant TlbSel_Tlb : std_ulogic_vector(0 to 1) := "00";
 constant TlbSel_IErat : std_ulogic_vector(0 to 1) := "10";
 constant TlbSel_DErat : std_ulogic_vector(0 to 1) := "11";
+-- func scan bit 0 is mmq_inval (701), mmq_spr(0) non-mas (439)  ~1140
+-- func scan bit 1 is mmq_spr(1) mas regs (1017)  ~1017
+-- func scan bit 2 is tlb_req  ~1196
+-- func scan bit 3 is tlb_ctl ~1101
+-- func scan bit 4 is tlb_cmp(0) ~1134
+-- func scan bit 5 is tlb_cmp(1) ~1134
+-- func scan bit 6 is tlb_lrat ~1059
+-- func scan bit 7 is tlb_htw(0)  ~802
+-- func scan bit 8 is tlb_htw(1)  ~663
+-- func scan bit 9 is tlb_cmp(2), perf (60), debug daisy chain (134) ~636
 constant mmq_inval_offset     :  natural := 0;
 constant mmq_spr_offset_0     :  natural := mmq_inval_offset + 1;
 constant scan_right_0         :  natural := mmq_spr_offset_0;
@@ -638,6 +652,7 @@ constant mmq_dbg_offset       :  natural := mmq_perf_offset + 1;
 constant scan_right_1         :  natural := mmq_dbg_offset;
 constant mmq_spr_bcfg_offset   : natural := 0;
 constant boot_scan_right       : natural := mmq_spr_bcfg_offset + 1 - 1;
+-- local spr signals
 signal pid0_sig        : std_ulogic_vector(0 to pid_width-1);
 signal pid1_sig        : std_ulogic_vector(0 to pid_width-1);
 signal pid2_sig        : std_ulogic_vector(0 to pid_width-1);
@@ -689,6 +704,7 @@ signal htw_quiesce_sig     : std_ulogic_vector(0 to thdid_width-1);
 signal xu_mm_ccr2_notlb_b : std_ulogic_vector(1 to 12);
 signal xu_mm_epcr_dgtmi_sig  : std_ulogic_vector(0 to thdid_width-1);
 signal xu_mm_xucr4_mmu_mchk_q  : std_ulogic;
+-- Internal signals
 signal lru_write               : std_ulogic_vector(0 to lru_width-1);
 signal lru_wr_addr             : std_ulogic_vector(0 to tlb_addr_width-1);
 signal lru_rd_addr             : std_ulogic_vector(0 to tlb_addr_width-1);
@@ -753,6 +769,7 @@ signal tlb_htw_req_way   : std_ulogic_vector(tlb_word_width to tlb_way_width-1);
 signal htw_lsu_req_valid        : std_ulogic;
 signal htw_lsu_thdid        : std_ulogic_vector(0 to thdid_width-1);
 signal htw_dbg_lsu_thdid        : std_ulogic_vector(0 to 1);
+-- 0=tlbivax_op, 1=tlbi_complete, 2=mmu read with core_tag=01100, 3=mmu read with core_tag=01101
 signal htw_lsu_ttype            : std_ulogic_vector(0 to 1);
 signal htw_lsu_wimge            : std_ulogic_vector(0 to 4);
 signal htw_lsu_u                : std_ulogic_vector(0 to 3);
@@ -789,6 +806,7 @@ signal tlbwe_back_inv_addr_sig    : std_ulogic_vector(52-epn_width to 51);
 signal tlbwe_back_inv_attr_sig    : std_ulogic_vector(0 to 34);
 signal tlbwe_back_inv_pending_sig   : std_ulogic;
 signal tlb_tag5_write    : std_ulogic;
+--  these are needed regardless of tlb existence
 signal tlb_snoop_coming   : std_ulogic;
 signal tlb_snoop_val      : std_ulogic;
 signal tlb_snoop_attr     : std_ulogic_vector(0 to 34);
@@ -1059,6 +1077,7 @@ signal inval_perf_tlbilx             : std_ulogic;
 signal inval_perf_tlbivax            : std_ulogic;
 signal inval_perf_tlbivax_snoop      : std_ulogic;
 signal inval_perf_tlb_flush          : std_ulogic;
+----------- debug signals
 signal spr_dbg_match_64b           : std_ulogic;
 signal spr_dbg_match_any_mmu       : std_ulogic;
 signal spr_dbg_match_any_mas       : std_ulogic;
@@ -1337,10 +1356,12 @@ signal htw_dbg_pte1_score_pending_q     : std_ulogic;
 signal htw_dbg_pte1_score_ibit_q        : std_ulogic;
 signal htw_dbg_pte1_score_dataval_q     : std_ulogic;
 signal htw_dbg_pte1_reld_for_me_tm1     : std_ulogic;
+-- power clock gating sigs
 signal tlb_delayed_act  : std_ulogic_vector(9 to 32);
 signal unused_dc  :  std_ulogic_vector(0 to 70);
 -- synopsys translate_off
 -- synopsys translate_on
+-- Pervasive
 signal lcb_clkoff_dc_b     : std_ulogic;
 signal lcb_act_dis_dc      : std_ulogic;
 signal lcb_d_mode_dc       : std_ulogic;
@@ -1415,9 +1436,15 @@ signal bsov                     : std_ulogic_vector(0 to boot_scan_right);
 signal tidn                     : std_ulogic;
 signal ac_an_psro_ringsig_b         : std_ulogic;
 begin
+-----------------------------------------------------------------------
+-- common stuff for tlb and erat-only modes
+-----------------------------------------------------------------------
 tidn <= '0';
 ac_an_lpar_id <= ac_an_lpar_id_sig;
 mm_xu_lsu_lpidr <= lpidr_sig;
+-----------------------------------------------------------------------
+-- Invalidate Component Instantiation
+-----------------------------------------------------------------------
 mmq_inval: entity work.mmq_inval(mmq_inval)
   generic map ( rs_data_width => rs_data_width,
                    epn_width => epn_width, 
@@ -1607,6 +1634,10 @@ mmq_inval: entity work.mmq_inval(mmq_inval)
      inval_dbg_snoop_vpn_q            => inval_dbg_snoop_vpn_q,  
      inval_dbg_lsu_tokens_q           => inval_dbg_lsu_tokens_q  
 );
+-- End of mmq_inval component instantiation
+-----------------------------------------------------------------------
+-- Special Purpose Register Component Instantiation
+-----------------------------------------------------------------------
 mmq_spr: entity work.mmq_spr(mmq_spr)
   generic map ( spr_data_width => spr_data_width,
                    expand_tlb_type => expand_tlb_type,  
@@ -1919,6 +1950,10 @@ pc_sg_2                  => pc_sg_2(0),
      mm_iu_slowspr_done         => slowspr_done_out
 
 );
+-- End of mmq_spr component instantiation
+-----------------------------------------------------------------------
+-- Debug Trace component instantiation
+-----------------------------------------------------------------------
 mmq_dbg: entity work.mmq_dbg(mmq_dbg)
   generic map ( tlb_tag_width => tlb_tag_width,
                      expand_type => expand_type )
@@ -2284,6 +2319,10 @@ mmq_dbg: entity work.mmq_dbg(mmq_dbg)
      ptereload_req_taken             => ptereload_req_taken,  
      ptereload_req_pte               => ptereload_req_pte   
 );
+-- End of mmq_dbg component instantiation
+-----------------------------------------------------------------------
+-- Performance Event component instantiation
+-----------------------------------------------------------------------
 mmq_perf: entity work.mmq_perf(mmq_perf)
   generic map ( expand_type => expand_type )
   port map(
@@ -2309,6 +2348,7 @@ mmq_perf: entity work.mmq_perf(mmq_perf)
      xu_mm_ccr2_notlb_b => xu_mm_ccr2_notlb_b(2),
 
 
+-- count event inputs
 xu_mm_ex5_perf_dtlb     =>  xu_mm_ex5_perf_dtlb, 
      xu_mm_ex5_perf_itlb     =>  xu_mm_ex5_perf_itlb, 
 
@@ -2375,11 +2415,16 @@ xu_mm_ex5_perf_dtlb     =>  xu_mm_ex5_perf_dtlb,
      tlb_ctl_perf_tlbwec_noresv     => tlb_ctl_perf_tlbwec_noresv,  
 
 
+-- control inputs
 pc_mm_event_mux_ctrls       => pc_mm_event_mux_ctrls(0 to 39),
      pc_mm_event_count_mode      => pc_mm_event_count_mode(0 to 2),
      rp_mm_event_bus_enable_q    => rp_mm_event_bus_enable_q,
      mm_pc_event_data            => mm_pc_event_data(0 to 7)
 );
+-- End of mmq_perf component instantiation
+-----------------------------------------------------------------------
+-- Pervasive and LCB Control Component Instantiation
+-----------------------------------------------------------------------
 mmq_perv : entity work.mmq_perv(mmq_perv)
 generic map (expand_type        => expand_type)
 port map (
@@ -2515,6 +2560,11 @@ port map (
           dcfg_scan_out_int     => dcfg_scan_out_int,   
           dcfg_scan_out         => dcfg_scan_out     
   );
+-----------------------------------------------------------------------
+-- output assignments
+-----------------------------------------------------------------------
+-- tie off undriven ports when tlb components are not present
+--  keep this here for schmucks that like to control TLB existence with generics
 eratonly_tieoffs_gen: if expand_tlb_type = 0 generate
 mm_iu_ierat_rel_val_sig        <= (others => '0');
 mm_iu_ierat_rel_data_sig       <= (others => '0');
@@ -2529,6 +2579,7 @@ tlb_ctl_ex2_illeg_instr_sig  <= (others => '0');
 tlb_req_quiesce_sig          <= (others => '1');
 tlb_ctl_quiesce_sig          <= (others => '1');
 htw_quiesce_sig              <= (others => '1');
+-- missing perf count signals
 tlb_cmp_perf_event_t0      <= (others => '0');
 tlb_cmp_perf_event_t1      <= (others => '0');
 tlb_cmp_perf_event_t2      <= (others => '0');
@@ -2579,6 +2630,7 @@ tlb_cmp_perf_pt_fault          <= '0';
 tlb_cmp_perf_pt_inelig         <= '0';
 tlb_ctl_perf_tlbwec_resv       <= '0';
 tlb_ctl_perf_tlbwec_noresv     <= '0';
+-- missing debug signals
 tlb_cmp_dbg_tag4                <= (others => '0');
 tlb_cmp_dbg_tag4_wayhit         <= (others => '0');
 tlb_cmp_dbg_addr4               <= (others => '0');
@@ -2632,7 +2684,14 @@ mm_xu_lsu_lpid             <= mm_xu_lsu_lpid_sig;
 mm_xu_lsu_gs               <= mm_xu_lsu_gs_sig;
 mm_xu_lsu_ind              <= mm_xu_lsu_ind_sig;
 mm_xu_lsu_lbit             <= mm_xu_lsu_lbit_sig;
+-------------------- glorp1: end of common stuff for both erat-only and tlb -------------
 tlb_gen_logic: if expand_tlb_type > 0 generate
+-----------------------------------------------------------------------
+-- Start of TLB logic
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+-- TLB Request Queue Component Instantiation
+-----------------------------------------------------------------------
 mmq_tlb_req: entity work.mmq_tlb_req(mmq_tlb_req)
   generic map ( pid_width => pid_width,
                    pid_width_erat => pid_width_erat,
@@ -2807,6 +2866,10 @@ mmq_tlb_req: entity work.mmq_tlb_req(mmq_tlb_req)
      tlb_req_dbg_derat_req_ttype_q    => tlb_req_dbg_derat_req_ttype_q,  
      tlb_req_dbg_derat_req_dup_q      => tlb_req_dbg_derat_req_dup_q  
 );
+-- End of mmq_tlb_req component instantiation
+-----------------------------------------------------------------------
+-- TLB Control Logic Component Instantiation
+-----------------------------------------------------------------------
 mmq_tlb_ctl: entity work.mmq_tlb_ctl(mmq_tlb_ctl)
   generic map (     epn_width => epn_width,
                        pid_width => pid_width,
@@ -3120,6 +3183,10 @@ mmq_tlb_ctl: entity work.mmq_tlb_ctl(mmq_tlb_ctl)
      tlb_ctl_dbg_clr_resv_q                    => tlb_ctl_dbg_clr_resv_q,  
      tlb_ctl_dbg_clr_resv_terms                => tlb_ctl_dbg_clr_resv_terms  
 );
+-- End of mmq_tlb_ctl component instantiation
+-----------------------------------------------------------------------
+-- TLB Compare Logic Component Instantiation
+-----------------------------------------------------------------------
 mmq_tlb_cmp: entity work.mmq_tlb_cmp(mmq_tlb_cmp)
   generic map (     epn_width => epn_width,
                        pid_width => pid_width,
@@ -3481,6 +3548,8 @@ mmq_tlb_cmp: entity work.mmq_tlb_cmp(mmq_tlb_cmp)
      tlb_cmp_dbg_way3_iprot_match                    => tlb_cmp_dbg_way3_iprot_match  
 
 );
+-- End of mmq_tlb_cmp component instantiation
+-- End of mmq_tlb_cmp component instantiation
 mmq_tlb_lrat: entity work.mmq_tlb_lrat(mmq_tlb_lrat)
   generic map ( epn_width => epn_width,
                    spr_data_width => spr_data_width, 
@@ -3641,6 +3710,7 @@ mmq_tlb_lrat: entity work.mmq_tlb_lrat(mmq_tlb_lrat)
      lrat_dbg_entry7_entry_x      => lrat_dbg_entry7_entry_x,  
      lrat_dbg_entry7_size         => lrat_dbg_entry7_size  
 );
+-- End of mmq_tlb_lrat component instantiation
 mmq_htw: entity work.mmq_htw(mmq_htw)
   generic map ( thdid_width => thdid_width,
                    pid_width => pid_width,
@@ -3757,6 +3827,7 @@ mmq_htw: entity work.mmq_htw(mmq_htw)
      htw_dbg_pte1_reld_for_me_tm1     => htw_dbg_pte1_reld_for_me_tm1  
 
  );
+-- End of mmq_htw component instantiation
 end generate tlb_gen_logic;
 tlb_gen_noarrays: if expand_tlb_type = 1 generate
 tlb_dataout(0 to tlb_way_width-1) <= tlb_dataina;
@@ -3769,6 +3840,9 @@ repr_scan_int(1 to 5) <= (others => '0');
 abst_scan_int(1 to 6) <= (others => '0');
 end generate tlb_gen_noarrays;
 tlb_gen_instance: if expand_tlb_type = 2 generate
+-----------------------------------------------------------------------
+-- TLB Instantiation
+-----------------------------------------------------------------------
 tlb_array0: entity tri.tri_128x168_1w_0(tri_128x168_1w_0)
   generic map ( expand_type => expand_type )
   port map(
@@ -4011,6 +4085,9 @@ tlb_array3: entity tri.tri_128x168_1w_0(tri_128x168_1w_0)
     data_in           => tlb_datainb,
     data_out          => tlb_dataout(3*tlb_way_width to 4*tlb_way_width-1)
 );
+-----------------------------------------------------------------------
+-- LRU Instantiation
+-----------------------------------------------------------------------
 lru_array0: entity tri.tri_128x16_1r1w_1(tri_128x16_1r1w_1)
   generic map ( expand_type => expand_type )
   port map(
@@ -4084,6 +4161,12 @@ lru_array0: entity tri.tri_128x16_1r1w_1(tri_128x16_1r1w_1)
 );
 end generate tlb_gen_instance;
 xu_mm_ex2_eff_addr_sig <= xu_mm_ex2_eff_addr;
+-----------------------------------------------------------------------
+-- end of TLB logic
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv_0(0 to scan_right_0) <= sov_0(1 to scan_right_0) & func_scan_in_int(0);
 func_scan_out_int(0) <= sov_0(0);
 siv_1(0 to scan_right_1) <= sov_1(1 to scan_right_1) & func_scan_in_int(9);
@@ -4118,6 +4201,9 @@ unused_dc(28 to 31) <= MMUCR1_SIG(6 TO 9);
 unused_dc(32 to 43) <= MMUCR1_SIG(20 TO 31);
 unused_dc(44 to 65) <= TLB_TAG0_EPN(0 TO 21);
 unused_dc(66 to 70) <= XU_MM_CCR2_NOTLB_B(8 TO 12);
+-----------------------------------------------------------------------
+-- Pass thru wire mapping from node to other units
+-----------------------------------------------------------------------
 an_ac_back_inv_omm	         <= an_ac_back_inv;
 an_ac_back_inv_addr_omm     <= an_ac_back_inv_addr;
 an_ac_back_inv_target_omm_iua   <= an_ac_back_inv_target(0 to 1);
@@ -4257,6 +4343,7 @@ ac_an_dcr_user  	   <= '0';
 ac_an_dcr_etid  	   <= (others => '0');
 ac_an_dcr_addr  	   <= (others => '0');
 ac_an_dcr_data	   <= (others => '0');
+-- Pass thru wires specifically for Bluegene, PC <--> IU <--> MMU <--> L1P/TPB
 bg_ac_an_func_scan_ns      <= bg_ac_an_func_scan_ns_imm;
 bg_ac_an_abst_scan_ns      <= bg_ac_an_abst_scan_ns_imm;
 bg_pc_l1p_abist_di_0               <= bg_pc_l1p_abist_di_0_imm;
@@ -4289,9 +4376,9 @@ bg_pc_bo_select                    <= bg_pc_bo_select_imm;
 bg_pc_l1p_ccflush_dc               <= bg_pc_l1p_ccflush_dc_imm;
 bg_pc_l1p_abist_ena_dc             <= bg_pc_l1p_abist_ena_dc_imm;
 bg_pc_l1p_abist_raw_dc_b           <= bg_pc_l1p_abist_raw_dc_b_imm;
+-- Pass thru wires specifically for Bluegene, L1P/TPB -> MMU -> IU -> PC
 bg_an_ac_func_scan_sn_omm          <= bg_an_ac_func_scan_sn;
 bg_an_ac_abst_scan_sn_omm          <= bg_an_ac_abst_scan_sn;
 bg_pc_bo_fail_omm                  <= bg_pc_bo_fail;
 bg_pc_bo_diagout_omm               <= bg_pc_bo_diagout;
 end mmq;
-

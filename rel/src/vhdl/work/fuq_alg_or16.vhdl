@@ -19,7 +19,7 @@ library ieee,ibm,support,tri,work;
    use ibm.std_ulogic_mux_support.all; 
  
 entity fuq_alg_or16 is
-generic(       expand_type               : integer := 2  ); 
+generic(       expand_type               : integer := 2  ); -- 0 - ibm tech, 1 - other );
 port(
       ex2_sh_lvl2              :in   std_ulogic_vector(0 to 67) ;
       ex2_sticky_or16          :out  std_ulogic_vector(0 to 4)  
@@ -27,7 +27,7 @@ port(
 
 
 
-end fuq_alg_or16; 
+end fuq_alg_or16; -- ENTITY
 
 architecture fuq_alg_or16 of fuq_alg_or16 is
 
@@ -51,15 +51,17 @@ architecture fuq_alg_or16 of fuq_alg_or16 is
     
 
 
-
-
-
-
-
-
-
 begin
 
+------------------------------------------------------------
+-- UnMapped origianl equations
+------------------------------------------------------------
+--  ex2_sticky_or16(4) <=  OR( ex2_sh_lvl2[52:67] );
+--  ex2_sticky_or16(3) <=  OR( ex2_sh_lvl2[36:51] );
+--  ex2_sticky_or16(2) <=  OR( ex2_sh_lvl2[20:35] );
+--  ex2_sticky_or16(1) <=  OR( ex2_sh_lvl2[ 4:19] );
+--  ex2_sticky_or16(0) <=  OR( ex2_sh_lvl2[ 0: 3] );
+-----------------------------------------------------------
 
 
 g1o2_0:  ex2_g1o2_b(0) <= not( ex2_sh_lvl2( 4) or ex2_sh_lvl2( 5) );
@@ -98,6 +100,7 @@ g4o2_5:  ex2_g4o2_b(5) <= not( ex2_sh_lvl2(62) or ex2_sh_lvl2(63) );
 g4o2_6:  ex2_g4o2_b(6) <= not( ex2_sh_lvl2(64) or ex2_sh_lvl2(65) );
 g4o2_7:  ex2_g4o2_b(7) <= not( ex2_sh_lvl2(66) or ex2_sh_lvl2(67) );
 
+--------------------------------------------
 
 g1o4_0: ex2_g1o4(0) <= not(ex2_g1o2_b(0) and ex2_g1o2_b(1) );
 g1o4_1: ex2_g1o4(1) <= not(ex2_g1o2_b(2) and ex2_g1o2_b(3) );
@@ -119,6 +122,7 @@ g4o4_1: ex2_g4o4(1) <= not(ex2_g4o2_b(2) and ex2_g4o2_b(3) );
 g4o4_2: ex2_g4o4(2) <= not(ex2_g4o2_b(4) and ex2_g4o2_b(5) );
 g4o4_3: ex2_g4o4(3) <= not(ex2_g4o2_b(6) and ex2_g4o2_b(7) );
 
+-----------------------------------------------
 
 g0o8_0:  ex2_g0o8_b(0) <= not( ex2_sh_lvl2( 0) or ex2_sh_lvl2( 1) );
 g0o8_1:  ex2_g0o8_b(1) <= not( ex2_sh_lvl2( 2) or ex2_sh_lvl2( 3) );
@@ -135,6 +139,7 @@ g3o8_1: ex2_g3o8_b(1) <= not( ex2_g3o4(2) or ex2_g3o4(3) );
 g4o8_0: ex2_g4o8_b(0) <= not( ex2_g4o4(0) or ex2_g4o4(1) ); 
 g4o8_1: ex2_g4o8_b(1) <= not( ex2_g4o4(2) or ex2_g4o4(3) ); 
 
+--------------------------------------------------
 
 g0o16: ex2_o16(0) <= not(ex2_g0o8_b(0) and ex2_g0o8_b(1) );
 g1o16: ex2_o16(1) <= not(ex2_g1o8_b(0) and ex2_g1o8_b(1) );
@@ -142,6 +147,7 @@ g2o16: ex2_o16(2) <= not(ex2_g2o8_b(0) and ex2_g2o8_b(1) );
 g3o16: ex2_o16(3) <= not(ex2_g3o8_b(0) and ex2_g3o8_b(1) );
 g4o16: ex2_o16(4) <= not(ex2_g4o8_b(0) and ex2_g4o8_b(1) );
 
+--------------------------------------------------
 
 g0o16i: ex2_o16_b(0) <= not( ex2_o16(0) );
 g1o16i: ex2_o16_b(1) <= not( ex2_o16(1) );
@@ -149,6 +155,7 @@ g2o16i: ex2_o16_b(2) <= not( ex2_o16(2) );
 g3o16i: ex2_o16_b(3) <= not( ex2_o16(3) );
 g4o16i: ex2_o16_b(4) <= not( ex2_o16(4) );
 
+--------------------------------------------------
 
 g0o16ii: ex2_sticky_or16(0) <= not( ex2_o16_b(0) );
 g1o16ii: ex2_sticky_or16(1) <= not( ex2_o16_b(1) );
@@ -156,8 +163,4 @@ g2o16ii: ex2_sticky_or16(2) <= not( ex2_o16_b(2) );
 g3o16ii: ex2_sticky_or16(3) <= not( ex2_o16_b(3) );
 g4o16ii: ex2_sticky_or16(4) <= not( ex2_o16_b(4) );
 
-end; 
-                  
-
-
-
+end; -- fuq_alg_or16 ARCHITECTURE

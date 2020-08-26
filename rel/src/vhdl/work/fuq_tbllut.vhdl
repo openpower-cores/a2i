@@ -25,21 +25,22 @@ generic( expand_type               : integer := 2  );
 port(
        vdd                                       :inout power_logic;
        gnd                                       :inout power_logic;
-       clkoff_b                                  :in   std_ulogic; 
-       act_dis                                   :in   std_ulogic; 
-       flush                                     :in   std_ulogic; 
-       delay_lclkr                               :in   std_ulogic_vector(2 to 5); 
-       mpw1_b                                    :in   std_ulogic_vector(2 to 5); 
-       mpw2_b                                    :in   std_ulogic_vector(0 to 1); 
+       clkoff_b                                  :in   std_ulogic; -- tiup
+       act_dis                                   :in   std_ulogic; -- ??tidn??
+       flush                                     :in   std_ulogic; -- ??tidn??
+       delay_lclkr                               :in   std_ulogic_vector(2 to 5); -- tidn,
+       mpw1_b                                    :in   std_ulogic_vector(2 to 5); -- tidn,
+       mpw2_b                                    :in   std_ulogic_vector(0 to 1); -- tidn,
        sg_1                                      :in   std_ulogic;
        thold_1                                   :in   std_ulogic;
-       fpu_enable                                :in   std_ulogic; 
+       fpu_enable                                :in   std_ulogic; --dc_act
        nclk                                      :in   clk_logic;
 
 
-       si                        :in  std_ulogic; 
-       so                        :out std_ulogic; 
-       ex1_act                   :in  std_ulogic; 
+       si                        :in  std_ulogic; --perv
+       so                        :out std_ulogic; --perv
+       ex1_act                   :in  std_ulogic; --act
+       ------------------------------
        f_fmt_ex1_b_frac          :in  std_ulogic_vector(1 to 6);
        f_fmt_ex2_b_frac          :in  std_ulogic_vector(7 to 22);
        f_tbe_ex2_expo_lsb        :in  std_ulogic;
@@ -52,14 +53,14 @@ port(
        f_tbe_ex3_recip_2046      :in  std_ulogic;
        f_tbe_ex3_recip_2045      :in  std_ulogic;
        f_tbe_ex3_recip_2044      :in  std_ulogic;
+       ------------------------------
        f_tbl_ex5_est_frac        :out  std_ulogic_vector(0 to 26); 
        f_tbl_ex4_unf_expo        :out  std_ulogic ; 
-       f_tbl_ex5_recip_den       :out  std_ulogic 
+       f_tbl_ex5_recip_den       :out  std_ulogic --generates den flag
 );
 
 
-
-end fuq_tbllut; 
+end fuq_tbllut; -- ENTITY
 
 architecture fuq_tbllut of fuq_tbllut is
 
@@ -144,6 +145,9 @@ begin
 
    unused <= or_reduce(lua_g8(29 to 31) )  or  or_reduce(lua_g4(33 to 35) ) ;
 
+--==##############################################################
+--= ex2 logic
+--==##############################################################
 
     ex2_lut_lat: tri_rlmreg_p generic map (width=> 6, expand_type => expand_type) port map ( 
         forcee => forcee,
@@ -158,104 +162,129 @@ begin
         sg               => sg_0, 
         scout            => ex2_lut_so  ,                      
         scin             => ex2_lut_si  ,                    
+        -------------------
         din              => f_fmt_ex1_b_frac(1 to 6), 
         dout             => ex2_f(1 to 6)   );
 
+--==##############################################################
+--= ex2 logic
+--==##############################################################
 
+  --==###########################################
+  --= rsqrt ev lookup table
+  --==###########################################
 
 ftbe: entity WORK.fuq_tblsqe(fuq_tblsqe)  generic map( expand_type => expand_type) port map(
-      f(1 to 6)    => ex2_f(1 to 6)           ,
-      est(1 to 20) => ex2_est_rsqte(1 to 20)  ,
-      rng(6 to 20) => ex2_rng_rsqte(6 to 20) );
+      f(1 to 6)    => ex2_f(1 to 6)           ,--i--
+      est(1 to 20) => ex2_est_rsqte(1 to 20)  ,--o--
+      rng(6 to 20) => ex2_rng_rsqte(6 to 20) );--o--
 
+  --==###########################################
+  --= rsqrt od lookup table
+  --==###########################################
 
 ftbo: entity WORK.fuq_tblsqo(fuq_tblsqo)  generic map( expand_type => expand_type) port map( 
-      f(1 to 6)    => ex2_f(1 to 6)           ,
-      est(1 to 20) => ex2_est_rsqto(1 to 20)  ,
-      rng(6 to 20) => ex2_rng_rsqto(6 to 20) );
+      f(1 to 6)    => ex2_f(1 to 6)           ,--i--
+      est(1 to 20) => ex2_est_rsqto(1 to 20)  ,--o--
+      rng(6 to 20) => ex2_rng_rsqto(6 to 20) );--o--
 
+  --==###########################################
+  --= recip lookup table
+  --==###########################################
 
 ftbr: entity WORK.fuq_tblres(fuq_tblres)  generic map( expand_type => expand_type) port map( 
-      f(1 to 6)    => ex2_f(1 to 6)           ,
-      est(1 to 20) => ex2_est_recip(1 to 20)  ,
-      rng(6 to 20) => ex2_rng_recip(6 to 20) );
+      f(1 to 6)    => ex2_f(1 to 6)           ,--i--
+      est(1 to 20) => ex2_est_recip(1 to 20)  ,--o--
+      rng(6 to 20) => ex2_rng_recip(6 to 20) );--o--
 
 
 
+  --==###########################################
+  --= muxing
+  --==###########################################
 
    ex2_sel_recip  <= f_tbe_ex2_est_recip;
    ex2_sel_rsqte  <= f_tbe_ex2_est_rsqrt and not f_tbe_ex2_expo_lsb ;
    ex2_sel_rsqto  <= f_tbe_ex2_est_rsqrt and     f_tbe_ex2_expo_lsb ;
 
-   ex2_est(1 to 20) <= 
+   ex2_est(1 to 20) <= -- nand2 / nand3
         ( (1 to 20=> ex2_sel_recip) and ex2_est_recip(1 to 20)  ) or 
         ( (1 to 20=> ex2_sel_rsqte) and ex2_est_rsqte(1 to 20)  ) or 
         ( (1 to 20=> ex2_sel_rsqto) and ex2_est_rsqto(1 to 20)  ) ;
 
 
-   ex2_rng(6 to 20) <= 
+   ex2_rng(6 to 20) <= -- nand2 / nand3
         ( (6 to 20=> ex2_sel_recip ) and (       ex2_rng_recip(6 to 20))  ) or 
         ( (6 to 20=> ex2_sel_rsqte ) and (       ex2_rng_rsqte(6 to 20))  ) or
         ( (6 to 20=> ex2_sel_rsqto ) and (       ex2_rng_rsqto(6 to 20))  ) ;
 
 
+--==##############################################################
+--= ex3 latches
+--==##############################################################
 
     ex3_lut_e_lat:  entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 20, btr => "NLI0001_X2_A12TH", expand_type => expand_type, needs_sreset => 0  ) port map ( 
         vd               => vdd,
         gd               => gnd,
-        LCLK           => tbl_ex3_lclk               ,
+        LCLK           => tbl_ex3_lclk               ,-- lclk.clk
         D1CLK          => tbl_ex3_d1clk              ,
         D2CLK          => tbl_ex3_d2clk              ,
         SCANIN         => ex3_lut_e_si               ,                    
         SCANOUT        => ex3_lut_e_so               ,
-        D(0 to 19)     => ex2_est(1 to 20)           , 
-        QB(0 to 19)    => ex3_est_b(1 to 20)        ); 
+        D(0 to 19)     => ex2_est(1 to 20)           , --0:19
+        QB(0 to 19)    => ex3_est_b(1 to 20)        ); --0:19
 
     ex3_lut_r_lat:  entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 15, btr => "NLI0001_X4_A12TH", expand_type => expand_type, needs_sreset => 0  ) port map ( 
         vd               => vdd,
         gd               => gnd,
-        LCLK           => tbl_ex3_lclk               ,
+        LCLK           => tbl_ex3_lclk               ,-- lclk.clk
         D1CLK          => tbl_ex3_d1clk              ,
         D2CLK          => tbl_ex3_d2clk              ,
         SCANIN         => ex3_lut_r_si               ,                    
         SCANOUT        => ex3_lut_r_so               ,
-        D(0 to 14)     => ex2_rng(6 to 20)           , 
-        QB(0 to 14)    => ex3_rng_b(6 to 20)        ); 
+        D(0 to 14)     => ex2_rng(6 to 20)           , --20:34
+        QB(0 to 14)    => ex3_rng_b(6 to 20)        ); --20:34
 
     ex3_lut_b_lat:  entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 16, btr => "NLI0001_X1_A12TH", expand_type => expand_type, needs_sreset => 0  ) port map ( 
         vd               => vdd,
         gd               => gnd,
-        LCLK           => tbl_ex3_lclk               ,
+        LCLK           => tbl_ex3_lclk               ,-- lclk.clk
         D1CLK          => tbl_ex3_d1clk              ,
         D2CLK          => tbl_ex3_d2clk              ,
         SCANIN         => ex3_lut_b_si               ,                    
         SCANOUT        => ex3_lut_b_so               ,
-        D(0 to 15)     => f_fmt_ex2_b_frac(7 to 22)  , 
-        QB(0 to 15)    => ex3_bop_b(7 to 22)        ); 
+        D(0 to 15)     => f_fmt_ex2_b_frac(7 to 22)  , --35:50
+        QB(0 to 15)    => ex3_bop_b(7 to 22)        ); --35:50
 
    ex3_est(1 to 20) <= not ex3_est_b(1 to 20);
    ex3_rng(6 to 20) <= not ex3_rng_b(6 to 20);
    ex3_bop(7 to 22) <= not ex3_bop_b(7 to 22);
 
 
+--==##############################################################
+--= ex3 logic : multiply
+--==##############################################################
 
 ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_type) port map(
       vdd              => vdd,
       gnd              => gnd,
-      x(1 to 15)       => ex3_rng(6 to 20)        ,
-      y(7 to 22)       => ex3_bop(7 to 22)        ,
-      z(0)             => tiup                    ,
-      z(1 to 20)       => ex3_est(1 to 20)        ,
-      tbl_sum(0 to 36) => ex3_tbl_sum(0 to 36)    ,
-      tbl_car(0 to 35) => ex3_tbl_car(0 to 35)   );
+      x(1 to 15)       => ex3_rng(6 to 20)        ,--i-- RECODED
+      y(7 to 22)       => ex3_bop(7 to 22)        ,--i-- SHIFTED
+      z(0)             => tiup                    ,--i--
+      z(1 to 20)       => ex3_est(1 to 20)        ,--i--
+      tbl_sum(0 to 36) => ex3_tbl_sum(0 to 36)    ,--o--
+      tbl_car(0 to 35) => ex3_tbl_car(0 to 35)   );--o--
 
         
+--==##############################################################
+--= ex4 latches
+--==##############################################################
 
 
     ex4_lut_lat:  entity tri.tri_inv_nlats(tri_inv_nlats) generic map (width=> 80, btr => "NLI0001_X2_A12TH", expand_type => expand_type , needs_sreset => 0 ) port map ( 
         vd               => vdd,
         gd               => gnd,
-        LCLK           => tbl_ex4_lclk               ,
+        LCLK           => tbl_ex4_lclk               ,-- lclk.clk
         D1CLK          => tbl_ex4_d1clk              ,
         D2CLK          => tbl_ex4_d2clk              ,
         SCANIN         => ex4_lut_si                 ,                    
@@ -269,6 +298,7 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
         D(77)          => f_tbe_ex3_recip_2044  ,
         D(78)          => f_tbe_ex3_lu_sh      ,
         D(79)          => f_tbe_ex3_recip_ue1 ,
+        ------
         QB(0 to 36)     => ex4_tbl_sum_b(0 to 36) ,
         QB(37 to 72)    => ex4_tbl_car_b(0 to 35) ,
         QB(73)          => ex4_match_en_sp_b      ,
@@ -296,15 +326,21 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
         ex4_tbl_sum(37) <= tidn;
         ex4_tbl_sum(38) <= tidn;
 
-        ex4_tbl_car(36) <=  tidn; 
-        ex4_tbl_car(37) <=  tidn; 
-        ex4_tbl_car(38) <=  tidn; 
+        ex4_tbl_car(36) <=  tidn; --tiup; -- the +1 in -mul = !mul + 1
+        ex4_tbl_car(37) <=  tidn; --tiup; -- the +1 in -mul = !mul + 1
+        ex4_tbl_car(38) <=  tidn; --tiup; -- the +1 in -mul = !mul + 1
 
+--==##############################################################
+--= ex4 logic : add
+--==##############################################################
+  -- all bits paricipate in the carry, but only upper bits of sum are returned
 
+  -- P/G/T ------------------------------------------------------
   lua_p(0 to 27) <= ex4_tbl_sum(0 to 27) xor ex4_tbl_car(0 to 27);
   lua_t(1 to 37) <= ex4_tbl_sum(1 to 37)  or ex4_tbl_car(1 to 37);
   lua_g(1 to 38) <= ex4_tbl_sum(1 to 38) and ex4_tbl_car(1 to 38);
 
+  -- LOCAL BYTE CARRY --------------------------------------------------
 
 
   lua_g2(38) <= lua_g(38) ; 
@@ -528,6 +564,7 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
   
 
 
+  -- CONDITIONL SUM ---------------------------------------------
 
   lua_gt8(1 to 28) <= lua_g8(1 to 28) or lua_t8(1 to 28);
 
@@ -535,6 +572,8 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
   lua_s0_b(0 to 27) <= not( lua_p(0 to 27) xor lua_g8(1 to 28) );
 
 
+  -- BYTE SELECT ------------------------------
+  -- ex4_lu(0 to 27) <= not( ex4_lu_p(0 to 27) xor ex4_lu_c(1 to 28) ); -- invert
 
   ex4_lu( 0) <= ( lua_s0_b( 0) and not lua_c08 ) or ( lua_s1_b( 0) and lua_c08 ) ;
   ex4_lu( 1) <= ( lua_s0_b( 1) and not lua_c08 ) or ( lua_s1_b( 1) and lua_c08 ) ;
@@ -568,6 +607,7 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
   ex4_lu(26) <= ( lua_s0_b(26) and not lua_c32 ) or ( lua_s1_b(26) and lua_c32 ) ;
   ex4_lu(27) <= ( lua_s0_b(27) and not lua_c32 ) or ( lua_s1_b(27) and lua_c32 ) ;
 
+  -- GLOBAL BYTE CARRY  ------------------------------
 
 
   lua_g16(3) <= lua_g8(32);
@@ -583,6 +623,12 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
   lua_c16    <= lua_g16(1) or ( lua_t16(1) and lua_g16(3) );
   lua_c08    <= lua_g16(0) or ( lua_t16(0) and lua_g16(2) );
 
+  -----------------------------------------------------------------
+  -- normalize
+  -----------------------------------------------------------------
+      -- expo=2046 ==> imp=0 shift right 1
+      -- expo=2045 ==> imp=0 shift right 0
+      -- expo=other => imp=1 shift right 0 <normal reslts>
      ex4_recip_2044_dp <= ex4_recip_2044 and ex4_match_en_dp and not ex4_recip_ue1;
      ex4_recip_2045_dp <= ex4_recip_2045 and ex4_match_en_dp and not ex4_recip_ue1;
      ex4_recip_2046_dp <= ex4_recip_2046 and ex4_match_en_dp and not ex4_recip_ue1;
@@ -593,23 +639,26 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
 
 
 
+      -- lu_sh means : shift left one, and decr exponent (unless it will create a denorm exponent)
 
       ex4_recip_den  <=
-                ex4_recip_2046_sp or                
-                ex4_recip_2045_sp or                
-               (ex4_lu_sh and ex4_recip_2044_sp) or 
-                ex4_recip_2046_dp or 
+                ex4_recip_2046_sp or                -- result in norm dp fmt, but set fpscr flag for sp unf
+                ex4_recip_2045_sp or                -- result in norm dp fmt, but set fpscr flag for sp unf
+               (ex4_lu_sh and ex4_recip_2044_sp) or -- result in norm dp fmt, but set fpscr flag for sp unf
+                ex4_recip_2046_dp or -- use in round to set implicit bit
                 ex4_recip_2045_dp or
-               (ex4_lu_sh and ex4_recip_2044_dp); 
+               (ex4_lu_sh and ex4_recip_2044_dp); -- cannot shift left , denorm result
 
       
 
 
-      ex4_unf_expo   <= 
-                        (ex4_match_en_sp or ex4_match_en_dp) and 
+      -- by not denormalizing sp the fpscr(ux) is set even though the implicit bit is set
+      -- divide does not want the denormed result
+      ex4_unf_expo   <= -- for setting UX (same for ue=0, ue=1
+                        (ex4_match_en_sp or ex4_match_en_dp) and -- leave SP normalized
                         (ex4_recip_2046 or ex4_recip_2045 or ( ex4_recip_2044 and ex4_lu_sh ) ); 
 
-     f_tbl_ex4_unf_expo  <= ex4_unf_expo   ;
+     f_tbl_ex4_unf_expo  <= ex4_unf_expo   ;--output--
 
       ex4_shlft_1 <= not ex4_recip_2046_dp and not ex4_recip_2045_dp and    (ex4_lu_sh and not ex4_recip_2044_dp);
       ex4_shlft_0 <= not ex4_recip_2046_dp and not ex4_recip_2045_dp and not(ex4_lu_sh and not ex4_recip_2044_dp);
@@ -617,6 +666,8 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
       ex4_shrgt_2 <=     ex4_recip_2046_dp ;
 
 
+  -- the final sp result will be in dp_norm format for an sp_denorm.
+  -- emulate the dropping of bits when an sp is shifted right then fitted into 23 frac bits.
 
  
      ex4_sp_chop_24 <= ex4_recip_2046_sp or ex4_recip_2045_sp or ex4_recip_2044_sp ;  
@@ -644,6 +695,9 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
 
         
 
+--==##############################################################
+--= ex5 latches
+--==##############################################################
         
     ex5_lut_lat: tri_rlmreg_p generic map (width=> 28, expand_type => expand_type) port map ( 
         forcee => forcee,
@@ -658,6 +712,7 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
         sg               => sg_0, 
         scout            => ex5_lut_so  ,                      
         scin             => ex5_lut_si  ,                    
+        -------------------
         din(0 to 26)     => ex4_lu_nrm(0 to 26) ,
         din(27)          => ex4_recip_den   ,
         dout(0 to 26)    => ex5_lu(0 to 26) ,
@@ -667,6 +722,9 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
        f_tbl_ex5_recip_den  <= ex5_recip_den ;
 
 
+--==##############################################################
+--= pervasive
+--==##############################################################
 
     thold_reg_0:  tri_plat  generic map (expand_type => expand_type) port map (
          vd        => vdd,
@@ -693,6 +751,9 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
         forcee => forcee,
         thold_b      => thold_0_b );
 
+--==##############################################################
+--= act
+--==##############################################################
 
 
     act_lat: tri_rlmreg_p  generic map (width=> 7, expand_type => expand_type) port map ( 
@@ -708,6 +769,7 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
         sg               => sg_0, 
         scout            => act_so  ,                      
         scin             => act_si  ,                    
+        -------------------
         din(0)           => spare_unused(0),
         din(1)           => spare_unused(1),
         din(2)           => ex1_act,
@@ -715,6 +777,7 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
         din(4)           => ex3_act,
         din(5)           => spare_unused(2),
         din(6)           => spare_unused(3),
+        -------------------
         dout(0)          => spare_unused(0),
         dout(1)          => spare_unused(1),
         dout(2)          => ex2_act,
@@ -725,37 +788,40 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
 
 
     tbl_ex3_lcb : tri_lcbnd generic map (expand_type => expand_type) port map(
-        delay_lclkr =>  delay_lclkr(3) ,
-        mpw1_b      =>  mpw1_b(3)      ,
-        mpw2_b      =>  mpw2_b(0)      ,
-        forcee => forcee,
-        nclk        =>  nclk                 ,
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        act         =>  ex2_act              ,
-        sg          =>  sg_0                 ,
-        thold_b     =>  thold_0_b            ,
-        d1clk       =>  tbl_ex3_d1clk        ,
-        d2clk       =>  tbl_ex3_d2clk        ,
-        lclk        =>  tbl_ex3_lclk        );
+        delay_lclkr =>  delay_lclkr(3) ,-- tidn ,--in
+        mpw1_b      =>  mpw1_b(3)      ,-- tidn ,--in
+        mpw2_b      =>  mpw2_b(0)      ,-- tidn ,--in
+        forcee => forcee,-- tidn ,--in
+        nclk        =>  nclk                 ,--in
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        act         =>  ex2_act              ,--in
+        sg          =>  sg_0                 ,--in
+        thold_b     =>  thold_0_b            ,--in
+        d1clk       =>  tbl_ex3_d1clk        ,--out
+        d2clk       =>  tbl_ex3_d2clk        ,--out
+        lclk        =>  tbl_ex3_lclk        );--out
 
     tbl_ex4_lcb : tri_lcbnd generic map (expand_type => expand_type) port map(
-        delay_lclkr =>  delay_lclkr(4) ,
-        mpw1_b      =>  mpw1_b(4)      ,
-        mpw2_b      =>  mpw2_b(0)      ,
-        forcee => forcee,
-        nclk        =>  nclk                 ,
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        act         =>  ex3_act              ,
-        sg          =>  sg_0                 ,
-        thold_b     =>  thold_0_b            ,
-        d1clk       =>  tbl_ex4_d1clk        ,
-        d2clk       =>  tbl_ex4_d2clk        ,
-        lclk        =>  tbl_ex4_lclk        );
+        delay_lclkr =>  delay_lclkr(4) ,-- tidn ,--in
+        mpw1_b      =>  mpw1_b(4)      ,-- tidn ,--in
+        mpw2_b      =>  mpw2_b(0)      ,-- tidn ,--in
+        forcee => forcee,-- tidn ,--in
+        nclk        =>  nclk                 ,--in
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        act         =>  ex3_act              ,--in
+        sg          =>  sg_0                 ,--in
+        thold_b     =>  thold_0_b            ,--in
+        d1clk       =>  tbl_ex4_d1clk        ,--out
+        d2clk       =>  tbl_ex4_d2clk        ,--out
+        lclk        =>  tbl_ex4_lclk        );--out
 
 
 
+--==##############################################################
+--= scan string
+--==##############################################################
 
   ex2_lut_si(0 to 5)     <= ex2_lut_so(1 to 5)    & si;
   ex3_lut_e_si(0 to 19)  <= ex3_lut_e_so(1 to 19) & ex2_lut_so(0);
@@ -764,8 +830,7 @@ ftbm: entity WORK.fuq_tblmul(fuq_tblmul)  generic map( expand_type => expand_typ
   ex4_lut_si(0 to 79)    <= ex4_lut_so(1 to 79)   & ex3_lut_b_so(0);
   ex5_lut_si(0 to 27)    <= ex5_lut_so(1 to 27)   & ex4_lut_so(0);
   act_si(0 to 6)         <= act_so(1 to 6)        & ex5_lut_so(0);
-  so                     <=                        act_so  (0) ;
+  so                     <=                        act_so  (0) ;--SCAN
 
 
-end; 
-
+end; -- fuq_tbllut ARCHITECTURE

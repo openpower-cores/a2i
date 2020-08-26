@@ -8,6 +8,16 @@
 -- license is available.
 
 
+--*****************************************************************************
+--*
+--*  TITLE: fuq
+--*
+--*  NAME:  fuq.vhdl
+--*
+--*  DESC:   Top level Double Precision Floating Point Unit
+--*
+--*****************************************************************************
+
 library ieee,ibm,support,tri,work; 
    use ieee.std_logic_1164.all; 
    use ibm.std_ulogic_unsigned.all; 
@@ -20,9 +30,9 @@ library ieee,ibm,support,tri,work;
 
 entity fuq is
 generic(
-     expand_type                    : integer := 2 ;  
+     expand_type                    : integer := 2 ;  -- 0 - ibm tech, 1 - other, 2 - MPG);
      eff_ifar                       : integer := 62;
-     regmode                        : integer := 6);  
+     regmode                        : integer := 6);  --32 or 64 bit mode
 port( 
       
      pc_fu_ccflush_dc               : in  std_ulogic;
@@ -62,14 +72,15 @@ port(
      vdd                            : inout power_logic;
      gnd                            : inout power_logic;
 
-     gptr_scan_in             : in  std_ulogic;                 
-     time_scan_in             : in  std_ulogic;                 
-     repr_scan_in             : in  std_ulogic;                 
-     abst_scan_in             : in  std_ulogic;                 
-     func_scan_in             : in  std_ulogic_vector(0 to 3);  
-     ccfg_scan_in             : in  std_ulogic;                 
-     bcfg_scan_in             : in  std_ulogic;                 
-     dcfg_scan_in             : in  std_ulogic;                 
+     -- Scan
+     gptr_scan_in             : in  std_ulogic;                 --tc_ac_gptr_scan_in(2)
+     time_scan_in             : in  std_ulogic;                 --tc_ac_time_scan_in(2)
+     repr_scan_in             : in  std_ulogic;                 --tc_ac_repr_scan_in(2)
+     abst_scan_in             : in  std_ulogic;                 --tc_ac_abst_scan_in(4)
+     func_scan_in             : in  std_ulogic_vector(0 to 3);  --tc_ac_func_scan_in(24:27)
+     ccfg_scan_in             : in  std_ulogic;                 --tc_ac_bcfg_scan_in(1)
+     bcfg_scan_in             : in  std_ulogic;                 --tc_ac_bcfg_scan_in(2)
+     dcfg_scan_in             : in  std_ulogic;                 --tc_ac_dcfg_scan_in(2)
 
      gptr_scan_out            : out std_ulogic;
      time_scan_out            : out std_ulogic;
@@ -80,6 +91,7 @@ port(
      bcfg_scan_out            : out std_ulogic;
      dcfg_scan_out            : out std_ulogic;
 
+     -- Staging for BX scans for timing
 
      bx_fu_rp_abst_scan_out   : in  std_ulogic;
      bx_rp_abst_scan_out      : out std_ulogic;
@@ -440,6 +452,7 @@ port(
      xu_ex5_flush_ofu                       : out std_ulogic_vector(0 to 3);
      an_ac_lbist_ary_wrt_thru_dc_ofu        : out std_ulogic;
 
+     -- Interface to IU
      iu_fu_rf0_instr_v              : in  std_ulogic;
      iu_fu_rf0_instr                : in  std_ulogic_vector(0 to 31);
      iu_fu_rf0_fra_v                : in  std_ulogic;
@@ -461,6 +474,7 @@ port(
      iu_fu_rf0_ucfmul               : in  std_ulogic;
      iu_fu_is2_tid_decode           : in  std_ulogic_vector(0 to 3);
      iu_fu_ex2_n_flush              : in  std_ulogic_vector(0 to 3);
+     -- flush signals
      xu_is2_flush                   : in  std_ulogic_vector(0 to 3);
      xu_rf0_flush                   : in  std_ulogic_vector(0 to 3);
      xu_rf1_flush                   : in  std_ulogic_vector(0 to 3);
@@ -469,6 +483,7 @@ port(
      xu_ex3_flush                   : in  std_ulogic_vector(0 to 3);
      xu_ex4_flush                   : in  std_ulogic_vector(0 to 3);
      xu_ex5_flush                   : in  std_ulogic_vector(0 to 3);
+     -- Completion
      xu_fu_ex3_eff_addr             : in  std_ulogic_vector(59 to 63);
      fu_xu_ex2_ifar_val             : out std_ulogic_vector(0 to 3);
      fu_xu_ex2_ifar_issued          : out std_ulogic_vector(0 to 3);
@@ -481,6 +496,7 @@ port(
      fu_xu_ex2_is_ucode             : out std_ulogic_vector(0 to 3);
      fu_xu_ex3_trap                 : out std_ulogic_vector(0 to 3);
      fu_xu_ex3_ap_int_req           : out std_ulogic_vector(0 to 3);
+     -- Slow SPR Bus, PC
      slowspr_val_in                 : in  std_ulogic;
      slowspr_rw_in                  : in  std_ulogic;
      slowspr_etid_in                : in  std_ulogic_vector(0 to 1);
@@ -529,6 +545,7 @@ port(
      xu_fu_regfile_seq_beg          : in  std_ulogic;
      fu_xu_regfile_seq_end          : out std_ulogic;
 
+     -- Load/Store
      fu_xu_ex2_store_data           : out std_ulogic_vector(0 to 63);
      fu_xu_ex2_store_data_val       : out std_ulogic;
      xu_fu_ex5_load_val             : in  std_ulogic_vector(0 to 3);
@@ -536,6 +553,7 @@ port(
      xu_fu_ex5_load_le              : in  std_ulogic;
      xu_fu_ex5_reload_val           : in  std_ulogic;
      xu_fu_ex6_load_data            : in  std_ulogic_vector(192 to 255);
+     -- Interface to XU
      fu_xu_rf1_act                  : out std_ulogic_vector(0 to 3);
      fu_xu_ex2_async_block          : out std_ulogic_vector(0 to 3);
      xu_fu_msr_fp                   : in  std_ulogic_vector(0 to 3);
@@ -557,6 +575,7 @@ architecture fuq of fuq is
 
 
 
+-- ####################### SIGNALS ####################### --
 
 signal         f_dcd_msr_fp_act           : std_ulogic;
 
@@ -613,45 +632,45 @@ signal         f_fpr_ex8_load_frac        :  std_ulogic_vector(0 to 52);
 signal         f_dcd_rf1_aop_valid        :  std_ulogic;
 signal         f_dcd_rf1_cop_valid        :  std_ulogic;
 signal         f_dcd_rf1_bop_valid        :  std_ulogic;
-signal         f_dcd_rf1_sp               :  std_ulogic; 
-signal         f_dcd_rf1_emin_dp          :  std_ulogic;                 
-signal         f_dcd_rf1_emin_sp          :  std_ulogic;                 
-signal         f_dcd_rf1_force_pass_b     :  std_ulogic;                 
-signal         f_dcd_rf1_fsel_b           :  std_ulogic;                 
-signal         f_dcd_rf1_from_integer_b   :  std_ulogic;                 
-signal         f_dcd_rf1_to_integer_b     :  std_ulogic;                 
-signal         f_dcd_rf1_rnd_to_int_b     :  std_ulogic;                 
-signal         f_dcd_rf1_math_b           :  std_ulogic;                 
-signal         f_dcd_rf1_est_recip_b      :  std_ulogic;                 
-signal         f_dcd_rf1_est_rsqrt_b      :  std_ulogic;                 
-signal         f_dcd_rf1_move_b           :  std_ulogic;                 
-signal         f_dcd_rf1_prenorm_b        :  std_ulogic;                 
-signal         f_dcd_rf1_frsp_b           :  std_ulogic;                 
-signal         f_dcd_rf1_compare_b        :  std_ulogic;                 
-signal         f_dcd_rf1_ordered_b        :  std_ulogic;                 
-signal         f_dcd_rf1_div_beg          :  std_ulogic;                 
-signal         f_dcd_rf1_sqrt_beg         :  std_ulogic;                 
-signal         f_dcd_rf1_force_excp_dis   :  std_ulogic;                 
-signal         f_dcd_rf1_nj_deni          :  std_ulogic;                 
-signal         f_dcd_rf1_nj_deno          :  std_ulogic;                 
-signal         f_dcd_rf1_sp_conv_b        :  std_ulogic;                 
-signal         f_dcd_rf1_word_b           :  std_ulogic;                 
-signal         f_dcd_rf1_uns_b            :  std_ulogic;                 
-signal         f_dcd_rf1_sub_op_b         :  std_ulogic;                 
-signal         f_dcd_rf1_op_rnd_v_b       :  std_ulogic;                 
-signal         f_dcd_rf1_op_rnd_b         :  std_ulogic_vector(0 to 1);  
-signal         f_dcd_rf1_inv_sign_b       :  std_ulogic;                 
-signal         f_dcd_rf1_sign_ctl_b       :  std_ulogic_vector(0 to 1);  
-signal         f_dcd_rf1_sgncpy_b         :  std_ulogic;                 
-signal         f_dcd_rf1_fpscr_bit_data_b :  std_ulogic_vector(0 to 3);  
-signal         f_dcd_rf1_fpscr_bit_mask_b :  std_ulogic_vector(0 to 3);  
-signal         f_dcd_rf1_fpscr_nib_mask_b :  std_ulogic_vector(0 to 8);  
-signal         f_dcd_rf1_mv_to_scr_b      :  std_ulogic;                 
-signal         f_dcd_rf1_mv_from_scr_b    :  std_ulogic;                 
-signal         f_dcd_rf1_mtfsbx_b         :  std_ulogic;                 
-signal         f_dcd_rf1_mcrfs_b          :  std_ulogic;                 
-signal         f_dcd_rf1_mtfsf_b          :  std_ulogic;                 
-signal         f_dcd_rf1_mtfsfi_b         :  std_ulogic;                 
+signal         f_dcd_rf1_sp               :  std_ulogic; -- off for frsp
+signal         f_dcd_rf1_emin_dp          :  std_ulogic;                 -- prenorm_dp
+signal         f_dcd_rf1_emin_sp          :  std_ulogic;                 -- prenorm_sp, frsp
+signal         f_dcd_rf1_force_pass_b     :  std_ulogic;                 -- fmr,fnabbs,fabs,fneg,mtfsf
+signal         f_dcd_rf1_fsel_b           :  std_ulogic;                 -- fsel
+signal         f_dcd_rf1_from_integer_b   :  std_ulogic;                 -- fcfid (signed integer)
+signal         f_dcd_rf1_to_integer_b     :  std_ulogic;                 -- fcti* (signed integer 32/64)
+signal         f_dcd_rf1_rnd_to_int_b     :  std_ulogic;                 -- fri*
+signal         f_dcd_rf1_math_b           :  std_ulogic;                 -- fmul,fmad,fmsub,fadd,fsub,fnmsub,fnmadd
+signal         f_dcd_rf1_est_recip_b      :  std_ulogic;                 -- fres
+signal         f_dcd_rf1_est_rsqrt_b      :  std_ulogic;                 -- frsqrte
+signal         f_dcd_rf1_move_b           :  std_ulogic;                 -- fmr,fneg,fabs,fnabs
+signal         f_dcd_rf1_prenorm_b        :  std_ulogic;                 -- prenorm ?? need
+signal         f_dcd_rf1_frsp_b           :  std_ulogic;                 -- round-to-sgle-precision ?? need
+signal         f_dcd_rf1_compare_b        :  std_ulogic;                 -- fcomp*
+signal         f_dcd_rf1_ordered_b        :  std_ulogic;                 -- fcompo
+signal         f_dcd_rf1_div_beg          :  std_ulogic;                 -- save NAN and other special
+signal         f_dcd_rf1_sqrt_beg         :  std_ulogic;                 --
+signal         f_dcd_rf1_force_excp_dis   :  std_ulogic;                 --
+signal         f_dcd_rf1_nj_deni          :  std_ulogic;                 -- force output den to zero
+signal         f_dcd_rf1_nj_deno          :  std_ulogic;                 -- force output den to zero
+signal         f_dcd_rf1_sp_conv_b        :  std_ulogic;                 -- for sp/dp convert
+signal         f_dcd_rf1_word_b           :  std_ulogic;                 -- fctiw*
+signal         f_dcd_rf1_uns_b            :  std_ulogic;                 -- for converts unsigned
+signal         f_dcd_rf1_sub_op_b         :  std_ulogic;                 -- fsub, fnmsub, fmsub
+signal         f_dcd_rf1_op_rnd_v_b       :  std_ulogic;                 -- roundg mode = nearest
+signal         f_dcd_rf1_op_rnd_b         :  std_ulogic_vector(0 to 1);  -- roundg mode = positive infinity
+signal         f_dcd_rf1_inv_sign_b       :  std_ulogic;                 -- fnmsub fnmadd
+signal         f_dcd_rf1_sign_ctl_b       :  std_ulogic_vector(0 to 1);  -- 0:fmr/fneg  1:fneg/fnabs
+signal         f_dcd_rf1_sgncpy_b         :  std_ulogic;                 -- for sgncpy instruction :
+signal         f_dcd_rf1_fpscr_bit_data_b :  std_ulogic_vector(0 to 3);  --data to write to nibble (other than mtfsf)
+signal         f_dcd_rf1_fpscr_bit_mask_b :  std_ulogic_vector(0 to 3);  --enable update of bit with the nibble
+signal         f_dcd_rf1_fpscr_nib_mask_b :  std_ulogic_vector(0 to 8);  --enable update of this nibble
+signal         f_dcd_rf1_mv_to_scr_b      :  std_ulogic;                 --mcrfs,mtfsf,mtfsfi,mtfsb0,mtfsb1
+signal         f_dcd_rf1_mv_from_scr_b    :  std_ulogic;                 --mffs
+signal         f_dcd_rf1_mtfsbx_b         :  std_ulogic;                 --fpscr set bit, reset bit
+signal         f_dcd_rf1_mcrfs_b          :  std_ulogic;                 --move fpscr field to cr and reset exceptions
+signal         f_dcd_rf1_mtfsf_b          :  std_ulogic;                 --move fpr data to fpscr
+signal         f_dcd_rf1_mtfsfi_b         :  std_ulogic;                 --move immediate data to fpscr
 signal         f_scr_ex7_cr_fld           :  std_ulogic_vector (0 to 3)     ;
 signal         f_add_ex4_fpcc_iu          :  std_ulogic_vector (0 to 3)     ;
 signal         f_rnd_ex6_res_expo         :  std_ulogic_vector (1 to 13)    ;
@@ -724,7 +743,7 @@ signal         delay_lclkr_dc             :  std_ulogic_vector(0 to 9);
 signal         mpw1_dc_b                  :  std_ulogic_vector(0 to 9);
 signal         mpw2_dc_b                  :  std_ulogic_vector(0 to 1);
 
-signal         fpu_enable                 :  std_ulogic; 
+signal         fpu_enable                 :  std_ulogic; --dc_act
 
 signal         f_mad_ex6_uc_sign          :std_ulogic;
 signal         f_mad_ex6_uc_zero          :std_ulogic;
@@ -760,6 +779,7 @@ signal         f_mad_ex3_uc_round_mode    :std_ulogic_vector(0 to 1);
 
  signal    spare_unused                    :  std_ulogic_vector(0 to 5);
 
+----------------------------------------------------------------
 begin
 
 
@@ -769,6 +789,8 @@ begin
 
     scan_dis_dc_b <= an_ac_scan_dis_dc_b;
     scan_diag_dc  <= an_ac_scan_diag_dc;
+------------------------------------------------------------------------
+-- Floating Point Pervasive staging, lcbctrl's
 
    prv: entity work.fuq_perv(fuq_perv)
    generic map( 
@@ -808,6 +830,8 @@ begin
       gptr_scan_in                   => gptr_scan_in                   ,
       gptr_scan_out                  => gptr_scan_io                  );
 
+------------------------------------------------------------------------
+-- Floating Point Register, RF1
 
    fpr: entity work.fuq_fpr(fuq_fpr)
    generic map( 
@@ -885,8 +909,10 @@ begin
       pc_fu_abist_waddr_1            => pc_fu_abist_waddr_1            ,
       pc_fu_abist_wl144_comp_ena     => pc_fu_abist_wl144_comp_ena     ,
       pc_fu_inj_regfile_parity       => pc_fu_inj_regfile_parity       ,
+     ------------------------------------------------
       f_dcd_rf0_tid                  => f_dcd_rf0_tid                  ,
-      f_dcd_rf0_fra                  => f_dcd_rf0_fra                  , 
+      f_dcd_rf0_fra                  => f_dcd_rf0_fra                  , --uc_hook
+      --f_dcd_rf0_fra_slow(4)          => f_dcd_rf0_fra_slow(4)          ,--i--fpr-- --uc_hook
       f_dcd_rf0_frb                  => f_dcd_rf0_frb                  , 
       f_dcd_rf0_frc                  => f_dcd_rf0_frc                  ,
       iu_fu_rf0_ldst_tid             => iu_fu_rf0_ldst_tid             ,
@@ -899,6 +925,7 @@ begin
       f_dcd_rf0_bypsel_c_load1       => f_dcd_rf0_bypsel_c_load1       ,
       f_dcd_rf0_bypsel_s_res1        => f_dcd_rf0_bypsel_s_res1        ,
       f_dcd_rf0_bypsel_s_load1       => f_dcd_rf0_bypsel_s_load1       ,
+     ------------------------------------------------
       f_dcd_ex6_frt_addr             => f_dcd_ex6_frt_addr             ,
       f_dcd_ex5_frt_tid              => f_dcd_ex5_frt_tid              ,
       f_dcd_ex6_frt_tid              => f_dcd_ex6_frt_tid              ,
@@ -906,10 +933,12 @@ begin
       f_rnd_ex6_res_expo             => f_rnd_ex6_res_expo             ,
       f_rnd_ex6_res_frac             => f_rnd_ex6_res_frac             ,
       f_rnd_ex6_res_sign             => f_rnd_ex6_res_sign             ,
+     ------------------------------------------------
       f_dcd_ex5_flush_int            => f_dcd_ex5_flush_int            ,       
       xu_fu_ex5_load_tag             => xu_fu_ex5_load_tag             ,
       xu_fu_ex5_load_val             => xu_fu_ex5_load_val             ,   
       xu_fu_ex6_load_data            => xu_fu_ex6_load_data            ,
+     ------------------------------------------------
       f_fpr_ex7_load_addr            => f_fpr_ex7_load_addr            ,
       f_fpr_ex7_load_v               => f_fpr_ex7_load_v               ,
       f_fpr_ex7_load_sign            => f_fpr_ex7_load_sign            ,
@@ -934,6 +963,8 @@ begin
       f_fpr_ex1_c_par                => f_fpr_ex1_c_par                );
 
 
+------------------------------------------------------------------------
+-- Store
 
    sto: entity work.fuq_sto(fuq_sto)
    generic map( 
@@ -958,6 +989,7 @@ begin
       f_fpr_ex1_s_expo_extra         => f_fpr_ex1_s_expo_extra         ,
       f_fpr_ex1_s_par                => f_fpr_ex1_s_par                ,
       f_sto_ex2_s_parity_check       => f_sto_ex2_s_parity_check       ,
+     ------------------------------------------------
       f_dcd_rf1_sto_dp               => f_dcd_rf1_sto_dp               ,
       f_dcd_rf1_sto_sp               => f_dcd_rf1_sto_sp               ,
       f_dcd_rf1_sto_wd               => f_dcd_rf1_sto_wd               ,
@@ -965,9 +997,12 @@ begin
       f_byp_rf1_s_expo               => f_fpr_rf1_s_expo               ,
       f_byp_rf1_s_frac               => f_fpr_rf1_s_frac               ,
       f_sto_ex2_sto_data             => fu_xu_ex2_store_data           );
+     ------------------------------------------------
 
 
 
+------------------------------------------------------------------------
+-- Main Pipe
 
  
    fpu_enable   <= f_dcd_msr_fp_act;
@@ -1011,6 +1046,8 @@ begin
       f_fpr_ex7_load_sign            => f_fpr_ex8_load_sign            ,
       f_fpr_ex7_load_expo(3 to 13)   => f_fpr_ex8_load_expo(3 to 13)   ,
       f_fpr_ex7_load_frac(0 to 52)   => f_fpr_ex8_load_frac(0 to 52)   ,
+     ------------------------------------------------
+     ------------------------------------------------
       f_fpr_ex6_load_sign            => f_fpr_ex7_load_sign            ,
       f_fpr_ex6_load_expo            => f_fpr_ex7_load_expo            ,
       f_fpr_ex6_load_frac            => f_fpr_ex7_load_frac            ,
@@ -1023,6 +1060,7 @@ begin
       f_fpr_rf1_b_sign               => f_fpr_rf1_b_sign               ,
       f_fpr_rf1_b_expo               => f_fpr_rf1_b_expo               ,
       f_fpr_rf1_b_frac               => f_fpr_rf1_b_frac               ,
+     ------------------------------------------------
       f_dcd_rf1_aop_valid            => f_dcd_rf1_aop_valid            ,
       f_dcd_rf1_cop_valid            => f_dcd_rf1_cop_valid            ,
       f_dcd_rf1_bop_valid            => f_dcd_rf1_bop_valid            ,
@@ -1080,6 +1118,7 @@ begin
       f_scr_ex7_fx_thread2           => f_scr_ex7_fx_thread2           ,
       f_scr_ex7_fx_thread3           => f_scr_ex7_fx_thread3           ,
 
+     ------------------------------------------------
       f_dcd_rf1_uc_ft_pos            => f_dcd_rf1_uc_ft_pos            ,
       f_dcd_rf1_uc_ft_neg            => f_dcd_rf1_uc_ft_neg            ,
       f_dcd_rf1_uc_fa_pos            => f_dcd_rf1_uc_fa_pos            ,
@@ -1108,6 +1147,7 @@ begin
       f_mad_ex6_uc_sign                 => f_mad_ex6_uc_sign                 ,
       f_mad_ex6_uc_zero                 => f_mad_ex6_uc_zero                 ,
       f_mad_ex3_uc_special              => f_mad_ex3_uc_special              ,
+      ------------------------------------------------------------------
       f_mad_ex3_uc_vxsnan               => f_mad_ex3_uc_vxsnan            ,
       f_mad_ex3_uc_zx                   => f_mad_ex3_uc_zx                   ,
       f_mad_ex3_uc_vxsqrt               => f_mad_ex3_uc_vxsqrt               ,
@@ -1115,6 +1155,7 @@ begin
       f_mad_ex3_uc_vxzdz                => f_mad_ex3_uc_vxzdz                ,
       f_mad_ex3_uc_res_sign             => f_mad_ex3_uc_res_sign             ,
       f_mad_ex3_uc_round_mode(0 to 1)   => f_mad_ex3_uc_round_mode(0 to 1)   ,
+     -------------------------------------------
       f_fpr_ex1_a_par                   => f_fpr_ex1_a_par                   ,
       f_fpr_ex1_b_par                   => f_fpr_ex1_b_par                   ,
       f_fpr_ex1_c_par                   => f_fpr_ex1_c_par                   ,
@@ -1122,7 +1163,9 @@ begin
       f_mad_ex2_c_parity_check          => f_mad_ex2_c_parity_check ,
       f_mad_ex2_b_parity_check          => f_mad_ex2_b_parity_check ,
 
+     ------------------------------------------------
       rf1_thread_b                   => f_dcd_rf1_thread_b             ,
+     ------------------------------------------------
       vdd                            => vdd                            ,
       gnd                            => gnd                            ,
       scan_in                        => f_mad_si(0 to 17)              ,
@@ -1139,9 +1182,12 @@ begin
       f_dcd_rf1_act                  => f_dcd_rf1_mad_act              ,
       nclk                           => nclk                           );
 
+     ------------------------------------------------
 
 
 
+------------------------------------------------------------------------
+-- Control and Decode
 
    dcd: entity work.fuq_dcd(fuq_dcd)
    generic map( 
@@ -1173,6 +1219,7 @@ begin
       f_dcd_msr_fp_act               => f_dcd_msr_fp_act               ,
       fu_xu_rf1_act                  => fu_xu_rf1_act                  ,
       fu_xu_ex2_async_block          => fu_xu_ex2_async_block          ,
+     ------------------------------------------------
       iu_fu_rf0_instr_v              => iu_fu_rf0_instr_v              ,
       iu_fu_rf0_instr                => iu_fu_rf0_instr                ,
       iu_fu_rf0_fra_v                => iu_fu_rf0_fra_v                ,
@@ -1196,6 +1243,7 @@ begin
       iu_fu_ex2_n_flush              => iu_fu_ex2_n_flush              ,
       f_fpr_ex7_load_addr            => f_fpr_ex7_load_addr            ,
       f_fpr_ex7_load_v               => f_fpr_ex7_load_v               ,
+     ------------------------------------------------
       xu_is2_flush                   => xu_is2_flush                   ,
       xu_rf0_flush                   => xu_rf0_flush                   ,
       xu_rf1_flush                   => xu_rf1_flush                   ,
@@ -1212,6 +1260,7 @@ begin
       f_scr_ex7_fx_thread1           => f_scr_ex7_fx_thread1           ,
       f_scr_ex7_fx_thread2           => f_scr_ex7_fx_thread2           ,
       f_scr_ex7_fx_thread3           => f_scr_ex7_fx_thread3           ,
+     ------------------------------------------------
       f_dcd_ex1_perr_force_c         => f_dcd_ex1_perr_force_c         ,
       f_dcd_ex1_perr_fsel_ovrd       => f_dcd_ex1_perr_fsel_ovrd       ,
       f_dcd_perr_sm_running          => f_dcd_perr_sm_running          ,
@@ -1283,6 +1332,7 @@ begin
       f_dcd_rf0_bypsel_c_load1       => f_dcd_rf0_bypsel_c_load1       ,
       f_dcd_rf0_bypsel_s_res1        => f_dcd_rf0_bypsel_s_res1        ,
       f_dcd_rf0_bypsel_s_load1       => f_dcd_rf0_bypsel_s_load1       ,
+     ------------------------------------------------
       f_dcd_rf0_tid                  => f_dcd_rf0_tid                  ,
       f_dcd_rf0_fra                  => f_dcd_rf0_fra                  ,
       f_dcd_rf0_frb                  => f_dcd_rf0_frb                  ,
@@ -1323,6 +1373,7 @@ begin
       f_mad_ex3_uc_vxsqrt            => f_mad_ex3_uc_vxsqrt            ,
       f_mad_ex3_uc_res_sign          => f_mad_ex3_uc_res_sign          ,
       f_mad_ex3_uc_round_mode        => f_mad_ex3_uc_round_mode        ,
+     ------------------------------------------------
       slowspr_val_in                 => slowspr_val_in                 ,
       slowspr_rw_in                  => slowspr_rw_in                  ,
       slowspr_etid_in                => slowspr_etid_in                ,
@@ -1352,6 +1403,7 @@ begin
       pc_fu_instr_trace_mode         => pc_fu_instr_trace_mode         ,
       pc_fu_instr_trace_tid          => pc_fu_instr_trace_tid          ,
 
+     ------------------------------------------------
       f_rnd_ex6_res_expo             => f_rnd_ex6_res_expo             ,
       f_rnd_ex6_res_frac             => f_rnd_ex6_res_frac             ,
       f_rnd_ex6_res_sign             => f_rnd_ex6_res_sign             ,
@@ -1368,6 +1420,7 @@ begin
       fu_xu_ex3_regfile_err_det      => fu_xu_ex3_regfile_err_det      ,
       xu_fu_regfile_seq_beg          => xu_fu_regfile_seq_beg          ,
       fu_xu_regfile_seq_end          => fu_xu_regfile_seq_end          ,
+     ------------------------------------------------
       f_dcd_ex6_frt_addr             => f_dcd_ex6_frt_addr             ,
       f_dcd_ex5_frt_tid              => f_dcd_ex5_frt_tid              ,
       f_dcd_ex6_frt_tid              => f_dcd_ex6_frt_tid              ,
@@ -1377,6 +1430,7 @@ begin
       fu_xu_ex4_cr_val               => fu_xu_ex4_cr_val               ,
       fu_xu_ex4_cr_bf                => fu_xu_ex4_cr_bf                ,
       fu_xu_ex4_cr_noflush           => fu_xu_ex4_cr_noflush           ,
+     ------------------------------------------------
       xu_fu_ex3_eff_addr             => xu_fu_ex3_eff_addr             ,
       fu_xu_ex3_n_flush              => fu_xu_ex3_n_flush              ,
       fu_xu_ex3_np1_flush            => fu_xu_ex3_np1_flush            ,
@@ -1391,6 +1445,8 @@ begin
       fu_xu_ex1_ifar                 => fu_xu_ex1_ifar                 );
 
 
+------------------------------------------------------------------------
+-- Unused
 
    spare_unused(0)      <= pc_fu_abst_slp_sl_thold_3;
    spare_unused(1)      <= pc_fu_cfg_slp_sl_thold_3;
@@ -1399,8 +1455,8 @@ begin
    spare_unused(4)      <= pc_fu_ary_slp_nsl_thold_3;
    spare_unused(5)      <= xu_fu_ex5_load_le;
       
-
-
+------------------------------------------------------------------------
+-- Scan Chains
 
    f_fpr_si     <= func_scan_in(0);
    f_sto_si     <= f_fpr_so;
@@ -1614,5 +1670,3 @@ begin
 
 
 end architecture fuq;
-
-

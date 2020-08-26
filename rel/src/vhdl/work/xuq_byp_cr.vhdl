@@ -7,6 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU Bypass Unit
+--
 library ieee,ibm,support,tri,clib,work;
 use ieee.std_logic_1164.all;
 use ibm.std_ulogic_function_support.all;
@@ -20,11 +22,14 @@ entity xuq_byp_cr is
         expand_type                         : integer := 2;
         regsize                             : integer := 64);
     port (
+        -- Clocks
         nclk                                : in clk_logic;
 
+        -- Power
         vdd                                 : inout power_logic;
         gnd                                 : inout power_logic;
 
+        -- Pervasive
         d_mode_dc                           : in std_ulogic;
         delay_lclkr_dc                      : in std_ulogic;
         mpw1_dc_b                           : in std_ulogic;
@@ -41,12 +46,15 @@ entity xuq_byp_cr is
         
         trace_bus_enable                    : in std_ulogic;
 
+        -- Valid
         dec_byp_ex3_val                     : in std_ulogic_vector(0 to threads-1);
 
+        -- Flushes
         xu_ex3_flush                        : in std_ulogic_vector(0 to threads-1);
         xu_ex4_flush                        : in std_ulogic_vector(0 to threads-1);
         xu_ex5_flush                        : in std_ulogic_vector(0 to threads-1);
 
+        -- Bypass Inputs
         rf1_tid                             : in std_ulogic_vector(0 to threads-1);
         ex1_tid                             : in std_ulogic_vector(0 to threads-1);
         ex2_tid                             : in std_ulogic_vector(0 to threads-1);
@@ -54,6 +62,7 @@ entity xuq_byp_cr is
         ex5_tid                             : in std_ulogic_vector(0 to threads-1);
         rf1_instr                           : in std_ulogic_vector(6 to 25);
 
+        -- Decode Inputs
         fxa_fxb_rf0_is_mfocrf               : in std_ulogic;
         dec_byp_rf1_cr_so_update            : in std_ulogic_vector(0 to 1);
         dec_byp_rf1_cr_we                   : in std_ulogic;
@@ -67,24 +76,29 @@ entity xuq_byp_cr is
         dec_byp_rf0_act                     : in std_ulogic;
         dec_byp_ex4_is_eratsxr              : in std_ulogic;
 
+        -- MT/MF DP
         dec_byp_ex4_dp_instr                : in std_ulogic;
         dec_byp_ex4_mtdp_val                : in std_ulogic;
         dec_byp_ex4_mfdp_val                : in std_ulogic;
         lsu_xu_ex4_mtdp_cr_status           : in std_ulogic;
         lsu_xu_ex4_mfdp_cr_status           : in std_ulogic;
 
+        -- ldawx/wchkall
         dec_byp_ex4_is_wchkall              : in std_ulogic;
         lsu_xu_ex4_cr_upd                   : in std_ulogic;
         lsu_xu_ex5_cr_rslt                  : in std_ulogic;
 
+        -- CR Outputs
         byp_cpl_ex1_cr_bit                  : out std_ulogic;
         byp_alu_rf1_isel_fcn                : out std_ulogic_vector(0 to 3);
 
+        -- ALU CR Inputs
         alu_byp_ex2_cr_recform              : in std_ulogic_vector(0 to 3);
         alu_byp_ex5_cr_mul                  : in std_ulogic_vector(0 to 4);
         alu_byp_ex3_cr_div                  : in std_ulogic_vector(0 to 4);
         alu_ex2_div_done                    : in std_ulogic;
 
+        -- AXU CR Inputs
         fu_xu_ex4_cr_val                    : in std_ulogic_vector(0 to threads-1);
         fu_xu_ex4_cr_noflush                : in std_ulogic_vector(0 to threads-1);
         fu_xu_ex4_cr0                       : in std_ulogic_vector(0 to 3);
@@ -96,25 +110,33 @@ entity xuq_byp_cr is
         fu_xu_ex4_cr3                       : in std_ulogic_vector(0 to 3);
         fu_xu_ex4_cr3_bf                    : in std_ulogic_vector(0 to 2);
 
+        -- MMU CR inputs
         mm_xu_cr0_eq_valid                  : in std_ulogic_vector(0 to threads-1);
         mm_xu_cr0_eq                        : in std_ulogic_vector(0 to threads-1);
 
+        -- L2 STCX complete
         an_ac_stcx_complete                 : in std_ulogic_vector(0 to threads-1);
         an_ac_stcx_pass                     : in std_ulogic_vector(0 to threads-1);
 
+        -- icswx. interface
         an_ac_back_inv                      : in std_ulogic;
         an_ac_back_inv_addr                 : in std_ulogic_vector(58 to 63);
         an_ac_back_inv_target_bit3          : in std_ulogic;
 
+        -- mtcrf
         byp_ex5_mtcrxer                     : in std_ulogic_vector(32 to 63);
         byp_ex5_tlb_rt                      : in std_ulogic_vector(51 to 51);
+        -- mfcr
         ex5_cr_rt                           : out std_ulogic_vector(32 to 63);
+        -- mfocrf
         ex1_mfocrf_rt                       : out std_ulogic_vector(64-regsize to 63);
 
+        -- Instr
         dec_cr_ex5_instr                    : in std_ulogic_vector(12 to 19);
         
         byp_perf_tx_events                  : out std_ulogic_vector(0 to 3*threads-1);
 
+        -- SPR Bits
         byp_xer_so                          : in std_ulogic_vector(0 to threads-1);
         xer_cr_ex1_xer_ov_in_pipe           : in std_ulogic;
         xer_cr_ex2_xer_ov_in_pipe           : in std_ulogic;
@@ -136,71 +158,72 @@ architecture xuq_byp_cr of xuq_byp_cr is
     subtype s2                                          is std_ulogic_vector(0 to 1);
     subtype s5                                          is std_ulogic_vector(0 to 4);
 
-   signal rf1_is_mfocrf_q                                        : std_ulogic;                               
-   signal ex1_alu_cmp_q                                          : std_ulogic;                               
-   signal ex1_any_mtcrf_q,           ex1_any_mtcrf_d             : std_ulogic;                               
-   signal ex1_cr0_q                                              : std_ulogic_vector(0 to 3);                
-   signal ex1_cr0_bit_q,             rf1_cr0_bit                 : std_ulogic;                               
-   signal ex1_cr1_q                                              : std_ulogic_vector(0 to 3);                
-   signal ex1_cr1_bit_q,             rf1_cr1_bit_i               : std_ulogic;                               
-   signal ex1_cr_so_update_q                                     : std_ulogic_vector(0 to 1);                
-   signal ex1_cr_we_q                                            : std_ulogic;                               
-   signal ex1_crt_q,                 rf1_crt                     : std_ulogic_vector(0 to 3);                
-   signal ex1_crt_mask_q,            rf1_crt_mask                : std_ulogic_vector(0 to 3);                
-   signal ex1_instr_q                                            : std_ulogic_vector(6 to 19);               
-   signal ex1_instr_2_q                                          : std_ulogic_vector(22 to 25);              
-   signal ex1_is_mcrf_q                                          : std_ulogic;                               
-   signal ex1_use_crfld0_q                                       : std_ulogic;                               
-   signal ex2_alu_cmp_q                                          : std_ulogic;                               
-   signal ex2_any_mtcrf_q                                        : std_ulogic;                               
-   signal ex2_cr_q                                               : std_ulogic_vector(0 to 7);                
-   signal ex2_cr_we_q                                            : std_ulogic;                               
-   signal ex2_instr_q                                            : std_ulogic_vector(6 to 8);                
-   signal ex2_use_crfld0_q                                       : std_ulogic;                               
-   signal ex3_any_mtcrf_q                                        : std_ulogic;                               
-   signal ex3_cr_q                                               : std_ulogic_vector(0 to 7);                
-   signal ex3_div_done_q                                         : std_ulogic;                               
-   signal ex3_instr_q                                            : std_ulogic_vector(6 to 8);                
-   signal ex4_any_mtcrf_q                                        : std_ulogic;                               
-   signal ex4_cr_q                                               : std_ulogic_vector(0 to 7);                
-   signal ex4_instr_q                                            : std_ulogic_vector(6 to 8);                
-   signal ex4_val_q,                 ex3_val                     : std_ulogic_vector(0 to threads-1);        
-   signal ex5_any_mtcrf_q                                        : std_ulogic;                               
-   signal ex5_axu_val_q,             ex4_axu_val                 : std_ulogic_vector(0 to threads-1);        
-   signal ex5_cr_q                                               : std_ulogic_vector(0 to 7);                
-   signal ex5_dp_instr_q                                         : std_ulogic;                               
-   signal ex5_fu_cr0_q                                           : std_ulogic_vector(0 to 3);                
-   signal ex5_fu_cr0_bf_q                                        : std_ulogic_vector(0 to 2);                
-   signal ex5_fu_cr1_q                                           : std_ulogic_vector(0 to 3);                
-   signal ex5_fu_cr1_bf_q                                        : std_ulogic_vector(0 to 2);                
-   signal ex5_fu_cr2_q                                           : std_ulogic_vector(0 to 3);                
-   signal ex5_fu_cr2_bf_q                                        : std_ulogic_vector(0 to 2);                
-   signal ex5_fu_cr3_q                                           : std_ulogic_vector(0 to 3);                
-   signal ex5_fu_cr3_bf_q                                        : std_ulogic_vector(0 to 2);                
-   signal ex5_fu_cr_noflush_q                                    : std_ulogic_vector(0 to threads-1);        
-   signal ex5_fu_cr_val_q                                        : std_ulogic_vector(0 to threads-1);        
-   signal ex5_is_eratsxr_q                                       : std_ulogic;                               
-   signal ex5_mfdp_cr_status_q                                   : std_ulogic;                               
-   signal ex5_mfdp_val_q                                         : std_ulogic;                               
-   signal ex5_mtdp_cr_status_q                                   : std_ulogic;                               
-   signal ex5_mtdp_val_q                                         : std_ulogic;                               
-   signal ex5_val_q,                 ex4_val                     : std_ulogic_vector(0 to threads-1);        
-   signal ex5_watch_we_q,            ex5_watch_we_d              : std_ulogic;                               
-   signal ex5_wchkall_fld_q,         ex5_wchkall_fld_d           : std_ulogic_vector(0 to 2);                
-   signal an_ac_back_inv_q                                       : std_ulogic;                               
-   signal an_ac_back_inv_addr_q                                  : std_ulogic_vector(58 to 63);              
-   signal an_ac_back_inv_target_bit3_q                           : std_ulogic;                               
-   signal back_inv_val_q,            back_inv_val_d              : std_ulogic;                               
-   signal cr_barrier_we_q,           cr_barrier_we_d             : std_ulogic_vector(0 to threads-1);        
-   signal exx_act_q,                 exx_act_d                   : std_ulogic_vector(0 to 4);                
-   signal mmu_cr0_eq_q                                           : std_ulogic_vector(0 to threads-1);        
-   signal mmu_cr0_eq_valid_q                                     : std_ulogic_vector(0 to threads-1);        
-   signal stcx_complete_q                                        : std_ulogic_vector(0 to threads-1);        
-   signal stcx_pass_q                                            : std_ulogic_vector(0 to threads-1);        
-   signal ex1_cr0_byp_pri_dbg_q                                  : std_ulogic_vector(1 to 6);                
-   signal ex1_cr1_byp_pri_dbg_q                                  : std_ulogic_vector(1 to 6);                
-   signal ex1_crt_byp_pri_dbg_q                                  : std_ulogic_vector(1 to 6);                
-   signal ex6_val_dbg_q                                          : std_ulogic_vector(0 to threads-1);        
+    -- Latches
+   signal rf1_is_mfocrf_q                                        : std_ulogic;                               -- input=>fxa_fxb_rf0_is_mfocrf      , act=>tiup                 , scan=>N, needs_sreset=>1
+   signal ex1_alu_cmp_q                                          : std_ulogic;                               -- input=>dec_byp_rf1_alu_cmp        , act=>exx_act(0)           , scan=>Y, needs_sreset=>0
+   signal ex1_any_mtcrf_q,           ex1_any_mtcrf_d             : std_ulogic;                               -- input=>ex1_any_mtcrf_d            , act=>exx_act(0)           , scan=>Y, needs_sreset=>0
+   signal ex1_cr0_q                                              : std_ulogic_vector(0 to 3);                -- input=>rf1_cr0                    , act=>exx_act(0)           , scan=>Y, needs_sreset=>0
+   signal ex1_cr0_bit_q,             rf1_cr0_bit                 : std_ulogic;                               -- input=>rf1_cr0_bit                , act=>exx_act(0)           , scan=>Y, needs_sreset=>0
+   signal ex1_cr1_q                                              : std_ulogic_vector(0 to 3);                -- input=>rf1_cr1                    , act=>exx_act(0)           , scan=>Y, needs_sreset=>0
+   signal ex1_cr1_bit_q,             rf1_cr1_bit_i               : std_ulogic;                               -- input=>rf1_cr1_bit_i              , act=>exx_act(0)           , scan=>Y, needs_sreset=>0
+   signal ex1_cr_so_update_q                                     : std_ulogic_vector(0 to 1);                -- input=>dec_byp_rf1_cr_so_update   , act=>exx_act(0)           , scan=>Y, needs_sreset=>0
+   signal ex1_cr_we_q                                            : std_ulogic;                               -- input=>dec_byp_rf1_cr_we          , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal ex1_crt_q,                 rf1_crt                     : std_ulogic_vector(0 to 3);                -- input=>rf1_crt                    , act=>exx_act(0)           , scan=>Y, needs_sreset=>0
+   signal ex1_crt_mask_q,            rf1_crt_mask                : std_ulogic_vector(0 to 3);                -- input=>rf1_crt_mask               , act=>exx_act(0)           , scan=>Y, needs_sreset=>0
+   signal ex1_instr_q                                            : std_ulogic_vector(6 to 19);               -- input=>rf1_instr                  , act=>exx_act(0)           , scan=>Y, needs_sreset=>0
+   signal ex1_instr_2_q                                          : std_ulogic_vector(22 to 25);              -- input=>rf1_instr                  , act=>exx_act(0)           , scan=>Y, needs_sreset=>0
+   signal ex1_is_mcrf_q                                          : std_ulogic;                               -- input=>dec_byp_rf1_is_mcrf        , act=>exx_act(0)           , scan=>Y, needs_sreset=>0
+   signal ex1_use_crfld0_q                                       : std_ulogic;                               -- input=>dec_byp_rf1_use_crfld0     , act=>exx_act(0)           , scan=>Y, needs_sreset=>0
+   signal ex2_alu_cmp_q                                          : std_ulogic;                               -- input=>ex1_alu_cmp_q              , act=>exx_act(1)           , scan=>N, needs_sreset=>0
+   signal ex2_any_mtcrf_q                                        : std_ulogic;                               -- input=>ex1_any_mtcrf_q            , act=>exx_act(1)           , scan=>N, needs_sreset=>0
+   signal ex2_cr_q                                               : std_ulogic_vector(0 to 7);                -- input=>ex1_cr                     , act=>exx_act(1)           , scan=>N, needs_sreset=>0
+   signal ex2_cr_we_q                                            : std_ulogic;                               -- input=>ex1_cr_we_q                , act=>tiup                 , scan=>N, needs_sreset=>1
+   signal ex2_instr_q                                            : std_ulogic_vector(6 to 8);                -- input=>ex1_instr_q                , act=>exx_act(1)           , scan=>N, needs_sreset=>0
+   signal ex2_use_crfld0_q                                       : std_ulogic;                               -- input=>ex1_use_crfld0_q           , act=>exx_act(1)           , scan=>N, needs_sreset=>0
+   signal ex3_any_mtcrf_q                                        : std_ulogic;                               -- input=>ex2_any_mtcrf_q            , act=>exx_act(2)           , scan=>Y, needs_sreset=>0
+   signal ex3_cr_q                                               : std_ulogic_vector(0 to 7);                -- input=>ex2_cr                     , act=>exx_act(2)           , scan=>Y, needs_sreset=>0
+   signal ex3_div_done_q                                         : std_ulogic;                               -- input=>alu_ex2_div_done           , act=>exx_act(2)           , scan=>Y, needs_sreset=>0
+   signal ex3_instr_q                                            : std_ulogic_vector(6 to 8);                -- input=>ex2_instr_q                , act=>exx_act(2)           , scan=>Y, needs_sreset=>0
+   signal ex4_any_mtcrf_q                                        : std_ulogic;                               -- input=>ex3_any_mtcrf_q            , act=>exx_act(3)           , scan=>N, needs_sreset=>0
+   signal ex4_cr_q                                               : std_ulogic_vector(0 to 7);                -- input=>ex3_cr                     , act=>exx_act(3)           , scan=>N, needs_sreset=>0
+   signal ex4_instr_q                                            : std_ulogic_vector(6 to 8);                -- input=>ex3_instr_q                , act=>exx_act(3)           , scan=>N, needs_sreset=>0
+   signal ex4_val_q,                 ex3_val                     : std_ulogic_vector(0 to threads-1);        -- input=>ex3_val                    , act=>tiup                 , scan=>N, needs_sreset=>1
+   signal ex5_any_mtcrf_q                                        : std_ulogic;                               -- input=>ex4_any_mtcrf_q            , act=>exx_act(4)           , scan=>Y, needs_sreset=>0
+   signal ex5_axu_val_q,             ex4_axu_val                 : std_ulogic_vector(0 to threads-1);        -- input=>ex4_axu_val                , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal ex5_cr_q                                               : std_ulogic_vector(0 to 7);                -- input=>ex4_cr                     , act=>exx_act(4)           , scan=>Y, needs_sreset=>0
+   signal ex5_dp_instr_q                                         : std_ulogic;                               -- input=>dec_byp_ex4_dp_instr       , act=>exx_act(4)           , scan=>Y, needs_sreset=>0
+   signal ex5_fu_cr0_q                                           : std_ulogic_vector(0 to 3);                -- input=>fu_xu_ex4_cr0              , act=>ex4_axu_act          , scan=>Y, needs_sreset=>0
+   signal ex5_fu_cr0_bf_q                                        : std_ulogic_vector(0 to 2);                -- input=>fu_xu_ex4_cr0_bf           , act=>ex4_axu_act          , scan=>Y, needs_sreset=>0
+   signal ex5_fu_cr1_q                                           : std_ulogic_vector(0 to 3);                -- input=>fu_xu_ex4_cr1              , act=>ex4_axu_act          , scan=>Y, needs_sreset=>0
+   signal ex5_fu_cr1_bf_q                                        : std_ulogic_vector(0 to 2);                -- input=>fu_xu_ex4_cr1_bf           , act=>ex4_axu_act          , scan=>Y, needs_sreset=>0
+   signal ex5_fu_cr2_q                                           : std_ulogic_vector(0 to 3);                -- input=>fu_xu_ex4_cr2              , act=>ex4_axu_act          , scan=>Y, needs_sreset=>0
+   signal ex5_fu_cr2_bf_q                                        : std_ulogic_vector(0 to 2);                -- input=>fu_xu_ex4_cr2_bf           , act=>ex4_axu_act          , scan=>Y, needs_sreset=>0
+   signal ex5_fu_cr3_q                                           : std_ulogic_vector(0 to 3);                -- input=>fu_xu_ex4_cr3              , act=>ex4_axu_act          , scan=>Y, needs_sreset=>0
+   signal ex5_fu_cr3_bf_q                                        : std_ulogic_vector(0 to 2);                -- input=>fu_xu_ex4_cr3_bf           , act=>ex4_axu_act          , scan=>Y, needs_sreset=>0
+   signal ex5_fu_cr_noflush_q                                    : std_ulogic_vector(0 to threads-1);        -- input=>fu_xu_ex4_cr_noflush       , act=>tiup                 , scan=>Y, needs_sreset=>0
+   signal ex5_fu_cr_val_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>fu_xu_ex4_cr_val           , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal ex5_is_eratsxr_q                                       : std_ulogic;                               -- input=>dec_byp_ex4_is_eratsxr     , act=>exx_act(4)           , scan=>Y, needs_sreset=>0
+   signal ex5_mfdp_cr_status_q                                   : std_ulogic;                               -- input=>lsu_xu_ex4_mfdp_cr_status  , act=>exx_act(4)           , scan=>Y, needs_sreset=>0
+   signal ex5_mfdp_val_q                                         : std_ulogic;                               -- input=>dec_byp_ex4_mfdp_val       , act=>exx_act(4)           , scan=>Y, needs_sreset=>0
+   signal ex5_mtdp_cr_status_q                                   : std_ulogic;                               -- input=>lsu_xu_ex4_mtdp_cr_status  , act=>exx_act(4)           , scan=>Y, needs_sreset=>0
+   signal ex5_mtdp_val_q                                         : std_ulogic;                               -- input=>dec_byp_ex4_mtdp_val       , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal ex5_val_q,                 ex4_val                     : std_ulogic_vector(0 to threads-1);        -- input=>ex4_val                    , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal ex5_watch_we_q,            ex5_watch_we_d              : std_ulogic;                               -- input=>ex5_watch_we_d             , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal ex5_wchkall_fld_q,         ex5_wchkall_fld_d           : std_ulogic_vector(0 to 2);                -- input=>ex5_wchkall_fld_d          , act=>exx_act(4)           , scan=>Y, needs_sreset=>0
+   signal an_ac_back_inv_q                                       : std_ulogic;                               -- input=>an_ac_back_inv             , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal an_ac_back_inv_addr_q                                  : std_ulogic_vector(58 to 63);              -- input=>an_ac_back_inv_addr        , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal an_ac_back_inv_target_bit3_q                           : std_ulogic;                               -- input=>an_ac_back_inv_target_bit3 , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal back_inv_val_q,            back_inv_val_d              : std_ulogic;                               -- input=>back_inv_val_d             , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal cr_barrier_we_q,           cr_barrier_we_d             : std_ulogic_vector(0 to threads-1);        -- input=>cr_barrier_we_d            , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal exx_act_q,                 exx_act_d                   : std_ulogic_vector(0 to 4);                -- input=>exx_act_d                  , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal mmu_cr0_eq_q                                           : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_cr0_eq               , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal mmu_cr0_eq_valid_q                                     : std_ulogic_vector(0 to threads-1);        -- input=>mm_xu_cr0_eq_valid         , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal stcx_complete_q                                        : std_ulogic_vector(0 to threads-1);        -- input=>an_ac_stcx_complete        , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal stcx_pass_q                                            : std_ulogic_vector(0 to threads-1);        -- input=>an_ac_stcx_pass            , act=>tiup                 , scan=>Y, needs_sreset=>1
+   signal ex1_cr0_byp_pri_dbg_q                                  : std_ulogic_vector(1 to 6);                -- input=>rf1_cr0_byp_pri            , act=>trace_bus_enable     , scan=>Y, sleep=>Y, needs_sreset=>0
+   signal ex1_cr1_byp_pri_dbg_q                                  : std_ulogic_vector(1 to 6);                -- input=>rf1_cr1_byp_pri            , act=>trace_bus_enable     , scan=>Y, sleep=>Y, needs_sreset=>0
+   signal ex1_crt_byp_pri_dbg_q                                  : std_ulogic_vector(1 to 6);                -- input=>rf1_crt_byp_pri            , act=>trace_bus_enable     , scan=>Y, sleep=>Y, needs_sreset=>0
+   signal ex6_val_dbg_q                                          : std_ulogic_vector(0 to threads-1);        -- input=>ex5_val                    , act=>trace_bus_enable     , scan=>Y, sleep=>Y, needs_sreset=>0
 
    constant ex1_alu_cmp_offset                        : integer := 0;
    constant ex1_any_mtcrf_offset                      : integer := ex1_alu_cmp_offset             + 1;
@@ -261,6 +284,7 @@ architecture xuq_byp_cr of xuq_byp_cr is
    constant scan_right                                : integer := cr_offset                      + 32*threads;
     signal siv                                          : std_ulogic_vector(0 to scan_right-1);
     signal sov                                          : std_ulogic_vector(0 to scan_right-1);
+    -- Signals
     signal rf1_cr0                                      : std_ulogic_vector(0 to 3);
     signal rf1_cr1                                      : std_ulogic_vector(0 to 3);
     signal rf1_cr0_cmp,     rf1_cr1_cmp                 : std_ulogic_vector(1 to 5);
@@ -319,6 +343,9 @@ architecture xuq_byp_cr of xuq_byp_cr is
     
 begin
 
+    ---------------------------------------------------------------------
+    -- Misc Assignments
+    ---------------------------------------------------------------------
     exx_act_d           <= dec_byp_rf0_act & exx_act_q(0 to 3);
 
     exx_act(0)          <= exx_act_q(0);
@@ -339,16 +366,23 @@ begin
     ex5_axu_val         <= ex5_axu_val_q     and not (xu_ex5_flush and not ex5_fu_cr_noflush_q);
 
 
+    ---------------------------------------------------------------------
+    -- CR Pipeline Input
+    ---------------------------------------------------------------------
     ex1_xer_so          <= or_reduce(byp_xer_so and ex1_tid) or xer_cr_ex1_xer_ov_in_pipe;
     ex2_xer_so          <= or_reduce(byp_xer_so and ex2_tid) or xer_cr_ex2_xer_ov_in_pipe;
     ex3_xer_so          <= or_reduce(byp_xer_so and ex3_tid) or xer_cr_ex3_xer_ov_in_pipe;
     ex5_xer_so          <= or_reduce(byp_xer_so and ex5_tid) or xer_cr_ex5_xer_ov_in_pipe;
 
+     -- EX1 --
     with ex1_cr_so_update_q select
     ex1_cr_so           <= (ex1_xer_so or ex1_log_cr(3))    when "01",
                            ex1_log_cr(3)                    when "10",
                            ex1_xer_so                       when others;
 
+    -- xxx_cr_q(0 to 3)  <= CR field
+    -- xxx_cr_q(4 to 6)  <= CR target
+    -- xxx_cr_q(7)       <= CR write enable
 
     ex1_cr_mcrf         <= ex1_cr1_q &
                            ex1_instr_q(6 to 8)&
@@ -362,6 +396,7 @@ begin
         ex1_cr          <= ex1_cr_not_mcrf      when '0',
                            ex1_cr_mcrf          when others;
 
+    -- EX2 --
     ex2_cr_recform      <= alu_byp_ex2_cr_recform(0 to 2) & (alu_byp_ex2_cr_recform(3) or ex2_xer_so) &
                            (ex2_instr_q(6 to 8) and (6 to 8 => not ex2_use_crfld0_q)) &
                            ex2_cr_we_q;
@@ -370,6 +405,7 @@ begin
         ex2_cr          <= ex2_cr_recform       when '1',
                            ex2_cr_q             when others;
 
+    -- EX3 --
     ex3_cr_div          <= alu_byp_ex3_cr_div(0 to 2) & (alu_byp_ex3_cr_div(3) or ex3_xer_so) &
                            (4 to 6 => tidn) &
                            alu_byp_ex3_cr_div(4);
@@ -379,20 +415,23 @@ begin
         ex3_cr          <= ex3_cr_div   when '1',
                            ex3_cr_q     when others;
 
+    -- EX4
     ex4_cr              <= ex4_cr_q;
 
-    ex5_cr_dp           <= "00" &                                                           
+    -- EX5
+    ex5_cr_dp           <= "00" &                                                           -- Bits 0,1
                            ((ex5_mtdp_cr_status_q and ex5_mtdp_val_q) or
-                            (ex5_mfdp_cr_status_q and ex5_mfdp_val_q)) &                    
-                           ex5_xer_so &                                                     
-                           (4 to 6 => tidn) &                                               
-                           ex5_dp_instr_q;                                                  
+                            (ex5_mfdp_cr_status_q and ex5_mfdp_val_q)) &                    -- Bit 2
+                           ex5_xer_so &                                                     -- Bit 3
+                           (4 to 6 => tidn) &                                               -- Field
+                           ex5_dp_instr_q;                                                  -- Valid
 
     ex5_cr_mul          <= alu_byp_ex5_cr_mul(0 to 2) & (alu_byp_ex5_cr_mul(3) or ex5_xer_so) &
                            (4 to 6 => tidn) &
                            alu_byp_ex5_cr_mul(4);
                            
    
+    -- EX5 - Non Bypassed
     ex5_wchkall_fld_d   <= gate(ex4_instr_q(6 to 8),dec_byp_ex4_is_wchkall);
     ex5_watch_we_d      <= dec_byp_ex4_is_wchkall or lsu_xu_ex4_cr_upd;
 
@@ -405,6 +444,7 @@ begin
     ex5_fu_cr(2)        <= ex5_fu_cr2_q & ex5_fu_cr2_bf_q & ex5_fu_cr_val_q(2);
     ex5_fu_cr(3)        <= ex5_fu_cr3_q & ex5_fu_cr3_bf_q & ex5_fu_cr_val_q(3);
     
+    -- EX5 Bypass Muxing
    ex5_fu_cr_valid         <= or_reduce(rf1_tid and ex5_fu_cr_val_q);
    ex5_cr_instr_update_b   <= not(ex5_cr_dp(7) or ex5_cr_mul(7) or ex5_cr_watch(7));
    
@@ -422,6 +462,10 @@ begin
    ex5_cr         <= gate(ex5_cr_instr,   not(ex5_fu_cr_valid)) or
                      gate(ex5_cr_fu,          ex5_fu_cr_valid );
 
+    ---------------------------------------------------------------------
+    -- MFOCRF
+    ---------------------------------------------------------------------
+    -- Decode FXM Field
     with rf1_instr(12 to 19) select
         rf1_mfocrf_src          <= "000"    when "10000000",
                                    "001"    when "01000000",
@@ -437,10 +481,17 @@ begin
         rf1_cr0_source  <= rf1_mfocrf_src       when '1',
                            rf1_instr(16 to 18)  when others;
 
+    ---------------------------------------------------------------------
+    -- ISEL
+    ---------------------------------------------------------------------
     with dec_byp_rf1_is_isel select
         rf1_cr1_source  <= rf1_instr(21 to 25)  when '1',
                            rf1_instr(11 to 15)  when others;
 
+    ---------------------------------------------------------------------
+    -- RF1 Bypass Control
+    ---------------------------------------------------------------------
+    -- These bypass valids take into account the new CRs from the AXU
     rf1_axu_byp_val(4)   <= or_reduce(rf1_tid and  ex4_val_q);
     rf1_axu_byp_val(5)   <= or_reduce(rf1_tid and (ex5_val_q or ex5_fu_cr_val_q));
 
@@ -450,12 +501,14 @@ begin
     rf1_byp_val(4)       <= ex4_cr(7)   and  rf1_axu_byp_val(4);
     rf1_byp_val(5)       <= ex5_cr(7)   and  rf1_axu_byp_val(5);
 
+    --                               Source                  Target
     rf1_cr0_cmp(1)       <= '1' when rf1_cr0_source        = ex1_cr(4 to 6)     else '0';
     rf1_cr0_cmp(2)       <= '1' when rf1_cr0_source        = ex2_cr(4 to 6)     else '0';
     rf1_cr0_cmp(3)       <= '1' when rf1_cr0_source        = ex3_cr(4 to 6)     else '0';
     rf1_cr0_cmp(4)       <= '1' when rf1_cr0_source        = ex4_cr(4 to 6)     else '0';
     rf1_cr0_cmp(5)       <= '1' when rf1_cr0_source        = ex5_cr(4 to 6)     else '0';
 
+    -- Bypass Prioritization
     rf1_cr0_val          <= rf1_cr0_cmp and rf1_byp_val;
 
     rf1_cr0_byp_pri(1)   <=                                         rf1_cr0_val(1);
@@ -465,12 +518,14 @@ begin
     rf1_cr0_byp_pri(5)   <= not or_reduce(rf1_cr0_val(1 to 4))  and rf1_cr0_val(5);
     rf1_cr0_byp_pri(6)   <= not or_reduce(rf1_cr0_val(1 to 5));
 
+    --                               Source                  Target
     rf1_cr1_cmp(1)       <= '1' when rf1_cr1_source(0 to 2) = ex1_cr(4 to 6)     else '0';
     rf1_cr1_cmp(2)       <= '1' when rf1_cr1_source(0 to 2) = ex2_cr(4 to 6)     else '0';
     rf1_cr1_cmp(3)       <= '1' when rf1_cr1_source(0 to 2) = ex3_cr(4 to 6)     else '0';
     rf1_cr1_cmp(4)       <= '1' when rf1_cr1_source(0 to 2) = ex4_cr(4 to 6)     else '0';
     rf1_cr1_cmp(5)       <= '1' when rf1_cr1_source(0 to 2) = ex5_cr(4 to 6)     else '0';
 
+    -- Bypass Prioritization
     rf1_cr1_val          <= rf1_cr1_cmp and rf1_byp_val;
 
     rf1_cr1_byp_pri(1)   <=                                         rf1_cr1_val(1);
@@ -480,12 +535,14 @@ begin
     rf1_cr1_byp_pri(5)   <= not or_reduce(rf1_cr1_val(1 to 4))  and rf1_cr1_val(5);
     rf1_cr1_byp_pri(6)   <= not or_reduce(rf1_cr1_val(1 to 5));
 
+    --                               Source                  Target
     rf1_crt_cmp(1)       <= '1' when rf1_instr(6 to 8)     = ex1_cr(4 to 6)     else '0';
     rf1_crt_cmp(2)       <= '1' when rf1_instr(6 to 8)     = ex2_cr(4 to 6)     else '0';
     rf1_crt_cmp(3)       <= '1' when rf1_instr(6 to 8)     = ex3_cr(4 to 6)     else '0';
     rf1_crt_cmp(4)       <= '1' when rf1_instr(6 to 8)     = ex4_cr(4 to 6)     else '0';
     rf1_crt_cmp(5)       <= '1' when rf1_instr(6 to 8)     = ex5_cr(4 to 6)     else '0';
 
+    -- Bypass Prioritization
     rf1_crt_val          <= rf1_crt_cmp and rf1_byp_val;
 
     rf1_crt_byp_pri(1)   <=                                         rf1_crt_val(1);
@@ -496,6 +553,9 @@ begin
     rf1_crt_byp_pri(6)   <= not or_reduce(rf1_crt_val(1 to 5));
 
 
+    ---------------------------------------------------------------------
+    -- RF1 Source Selection
+    ---------------------------------------------------------------------
     rf1_cr0                     <= gate(ex1_cr(0 to 3),  rf1_cr0_byp_pri(1)) or
                                    gate(ex2_cr(0 to 3),  rf1_cr0_byp_pri(2)) or
                                    gate(ex3_cr(0 to 3),  rf1_cr0_byp_pri(3)) or
@@ -529,10 +589,14 @@ begin
                                    gate(ex5_cr(0 to 3),  rf1_crt_byp_pri(5)) or
                                    gate(crt_out(0 to 3), rf1_crt_byp_pri(6));
 
+    -- For ISEL
     rf1_isel_fcn              <= '0' & not(rf1_cr1_bit_i) & rf1_cr1_bit_i & '1';
 
     byp_alu_rf1_isel_fcn      <= gate(rf1_isel_fcn,dec_byp_rf1_is_isel);
     
+   ---------------------------------------------------------------------
+   -- CR Logicals
+   ---------------------------------------------------------------------
    with rf1_instr(9 to 10) select
         rf1_crt_mask            <= "1000"               when "00",
                                    "0100"               when "01",
@@ -552,7 +616,13 @@ begin
 
    byp_cpl_ex1_cr_bit  <= ex1_cr1_bit_q;
 
+    -- xxx_cr_q(0 to 3)  <= CR field
+    -- xxx_cr_q(4 to 6)  <= CR target
+    -- xxx_cr_q(7)       <= CR write enable
 
+   ---------------------------------------------------------------------
+   -- CR Pipline Decode/Muxing
+   ---------------------------------------------------------------------
    with ex5_cr_instr(4 to 6) select
       ex5_instr_cr_dec     <= "10000000" when "000",
                               "01000000" when "001",
@@ -564,6 +634,9 @@ begin
                               "00000001" when others;
                                                            
 
+   ---------------------------------------------------------------------
+   -- ICSWX
+   ---------------------------------------------------------------------
    with an_ac_back_inv_addr_q(62 to 63) select
      icswx_tid               <= "1000"   when "00",
                                 "0100"   when "01",
@@ -573,8 +646,15 @@ begin
    back_inv_val_d              <= an_ac_back_inv_q and an_ac_back_inv_target_bit3_q;
    ex5_icswx_we                <= gate(icswx_tid, back_inv_val_q);
 
+   ---------------------------------------------------------------------
+   -- "Async" CR Updates
+   ---------------------------------------------------------------------
+   -- Delay all these by a cycle for timing.
    cr_barrier_we_d            <= stcx_complete_q or mmu_cr0_eq_valid_q or ex5_icswx_we;
    
+   ---------------------------------------------------------------------
+   -- CR Writeback
+   ---------------------------------------------------------------------
    xuq_byp_cr_gen : for t in 0 to threads-1 generate
 
       signal cr_q,            cr_d              : std_ulogic_vector(32 to 63);
@@ -587,6 +667,7 @@ begin
 
    begin
 
+      -- FU CR decode
       with ex5_fu_cr(t)(4 to 6) select
          ex5_fu_cr_dec        <= "10000000" when "000",
                                  "01000000" when "001",
@@ -597,6 +678,9 @@ begin
                                  "00000010" when "110",
                                  "00000001" when others;
                                  
+      ---------------------------------------------------------------------
+      -- CR Write Enables
+      ---------------------------------------------------------------------
       ex5_fu_cr_val(t)     <= ex5_fu_cr(t)(7) and ex5_axu_val(t);
       ex5_fu_we            <= gate(ex5_fu_cr_dec,ex5_fu_cr_val(t));
 
@@ -608,6 +692,9 @@ begin
       
       ex5_eratsxr_we(t)    <= ex5_is_eratsxr_q and ex5_val(t);
 
+      ---------------------------------------------------------------------
+      -- CR Muxing
+      ---------------------------------------------------------------------
 
       with s3'(stcx_complete_q(t) & mmu_cr0_eq_valid_q(t) & ex5_icswx_we(t)) select
          cr_barrier_d(32 to 35)     <= "00" & stcx_pass_q(t)            & byp_xer_so(t)   when "100",
@@ -636,16 +723,20 @@ begin
       ex5_cr_act(t)              <= ex5_val_q(t) or ex5_axu_val_q(t) or cr_barrier_we_q(t);
       
       
+      -- For RTX (SIM ONLY)
       ex5_cr_we(t)               <=           ex5_eratsxr_we(t) or
                                               cr_barrier_we_q(t) or
                                     or_reduce(ex5_mtcr_we or ex5_instr_we or ex5_fu_we) or
-                                    (ex5_val(t) and ex5_any_mtcrf_q);  
+                                    (ex5_val(t) and ex5_any_mtcrf_q);  -- mtcrf 0x00 case
       
       cr_out(t*32 to t*32+31)    <= cr_q;
 
-      byp_perf_tx_events(0+3*t)  <= stcx_complete_q(t) and not stcx_pass_q(t);               
-      byp_perf_tx_events(1+3*t)  <= ex5_icswx_we(t)    and not an_ac_back_inv_addr_q(59);    
-      byp_perf_tx_events(2+3*t)  <= ex5_icswx_we(t)    and     an_ac_back_inv_addr_q(59);    
+      ---------------------------------------------------------------------
+      -- Performance Events
+      ---------------------------------------------------------------------
+      byp_perf_tx_events(0+3*t)  <= stcx_complete_q(t) and not stcx_pass_q(t);               -- STCX Fail
+      byp_perf_tx_events(1+3*t)  <= ex5_icswx_we(t)    and not an_ac_back_inv_addr_q(59);    -- icswx failed
+      byp_perf_tx_events(2+3*t)  <= ex5_icswx_we(t)    and     an_ac_back_inv_addr_q(59);    -- icswx finished
       
 
       cr_barrier_latch : tri_rlmreg_p
@@ -684,6 +775,9 @@ begin
                    dout          => cr_q);
    end generate;
       
+    ---------------------------------------------------------------------
+    -- CR Read Ports
+    ---------------------------------------------------------------------
     xuq_byp_cr_mfocr : for t in 0 to 7 generate
         ex1_mfocrf_rt(t*4+32 to t*4+35) <= gate(ex1_cr0_q,ex1_instr_q(t+12));
     end generate;
@@ -730,6 +824,9 @@ begin
     mark_unused(ex1_instr_q(9 to 11));
     mark_unused(an_ac_back_inv_addr_q(61));
 
+      ---------------------------------------------------------------------
+      -- Debug
+      ---------------------------------------------------------------------
       cr_grp0_debug     <= cr_grp0_debug_int;
       cr_grp0_debug_int <= ex6_val_dbg_q                    &
                            ex5_fu_cr_val_q                  &
@@ -766,6 +863,9 @@ begin
                            ex3_cr_q(0 to 7)                 &
                            ex5_cr_q(0 to 7);
 
+    ---------------------------------------------------------------------
+    -- Latches
+    ---------------------------------------------------------------------
 rf1_is_mfocrf_latch : tri_regk
   generic map (width => 1, init => 0, expand_type => expand_type, needs_sreset => 1)
   port map (nclk    => nclk, vd => vdd, gd => gnd,

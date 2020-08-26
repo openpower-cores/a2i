@@ -31,36 +31,37 @@ ARCHITECTURE fuq_lza_clz  OF fuq_lza_clz  IS
   constant tiup : std_ulogic := '1';
   constant tidn : std_ulogic := '0';
 
-  signal lv1_or_b   :std_ulogic_vector(0 to 81);
+  signal lv1_or_b   :std_ulogic_vector(0 to 81);-- group_002
   signal lv1_inv_b  :std_ulogic_vector(0 to 81);
   signal lv1_enc7_b :std_ulogic_vector(0 to 81);
 
-  signal lv2_or     :std_ulogic_vector(0 to 40);
+  signal lv2_or     :std_ulogic_vector(0 to 40);-- group_004
   signal lv2_inv    :std_ulogic_vector(0 to 40);
   signal lv2_enc6   :std_ulogic_vector(0 to 40);
   signal lv2_enc7   :std_ulogic_vector(0 to 40);
   
-  signal lv3_or_b   :std_ulogic_vector(0 to 20);
-  signal lv3_inv_b  :std_ulogic_vector(0 to 20);
+  signal lv3_or_b   :std_ulogic_vector(0 to 20);-- group_008
+  signal lv3_inv_b  :std_ulogic_vector(0 to 20);-- group_008
   signal lv3_enc5_b :std_ulogic_vector(0 to 20);
   signal lv3_enc6_b :std_ulogic_vector(0 to 20);
   signal lv3_enc7_b :std_ulogic_vector(0 to 20);
   
-  signal lv4_or     :std_ulogic_vector(0 to 10);
-  signal lv4_inv    :std_ulogic_vector(0 to 10);
+  signal lv4_or     :std_ulogic_vector(0 to 10);-- group_016
+  signal lv4_inv    :std_ulogic_vector(0 to 10);-- group_016
   signal lv4_enc4   :std_ulogic_vector(0 to 10);
   signal lv4_enc5   :std_ulogic_vector(0 to 10);
   signal lv4_enc6   :std_ulogic_vector(0 to 10);
   signal lv4_enc7   :std_ulogic_vector(0 to 10);
 
-  signal lv4_or_b   :std_ulogic_vector(0 to 10);
+  signal lv4_or_b   :std_ulogic_vector(0 to 10);-- group_016
   signal lv4_enc4_b :std_ulogic_vector(0 to 10);
   signal lv4_enc5_b :std_ulogic_vector(0 to 10);
   signal lv4_enc6_b :std_ulogic_vector(0 to 10);
   signal lv4_enc7_b :std_ulogic_vector(0 to 10);
 
+  -------------------------------------------------------------
 
-  signal lv5_or     :std_ulogic_vector(0 to 5);
+  signal lv5_or     :std_ulogic_vector(0 to 5);-- group_032
   signal lv5_inv    :std_ulogic_vector(0 to 5);
   signal lv5_enc3   :std_ulogic_vector(0 to 5);
   signal lv5_enc4   :std_ulogic_vector(0 to 5);
@@ -68,7 +69,7 @@ ARCHITECTURE fuq_lza_clz  OF fuq_lza_clz  IS
   signal lv5_enc6   :std_ulogic_vector(0 to 5);
   signal lv5_enc7   :std_ulogic_vector(0 to 5);
 
-  signal lv6_or_b   :std_ulogic_vector(0 to 2);
+  signal lv6_or_b   :std_ulogic_vector(0 to 2);-- group_064
   signal lv6_inv_b  :std_ulogic_vector(0 to 2);
   signal lv6_enc2_b :std_ulogic_vector(0 to 2);
   signal lv6_enc3_b :std_ulogic_vector(0 to 2);
@@ -77,7 +78,7 @@ ARCHITECTURE fuq_lza_clz  OF fuq_lza_clz  IS
   signal lv6_enc6_b :std_ulogic_vector(0 to 2);
   signal lv6_enc7_b :std_ulogic_vector(0 to 2);
 
-  signal lv7_or     :std_ulogic_vector(0 to 1);
+  signal lv7_or     :std_ulogic_vector(0 to 1);-- group_128
   signal lv7_inv    :std_ulogic_vector(0 to 1);
   signal lv7_enc1   :std_ulogic_vector(0 to 1);
   signal lv7_enc2   :std_ulogic_vector(0 to 1);
@@ -87,7 +88,7 @@ ARCHITECTURE fuq_lza_clz  OF fuq_lza_clz  IS
   signal lv7_enc6   :std_ulogic_vector(0 to 1);
   signal lv7_enc7   :std_ulogic_vector(0 to 1);
 
-  signal lv8_or_b   :std_ulogic_vector(0 to 0);
+  signal lv8_or_b   :std_ulogic_vector(0 to 0);-- group_256
   signal lv8_inv_b  :std_ulogic_vector(0 to 0);
   signal lv8_enc0_b :std_ulogic_vector(0 to 0);
   signal lv8_enc1_b :std_ulogic_vector(0 to 0);
@@ -103,38 +104,18 @@ ARCHITECTURE fuq_lza_clz  OF fuq_lza_clz  IS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
  
  
  
 
 BEGIN
 
+--=#------------------------------------------------
+--=#-- ENCODING TREE (CLZ) count leading zeroes
+--=#------------------------------------------------
+    ----------------------------------------------------------------------------------
+    -- 002 bit group (phase_in=P, phase_out=N, level_in=lv0, level_out=lv1)
+    ----------------------------------------------------------------------------------
 
  b000_002_any:  lv1_or_b(0) <= not( lv0_or(0) or  lv0_or(1) );
  b001_002_any:  lv1_or_b(1) <= not( lv0_or(2) or  lv0_or(3) );
@@ -383,9 +364,12 @@ BEGIN
  b078_002_enc7:  lv1_enc7_b(78) <= not( lv1_inv_b(78) and lv0_or(157) );
  b079_002_enc7:  lv1_enc7_b(79) <= not( lv1_inv_b(79) and lv0_or(159) );
  b080_002_enc7:  lv1_enc7_b(80) <= not( lv1_inv_b(80) and lv0_or(161) );
- b081_002_enc7:  lv1_enc7_b(81) <= not( lv1_inv_b(81) );
+ b081_002_enc7:  lv1_enc7_b(81) <= not( lv1_inv_b(81) );--dflt1
 
 
+    ----------------------------------------------------------------------------------
+    -- 004 bit group (phase_in=N, phase_out=P, level_in=lv1, level_out=lv2)
+    ----------------------------------------------------------------------------------
 
  b000_004_any:  lv2_or(0) <= not( lv1_or_b(0) and lv1_or_b(1) );
  b001_004_any:  lv2_or(1) <= not( lv1_or_b(2) and lv1_or_b(3) );
@@ -511,7 +495,7 @@ BEGIN
  b037_004_enc6:  lv2_enc6(37) <= not( lv2_inv(37) or  lv1_or_b(75) );
  b038_004_enc6:  lv2_enc6(38) <= not( lv2_inv(38) or  lv1_or_b(77) );
  b039_004_enc6:  lv2_enc6(39) <= not( lv2_inv(39) or  lv1_or_b(79) );
- b040_004_enc6:  lv2_enc6(40) <= not( lv2_inv(40) );
+ b040_004_enc6:  lv2_enc6(40) <= not( lv2_inv(40) );--dflt1
 
  b000_004_enc7:  lv2_enc7(0) <= not( lv1_enc7_b(0) and (lv1_enc7_b(1) or  lv2_inv(0))  );
  b001_004_enc7:  lv2_enc7(1) <= not( lv1_enc7_b(2) and (lv1_enc7_b(3) or  lv2_inv(1))  );
@@ -556,6 +540,9 @@ BEGIN
  b040_004_enc7:  lv2_enc7(40) <= not( lv1_enc7_b(80) and (lv1_enc7_b(81) or  lv2_inv(40))  );
 
 
+    ----------------------------------------------------------------------------------
+    -- 008 bit group (phase_in=P, phase_out=N, level_in=lv2, level_out=lv3)
+    ----------------------------------------------------------------------------------
 
  b000_008_any:  lv3_or_b(0) <= not( lv2_or(0) or  lv2_or(1) );
  b001_008_any:  lv3_or_b(1) <= not( lv2_or(2) or  lv2_or(3) );
@@ -621,7 +608,7 @@ BEGIN
  b017_008_enc5:  lv3_enc5_b(17) <= not( lv3_inv_b(17) and lv2_or(35) );
  b018_008_enc5:  lv3_enc5_b(18) <= not( lv3_inv_b(18) and lv2_or(37) );
  b019_008_enc5:  lv3_enc5_b(19) <= not( lv3_inv_b(19) and lv2_or(39) );
-                 lv3_enc5_b(20) <= tiup ;
+                 lv3_enc5_b(20) <= tiup ;--dflt0
 
  b000_008_enc6:  lv3_enc6_b(0) <= not( lv2_enc6(0) or  (lv2_enc6(1) and lv3_inv_b(0))  );
  b001_008_enc6:  lv3_enc6_b(1) <= not( lv2_enc6(2) or  (lv2_enc6(3) and lv3_inv_b(1))  );
@@ -643,7 +630,7 @@ BEGIN
  b017_008_enc6:  lv3_enc6_b(17) <= not( lv2_enc6(34) or  (lv2_enc6(35) and lv3_inv_b(17))  );
  b018_008_enc6:  lv3_enc6_b(18) <= not( lv2_enc6(36) or  (lv2_enc6(37) and lv3_inv_b(18))  );
  b019_008_enc6:  lv3_enc6_b(19) <= not( lv2_enc6(38) or  (lv2_enc6(39) and lv3_inv_b(19))  );
- b020_008_enc6:  lv3_enc6_b(20) <= not( lv2_enc6(40) or   lv3_inv_b(20)  );
+ b020_008_enc6:  lv3_enc6_b(20) <= not( lv2_enc6(40) or   lv3_inv_b(20)  );--dflt1
 
  b000_008_enc7:  lv3_enc7_b(0) <= not( lv2_enc7(0) or  (lv2_enc7(1) and lv3_inv_b(0))  );
  b001_008_enc7:  lv3_enc7_b(1) <= not( lv2_enc7(2) or  (lv2_enc7(3) and lv3_inv_b(1))  );
@@ -665,9 +652,12 @@ BEGIN
  b017_008_enc7:  lv3_enc7_b(17) <= not( lv2_enc7(34) or  (lv2_enc7(35) and lv3_inv_b(17))  );
  b018_008_enc7:  lv3_enc7_b(18) <= not( lv2_enc7(36) or  (lv2_enc7(37) and lv3_inv_b(18))  );
  b019_008_enc7:  lv3_enc7_b(19) <= not( lv2_enc7(38) or  (lv2_enc7(39) and lv3_inv_b(19))  );
- b020_008_enc7:  lv3_enc7_b(20) <= not( lv2_enc7(40) or   lv3_inv_b(20)  );
+ b020_008_enc7:  lv3_enc7_b(20) <= not( lv2_enc7(40) or   lv3_inv_b(20)  );--dflt1
 
 
+    ----------------------------------------------------------------------------------
+    -- 016 bit group (phase_in=N, phase_out=P, level_in=lv3, level_out=lv4)
+    ----------------------------------------------------------------------------------
 
  b000_016_any:  lv4_or(0) <= not( lv3_or_b(0) and lv3_or_b(1) );
  b001_016_any:  lv4_or(1) <= not( lv3_or_b(2) and lv3_or_b(3) );
@@ -703,7 +693,7 @@ BEGIN
  b007_016_enc4:  lv4_enc4(7) <= not( lv4_inv(7) or  lv3_or_b(15) );
  b008_016_enc4:  lv4_enc4(8) <= not( lv4_inv(8) or  lv3_or_b(17) );
  b009_016_enc4:  lv4_enc4(9) <= not( lv4_inv(9) or  lv3_or_b(19) );
-                 lv4_enc4(10) <= tidn ;
+                 lv4_enc4(10) <= tidn ;--dflt0
 
  b000_016_enc5:  lv4_enc5(0) <= not( lv3_enc5_b(0) and (lv3_enc5_b(1) or  lv4_inv(0))  );
  b001_016_enc5:  lv4_enc5(1) <= not( lv3_enc5_b(2) and (lv3_enc5_b(3) or  lv4_inv(1))  );
@@ -715,7 +705,7 @@ BEGIN
  b007_016_enc5:  lv4_enc5(7) <= not( lv3_enc5_b(14) and (lv3_enc5_b(15) or  lv4_inv(7))  );
  b008_016_enc5:  lv4_enc5(8) <= not( lv3_enc5_b(16) and (lv3_enc5_b(17) or  lv4_inv(8))  );
  b009_016_enc5:  lv4_enc5(9) <= not( lv3_enc5_b(18) and (lv3_enc5_b(19) or  lv4_inv(9))  );
- b010_016_enc5:  lv4_enc5(10) <= not( lv3_enc5_b(20) );
+ b010_016_enc5:  lv4_enc5(10) <= not( lv3_enc5_b(20) );--dflt0 pass
  
 
  b000_016_enc6:  lv4_enc6(0) <= not( lv3_enc6_b(0) and (lv3_enc6_b(1) or  lv4_inv(0))  );
@@ -728,7 +718,7 @@ BEGIN
  b007_016_enc6:  lv4_enc6(7) <= not( lv3_enc6_b(14) and (lv3_enc6_b(15) or  lv4_inv(7))  );
  b008_016_enc6:  lv4_enc6(8) <= not( lv3_enc6_b(16) and (lv3_enc6_b(17) or  lv4_inv(8))  );
  b009_016_enc6:  lv4_enc6(9) <= not( lv3_enc6_b(18) and (lv3_enc6_b(19) or  lv4_inv(9))  );
- b010_016_enc6:  lv4_enc6(10) <= not( lv3_enc6_b(20) and  lv4_inv(10)  );
+ b010_016_enc6:  lv4_enc6(10) <= not( lv3_enc6_b(20) and  lv4_inv(10)  );--dflt1
 
  b000_016_enc7:  lv4_enc7(0) <= not( lv3_enc7_b(0) and (lv3_enc7_b(1) or  lv4_inv(0))  );
  b001_016_enc7:  lv4_enc7(1) <= not( lv3_enc7_b(2) and (lv3_enc7_b(3) or  lv4_inv(1))  );
@@ -740,66 +730,69 @@ BEGIN
  b007_016_enc7:  lv4_enc7(7) <= not( lv3_enc7_b(14) and (lv3_enc7_b(15) or  lv4_inv(7))  );
  b008_016_enc7:  lv4_enc7(8) <= not( lv3_enc7_b(16) and (lv3_enc7_b(17) or  lv4_inv(8))  );
  b009_016_enc7:  lv4_enc7(9) <= not( lv3_enc7_b(18) and (lv3_enc7_b(19) or  lv4_inv(9))  );
- b010_016_enc7:  lv4_enc7(10) <= not( lv3_enc7_b(20) and  lv4_inv(10)  );
+ b010_016_enc7:  lv4_enc7(10) <= not( lv3_enc7_b(20) and  lv4_inv(10)  );--dflt1
 
 
- r000_004_or:      lv4_or_b(0)      <= not( lv4_or(0)         );
- r001_004_or:      lv4_or_b(1)      <= not( lv4_or(1)         );
- r002_004_or:      lv4_or_b(2)      <= not( lv4_or(2)         );
- r003_004_or:      lv4_or_b(3)      <= not( lv4_or(3)         );
- r004_004_or:      lv4_or_b(4)      <= not( lv4_or(4)         );
- r005_004_or:      lv4_or_b(5)      <= not( lv4_or(5)         );
- r006_004_or:      lv4_or_b(6)      <= not( lv4_or(6)         );
- r007_004_or:      lv4_or_b(7)      <= not( lv4_or(7)         );
- r008_004_or:      lv4_or_b(8)      <= not( lv4_or(8)         );
- r009_004_or:      lv4_or_b(9)      <= not( lv4_or(9)         );
- r010_004_or:      lv4_or_b(10)     <= not( lv4_or(10)        );
- r000_004_enc4:    lv4_enc4_b(0)    <= not( lv4_enc4(0)       );
- r001_004_enc4:    lv4_enc4_b(1)    <= not( lv4_enc4(1)       );
- r002_004_enc4:    lv4_enc4_b(2)    <= not( lv4_enc4(2)       );
- r003_004_enc4:    lv4_enc4_b(3)    <= not( lv4_enc4(3)       );
- r004_004_enc4:    lv4_enc4_b(4)    <= not( lv4_enc4(4)       );
- r005_004_enc4:    lv4_enc4_b(5)    <= not( lv4_enc4(5)       );
- r006_004_enc4:    lv4_enc4_b(6)    <= not( lv4_enc4(6)       );
- r007_004_enc4:    lv4_enc4_b(7)    <= not( lv4_enc4(7)       );
- r008_004_enc4:    lv4_enc4_b(8)    <= not( lv4_enc4(8)       );
- r009_004_enc4:    lv4_enc4_b(9)    <= not( lv4_enc4(9)       );
- r010_004_enc4:    lv4_enc4_b(10)   <= not( lv4_enc4(10)      );
- r000_004_enc5:    lv4_enc5_b(0)    <= not( lv4_enc5(0)       );
- r001_004_enc5:    lv4_enc5_b(1)    <= not( lv4_enc5(1)       );
- r002_004_enc5:    lv4_enc5_b(2)    <= not( lv4_enc5(2)       );
- r003_004_enc5:    lv4_enc5_b(3)    <= not( lv4_enc5(3)       );
- r004_004_enc5:    lv4_enc5_b(4)    <= not( lv4_enc5(4)       );
- r005_004_enc5:    lv4_enc5_b(5)    <= not( lv4_enc5(5)       );
- r006_004_enc5:    lv4_enc5_b(6)    <= not( lv4_enc5(6)       );
- r007_004_enc5:    lv4_enc5_b(7)    <= not( lv4_enc5(7)       );
- r008_004_enc5:    lv4_enc5_b(8)    <= not( lv4_enc5(8)       );
- r009_004_enc5:    lv4_enc5_b(9)    <= not( lv4_enc5(9)       );
- r010_004_enc5:    lv4_enc5_b(10)   <= not( lv4_enc5(10)      );
- r000_004_enc6:    lv4_enc6_b(0)    <= not( lv4_enc6(0)       );
- r001_004_enc6:    lv4_enc6_b(1)    <= not( lv4_enc6(1)       );
- r002_004_enc6:    lv4_enc6_b(2)    <= not( lv4_enc6(2)       );
- r003_004_enc6:    lv4_enc6_b(3)    <= not( lv4_enc6(3)       );
- r004_004_enc6:    lv4_enc6_b(4)    <= not( lv4_enc6(4)       );
- r005_004_enc6:    lv4_enc6_b(5)    <= not( lv4_enc6(5)       );
- r006_004_enc6:    lv4_enc6_b(6)    <= not( lv4_enc6(6)       );
- r007_004_enc6:    lv4_enc6_b(7)    <= not( lv4_enc6(7)       );
- r008_004_enc6:    lv4_enc6_b(8)    <= not( lv4_enc6(8)       );
- r009_004_enc6:    lv4_enc6_b(9)    <= not( lv4_enc6(9)       );
- r010_004_enc6:    lv4_enc6_b(10)   <= not( lv4_enc6(10)      );
- r000_004_enc7:    lv4_enc7_b(0)    <= not( lv4_enc7(0)       );
- r001_004_enc7:    lv4_enc7_b(1)    <= not( lv4_enc7(1)       );
- r002_004_enc7:    lv4_enc7_b(2)    <= not( lv4_enc7(2)       );
- r003_004_enc7:    lv4_enc7_b(3)    <= not( lv4_enc7(3)       );
- r004_004_enc7:    lv4_enc7_b(4)    <= not( lv4_enc7(4)       );
- r005_004_enc7:    lv4_enc7_b(5)    <= not( lv4_enc7(5)       );
- r006_004_enc7:    lv4_enc7_b(6)    <= not( lv4_enc7(6)       );
- r007_004_enc7:    lv4_enc7_b(7)    <= not( lv4_enc7(7)       );
- r008_004_enc7:    lv4_enc7_b(8)    <= not( lv4_enc7(8)       );
- r009_004_enc7:    lv4_enc7_b(9)    <= not( lv4_enc7(9)       );
- r010_004_enc7:    lv4_enc7_b(10)   <= not( lv4_enc7(10)      );
+ r000_004_or:      lv4_or_b(0)      <= not( lv4_or(0)         );--repower,long wire
+ r001_004_or:      lv4_or_b(1)      <= not( lv4_or(1)         );--repower,long wire
+ r002_004_or:      lv4_or_b(2)      <= not( lv4_or(2)         );--repower,long wire
+ r003_004_or:      lv4_or_b(3)      <= not( lv4_or(3)         );--repower,long wire
+ r004_004_or:      lv4_or_b(4)      <= not( lv4_or(4)         );--repower,long wire
+ r005_004_or:      lv4_or_b(5)      <= not( lv4_or(5)         );--repower,long wire
+ r006_004_or:      lv4_or_b(6)      <= not( lv4_or(6)         );--repower,long wire
+ r007_004_or:      lv4_or_b(7)      <= not( lv4_or(7)         );--repower,long wire
+ r008_004_or:      lv4_or_b(8)      <= not( lv4_or(8)         );--repower,long wire
+ r009_004_or:      lv4_or_b(9)      <= not( lv4_or(9)         );--repower,long wire
+ r010_004_or:      lv4_or_b(10)     <= not( lv4_or(10)        );--repower,long wire
+ r000_004_enc4:    lv4_enc4_b(0)    <= not( lv4_enc4(0)       );--repower,long wire
+ r001_004_enc4:    lv4_enc4_b(1)    <= not( lv4_enc4(1)       );--repower,long wire
+ r002_004_enc4:    lv4_enc4_b(2)    <= not( lv4_enc4(2)       );--repower,long wire
+ r003_004_enc4:    lv4_enc4_b(3)    <= not( lv4_enc4(3)       );--repower,long wire
+ r004_004_enc4:    lv4_enc4_b(4)    <= not( lv4_enc4(4)       );--repower,long wire
+ r005_004_enc4:    lv4_enc4_b(5)    <= not( lv4_enc4(5)       );--repower,long wire
+ r006_004_enc4:    lv4_enc4_b(6)    <= not( lv4_enc4(6)       );--repower,long wire
+ r007_004_enc4:    lv4_enc4_b(7)    <= not( lv4_enc4(7)       );--repower,long wire
+ r008_004_enc4:    lv4_enc4_b(8)    <= not( lv4_enc4(8)       );--repower,long wire
+ r009_004_enc4:    lv4_enc4_b(9)    <= not( lv4_enc4(9)       );--repower,long wire
+ r010_004_enc4:    lv4_enc4_b(10)   <= not( lv4_enc4(10)      );--repower,long wire
+ r000_004_enc5:    lv4_enc5_b(0)    <= not( lv4_enc5(0)       );--repower,long wire
+ r001_004_enc5:    lv4_enc5_b(1)    <= not( lv4_enc5(1)       );--repower,long wire
+ r002_004_enc5:    lv4_enc5_b(2)    <= not( lv4_enc5(2)       );--repower,long wire
+ r003_004_enc5:    lv4_enc5_b(3)    <= not( lv4_enc5(3)       );--repower,long wire
+ r004_004_enc5:    lv4_enc5_b(4)    <= not( lv4_enc5(4)       );--repower,long wire
+ r005_004_enc5:    lv4_enc5_b(5)    <= not( lv4_enc5(5)       );--repower,long wire
+ r006_004_enc5:    lv4_enc5_b(6)    <= not( lv4_enc5(6)       );--repower,long wire
+ r007_004_enc5:    lv4_enc5_b(7)    <= not( lv4_enc5(7)       );--repower,long wire
+ r008_004_enc5:    lv4_enc5_b(8)    <= not( lv4_enc5(8)       );--repower,long wire
+ r009_004_enc5:    lv4_enc5_b(9)    <= not( lv4_enc5(9)       );--repower,long wire
+ r010_004_enc5:    lv4_enc5_b(10)   <= not( lv4_enc5(10)      );--repower,long wire
+ r000_004_enc6:    lv4_enc6_b(0)    <= not( lv4_enc6(0)       );--repower,long wire
+ r001_004_enc6:    lv4_enc6_b(1)    <= not( lv4_enc6(1)       );--repower,long wire
+ r002_004_enc6:    lv4_enc6_b(2)    <= not( lv4_enc6(2)       );--repower,long wire
+ r003_004_enc6:    lv4_enc6_b(3)    <= not( lv4_enc6(3)       );--repower,long wire
+ r004_004_enc6:    lv4_enc6_b(4)    <= not( lv4_enc6(4)       );--repower,long wire
+ r005_004_enc6:    lv4_enc6_b(5)    <= not( lv4_enc6(5)       );--repower,long wire
+ r006_004_enc6:    lv4_enc6_b(6)    <= not( lv4_enc6(6)       );--repower,long wire
+ r007_004_enc6:    lv4_enc6_b(7)    <= not( lv4_enc6(7)       );--repower,long wire
+ r008_004_enc6:    lv4_enc6_b(8)    <= not( lv4_enc6(8)       );--repower,long wire
+ r009_004_enc6:    lv4_enc6_b(9)    <= not( lv4_enc6(9)       );--repower,long wire
+ r010_004_enc6:    lv4_enc6_b(10)   <= not( lv4_enc6(10)      );--repower,long wire
+ r000_004_enc7:    lv4_enc7_b(0)    <= not( lv4_enc7(0)       );--repower,long wire
+ r001_004_enc7:    lv4_enc7_b(1)    <= not( lv4_enc7(1)       );--repower,long wire
+ r002_004_enc7:    lv4_enc7_b(2)    <= not( lv4_enc7(2)       );--repower,long wire
+ r003_004_enc7:    lv4_enc7_b(3)    <= not( lv4_enc7(3)       );--repower,long wire
+ r004_004_enc7:    lv4_enc7_b(4)    <= not( lv4_enc7(4)       );--repower,long wire
+ r005_004_enc7:    lv4_enc7_b(5)    <= not( lv4_enc7(5)       );--repower,long wire
+ r006_004_enc7:    lv4_enc7_b(6)    <= not( lv4_enc7(6)       );--repower,long wire
+ r007_004_enc7:    lv4_enc7_b(7)    <= not( lv4_enc7(7)       );--repower,long wire
+ r008_004_enc7:    lv4_enc7_b(8)    <= not( lv4_enc7(8)       );--repower,long wire
+ r009_004_enc7:    lv4_enc7_b(9)    <= not( lv4_enc7(9)       );--repower,long wire
+ r010_004_enc7:    lv4_enc7_b(10)   <= not( lv4_enc7(10)      );--repower,long wire
 
 
+    ----------------------------------------------------------------------------------
+    -- 032 bit group (phase_in=N, phase_out=P, level_in=lv4, level_out=lv5)
+    ----------------------------------------------------------------------------------
 
  b000_032_any:  lv5_or(0) <= not( lv4_or_b(0) and lv4_or_b(1) );
  b001_032_any:  lv5_or(1) <= not( lv4_or_b(2) and lv4_or_b(3) );
@@ -820,37 +813,40 @@ BEGIN
  b002_032_enc3:  lv5_enc3(2) <= not( lv5_inv(2) or  lv4_or_b(5) );
  b003_032_enc3:  lv5_enc3(3) <= not( lv5_inv(3) or  lv4_or_b(7) );
  b004_032_enc3:  lv5_enc3(4) <= not( lv5_inv(4) or  lv4_or_b(9) );
-               lv5_enc3(5) <= tidn ;
+               lv5_enc3(5) <= tidn ;--dflt0
 
  b000_032_enc4:  lv5_enc4(0) <= not( lv4_enc4_b(0) and (lv4_enc4_b(1) or  lv5_inv(0))  );
  b001_032_enc4:  lv5_enc4(1) <= not( lv4_enc4_b(2) and (lv4_enc4_b(3) or  lv5_inv(1))  );
  b002_032_enc4:  lv5_enc4(2) <= not( lv4_enc4_b(4) and (lv4_enc4_b(5) or  lv5_inv(2))  );
  b003_032_enc4:  lv5_enc4(3) <= not( lv4_enc4_b(6) and (lv4_enc4_b(7) or  lv5_inv(3))  );
  b004_032_enc4:  lv5_enc4(4) <= not( lv4_enc4_b(8) and (lv4_enc4_b(9) or  lv5_inv(4))  );
- b005_032_enc4:  lv5_enc4(5) <= not( lv4_enc4_b(10) );
+ b005_032_enc4:  lv5_enc4(5) <= not( lv4_enc4_b(10) );--dflt0 pass
 
  b000_032_enc5:  lv5_enc5(0) <= not( lv4_enc5_b(0) and (lv4_enc5_b(1) or  lv5_inv(0))  );
  b001_032_enc5:  lv5_enc5(1) <= not( lv4_enc5_b(2) and (lv4_enc5_b(3) or  lv5_inv(1))  );
  b002_032_enc5:  lv5_enc5(2) <= not( lv4_enc5_b(4) and (lv4_enc5_b(5) or  lv5_inv(2))  );
  b003_032_enc5:  lv5_enc5(3) <= not( lv4_enc5_b(6) and (lv4_enc5_b(7) or  lv5_inv(3))  );
  b004_032_enc5:  lv5_enc5(4) <= not( lv4_enc5_b(8) and (lv4_enc5_b(9) or  lv5_inv(4))  );
- b005_032_enc5:  lv5_enc5(5) <= not( lv4_enc5_b(10) );
+ b005_032_enc5:  lv5_enc5(5) <= not( lv4_enc5_b(10) );--dflt0 pass
 
  b000_032_enc6:  lv5_enc6(0) <= not( lv4_enc6_b(0) and (lv4_enc6_b(1) or  lv5_inv(0))  );
  b001_032_enc6:  lv5_enc6(1) <= not( lv4_enc6_b(2) and (lv4_enc6_b(3) or  lv5_inv(1))  );
  b002_032_enc6:  lv5_enc6(2) <= not( lv4_enc6_b(4) and (lv4_enc6_b(5) or  lv5_inv(2))  );
  b003_032_enc6:  lv5_enc6(3) <= not( lv4_enc6_b(6) and (lv4_enc6_b(7) or  lv5_inv(3))  );
  b004_032_enc6:  lv5_enc6(4) <= not( lv4_enc6_b(8) and (lv4_enc6_b(9) or  lv5_inv(4))  );
- b005_032_enc6:  lv5_enc6(5) <= not( lv4_enc6_b(10) and  lv5_inv(5)  );
+ b005_032_enc6:  lv5_enc6(5) <= not( lv4_enc6_b(10) and  lv5_inv(5)  );--dflt1
 
  b000_032_enc7:  lv5_enc7(0) <= not( lv4_enc7_b(0) and (lv4_enc7_b(1) or  lv5_inv(0))  );
  b001_032_enc7:  lv5_enc7(1) <= not( lv4_enc7_b(2) and (lv4_enc7_b(3) or  lv5_inv(1))  );
  b002_032_enc7:  lv5_enc7(2) <= not( lv4_enc7_b(4) and (lv4_enc7_b(5) or  lv5_inv(2))  );
  b003_032_enc7:  lv5_enc7(3) <= not( lv4_enc7_b(6) and (lv4_enc7_b(7) or  lv5_inv(3))  );
  b004_032_enc7:  lv5_enc7(4) <= not( lv4_enc7_b(8) and (lv4_enc7_b(9) or  lv5_inv(4))  );
- b005_032_enc7:  lv5_enc7(5) <= not( lv4_enc7_b(10) and  lv5_inv(5)  );
+ b005_032_enc7:  lv5_enc7(5) <= not( lv4_enc7_b(10) and  lv5_inv(5)  );--dflt1
 
 
+    ----------------------------------------------------------------------------------
+    -- 064 bit group (phase_in=P, phase_out=N, level_in=lv5, level_out=lv6)
+    ----------------------------------------------------------------------------------
 
  lv6_or_0 <= not lv6_or_b(0) ;
  lv6_or_1 <= not lv6_or_b(1) ;
@@ -866,7 +862,7 @@ BEGIN
 
  b000_064_enc2:  lv6_enc2_b(0) <= not( lv6_inv_b(0) and lv5_or(1) );
  b001_064_enc2:  lv6_enc2_b(1) <= not( lv6_inv_b(1) and lv5_or(3) );
- b002_064_enc2:  lv6_enc2_b(2) <= not( lv6_inv_b(2) );
+ b002_064_enc2:  lv6_enc2_b(2) <= not( lv6_inv_b(2) );--dflt1
 
  b000_064_enc3:  lv6_enc3_b(0) <= not( lv5_enc3(0) or  (lv5_enc3(1) and lv6_inv_b(0))  );
  b001_064_enc3:  lv6_enc3_b(1) <= not( lv5_enc3(2) or  (lv5_enc3(3) and lv6_inv_b(1))  );
@@ -889,6 +885,9 @@ BEGIN
  b002_064_enc7:  lv6_enc7_b(2) <= not( lv5_enc7(4) or  (lv5_enc7(5) and lv6_inv_b(2))  );
 
 
+    ----------------------------------------------------------------------------------
+    -- 128 bit group (phase_in=N, phase_out=P, level_in=lv6, level_out=lv7)
+    ----------------------------------------------------------------------------------
 
  b000_128_any:  lv7_or(0) <= not( lv6_or_b(0) and lv6_or_b(1) );
  b001_128_any:  lv7_or(1) <= not( lv6_or_b(2) );
@@ -897,33 +896,36 @@ BEGIN
  b001_128_inv:  lv7_inv(1) <= not( lv6_or_b(2) );
 
  b000_128_enc1:  lv7_enc1(0) <= not( lv7_inv(0) or  lv6_or_b(1) );
-               lv7_enc1(1) <= tidn ;
+               lv7_enc1(1) <= tidn ;--dflt0
 
  b000_128_enc2:  lv7_enc2(0) <= not( lv6_enc2_b(0) and (lv6_enc2_b(1) or  lv7_inv(0))  );
- b001_128_enc2:  lv7_enc2(1) <= not( lv6_enc2_b(2) and  lv7_inv(1)  );
+ b001_128_enc2:  lv7_enc2(1) <= not( lv6_enc2_b(2) and  lv7_inv(1)  );--dflt1
 
  b000_128_enc3:  lv7_enc3(0) <= not( lv6_enc3_b(0) and (lv6_enc3_b(1) or  lv7_inv(0))  );
- b001_128_enc3:  lv7_enc3(1) <= not( lv6_enc3_b(2) );
+ b001_128_enc3:  lv7_enc3(1) <= not( lv6_enc3_b(2) );--dflt0 pass
 
  b000_128_enc4:  lv7_enc4(0) <= not( lv6_enc4_b(0) and (lv6_enc4_b(1) or  lv7_inv(0))  );
- b001_128_enc4:  lv7_enc4(1) <= not( lv6_enc4_b(2) );
+ b001_128_enc4:  lv7_enc4(1) <= not( lv6_enc4_b(2) );--dflt0 pass
 
  b000_128_enc5:  lv7_enc5(0) <= not( lv6_enc5_b(0) and (lv6_enc5_b(1) or  lv7_inv(0))  );
- b001_128_enc5:  lv7_enc5(1) <= not( lv6_enc5_b(2) );
+ b001_128_enc5:  lv7_enc5(1) <= not( lv6_enc5_b(2) );--dflt0 pass
 
  b000_128_enc6:  lv7_enc6(0) <= not( lv6_enc6_b(0) and (lv6_enc6_b(1) or  lv7_inv(0))  );
- b001_128_enc6:  lv7_enc6(1) <= not( lv6_enc6_b(2) and  lv7_inv(1)  );
+ b001_128_enc6:  lv7_enc6(1) <= not( lv6_enc6_b(2) and  lv7_inv(1)  );--dflt1
 
  b000_128_enc7:  lv7_enc7(0) <= not( lv6_enc7_b(0) and (lv6_enc7_b(1) or  lv7_inv(0))  );
- b001_128_enc7:  lv7_enc7(1) <= not( lv6_enc7_b(2) and  lv7_inv(1)  );
+ b001_128_enc7:  lv7_enc7(1) <= not( lv6_enc7_b(2) and  lv7_inv(1)  );--dflt1
 
 
+    ----------------------------------------------------------------------------------
+    -- 256 bit group (phase_in=P, phase_out=N, level_in=lv7, level_out=lv8)
+    ----------------------------------------------------------------------------------
 
  b000_256_any:  lv8_or_b(0) <= not( lv7_or(0) or  lv7_or(1) );
 
  b000_256_inv:  lv8_inv_b(0) <= not( lv7_or(0) );
 
- b000_256_enc0:  lv8_enc0_b(0) <= not( lv8_inv_b(0) );
+ b000_256_enc0:  lv8_enc0_b(0) <= not( lv8_inv_b(0) );--dflt1
 
  b000_256_enc1:  lv8_enc1_b(0) <= not( lv7_enc1(0) or  (lv7_enc1(1) and lv8_inv_b(0))  );
 
@@ -940,15 +942,15 @@ BEGIN
  b000_256_enc7:  lv8_enc7_b(0) <= not( lv7_enc7(0) or  (lv7_enc7(1) and lv8_inv_b(0))  );
 
 
- o_any:            lza_any_b          <=    ( lv8_or_b(0)       );
- o_enc0:           lza_amt_b(0)       <=    ( lv8_enc0_b(0)     );
- o_enc1:           lza_amt_b(1)       <=    ( lv8_enc1_b(0)     );
- o_enc2:           lza_amt_b(2)       <=    ( lv8_enc2_b(0)     );
- o_enc3:           lza_amt_b(3)       <=    ( lv8_enc3_b(0)     );
- o_enc4:           lza_amt_b(4)       <=    ( lv8_enc4_b(0)     );
- o_enc5:           lza_amt_b(5)       <=    ( lv8_enc5_b(0)     );
- o_enc6:           lza_amt_b(6)       <=    ( lv8_enc6_b(0)     );
- o_enc7:           lza_amt_b(7)       <=    ( lv8_enc7_b(0)     );
+ o_any:            lza_any_b          <=    ( lv8_or_b(0)       );--repower,long wire
+ o_enc0:           lza_amt_b(0)       <=    ( lv8_enc0_b(0)     );--repower,long wire
+ o_enc1:           lza_amt_b(1)       <=    ( lv8_enc1_b(0)     );--repower,long wire
+ o_enc2:           lza_amt_b(2)       <=    ( lv8_enc2_b(0)     );--repower,long wire
+ o_enc3:           lza_amt_b(3)       <=    ( lv8_enc3_b(0)     );--repower,long wire
+ o_enc4:           lza_amt_b(4)       <=    ( lv8_enc4_b(0)     );--repower,long wire
+ o_enc5:           lza_amt_b(5)       <=    ( lv8_enc5_b(0)     );--repower,long wire
+ o_enc6:           lza_amt_b(6)       <=    ( lv8_enc6_b(0)     );--repower,long wire
+ o_enc7:           lza_amt_b(7)       <=    ( lv8_enc7_b(0)     );--repower,long wire
 
 
 
@@ -957,4 +959,4 @@ BEGIN
 
 
 
-END; 
+END; -- ARCH fuq_lza_clz

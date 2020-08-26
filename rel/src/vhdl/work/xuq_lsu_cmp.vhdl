@@ -7,6 +7,7 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU LSU Compare Logic
 
 library ieee,ibm,support,tri,work;
    use ieee.std_logic_1164.all;
@@ -20,106 +21,106 @@ library ieee,ibm,support,tri,work;
    use ibm.std_ulogic_mux_support.all; 
 
 entity xuq_lsu_cmp is
-generic( expand_type: integer := 2  ); 
+generic( expand_type: integer := 2  ); -- 0 - ibm tech, 1 - other );
 port(
        vdd                                       :inout power_logic;
        gnd                                       :inout power_logic;
        nclk                                      :in  clk_logic;
-       delay_lclkr                               :in  std_ulogic_vector(0 to 2);
-       mpw1_b                                    :in  std_ulogic_vector(0 to 2);
-       mpw2_b                                    :in  std_ulogic_vector(0 to 2);
-       forcee                                    :in  std_ulogic_vector(0 to 2);
-       sg_0                                      :in  std_ulogic_vector(0 to 2);
-       thold_0_b                                 :in  std_ulogic_vector(0 to 2);
-       scan_in                                   :in  std_ulogic_vector(0 to 2); 
-       scan_out                                  :out std_ulogic_vector(0 to 2); 
+       delay_lclkr                               :in  std_ulogic_vector(0 to 2);-- LCB input
+       mpw1_b                                    :in  std_ulogic_vector(0 to 2);-- LCB input
+       mpw2_b                                    :in  std_ulogic_vector(0 to 2);-- LCB input
+       forcee                                    :in  std_ulogic_vector(0 to 2);-- LCB input
+       sg_0                                      :in  std_ulogic_vector(0 to 2);-- LCB input
+       thold_0_b                                 :in  std_ulogic_vector(0 to 2);-- LCB input
+       scan_in                                   :in  std_ulogic_vector(0 to 2); --perv
+       scan_out                                  :out std_ulogic_vector(0 to 2); --perv
 
-       enable_lsb_lmq_b                          :in  std_ulogic ;
-       enable_lsb_oth_b                          :in  std_ulogic ;
-       enable_lsb_bi_b                           :in  std_ulogic ;
+       enable_lsb_lmq_b                          :in  std_ulogic ;--enable lsb in the compares
+       enable_lsb_oth_b                          :in  std_ulogic ;--enable lsb in the compares
+       enable_lsb_bi_b                           :in  std_ulogic ;--enable lsb in the compares
 
-       ex2_erat_act                              :in  std_ulogic; 
-       binv2_ex2_stg_act                         :in  std_ulogic; 
-       lmq_entry_act                             :in  std_ulogic; 
+       ex2_erat_act                              :in  std_ulogic; -- erat act
+       binv2_ex2_stg_act                         :in  std_ulogic; -- directory act
+       lmq_entry_act                             :in  std_ulogic; -- act for lmq entries
 
-       ex3_p_addr                                :in  std_ulogic_vector(22 to 51); 
+       ex3_p_addr                                :in  std_ulogic_vector(22 to 51); -- erat array output
        ex2_p_addr_lwr                            :in  std_ulogic_vector(52 to 57);
-       ex3_p_addr_o                              :out std_ulogic_vector(22 to 57);
+       ex3_p_addr_o                              :out std_ulogic_vector(22 to 57);--output-- just a rename
 
-       ex2_wayA_tag                              :in  std_ulogic_vector(22 to 52); 
-       ex2_wayB_tag                              :in  std_ulogic_vector(22 to 52); 
-       ex2_wayC_tag                              :in  std_ulogic_vector(22 to 52); 
-       ex2_wayD_tag                              :in  std_ulogic_vector(22 to 52); 
-       ex2_wayE_tag                              :in  std_ulogic_vector(22 to 52); 
-       ex2_wayF_tag                              :in  std_ulogic_vector(22 to 52); 
-       ex2_wayG_tag                              :in  std_ulogic_vector(22 to 52); 
-       ex2_wayH_tag                              :in  std_ulogic_vector(22 to 52); 
+       ex2_wayA_tag                              :in  std_ulogic_vector(22 to 52); -- directory output 0/1
+       ex2_wayB_tag                              :in  std_ulogic_vector(22 to 52); -- directory output 0/1
+       ex2_wayC_tag                              :in  std_ulogic_vector(22 to 52); -- directory output 2/3
+       ex2_wayD_tag                              :in  std_ulogic_vector(22 to 52); -- directory output 2/3
+       ex2_wayE_tag                              :in  std_ulogic_vector(22 to 52); -- directory output 4/5
+       ex2_wayF_tag                              :in  std_ulogic_vector(22 to 52); -- directory output 4/5
+       ex2_wayG_tag                              :in  std_ulogic_vector(22 to 52); -- directory output 6/7
+       ex2_wayH_tag                              :in  std_ulogic_vector(22 to 52); -- directory output 6/7
 
-       ex3_cClass_upd_way_a                      :in  std_ulogic; 
-       ex3_cClass_upd_way_b                      :in  std_ulogic; 
-       ex3_cClass_upd_way_c                      :in  std_ulogic; 
-       ex3_cClass_upd_way_d                      :in  std_ulogic; 
-       ex3_cClass_upd_way_e                      :in  std_ulogic; 
-       ex3_cClass_upd_way_f                      :in  std_ulogic; 
-       ex3_cClass_upd_way_g                      :in  std_ulogic; 
-       ex3_cClass_upd_way_h                      :in  std_ulogic; 
+       ex3_cClass_upd_way_a                      :in  std_ulogic; -- enable compare
+       ex3_cClass_upd_way_b                      :in  std_ulogic; -- enable compare
+       ex3_cClass_upd_way_c                      :in  std_ulogic; -- enable compare
+       ex3_cClass_upd_way_d                      :in  std_ulogic; -- enable compare
+       ex3_cClass_upd_way_e                      :in  std_ulogic; -- enable compare
+       ex3_cClass_upd_way_f                      :in  std_ulogic; -- enable compare
+       ex3_cClass_upd_way_g                      :in  std_ulogic; -- enable compare
+       ex3_cClass_upd_way_h                      :in  std_ulogic; -- enable compare
 
-       ex3_way_cmp_a                             :out std_ulogic; 
-       ex3_way_cmp_b                             :out std_ulogic; 
-       ex3_way_cmp_c                             :out std_ulogic; 
-       ex3_way_cmp_d                             :out std_ulogic; 
-       ex3_way_cmp_e                             :out std_ulogic; 
-       ex3_way_cmp_f                             :out std_ulogic; 
-       ex3_way_cmp_g                             :out std_ulogic; 
-       ex3_way_cmp_h                             :out std_ulogic; 
+       ex3_way_cmp_a                             :out std_ulogic; -- compare result (without the enable)
+       ex3_way_cmp_b                             :out std_ulogic; -- compare result (without the enable)
+       ex3_way_cmp_c                             :out std_ulogic; -- compare result (without the enable)
+       ex3_way_cmp_d                             :out std_ulogic; -- compare result (without the enable)
+       ex3_way_cmp_e                             :out std_ulogic; -- compare result (without the enable)
+       ex3_way_cmp_f                             :out std_ulogic; -- compare result (without the enable)
+       ex3_way_cmp_g                             :out std_ulogic; -- compare result (without the enable)
+       ex3_way_cmp_h                             :out std_ulogic; -- compare result (without the enable)
 
-       ex3_wayA_tag                              :out std_ulogic_vector(0 to 30); 
-       ex3_wayB_tag                              :out std_ulogic_vector(0 to 30); 
-       ex3_wayC_tag                              :out std_ulogic_vector(0 to 30); 
-       ex3_wayD_tag                              :out std_ulogic_vector(0 to 30); 
-       ex3_wayE_tag                              :out std_ulogic_vector(0 to 30); 
-       ex3_wayF_tag                              :out std_ulogic_vector(0 to 30); 
-       ex3_wayG_tag                              :out std_ulogic_vector(0 to 30); 
-       ex3_wayH_tag                              :out std_ulogic_vector(0 to 30); 
+       ex3_wayA_tag                              :out std_ulogic_vector(0 to 30); -- Way Tag
+       ex3_wayB_tag                              :out std_ulogic_vector(0 to 30); -- Way Tag
+       ex3_wayC_tag                              :out std_ulogic_vector(0 to 30); -- Way Tag
+       ex3_wayD_tag                              :out std_ulogic_vector(0 to 30); -- Way Tag
+       ex3_wayE_tag                              :out std_ulogic_vector(0 to 30); -- Way Tag
+       ex3_wayF_tag                              :out std_ulogic_vector(0 to 30); -- Way Tag
+       ex3_wayG_tag                              :out std_ulogic_vector(0 to 30); -- Way Tag
+       ex3_wayH_tag                              :out std_ulogic_vector(0 to 30); -- Way Tag
 
-       ldq_comp_val                              :in  std_ulogic_vector(0 to 7); 
-       ldq_match                                 :out std_ulogic_vector(0 to 7); 
+       ldq_comp_val                              :in  std_ulogic_vector(0 to 7); -- enable compares against lmq
+       ldq_match                                 :out std_ulogic_vector(0 to 7); -- compare result (without enable)
 
-       ldq_fnd_b                                 :out std_ulogic; 
-       cmp_flush                                 :out std_ulogic; 
+       ldq_fnd_b                                 :out std_ulogic; --  or 8 enabled ldq compares
+       cmp_flush                                 :out std_ulogic; -- or all 16 enabled compares
 
-       dir_eq_v_or_b                             :out std_ulogic; 
+       dir_eq_v_or_b                             :out std_ulogic; -- the 8 directory match with valid "OR"ed
 
-       l_q_wrt_en                                :in  std_ulogic_vector(0 to 7);   
-       ld_ex7_recov                              :in  std_ulogic    ;              
-       ex7_ld_recov_addr                         :in  std_ulogic_vector(22 to 57) ;
+       l_q_wrt_en                                :in  std_ulogic_vector(0 to 7);   -- load entry, (hold when not loading)
+       ld_ex7_recov                              :in  std_ulogic    ;              -- alternate ldq wr select
+       ex7_ld_recov_addr                         :in  std_ulogic_vector(22 to 57) ;-- alternate ldq wr data
 
-       ex4_loadmiss_qentry                       :in  std_ulogic_vector(0 to 7);   
-       ex4_ld_addr                               :out std_ulogic_vector(22 to 57); 
+       ex4_loadmiss_qentry                       :in  std_ulogic_vector(0 to 7);   -- mux 3 select
+       ex4_ld_addr                               :out std_ulogic_vector(22 to 57); -- mux 3
 
-       l_q_rd_en                                 :in  std_ulogic_vector(0 to 7);   
-       l_miss_entry_addr                         :out std_ulogic_vector(22 to 57); 
+       l_q_rd_en                                 :in  std_ulogic_vector(0 to 7);   -- mux 2 select
+       l_miss_entry_addr                         :out std_ulogic_vector(22 to 57); -- mux 2
 
-       rel_tag_1hot                              :in  std_ulogic_vector(0 to 7);   
-       rel_addr                                  :out std_ulogic_vector(22 to 57); 
+       rel_tag_1hot                              :in  std_ulogic_vector(0 to 7);   -- mux 1 select
+       rel_addr                                  :out std_ulogic_vector(22 to 57); -- mux 1
 
-       back_inv_addr                             :in  std_ulogic_vector(22 to 57); 
-       back_inv_cmp_val                          :in  std_ulogic_vector(0 to 7);   
-       back_inv_addr_hit                         :out std_ulogic_vector(0 to 7);   
+       back_inv_addr                             :in  std_ulogic_vector(22 to 57); -- compare to each ldq entry
+       back_inv_cmp_val                          :in  std_ulogic_vector(0 to 7);   --
+       back_inv_addr_hit                         :out std_ulogic_vector(0 to 7);   --
 
-       s_m_queue0_addr                           :in  std_ulogic_vector(22 to 57); 
-       st_entry0_val                             :in  std_ulogic                 ; 
-       ex3addr_hit_stq                           :out std_ulogic                 ; 
+       s_m_queue0_addr                           :in  std_ulogic_vector(22 to 57); --
+       st_entry0_val                             :in  std_ulogic                 ; --
+       ex3addr_hit_stq                           :out std_ulogic                 ; --
 
-       ex4_st_entry_addr                         :in  std_ulogic_vector(22 to 57); 
-       ex4_st_val                                :in  std_ulogic                 ; 
-       ex3addr_hit_ex4st                         :out std_ulogic                   
+       ex4_st_entry_addr                         :in  std_ulogic_vector(22 to 57); --
+       ex4_st_val                                :in  std_ulogic                 ; --
+       ex3addr_hit_ex4st                         :out std_ulogic                   --
 
 );
 
 
 
-end xuq_lsu_cmp; 
+end xuq_lsu_cmp; -- ENTITY
 
 architecture xuq_lsu_cmp of xuq_lsu_cmp is
 
@@ -153,20 +154,15 @@ architecture xuq_lsu_cmp of xuq_lsu_cmp is
   signal l_q_wrt_en_b :std_ulogic_vector(0 to 7);
 
 
-   signal  ex3_erat_i1_b  :std_ulogic_vector(0 to 35); 
-   signal  ex3_erat_i2    :std_ulogic_vector(0 to 35); 
-   signal  ex3_erat_i3_b  :std_ulogic_vector(0 to 35); 
-   signal  ex3_erat_i4    :std_ulogic_vector(0 to 35); 
-   signal  ex3_erat_i5_b  :std_ulogic_vector(0 to 35); 
-   signal  ex3_erat_i6    :std_ulogic_vector(0 to 35); 
-   signal  ex3_erat_din   :std_ulogic_vector(0 to 35); 
+   signal  ex3_erat_i1_b  :std_ulogic_vector(0 to 35); --7p5 HOP OVER dir 23 , hop over dir latches
+   signal  ex3_erat_i2    :std_ulogic_vector(0 to 35); --7p5 drive compare plus terminator
+   signal  ex3_erat_i3_b  :std_ulogic_vector(0 to 35); --2   terminator
+   signal  ex3_erat_i4    :std_ulogic_vector(0 to 35); --4   drive out off stack to compares
+   signal  ex3_erat_i5_b  :std_ulogic_vector(0 to 35); --4   drive 2 compares
+   signal  ex3_erat_i6    :std_ulogic_vector(0 to 35); --4   output
+   signal  ex3_erat_din   :std_ulogic_vector(0 to 35); --4   hop to final comp
    signal ld_ex7_recov_b :std_ulogic ;
    signal ex3_lmq_wd0_b, ex3_lmq_wd1_b, ex3_lmq_wd, ex3_lmq_wd_b :std_ulogic_vector(0 to 35);
-
-
-
-
-
 
 
    signal dir4_q1_b, dir4_q0 :std_ulogic_vector(0 to 30);
@@ -174,9 +170,6 @@ architecture xuq_lsu_cmp of xuq_lsu_cmp is
    signal dir6_q1_b, dir6_q0 :std_ulogic_vector(0 to 30);
    signal dir7_q1_b, dir7_q0 :std_ulogic_vector(0 to 30);
     
-
-
-
 
    signal lmq_eq, lmq_eq_b :std_ulogic_vector(0 to 7);
    signal dir_eq :std_ulogic_vector(0 to 7); 
@@ -191,17 +184,6 @@ architecture xuq_lsu_cmp of xuq_lsu_cmp is
     signal lmq5_i0_b , lmq5_ix , lmq5_ix1_b, lmq5_ix2, lmq5_iy :std_ulogic_vector(0 to 35);
     signal lmq6_i0_b , lmq6_ix , lmq6_ix1_b, lmq6_ix2, lmq6_iy :std_ulogic_vector(0 to 35);
     signal lmq7_i0_b , lmq7_ix , lmq7_ix1_b, lmq7_ix2, lmq7_iy :std_ulogic_vector(0 to 35);
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -234,104 +216,113 @@ architecture xuq_lsu_cmp of xuq_lsu_cmp is
    signal hit_b, hit, hit_1_b, hit_2, hit_3_b   :std_ulogic ;
 
 
-
-
-
    signal dir_comp_val :std_ulogic_vector(0 to 7);
 
 
    signal enable_lsb_lmq, enable_lsb_oth, enable_lsb_bi :std_ulogic ;
 
+   -----------------//---------------------------------------------------------------
 
 
 begin
 
+-- ################################################################
+-- # inverters from array to latches : add later
+-- ################################################################
 
+-- ################################################################
+-- # redrive networks after Latches
+-- ################################################################
 
     ex3_erat_q(0 to 29) <= ex3_p_addr;
-    u_ex3_erat_q   : ex3_erat_q   (30 to 35) <= not( ex3_erat_q_b  (30 to 35)); 
-    u_ex3_erat_i1  : ex3_erat_i1_b (0 to 35) <= not( ex3_erat_q    (0 to 35) ); 
-    u_ex3_erat_i2  : ex3_erat_i2   (0 to 35) <= not( ex3_erat_i1_b (0 to 35) ); 
-    u_ex3_erat_i3  : ex3_erat_i3_b (0 to 35) <= not( ex3_erat_i2   (0 to 35) ); 
-    u_ex3_erat_i4  : ex3_erat_i4   (0 to 35) <= not( ex3_erat_i3_b (0 to 35) ); 
-    u_ex3_erat_i5  : ex3_erat_i5_b (0 to 35) <= not( ex3_erat_i4   (0 to 35) ); 
-    u_ex3_erat_i6  : ex3_erat_i6   (0 to 35) <= not( ex3_erat_i5_b (0 to 35) ); 
-                      ex3_p_addr_o(22 to 57) <=       ex3_erat_i6  (0 to 35)  ; 
+    u_ex3_erat_q   : ex3_erat_q   (30 to 35) <= not( ex3_erat_q_b  (30 to 35)); --7p5 HOP OVER dir 45
+    u_ex3_erat_i1  : ex3_erat_i1_b (0 to 35) <= not( ex3_erat_q    (0 to 35) ); --7p5 HOP OVER dir 23 , hop over dir latches
+    u_ex3_erat_i2  : ex3_erat_i2   (0 to 35) <= not( ex3_erat_i1_b (0 to 35) ); --7p5 drive compare plus terminator
+    u_ex3_erat_i3  : ex3_erat_i3_b (0 to 35) <= not( ex3_erat_i2   (0 to 35) ); --2   terminator
+    u_ex3_erat_i4  : ex3_erat_i4   (0 to 35) <= not( ex3_erat_i3_b (0 to 35) ); --4   hop to final comp <VERTICAL ESCAPE>
+    u_ex3_erat_i5  : ex3_erat_i5_b (0 to 35) <= not( ex3_erat_i4   (0 to 35) ); --4   drive 2 compares
+    u_ex3_erat_i6  : ex3_erat_i6   (0 to 35) <= not( ex3_erat_i5_b (0 to 35) ); --4   output
+                      ex3_p_addr_o(22 to 57) <=       ex3_erat_i6  (0 to 35)  ; --output-- just a rename
 
     ld_ex7_recov_b <= not( ld_ex7_recov );
 
-    u_ex3_lmq_wd0  : ex3_lmq_wd0_b(0 to 35) <= not( ex3_erat_i4       (0 to 35) and (0 to 35=> ld_ex7_recov_b) ) ; 
-    u_ex3_lmq_wd1  : ex3_lmq_wd1_b(0 to 35) <= not( ex7_ld_recov_addr(22 to 57) and (0 to 35=> ld_ex7_recov  ) ) ; 
-    u_ex3_lmq_wd   : ex3_lmq_wd   (0 to 35) <= not( ex3_lmq_wd0_b(0 to 35) and ex3_lmq_wd1_b(0 to 35) ) ; 
-    u_ex3_lmq_wdi  : ex3_lmq_wd_b (0 to 35) <= not( ex3_lmq_wd(0 to 35) ) ; 
-    u_ex3_erat_din : ex3_erat_din (0 to 35) <= not( ex3_lmq_wd_b(0 to 35) ); 
+    u_ex3_lmq_wd0  : ex3_lmq_wd0_b(0 to 35) <= not( ex3_erat_i4       (0 to 35) and (0 to 35=> ld_ex7_recov_b) ) ; --1
+    u_ex3_lmq_wd1  : ex3_lmq_wd1_b(0 to 35) <= not( ex7_ld_recov_addr(22 to 57) and (0 to 35=> ld_ex7_recov  ) ) ; --1
+    u_ex3_lmq_wd   : ex3_lmq_wd   (0 to 35) <= not( ex3_lmq_wd0_b(0 to 35) and ex3_lmq_wd1_b(0 to 35) ) ; --2
+    u_ex3_lmq_wdi  : ex3_lmq_wd_b (0 to 35) <= not( ex3_lmq_wd(0 to 35) ) ; --4
+    u_ex3_erat_din : ex3_erat_din (0 to 35) <= not( ex3_lmq_wd_b(0 to 35) ); --6   drive 8  regs in queue
 
 
 
+   -- also need to drive 8 latch datas
+
+          -- 0/1 4/5 are above
+          -- 2/3 6/7 are below        -- ltches 0123 4567  (4567 have extra distance)
+
+    u_dir0_q:  dir0_q    (0 to 30) <= not( dir0_q_b    (0 to 30) );--4
+    u_dir1_q:  dir1_q    (0 to 30) <= not( dir1_q_b    (0 to 30) );--4
+    u_dir2_q:  dir2_q    (0 to 30) <= not( dir2_q_b    (0 to 30) );--4
+    u_dir3_q:  dir3_q    (0 to 30) <= not( dir3_q_b    (0 to 30) );--4
+
+    u_dir4_q0: dir4_q0   (0 to 30) <= not( dir4_q_b    (0 to 30) );--4
+    u_dir5_q0: dir5_q0   (0 to 30) <= not( dir5_q_b    (0 to 30) );--4
+    u_dir6_q0: dir6_q0   (0 to 30) <= not( dir6_q_b    (0 to 30) );--4
+    u_dir7_q0: dir7_q0   (0 to 30) <= not( dir7_q_b    (0 to 30) );--4
+
+    u_dir4_q1: dir4_q1_b (0 to 30) <= not( dir4_q0     (0 to 30) );--6
+    u_dir5_q1: dir5_q1_b (0 to 30) <= not( dir5_q0     (0 to 30) );--6
+    u_dir6_q1: dir6_q1_b (0 to 30) <= not( dir6_q0     (0 to 30) );--6
+    u_dir7_q1: dir7_q1_b (0 to 30) <= not( dir7_q0     (0 to 30) );--6
+
+    u_dir4_q:  dir4_q    (0 to 30) <= not( dir4_q1_b   (0 to 30) );--4
+    u_dir5_q:  dir5_q    (0 to 30) <= not( dir5_q1_b   (0 to 30) );--4
+    u_dir6_q:  dir6_q    (0 to 30) <= not( dir6_q1_b   (0 to 30) );--4
+    u_dir7_q:  dir7_q    (0 to 30) <= not( dir7_q1_b   (0 to 30) );--4
 
 
-    u_dir0_q:  dir0_q    (0 to 30) <= not( dir0_q_b    (0 to 30) );
-    u_dir1_q:  dir1_q    (0 to 30) <= not( dir1_q_b    (0 to 30) );
-    u_dir2_q:  dir2_q    (0 to 30) <= not( dir2_q_b    (0 to 30) );
-    u_dir3_q:  dir3_q    (0 to 30) <= not( dir3_q_b    (0 to 30) );
-
-    u_dir4_q0: dir4_q0   (0 to 30) <= not( dir4_q_b    (0 to 30) );
-    u_dir5_q0: dir5_q0   (0 to 30) <= not( dir5_q_b    (0 to 30) );
-    u_dir6_q0: dir6_q0   (0 to 30) <= not( dir6_q_b    (0 to 30) );
-    u_dir7_q0: dir7_q0   (0 to 30) <= not( dir7_q_b    (0 to 30) );
-
-    u_dir4_q1: dir4_q1_b (0 to 30) <= not( dir4_q0     (0 to 30) );
-    u_dir5_q1: dir5_q1_b (0 to 30) <= not( dir5_q0     (0 to 30) );
-    u_dir6_q1: dir6_q1_b (0 to 30) <= not( dir6_q0     (0 to 30) );
-    u_dir7_q1: dir7_q1_b (0 to 30) <= not( dir7_q0     (0 to 30) );
-
-    u_dir4_q:  dir4_q    (0 to 30) <= not( dir4_q1_b   (0 to 30) );
-    u_dir5_q:  dir5_q    (0 to 30) <= not( dir5_q1_b   (0 to 30) );
-    u_dir6_q:  dir6_q    (0 to 30) <= not( dir6_q1_b   (0 to 30) );
-    u_dir7_q:  dir7_q    (0 to 30) <= not( dir7_q1_b   (0 to 30) );
-
-
+-- ################################################################
+-- # directory compares against erat
+-- ################################################################
 
  dir0cmp: entity work.xuq_lsu_cmp_cmp31(xuq_lsu_cmp_cmp31) port map(       
-       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,
-       d1(0 to 30)   =>  dir0_q     (0 to 30)    ,
-       eq            =>  dir_eq(0)              );
+       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir0cmp)
+       d1(0 to 30)   =>  dir0_q     (0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir0cmp)
+       eq            =>  dir_eq(0)              );--o--xuq_lsu_cmp_cmp31(dir0cmp)
 
  dir1cmp: entity work.xuq_lsu_cmp_cmp31(xuq_lsu_cmp_cmp31) port map(       
-       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,
-       d1(0 to 30)   =>  dir1_q     (0 to 30)    ,
-       eq            =>  dir_eq(1)              );
+       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir1cmp)
+       d1(0 to 30)   =>  dir1_q     (0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir1cmp)
+       eq            =>  dir_eq(1)              );--o--xuq_lsu_cmp_cmp31(dir1cmp)
 
  dir2cmp: entity work.xuq_lsu_cmp_cmp31(xuq_lsu_cmp_cmp31) port map(       
-       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,
-       d1(0 to 30)   =>  dir2_q     (0 to 30)    ,
-       eq            =>  dir_eq(2)              );
+       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir2cmp)
+       d1(0 to 30)   =>  dir2_q     (0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir2cmp)
+       eq            =>  dir_eq(2)              );--o--xuq_lsu_cmp_cmp31(dir2cmp)
 
  dir3cmp: entity work.xuq_lsu_cmp_cmp31(xuq_lsu_cmp_cmp31) port map(       
-       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,
-       d1(0 to 30)   =>  dir3_q     (0 to 30)    ,
-       eq            =>  dir_eq(3)              );
+       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir3cmp)
+       d1(0 to 30)   =>  dir3_q     (0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir3cmp)
+       eq            =>  dir_eq(3)              );--o--xuq_lsu_cmp_cmp31(dir3cmp)
 
  dir4cmp: entity work.xuq_lsu_cmp_cmp31(xuq_lsu_cmp_cmp31) port map(       
-       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,
-       d1(0 to 30)   =>  dir4_q     (0 to 30)    ,
-       eq            =>  dir_eq(4)              );
+       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir4cmp)
+       d1(0 to 30)   =>  dir4_q     (0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir4cmp)
+       eq            =>  dir_eq(4)              );--o--xuq_lsu_cmp_cmp31(dir4cmp)
 
  dir5cmp: entity work.xuq_lsu_cmp_cmp31(xuq_lsu_cmp_cmp31) port map(       
-       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,
-       d1(0 to 30)   =>  dir5_q     (0 to 30)    ,
-       eq            =>  dir_eq(5)              );
+       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir5cmp)
+       d1(0 to 30)   =>  dir5_q     (0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir5cmp)
+       eq            =>  dir_eq(5)              );--o--xuq_lsu_cmp_cmp31(dir5cmp)
 
  dir6cmp: entity work.xuq_lsu_cmp_cmp31(xuq_lsu_cmp_cmp31) port map(       
-       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,
-       d1(0 to 30)   =>  dir6_q     (0 to 30)    ,
-       eq            =>  dir_eq(6)              );
+       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir6cmp)
+       d1(0 to 30)   =>  dir6_q     (0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir6cmp)
+       eq            =>  dir_eq(6)              );--o--xuq_lsu_cmp_cmp31(dir6cmp)
 
  dir7cmp: entity work.xuq_lsu_cmp_cmp31(xuq_lsu_cmp_cmp31) port map(       
-       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,
-       d1(0 to 30)   =>  dir7_q     (0 to 30)    ,
-       eq            =>  dir_eq(7)              );
-
+       d0(0 to 30)   =>  ex3_erat_i2(0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir7cmp)
+       d1(0 to 30)   =>  dir7_q     (0 to 30)    ,--i--xuq_lsu_cmp_cmp31(dir7cmp)
+       eq            =>  dir_eq(7)              );--o--xuq_lsu_cmp_cmp31(dir7cmp)
    
 
 ex3_way_cmp_a <= dir_eq(0); 
@@ -352,59 +343,65 @@ ex3_wayF_tag <= not dir5_q_b;
 ex3_wayG_tag <= not dir6_q_b;
 ex3_wayH_tag <= not dir7_q_b;
 
+-- ################################################################
+-- # ldq compares against erat
+-- ################################################################
 
  lmq0cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb     =>  enable_lsb_lmq          ,
-       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,
-       d1(0 to 35)    =>  lmq0_iy    (0 to 35)    ,
-       eq             =>  lmq_eq(0)              );
+       enable_lsb     =>  enable_lsb_lmq          ,--i--xuq_lsu_cmp_cmp36e(lmq0cmp)
+       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq0cmp)
+       d1(0 to 35)    =>  lmq0_iy    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq0cmp)
+       eq             =>  lmq_eq(0)              );--o--xuq_lsu_cmp_cmp36e(lmq0cmp)
 
  lmq1cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb     =>  enable_lsb_lmq          ,
-       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,
-       d1(0 to 35)    =>  lmq1_iy    (0 to 35)    ,
-       eq             =>  lmq_eq(1)              );
+       enable_lsb     =>  enable_lsb_lmq          ,--i--xuq_lsu_cmp_cmp36e(lmq1cmp)
+       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq1cmp)
+       d1(0 to 35)    =>  lmq1_iy    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq1cmp)
+       eq             =>  lmq_eq(1)              );--o--xuq_lsu_cmp_cmp36e(lmq1cmp)
 
  lmq2cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb     =>  enable_lsb_lmq          ,
-       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,
-       d1(0 to 35)    =>  lmq2_iy    (0 to 35)    ,
-       eq             =>  lmq_eq(2)              );
+       enable_lsb     =>  enable_lsb_lmq          ,--i--xuq_lsu_cmp_cmp36e(lmq2cmp)
+       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq2cmp)
+       d1(0 to 35)    =>  lmq2_iy    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq2cmp)
+       eq             =>  lmq_eq(2)              );--o--xuq_lsu_cmp_cmp36e(lmq2cmp)
 
  lmq3cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb     =>  enable_lsb_lmq          ,
-       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,
-       d1(0 to 35)    =>  lmq3_iy    (0 to 35)    ,
-       eq             =>  lmq_eq(3)              );
+       enable_lsb     =>  enable_lsb_lmq          ,--i--xuq_lsu_cmp_cmp36e(lmq3cmp)
+       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq3cmp)
+       d1(0 to 35)    =>  lmq3_iy    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq3cmp)
+       eq             =>  lmq_eq(3)              );--o--xuq_lsu_cmp_cmp36e(lmq3cmp)
 
  lmq4cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb     =>  enable_lsb_lmq          ,
-       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,
-       d1(0 to 35)    =>  lmq4_iy    (0 to 35)    ,
-       eq             =>  lmq_eq(4)              );
+       enable_lsb     =>  enable_lsb_lmq          ,--i--xuq_lsu_cmp_cmp36e(lmq4cmp)
+       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq4cmp)
+       d1(0 to 35)    =>  lmq4_iy    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq4cmp)
+       eq             =>  lmq_eq(4)              );--o--xuq_lsu_cmp_cmp36e(lmq4cmp)
 
  lmq5cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb     =>  enable_lsb_lmq          ,
-       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,
-       d1(0 to 35)    =>  lmq5_iy    (0 to 35)    ,
-       eq             =>  lmq_eq(5)              );
+       enable_lsb     =>  enable_lsb_lmq          ,--i--xuq_lsu_cmp_cmp36e(lmq5cmp)
+       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq5cmp)
+       d1(0 to 35)    =>  lmq5_iy    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq5cmp)
+       eq             =>  lmq_eq(5)              );--o--xuq_lsu_cmp_cmp36e(lmq5cmp)
 
  lmq6cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb     =>  enable_lsb_lmq          ,
-       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,
-       d1(0 to 35)    =>  lmq6_iy    (0 to 35)    ,
-       eq             =>  lmq_eq(6)              );
+       enable_lsb     =>  enable_lsb_lmq          ,--i--xuq_lsu_cmp_cmp36e(lmq6cmp)
+       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq6cmp)
+       d1(0 to 35)    =>  lmq6_iy    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq6cmp)
+       eq             =>  lmq_eq(6)              );--o--xuq_lsu_cmp_cmp36e(lmq6cmp)
 
  lmq7cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb     =>  enable_lsb_lmq          ,
-       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,
-       d1(0 to 35)    =>  lmq7_iy    (0 to 35)    ,
-       eq             =>  lmq_eq(7)              );
+       enable_lsb     =>  enable_lsb_lmq          ,--i--xuq_lsu_cmp_cmp36e(lmq7cmp)
+       d0(0 to 35)    =>  ex3_erat_i2(0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq7cmp)
+       d1(0 to 35)    =>  lmq7_iy    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(lmq7cmp)
+       eq             =>  lmq_eq(7)              );--o--xuq_lsu_cmp_cmp36e(lmq7cmp)
 
- u_lmq_cmp_cp:  lmq_eq_b(0 to 7)  <= not( lmq_eq  (0 to 7) ); 
-                ldq_match(0 to 7) <= not( lmq_eq_b(0 to 7) ); 
+ u_lmq_cmp_cp:  lmq_eq_b(0 to 7)  <= not( lmq_eq  (0 to 7) ); --ungated compare
+                ldq_match(0 to 7) <= not( lmq_eq_b(0 to 7) ); --output-- --unmapped, match output phase, but allow synth to optimize out
 
 
+-- ###############################################################
+-- # or the compares together
+-- ###############################################################
 
   dir_comp_val(0) <=  ex3_cClass_upd_way_a ;
   dir_comp_val(1) <=  ex3_cClass_upd_way_b  ;
@@ -443,191 +440,203 @@ ex3_wayH_tag <= not dir7_q_b;
 
 
    u_o16i:  hit_b     <= not( o8_36 );
-   u_o16:   hit       <= not( hit_b ); 
+   u_o16:   hit       <= not( hit_b ); -- 1
    u_hit_1: hit_1_b   <= not( hit     ); 
    u_hit_2: hit_2     <= not( hit_1_b ); 
    u_hit_3: hit_3_b   <= not( hit_2   );
-   u_hit_4: cmp_flush <= not( hit_3_b ); 
+   u_hit_4: cmp_flush <= not( hit_3_b ); --output--
 
 
-   u_o8_dir: dir_eq_v_or_b <= not( o8_30 );
-   u_o8_ldq: ldq_fnd_b     <= not( o8_36 );
+   u_o8_dir: dir_eq_v_or_b <= not( o8_30 );--output--
+   u_o8_ldq: ldq_fnd_b     <= not( o8_36 );--output--
 
 
 
 
+-- ################################################################
+-- # 2 miscellaneous compares against erat (above stack)
+-- ################################################################
 
        smq_addr_b(0 to 35) <= not( s_m_queue0_addr  (22 to 57) );
        sto_addr_b(0 to 35) <= not( ex4_st_entry_addr(22 to 57) );
 
  smq_cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb     =>  enable_lsb_oth            ,
-       d0(0 to 35)    =>  ex3_erat_i5_b(0 to 35)    ,
-       d1(0 to 35)    =>  smq_addr_b   (0 to 35)    ,
-       eq             =>  smq_eq                   );
+       enable_lsb     =>  enable_lsb_oth            ,--i--xuq_lsu_cmp_cmp36e(smq_cmp)
+       d0(0 to 35)    =>  ex3_erat_i5_b(0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(smq_cmp)
+       d1(0 to 35)    =>  smq_addr_b   (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(smq_cmp)
+       eq             =>  smq_eq                   );--o--xuq_lsu_cmp_cmp36e(smq_cmp)
 
  sto_cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb     =>  enable_lsb_oth            ,
-       d0(0 to 35)    =>  ex3_erat_i5_b(0 to 35)    ,
-       d1(0 to 35)    =>  sto_addr_b   (0 to 35)    ,
-       eq             =>  sto_eq                   );
+       enable_lsb     =>  enable_lsb_oth            ,--i--xuq_lsu_cmp_cmp36e(sto_cmp)
+       d0(0 to 35)    =>  ex3_erat_i5_b(0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(sto_cmp)
+       d1(0 to 35)    =>  sto_addr_b   (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(sto_cmp)
+       eq             =>  sto_eq                   );--o--xuq_lsu_cmp_cmp36e(sto_cmp)
 
 
        u_smq_eqv: smq_eqv_b <= not( smq_eq   and st_entry0_val );
        u_sto_eqv: sto_eqv_b <= not( sto_eq   and ex4_st_val    );
 
-       ex3addr_hit_stq   <= not( smq_eqv_b ); 
-       ex3addr_hit_ex4st <= not( sto_eqv_b ); 
+       ex3addr_hit_stq   <= not( smq_eqv_b ); --output--  let synth optimize out
+       ex3addr_hit_ex4st <= not( sto_eqv_b ); --output--  let synth optimize out
 
 
 
 
+-- ################################################################
+-- # muxes in front of load miss queue , and repower
+-- ################################################################
 
     l_q_wrt_en_b(0 to 7) <= not l_q_wrt_en(0 to 7);
 
-    u_lmq0_q:    lmq0_q   (0 to 35) <= not( lmq0_q_b(0 to 35)  ); 
-    u_lmq1_q:    lmq1_q   (0 to 35) <= not( lmq1_q_b(0 to 35)  ); 
-    u_lmq2_q:    lmq2_q   (0 to 35) <= not( lmq2_q_b(0 to 35)  ); 
-    u_lmq3_q:    lmq3_q   (0 to 35) <= not( lmq3_q_b(0 to 35)  ); 
-    u_lmq4_q:    lmq4_q   (0 to 35) <= not( lmq4_q_b(0 to 35)  ); 
-    u_lmq5_q:    lmq5_q   (0 to 35) <= not( lmq5_q_b(0 to 35)  ); 
-    u_lmq6_q:    lmq6_q   (0 to 35) <= not( lmq6_q_b(0 to 35)  ); 
-    u_lmq7_q:    lmq7_q   (0 to 35) <= not( lmq7_q_b(0 to 35)  ); 
+    u_lmq0_q:    lmq0_q   (0 to 35) <= not( lmq0_q_b(0 to 35)  ); --2
+    u_lmq1_q:    lmq1_q   (0 to 35) <= not( lmq1_q_b(0 to 35)  ); --2
+    u_lmq2_q:    lmq2_q   (0 to 35) <= not( lmq2_q_b(0 to 35)  ); --2
+    u_lmq3_q:    lmq3_q   (0 to 35) <= not( lmq3_q_b(0 to 35)  ); --2
+    u_lmq4_q:    lmq4_q   (0 to 35) <= not( lmq4_q_b(0 to 35)  ); --2
+    u_lmq5_q:    lmq5_q   (0 to 35) <= not( lmq5_q_b(0 to 35)  ); --2
+    u_lmq6_q:    lmq6_q   (0 to 35) <= not( lmq6_q_b(0 to 35)  ); --2
+    u_lmq7_q:    lmq7_q   (0 to 35) <= not( lmq7_q_b(0 to 35)  ); --2
 
-    u_lmq0_i0:   lmq0_i0_b(0 to 35) <= not( lmq0_q   (0 to 35)  ); 
-    u_lmq1_i0:   lmq1_i0_b(0 to 35) <= not( lmq1_q   (0 to 35)  ); 
-    u_lmq2_i0:   lmq2_i0_b(0 to 35) <= not( lmq2_q   (0 to 35)  ); 
-    u_lmq3_i0:   lmq3_i0_b(0 to 35) <= not( lmq3_q   (0 to 35)  ); 
-    u_lmq4_i0:   lmq4_i0_b(0 to 35) <= not( lmq4_q   (0 to 35)  ); 
-    u_lmq5_i0:   lmq5_i0_b(0 to 35) <= not( lmq5_q   (0 to 35)  ); 
-    u_lmq6_i0:   lmq6_i0_b(0 to 35) <= not( lmq6_q   (0 to 35)  ); 
-    u_lmq7_i0:   lmq7_i0_b(0 to 35) <= not( lmq7_q   (0 to 35)  ); 
+    u_lmq0_i0:   lmq0_i0_b(0 to 35) <= not( lmq0_q   (0 to 35)  ); --4
+    u_lmq1_i0:   lmq1_i0_b(0 to 35) <= not( lmq1_q   (0 to 35)  ); --4
+    u_lmq2_i0:   lmq2_i0_b(0 to 35) <= not( lmq2_q   (0 to 35)  ); --4
+    u_lmq3_i0:   lmq3_i0_b(0 to 35) <= not( lmq3_q   (0 to 35)  ); --4
+    u_lmq4_i0:   lmq4_i0_b(0 to 35) <= not( lmq4_q   (0 to 35)  ); --4
+    u_lmq5_i0:   lmq5_i0_b(0 to 35) <= not( lmq5_q   (0 to 35)  ); --4
+    u_lmq6_i0:   lmq6_i0_b(0 to 35) <= not( lmq6_q   (0 to 35)  ); --4
+    u_lmq7_i0:   lmq7_i0_b(0 to 35) <= not( lmq7_q   (0 to 35)  ); --4
 
-    u_lmq0_iy:   lmq0_iy  (0 to 35) <= not( lmq0_i0_b(0 to 35)  ); 
-    u_lmq1_iy:   lmq1_iy  (0 to 35) <= not( lmq1_i0_b(0 to 35)  ); 
-    u_lmq2_iy:   lmq2_iy  (0 to 35) <= not( lmq2_i0_b(0 to 35)  ); 
-    u_lmq3_iy:   lmq3_iy  (0 to 35) <= not( lmq3_i0_b(0 to 35)  ); 
-    u_lmq4_iy:   lmq4_iy  (0 to 35) <= not( lmq4_i0_b(0 to 35)  ); 
-    u_lmq5_iy:   lmq5_iy  (0 to 35) <= not( lmq5_i0_b(0 to 35)  ); 
-    u_lmq6_iy:   lmq6_iy  (0 to 35) <= not( lmq6_i0_b(0 to 35)  ); 
-    u_lmq7_iy:   lmq7_iy  (0 to 35) <= not( lmq7_i0_b(0 to 35)  ); 
+    u_lmq0_iy:   lmq0_iy  (0 to 35) <= not( lmq0_i0_b(0 to 35)  ); --4 drives to left  (ERAT compares )
+    u_lmq1_iy:   lmq1_iy  (0 to 35) <= not( lmq1_i0_b(0 to 35)  ); --4 drives to left  (ERAT compares )
+    u_lmq2_iy:   lmq2_iy  (0 to 35) <= not( lmq2_i0_b(0 to 35)  ); --4 drives to left  (ERAT compares )
+    u_lmq3_iy:   lmq3_iy  (0 to 35) <= not( lmq3_i0_b(0 to 35)  ); --4 drives to left  (ERAT compares )
+    u_lmq4_iy:   lmq4_iy  (0 to 35) <= not( lmq4_i0_b(0 to 35)  ); --4 drives to left  (ERAT compares )
+    u_lmq5_iy:   lmq5_iy  (0 to 35) <= not( lmq5_i0_b(0 to 35)  ); --4 drives to left  (ERAT compares )
+    u_lmq6_iy:   lmq6_iy  (0 to 35) <= not( lmq6_i0_b(0 to 35)  ); --4 drives to left  (ERAT compares )
+    u_lmq7_iy:   lmq7_iy  (0 to 35) <= not( lmq7_i0_b(0 to 35)  ); --4 drives to left  (ERAT compares )
 
-    u_lmq0_ix:   lmq0_ix  (0 to 35) <= not( lmq0_i0_b(0 to 35)  ); 
-    u_lmq1_ix:   lmq1_ix  (0 to 35) <= not( lmq1_i0_b(0 to 35)  ); 
-    u_lmq2_ix:   lmq2_ix  (0 to 35) <= not( lmq2_i0_b(0 to 35)  ); 
-    u_lmq3_ix:   lmq3_ix  (0 to 35) <= not( lmq3_i0_b(0 to 35)  ); 
-    u_lmq4_ix:   lmq4_ix  (0 to 35) <= not( lmq4_i0_b(0 to 35)  ); 
-    u_lmq5_ix:   lmq5_ix  (0 to 35) <= not( lmq5_i0_b(0 to 35)  ); 
-    u_lmq6_ix:   lmq6_ix  (0 to 35) <= not( lmq6_i0_b(0 to 35)  ); 
-    u_lmq7_ix:   lmq7_ix  (0 to 35) <= not( lmq7_i0_b(0 to 35)  ); 
+    u_lmq0_ix:   lmq0_ix  (0 to 35) <= not( lmq0_i0_b(0 to 35)  ); --4 drives to right (other compares)
+    u_lmq1_ix:   lmq1_ix  (0 to 35) <= not( lmq1_i0_b(0 to 35)  ); --4 drives to right (other compares)
+    u_lmq2_ix:   lmq2_ix  (0 to 35) <= not( lmq2_i0_b(0 to 35)  ); --4 drives to right (other compares)
+    u_lmq3_ix:   lmq3_ix  (0 to 35) <= not( lmq3_i0_b(0 to 35)  ); --4 drives to right (other compares)
+    u_lmq4_ix:   lmq4_ix  (0 to 35) <= not( lmq4_i0_b(0 to 35)  ); --4 drives to right (other compares)
+    u_lmq5_ix:   lmq5_ix  (0 to 35) <= not( lmq5_i0_b(0 to 35)  ); --4 drives to right (other compares)
+    u_lmq6_ix:   lmq6_ix  (0 to 35) <= not( lmq6_i0_b(0 to 35)  ); --4 drives to right (other compares)
+    u_lmq7_ix:   lmq7_ix  (0 to 35) <= not( lmq7_i0_b(0 to 35)  ); --4 drives to right (other compares)
 
-    u_lmq0_ix1:   lmq0_ix1_b(0 to 35) <= not( lmq0_ix  (0 to 35)  ); 
-    u_lmq1_ix1:   lmq1_ix1_b(0 to 35) <= not( lmq1_ix  (0 to 35)  ); 
-    u_lmq2_ix1:   lmq2_ix1_b(0 to 35) <= not( lmq2_ix  (0 to 35)  ); 
-    u_lmq3_ix1:   lmq3_ix1_b(0 to 35) <= not( lmq3_ix  (0 to 35)  ); 
-    u_lmq4_ix1:   lmq4_ix1_b(0 to 35) <= not( lmq4_ix  (0 to 35)  ); 
-    u_lmq5_ix1:   lmq5_ix1_b(0 to 35) <= not( lmq5_ix  (0 to 35)  ); 
-    u_lmq6_ix1:   lmq6_ix1_b(0 to 35) <= not( lmq6_ix  (0 to 35)  ); 
-    u_lmq7_ix1:   lmq7_ix1_b(0 to 35) <= not( lmq7_ix  (0 to 35)  ); 
+    u_lmq0_ix1:   lmq0_ix1_b(0 to 35) <= not( lmq0_ix  (0 to 35)  ); --1 buffer off
+    u_lmq1_ix1:   lmq1_ix1_b(0 to 35) <= not( lmq1_ix  (0 to 35)  ); --1
+    u_lmq2_ix1:   lmq2_ix1_b(0 to 35) <= not( lmq2_ix  (0 to 35)  ); --1
+    u_lmq3_ix1:   lmq3_ix1_b(0 to 35) <= not( lmq3_ix  (0 to 35)  ); --1
+    u_lmq4_ix1:   lmq4_ix1_b(0 to 35) <= not( lmq4_ix  (0 to 35)  ); --1
+    u_lmq5_ix1:   lmq5_ix1_b(0 to 35) <= not( lmq5_ix  (0 to 35)  ); --1
+    u_lmq6_ix1:   lmq6_ix1_b(0 to 35) <= not( lmq6_ix  (0 to 35)  ); --1
+    u_lmq7_ix1:   lmq7_ix1_b(0 to 35) <= not( lmq7_ix  (0 to 35)  ); --1
 
-    u_lmq0_ix2:   lmq0_ix2  (0 to 35) <= not( lmq0_ix1_b(0 to 35)  ); 
-    u_lmq1_ix2:   lmq1_ix2  (0 to 35) <= not( lmq1_ix1_b(0 to 35)  ); 
-    u_lmq2_ix2:   lmq2_ix2  (0 to 35) <= not( lmq2_ix1_b(0 to 35)  ); 
-    u_lmq3_ix2:   lmq3_ix2  (0 to 35) <= not( lmq3_ix1_b(0 to 35)  ); 
-    u_lmq4_ix2:   lmq4_ix2  (0 to 35) <= not( lmq4_ix1_b(0 to 35)  ); 
-    u_lmq5_ix2:   lmq5_ix2  (0 to 35) <= not( lmq5_ix1_b(0 to 35)  ); 
-    u_lmq6_ix2:   lmq6_ix2  (0 to 35) <= not( lmq6_ix1_b(0 to 35)  ); 
-    u_lmq7_ix2:   lmq7_ix2  (0 to 35) <= not( lmq7_ix1_b(0 to 35)  ); 
-
-
-    u_lmq0_new: lmq0_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (0) ) ); 
-    u_lmq1_new: lmq1_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (1) ) ); 
-    u_lmq2_new: lmq2_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (2) ) ); 
-    u_lmq3_new: lmq3_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (3) ) ); 
-    u_lmq4_new: lmq4_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (4) ) ); 
-    u_lmq5_new: lmq5_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (5) ) ); 
-    u_lmq6_new: lmq6_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (6) ) ); 
-    u_lmq7_new: lmq7_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (7) ) ); 
-
-    u_lmq0_fbk: lmq0_fbk_b(0 to 35) <= not( lmq0_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(0) ) ); 
-    u_lmq1_fbk: lmq1_fbk_b(0 to 35) <= not( lmq1_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(1) ) ); 
-    u_lmq2_fbk: lmq2_fbk_b(0 to 35) <= not( lmq2_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(2) ) ); 
-    u_lmq3_fbk: lmq3_fbk_b(0 to 35) <= not( lmq3_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(3) ) ); 
-    u_lmq4_fbk: lmq4_fbk_b(0 to 35) <= not( lmq4_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(4) ) ); 
-    u_lmq5_fbk: lmq5_fbk_b(0 to 35) <= not( lmq5_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(5) ) ); 
-    u_lmq6_fbk: lmq6_fbk_b(0 to 35) <= not( lmq6_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(6) ) ); 
-    u_lmq7_fbk: lmq7_fbk_b(0 to 35) <= not( lmq7_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(7) ) ); 
-
-    u_lmq0_din: lmq0_din  (0 to 35) <= not( lmq0_new_b  (0 to 35)  and lmq0_fbk_b(0 to 35)                    ); 
-    u_lmq1_din: lmq1_din  (0 to 35) <= not( lmq1_new_b  (0 to 35)  and lmq1_fbk_b(0 to 35)                    ); 
-    u_lmq2_din: lmq2_din  (0 to 35) <= not( lmq2_new_b  (0 to 35)  and lmq2_fbk_b(0 to 35)                    ); 
-    u_lmq3_din: lmq3_din  (0 to 35) <= not( lmq3_new_b  (0 to 35)  and lmq3_fbk_b(0 to 35)                    ); 
-    u_lmq4_din: lmq4_din  (0 to 35) <= not( lmq4_new_b  (0 to 35)  and lmq4_fbk_b(0 to 35)                    ); 
-    u_lmq5_din: lmq5_din  (0 to 35) <= not( lmq5_new_b  (0 to 35)  and lmq5_fbk_b(0 to 35)                    ); 
-    u_lmq6_din: lmq6_din  (0 to 35) <= not( lmq6_new_b  (0 to 35)  and lmq6_fbk_b(0 to 35)                    ); 
-    u_lmq7_din: lmq7_din  (0 to 35) <= not( lmq7_new_b  (0 to 35)  and lmq7_fbk_b(0 to 35)                    ); 
+    u_lmq0_ix2:   lmq0_ix2  (0 to 35) <= not( lmq0_ix1_b(0 to 35)  ); --2 mux input
+    u_lmq1_ix2:   lmq1_ix2  (0 to 35) <= not( lmq1_ix1_b(0 to 35)  ); --2
+    u_lmq2_ix2:   lmq2_ix2  (0 to 35) <= not( lmq2_ix1_b(0 to 35)  ); --2
+    u_lmq3_ix2:   lmq3_ix2  (0 to 35) <= not( lmq3_ix1_b(0 to 35)  ); --2
+    u_lmq4_ix2:   lmq4_ix2  (0 to 35) <= not( lmq4_ix1_b(0 to 35)  ); --2
+    u_lmq5_ix2:   lmq5_ix2  (0 to 35) <= not( lmq5_ix1_b(0 to 35)  ); --2
+    u_lmq6_ix2:   lmq6_ix2  (0 to 35) <= not( lmq6_ix1_b(0 to 35)  ); --2
+    u_lmq7_ix2:   lmq7_ix2  (0 to 35) <= not( lmq7_ix1_b(0 to 35)  ); --2
 
 
+    u_lmq0_new: lmq0_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (0) ) ); -- 0p5
+    u_lmq1_new: lmq1_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (1) ) ); -- 0p5
+    u_lmq2_new: lmq2_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (2) ) ); -- 0p5
+    u_lmq3_new: lmq3_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (3) ) ); -- 0p5
+    u_lmq4_new: lmq4_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (4) ) ); -- 0p5
+    u_lmq5_new: lmq5_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (5) ) ); -- 0p5
+    u_lmq6_new: lmq6_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (6) ) ); -- 0p5
+    u_lmq7_new: lmq7_new_b(0 to 35) <= not( ex3_erat_din(0 to 35)  and           (0 to 35=> l_q_wrt_en  (7) ) ); -- 0p5
+
+    u_lmq0_fbk: lmq0_fbk_b(0 to 35) <= not( lmq0_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(0) ) ); -- 0p5
+    u_lmq1_fbk: lmq1_fbk_b(0 to 35) <= not( lmq1_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(1) ) ); -- 0p5
+    u_lmq2_fbk: lmq2_fbk_b(0 to 35) <= not( lmq2_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(2) ) ); -- 0p5
+    u_lmq3_fbk: lmq3_fbk_b(0 to 35) <= not( lmq3_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(3) ) ); -- 0p5
+    u_lmq4_fbk: lmq4_fbk_b(0 to 35) <= not( lmq4_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(4) ) ); -- 0p5
+    u_lmq5_fbk: lmq5_fbk_b(0 to 35) <= not( lmq5_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(5) ) ); -- 0p5
+    u_lmq6_fbk: lmq6_fbk_b(0 to 35) <= not( lmq6_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(6) ) ); -- 0p5
+    u_lmq7_fbk: lmq7_fbk_b(0 to 35) <= not( lmq7_ix     (0 to 35)  and           (0 to 35=> l_q_wrt_en_b(7) ) ); -- 0p5
+
+    u_lmq0_din: lmq0_din  (0 to 35) <= not( lmq0_new_b  (0 to 35)  and lmq0_fbk_b(0 to 35)                    ); -- 1
+    u_lmq1_din: lmq1_din  (0 to 35) <= not( lmq1_new_b  (0 to 35)  and lmq1_fbk_b(0 to 35)                    ); -- 1
+    u_lmq2_din: lmq2_din  (0 to 35) <= not( lmq2_new_b  (0 to 35)  and lmq2_fbk_b(0 to 35)                    ); -- 1
+    u_lmq3_din: lmq3_din  (0 to 35) <= not( lmq3_new_b  (0 to 35)  and lmq3_fbk_b(0 to 35)                    ); -- 1
+    u_lmq4_din: lmq4_din  (0 to 35) <= not( lmq4_new_b  (0 to 35)  and lmq4_fbk_b(0 to 35)                    ); -- 1
+    u_lmq5_din: lmq5_din  (0 to 35) <= not( lmq5_new_b  (0 to 35)  and lmq5_fbk_b(0 to 35)                    ); -- 1
+    u_lmq6_din: lmq6_din  (0 to 35) <= not( lmq6_new_b  (0 to 35)  and lmq6_fbk_b(0 to 35)                    ); -- 1
+    u_lmq7_din: lmq7_din  (0 to 35) <= not( lmq7_new_b  (0 to 35)  and lmq7_fbk_b(0 to 35)                    ); -- 1
 
 
 
 
-               binv_addr_b(0 to 35) <= not( back_inv_addr(22 to 57) ); 
- u_binv_addr:  binv_addr  (0 to 35) <= not( binv_addr_b(0 to 35)    ); 
+-- ################################################################
+-- # 8 compares with the non-ERAT address
+-- ################################################################
+
+
+               binv_addr_b(0 to 35) <= not( back_inv_addr(22 to 57) ); -- not mapping
+ u_binv_addr:  binv_addr  (0 to 35) <= not( binv_addr_b(0 to 35)    ); -- need to place
 
  binv0cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb    =>  enable_lsb_bi           ,
-       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,
-       d1(0 to 35)   =>  lmq0_ix    (0 to 35)    ,
-       eq            =>  binv_eq(0)             );
+       enable_lsb    =>  enable_lsb_bi           ,--i--xuq_lsu_cmp_cmp36e(binv0cmp)
+       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv0cmp)
+       d1(0 to 35)   =>  lmq0_ix    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv0cmp)
+       eq            =>  binv_eq(0)             );--o--xuq_lsu_cmp_cmp36e(binv0cmp)
 
  binv1cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb    =>  enable_lsb_bi           ,
-       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,
-       d1(0 to 35)   =>  lmq1_ix    (0 to 35)    ,
-       eq            =>  binv_eq(1)             );
+       enable_lsb    =>  enable_lsb_bi           ,--i--xuq_lsu_cmp_cmp36e(binv1cmp)
+       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv1cmp)
+       d1(0 to 35)   =>  lmq1_ix    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv1cmp)
+       eq            =>  binv_eq(1)             );--o--xuq_lsu_cmp_cmp36e(binv1cmp)
 
  binv2cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb    =>  enable_lsb_bi           ,
-       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,
-       d1(0 to 35)   =>  lmq2_ix    (0 to 35)    ,
-       eq            =>  binv_eq(2)             );
+       enable_lsb    =>  enable_lsb_bi           ,--i--xuq_lsu_cmp_cmp36e(binv2cmp)
+       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv2cmp)
+       d1(0 to 35)   =>  lmq2_ix    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv2cmp)
+       eq            =>  binv_eq(2)             );--o--xuq_lsu_cmp_cmp36e(binv2cmp)
 
  binv3cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb    =>  enable_lsb_bi           ,
-       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,
-       d1(0 to 35)   =>  lmq3_ix    (0 to 35)    ,
-       eq            =>  binv_eq(3)             );
+       enable_lsb    =>  enable_lsb_bi           ,--i--xuq_lsu_cmp_cmp36e(binv3cmp)
+       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv3cmp)
+       d1(0 to 35)   =>  lmq3_ix    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv3cmp)
+       eq            =>  binv_eq(3)             );--o--xuq_lsu_cmp_cmp36e(binv3cmp)
 
  binv4cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb    =>  enable_lsb_bi           ,
-       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,
-       d1(0 to 35)   =>  lmq4_ix    (0 to 35)    ,
-       eq            =>  binv_eq(4)             );
+       enable_lsb    =>  enable_lsb_bi           ,--i--xuq_lsu_cmp_cmp36e(binv4cmp)
+       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv4cmp)
+       d1(0 to 35)   =>  lmq4_ix    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv4cmp)
+       eq            =>  binv_eq(4)             );--o--xuq_lsu_cmp_cmp36e(binv4cmp)
 
  binv5cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb    =>  enable_lsb_bi           ,
-       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,
-       d1(0 to 35)   =>  lmq5_ix    (0 to 35)    ,
-       eq            =>  binv_eq(5)             );
+       enable_lsb    =>  enable_lsb_bi           ,--i--xuq_lsu_cmp_cmp36e(binv5cmp)
+       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv5cmp)
+       d1(0 to 35)   =>  lmq5_ix    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv5cmp)
+       eq            =>  binv_eq(5)             );--o--xuq_lsu_cmp_cmp36e(binv5cmp)
 
  binv6cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb    =>  enable_lsb_bi           ,
-       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,
-       d1(0 to 35)   =>  lmq6_ix    (0 to 35)    ,
-       eq            =>  binv_eq(6)             );
+       enable_lsb    =>  enable_lsb_bi           ,--i--xuq_lsu_cmp_cmp36e(binv6cmp)
+       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv6cmp)
+       d1(0 to 35)   =>  lmq6_ix    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv6cmp)
+       eq            =>  binv_eq(6)             );--o--xuq_lsu_cmp_cmp36e(binv6cmp)
 
  binv7cmp: entity work.xuq_lsu_cmp_cmp36e(xuq_lsu_cmp_cmp36e) port map(       
-       enable_lsb    =>  enable_lsb_bi           ,
-       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,
-       d1(0 to 35)   =>  lmq7_ix    (0 to 35)    ,
-       eq            =>  binv_eq(7)             );
+       enable_lsb    =>  enable_lsb_bi           ,--i--xuq_lsu_cmp_cmp36e(binv7cmp)
+       d0(0 to 35)   =>  binv_addr  (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv7cmp)
+       d1(0 to 35)   =>  lmq7_ix    (0 to 35)    ,--i--xuq_lsu_cmp_cmp36e(binv7cmp)
+       eq            =>  binv_eq(7)             );--o--xuq_lsu_cmp_cmp36e(binv7cmp)
 
 
- u_binv_eqv: binv_eqv_b       (0 to 7) <= not( binv_eq(0 to 7) and back_inv_cmp_val(0 to 7) ); 
-             back_inv_addr_hit(0 to 7) <= not( binv_eqv_b(0 to 7) ); 
+ u_binv_eqv: binv_eqv_b       (0 to 7) <= not( binv_eq(0 to 7) and back_inv_cmp_val(0 to 7) ); -- gated compare
+             back_inv_addr_hit(0 to 7) <= not( binv_eqv_b(0 to 7) ); --output-- --unmapped, match output phase, but allow synth to optimize out
 
 
+-- ################################################################
+-- # output mux 1
+-- ################################################################
 
 
    u_mux1_lv1_01: mux1_lv1_01_b(0 to 35) <= not( ( lmq0_ix2(0 to 35) and (0 to 35 => rel_tag_1hot(0) ) ) or
@@ -644,9 +653,12 @@ ex3_wayH_tag <= not dir7_q_b;
 
    u_mux1_lv3_07: mux1_lv3_07_b(0 to 35) <= not( mux1_lv2_03(0 to 35) or mux1_lv2_47(0 to 35) );
     
-   rel_addr(22 to 57) <= not mux1_lv3_07_b(0 to 35) ; 
+   rel_addr(22 to 57) <= not mux1_lv3_07_b(0 to 35) ; -- let synth repower --
 
 
+-- ################################################################
+-- # output mux 2
+-- ################################################################
 
    u_mux2_lv1_01: mux2_lv1_01_b(0 to 35) <= not( ( lmq0_ix2(0 to 35) and (0 to 35 => l_q_rd_en(0) ) ) or
                                                  ( lmq1_ix2(0 to 35) and (0 to 35 => l_q_rd_en(1) ) )  );
@@ -663,9 +675,12 @@ ex3_wayH_tag <= not dir7_q_b;
 
    u_mux2_lv3_07: mux2_lv3_07_b(0 to 35) <= not( mux2_lv2_03(0 to 35) or mux2_lv2_47(0 to 35) );
     
-   l_miss_entry_addr(22 to 57) <= not mux2_lv3_07_b(0 to 35) ; 
+   l_miss_entry_addr(22 to 57) <= not mux2_lv3_07_b(0 to 35) ; -- let synth repower --
 
 
+-- ################################################################
+-- # output mux 3
+-- ################################################################
 
 
    u_mux3_lv1_01: mux3_lv1_01_b(0 to 35) <= not( ( lmq0_ix2(0 to 35) and (0 to 35 => ex4_loadmiss_qentry(0) ) ) or
@@ -683,7 +698,7 @@ ex3_wayH_tag <= not dir7_q_b;
 
    u_mux3_lv3_07: mux3_lv3_07_b(0 to 35) <= not( mux3_lv2_03(0 to 35) or mux3_lv2_47(0 to 35) );
     
-   ex4_ld_addr(22 to 57) <= not mux3_lv3_07_b(0 to 35) ; 
+   ex4_ld_addr(22 to 57) <= not mux3_lv3_07_b(0 to 35) ; -- let synth repower --
 
 
    u_en_lsb_lmq: enable_lsb_lmq <= not( enable_lsb_lmq_b );
@@ -692,6 +707,9 @@ ex3_wayH_tag <= not dir7_q_b;
 
 
 
+-- ################################################################
+-- # Latches
+-- ################################################################
 
     lmq0_lat: entity tri.tri_inv_nlats   generic map (width => 36, init=> (1 to 36=>'0'), btr=> "NLI0001_X1_A12TH", expand_type => expand_type) port map (
         VD             => vdd                      ,
@@ -883,54 +901,58 @@ ex3_wayH_tag <= not dir7_q_b;
 
 
 
+-- ###############################################################
+-- # LCBs
+-- ###############################################################
 
     ex3_erat_lcb : tri_lcbnd generic map (expand_type => expand_type) port map(
-        nclk        =>  nclk                 ,
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        act         =>  ex2_erat_act         ,
-        delay_lclkr =>  delay_lclkr (0)      ,
-        mpw1_b      =>  mpw1_b      (0)      ,
-        mpw2_b      =>  mpw2_b      (0)      ,
-        forcee =>  forcee       (0)      ,
-        sg          =>  sg_0        (0)      ,
-        thold_b     =>  thold_0_b   (0)      ,
-        d1clk       =>  ex3_erat_d1clk       ,
-        d2clk       =>  ex3_erat_d2clk       ,
-        lclk        =>  ex3_erat_lclk       );
+        nclk        =>  nclk                 ,--in
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        act         =>  ex2_erat_act         ,--in
+        delay_lclkr =>  delay_lclkr (0)      ,--in
+        mpw1_b      =>  mpw1_b      (0)      ,--in
+        mpw2_b      =>  mpw2_b      (0)      ,--in
+        forcee =>  forcee       (0)      ,--in
+        sg          =>  sg_0        (0)      ,--in
+        thold_b     =>  thold_0_b   (0)      ,--in
+        d1clk       =>  ex3_erat_d1clk       ,--out
+        d2clk       =>  ex3_erat_d2clk       ,--out
+        lclk        =>  ex3_erat_lclk       );--out
 
     dir_lcb : tri_lcbnd generic map (expand_type => expand_type) port map(
-        nclk        =>  nclk                 ,
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        act         =>  binv2_ex2_stg_act    ,
-        delay_lclkr =>  delay_lclkr (1)      ,
-        mpw1_b      =>  mpw1_b      (1)      ,
-        mpw2_b      =>  mpw2_b      (1)      ,
-        forcee =>  forcee       (1)      ,
-        sg          =>  sg_0        (1)      ,
-        thold_b     =>  thold_0_b   (1)      ,
-        d1clk       =>  dir_d1clk            ,
-        d2clk       =>  dir_d2clk            ,
-        lclk        =>  dir_lclk            );
+        nclk        =>  nclk                 ,--in
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        act         =>  binv2_ex2_stg_act    ,--in
+        delay_lclkr =>  delay_lclkr (1)      ,--in
+        mpw1_b      =>  mpw1_b      (1)      ,--in
+        mpw2_b      =>  mpw2_b      (1)      ,--in
+        forcee =>  forcee       (1)      ,--in
+        sg          =>  sg_0        (1)      ,--in
+        thold_b     =>  thold_0_b   (1)      ,--in
+        d1clk       =>  dir_d1clk            ,--out
+        d2clk       =>  dir_d2clk            ,--out
+        lclk        =>  dir_lclk            );--out
 
     lmq_lcb : tri_lcbnd generic map (expand_type => expand_type) port map(
-        nclk        =>  nclk                 ,
-        vd          =>  vdd                  ,
-        gd          =>  gnd                  ,
-        act         =>  lmq_entry_act        ,
-        delay_lclkr =>  delay_lclkr (2)      ,
-        mpw1_b      =>  mpw1_b      (2)      ,
-        mpw2_b      =>  mpw2_b      (2)      ,
-        forcee =>  forcee       (2)      ,
-        sg          =>  sg_0        (2)      ,
-        thold_b     =>  thold_0_b   (2)      ,
-        d1clk       =>  lmq_d1clk            ,
-        d2clk       =>  lmq_d2clk            ,
-        lclk        =>  lmq_lclk            );
+        nclk        =>  nclk                 ,--in
+        vd          =>  vdd                  ,--inout
+        gd          =>  gnd                  ,--inout
+        act         =>  lmq_entry_act        ,--in
+        delay_lclkr =>  delay_lclkr (2)      ,--in
+        mpw1_b      =>  mpw1_b      (2)      ,--in
+        mpw2_b      =>  mpw2_b      (2)      ,--in
+        forcee =>  forcee       (2)      ,--in
+        sg          =>  sg_0        (2)      ,--in
+        thold_b     =>  thold_0_b   (2)      ,--in
+        d1clk       =>  lmq_d1clk            ,--out
+        d2clk       =>  lmq_d2clk            ,--out
+        lclk        =>  lmq_lclk            );--out
 
 
  
+--=###############################################################
 
 
   ex3_erat_si(5)       <= scan_in(0);
@@ -974,19 +996,4 @@ ex3_wayH_tag <= not dir7_q_b;
   scan_out(2)          <= lmq7_so(0) ;
 
 
-end; 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+end; -- xuq_lsu_cmp ARCHITECTURE

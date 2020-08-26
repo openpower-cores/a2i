@@ -7,6 +7,11 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- *!****************************************************************
+-- *! FILENAME    : xuq_lsu_mux41.vhdl
+-- *! DESCRIPTION : Tri-State 4-to-1 Mux
+-- *!
+-- *!****************************************************************
 
 library ieee; use ieee.std_logic_1164.all;
 library support; 
@@ -44,4 +49,3 @@ u_y1: y1_b <= not( (D2 and S2) or (D3 and S3) );
 u_y:  Y    <= not(y0_b and y1_b);
 
 end xuq_lsu_mux41;
-

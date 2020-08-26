@@ -10,6 +10,7 @@
 
 
 
+---------------------------------------------------------------------
 
 library ieee,ibm,support,tri,work;
    use ieee.std_logic_1164.all;
@@ -22,20 +23,25 @@ library ieee,ibm,support,tri,work;
    use ibm.std_ulogic_mux_support.all; 
    use work.iuq_pkg.all;
 
+---------------------------------------------------------------------
 
 
 entity iuq_axu_fu_iss is
 generic(
         expand_type                             : integer := 2;
         fpr_addr_width                          : integer := 5;
-        needs_sreset                            : integer := 1); 
+        needs_sreset                            : integer := 1); -- 0 - ibm tech, 1 - other );
 port(
    	nclk                                 	: in  clk_logic;                
+        ---------------------------------------------------------------------
         vdd                                 	: inout power_logic;
         gnd                                 	: inout power_logic;
+        ---------------------------------------------------------------------
         iu_au_is1_flush                           : in  std_ulogic_vector(0 to 3);
         xu_iu_is2_flush                         : in  std_ulogic_vector(0 to 3);
         uc_flush                                : in  std_ulogic_vector(0 to 3);
+        ---------------------------------------------------------------------
+        -- pervasive
    	i_iss_si                           	: in  std_ulogic;           
    	i_iss_so                           	: out std_ulogic;              
         an_ac_scan_dis_dc_b                     : in std_ulogic;      
@@ -48,6 +54,7 @@ port(
         tc_ac_ccflush_dc                            :in   std_ulogic;
         delay_lclkr                                : in std_ulogic;
      
+        --------------------------------------------------------
         i_axu_is2_instr_match_t0                   : in  std_ulogic; 
         i_axu_is2_instr_match_t1                   : in  std_ulogic;
         i_axu_is2_instr_match_t2                   : in  std_ulogic;
@@ -136,8 +143,11 @@ port(
         spr_fiss_pri_rand_always                   : in std_ulogic;                
         spr_fiss_pri_rand_flush                    : in std_ulogic;                
 
+        --------------------------------------------------------
         iu_is2_take_t                           : out std_ulogic_vector(0 to 3);
         iu_fu_is2_tid_decode                    : out std_ulogic_vector(0 to 3);
+        --------------------------------------------------------
+        -- to FU
         iu_fu_rf0_instr_match                   : out std_ulogic;
         iu_fu_rf0_instr                         : out std_ulogic_vector(0 to 31);      
         iu_fu_rf0_instr_v                       : out std_ulogic;
@@ -156,7 +166,7 @@ port(
 
 
 
-        i_afd_ignore_flush_is2_t0               : in std_ulogic;  
+        i_afd_ignore_flush_is2_t0               : in std_ulogic;  -- for ppc div or sqrt
         i_afd_ignore_flush_is2_t1               : in std_ulogic;
         i_afd_ignore_flush_is2_t2               : in std_ulogic;
         i_afd_ignore_flush_is2_t3               : in std_ulogic;
@@ -191,6 +201,7 @@ port(
 
 end iuq_axu_fu_iss;
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------
 
 architecture iuq_axu_fu_iss of iuq_axu_fu_iss is
 signal act_dis                          : std_ulogic;
@@ -446,6 +457,9 @@ d_mode  <= '0';
 mpw2_b  <= '1';
 
     
+-- ############################################
+-- # pervasive
+-- ############################################
   
 
 
@@ -499,6 +513,9 @@ auperv_1to0_reg: tri_plat
                                 (i_afd_ignore_flush_is2_t3 and not xu_iu_is2_flush(3));
 
 
+-- ############################################
+-- # IS2 Early Valid Logic.  Duplicate latch in DEP
+-- ############################################
 
 
    is2_stall(0 to 3) <= is2_v_t(0 to 3) and not is2_issue_sel(0 to 3);
@@ -524,12 +541,16 @@ auperv_1to0_reg: tri_plat
       mpw2_b      => mpw2_b,           
       scin     => is2v_scin,
       scout    => is2v_scout ,
+      ---------------------------------------------
       din(0 to 3)  => is1_v_din(0 to 3),
                               
+      ---------------------------------------------
       dout(0 to 3) => is2_v_dout(0 to 3)
 
+      ---------------------------------------------
       );
 
+-- if a fdiv or fsqrt is issued in the fxu and stalled (in is2) by the axu, it should not be flushed
    is2_v_dout_premux(0 to 3) <= is2_v_dout(0 to 3) and (not is2_flush(0 to 3) or ignore_flush_is2(0 to 3));   
 
    is2_v_t(0 to 3) <= is2_v_dout(0 to 3);  
@@ -547,19 +568,26 @@ auperv_1to0_reg: tri_plat
       mpw2_b      => mpw2_b,         
       scin     => mask_scin,
       scout    => mask_scout ,
+      ---------------------------------------------
       din(0 to 3)  => iu_au_hi_pri_mask(0 to 3),
       din(4 to 7)  => iu_au_md_pri_mask(0 to 3),
                               
+      ---------------------------------------------
       dout(0 to 3) => hi_pri_mask_q(0 to 3),
       dout(4 to 7) => md_pri_mask_q(0 to 3)
 
+      ---------------------------------------------
       );
 
 
 
+-- iu_au_is2_flush
 is2_flush(0 to 3) <= xu_iu_is2_flush(0 to 3) or uc_flush(0 to 3);
 
 
+------------------------------------------------------------------------------------------------------------------------
+-- Issue selection logic (replaced table 2/08/2008 -- priority scheme from NorthStar/Sherman
+------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -590,6 +618,7 @@ medpri2v_nand2: medpri_v_b(2) <= not(md_mask_v(2) and skip_b(2));
 medpri3v_nand2: medpri_v_b(3) <= not(md_mask_v(3) and skip_b(3));
 
 
+-- selection priority among high priority threads only
 highpri0v_inv:   highpri_v(0) <= not highpri_v_b(0);
 highpri1v_inv:   highpri_v(1) <= not highpri_v_b(1);
 highpri2v_inv:   highpri_v(2) <= not highpri_v_b(2);
@@ -620,6 +649,7 @@ hi_sel_nand202:  hi_l02 <= not (hi_did0no2 and highpri_v(2));
 hi_sel_nand203:  hi_l03 <= not (hi_did0no3 and highpri_v(3));
 
 
+-- selection priority among med priority threads only
 medpri0v_inv:   medpri_v(0) <= not medpri_v_b(0);
 medpri1v_inv:   medpri_v(1) <= not medpri_v_b(1);
 medpri2v_inv:   medpri_v(2) <= not medpri_v_b(2);
@@ -652,6 +682,7 @@ md_sel_nand203:  md_l03 <= not (md_did0no3 and medpri_v(3));
 
 
 
+-- reorder section
 
 hi_sel_inv0:    hi_sel_b(0) <= not hi_sel(0);
 hi_sel_inv1:    hi_sel_b(1) <= not hi_sel(1);
@@ -686,6 +717,7 @@ hi_reord_inv02:  hi_did0no2     <= not hi_did2no0;
 hi_reord_inv03:  hi_did0no3     <= not hi_did3no0;
 
 
+-- med section
 
 md_sel_inv0:    md_sel_b(0) <= not md_sel(0);
 md_sel_inv1:    md_sel_b(1) <= not md_sel(1);
@@ -782,6 +814,7 @@ is2_issue_sel(0 to 3) <= not (issselhi_b(0 to 3) and issselmd_b(0 to 3));
 
 
 
+-- issue_sel mapping/buffering
 is2_issue_sel_buf1_b(0 to 3)   <= not is2_issue_sel(0 to 3);
 
 is2_issue_sel_buf2(0 to 3)     <= not is2_issue_sel_buf1_b(0 to 3);
@@ -791,6 +824,9 @@ is2_issue_sel_buf3_b(0 to 3)   <= not is2_issue_sel_buf2(0 to 3);
 is2_issue_sel_buf4(0 to 3)     <= not is2_issue_sel_buf3_b(0 to 3);
 
 
+------------------------------------------------------------------------------------------------------------------------
+--
+------------------------------------------------------------------------------------------------------------------------
 
 
 iu_fu_is2_instr(0 to 31)  <= (i_afd_is2_t0_instr and (0 to 31 => is2_issue_sel_buf4(0))) or
@@ -852,12 +888,15 @@ iu_fu_is2_instr_match  <= (i_axu_is2_instr_match_t0 and is2_issue_sel_buf4(0)) o
 
 
                       
+-- Early decode for special fmul, ending for sp and dp fdiv/fsqrt
 
 iu_fu_is2_ucfmul  <=  iu_fu_is2_instr(0 to 2) = "111" and iu_fu_is2_instr(4 to 5) = "11" and
                       iu_fu_is2_instr(26 to 30) = "10001";
 
 
 
+-- "ORing" i_afd_ignore_flush_is2_t* gets is_ucode to go active during the original ppc instruction.  Otherwise it
+-- would never go active on the special cases where the ucode instructions get blocked.
    is2_is_ucode  <=  (i_afd_is2_is_ucode_t0 and is2_issue_sel_buf4(0)) or    
                      (i_afd_is2_is_ucode_t1 and is2_issue_sel_buf4(1)) or    
                      (i_afd_is2_is_ucode_t2 and is2_issue_sel_buf4(2)) or    
@@ -930,8 +969,11 @@ pri_rand(0 TO 5) <=  "001000" when spr_fiss_pri_rand(0 to 4) = "00000" else
 
 
                    
+----------------------------------------------------------------------------------
+---RF0 latches -------------------------------------------------------------------
+----------------------------------------------------------------------------------
 
-   rf0_took_latch:  tri_rlmreg_p 
+   rf0_took_latch:  tri_rlmreg_p --init to 000001000001
     generic map (init => 65, expand_type => expand_type, needs_sreset => needs_sreset,  width => 12)
     port map (
       nclk     => nclk,          act      => tiup,
@@ -942,6 +984,7 @@ pri_rand(0 TO 5) <=  "001000" when spr_fiss_pri_rand(0 to 4) = "00000" else
       mpw2_b      => mpw2_b,          
       scin     => rf0_took_latch_scin,
       scout    => rf0_took_latch_scout,
+      ---------------------------------------------
       din(00)  => hi_did3no0_d,
       din(01)  => hi_did3no1_d,
       din(02)  => hi_did3no2_d,
@@ -955,6 +998,7 @@ pri_rand(0 TO 5) <=  "001000" when spr_fiss_pri_rand(0 to 4) = "00000" else
       din(10)  => md_did2no1_d,
       din(11)  => md_did1no0_d,
                                                                      
+      ---------------------------------------------
       dout(00) => hi_did3no0,
       dout(01) => hi_did3no1,
       dout(02) => hi_did3no2,
@@ -968,14 +1012,17 @@ pri_rand(0 TO 5) <=  "001000" when spr_fiss_pri_rand(0 to 4) = "00000" else
       dout(10) => md_did2no1,
       dout(11) => md_did1no0
                                                       
+      ---------------------------------------------
       );
 
 
 
+----------------------------------------------------------------------------------
 
    
 is2_act <= is2_instr_v or is2_act_l2;
 
+----------------------------------------------------------------------------------
    rf0_stage_latch:  tri_rlmreg_p
     generic map (init => 0, expand_type => expand_type, needs_sreset => needs_sreset,  width => 77+EFF_IFAR'length)
     port map (
@@ -987,6 +1034,7 @@ is2_act <= is2_instr_v or is2_act_l2;
       mpw2_b      => mpw2_b,          
       scin     => rf0_stage_latch_scin,
       scout    => rf0_stage_latch_scout,
+      ---------------------------------------------
 
       din(00 to 31)  => iu_fu_is2_instr(0 to 31),
       din(32      )  => iu_fu_is2_instr_v,
@@ -1006,6 +1054,7 @@ is2_act <= is2_instr_v or is2_act_l2;
       din(71 to 76)  => iu_fu_is2_bypsel_din(0 to 5),  
       din(77 to 76+EFF_IFAR'length)  => is2_ifar,    
 
+      ---------------------------------------------
       dout(00 to 31)  => iu_fu_rf0_instr(0 to 31),
       dout(32      )  => iu_fu_rf0_instr_v,
       dout(33      )  => iu_fu_rf0_is_ucode,
@@ -1023,6 +1072,7 @@ is2_act <= is2_instr_v or is2_act_l2;
       dout(71 to 76)  => iu_fu_rf0_bypsel(0 to 5),  
       dout(77 to 76+EFF_IFAR'length)  => rf0_ifar    
 
+      ---------------------------------------------
       );
 
 iu_fu_rf0_ifar <= rf0_ifar;
@@ -1030,10 +1080,14 @@ iu_fu_rf0_tid <= rf0_tid;
 
 spare_unused(0 to 1) <= tidn & tidn;
 
+----------------------------------------------------------------------------------
 
 
                       
                                             
+ --shadow pipe latches
+ ---------------------------------------------
+ ---------------------------------------------
 
    rf0_wpc_sp_latch:  tri_rlmreg_p
     generic map (init => 0, expand_type => expand_type, needs_sreset => needs_sreset,  width => 5)
@@ -1046,18 +1100,21 @@ spare_unused(0 to 1) <= tidn & tidn;
       mpw2_b      => mpw2_b,           
       scin     => rf0_wpc_sp_latch_scin,
       scout    => rf0_wpc_sp_latch_scout ,
+      ---------------------------------------------
       din(0)  => is2_act_din,              
       din(1)  => spare_l2(2),
       din(2)  => spare_l2(3),
       din(3)  => spare_l2(4),
       din(4)  => spare_l2(5),
                               
+      ---------------------------------------------
       dout(0) => is2_act_l2,
       dout(1) => spare_l2(2),
       dout(2) => spare_l2(3),
       dout(3) => spare_l2(4),
       dout(4) => spare_l2(5)
 
+      ---------------------------------------------
       );
 
      disable_cgat <= i_afd_config_iucr_t0(4) or i_afd_config_iucr_t1(4) or i_afd_config_iucr_t2(4) or i_afd_config_iucr_t3(4);
@@ -1067,6 +1124,7 @@ spare_unused(0 to 1) <= tidn & tidn;
      spare_unused(3 to 6) <= tidn & tidn & tidn & tidn;
      spare_unused(8) <= tidn;  
 
+----------------------------------------------------------------------------------
    debug_reg:  tri_rlmreg_p
     generic map (init => 0, expand_type => expand_type, needs_sreset => needs_sreset,  width => 5)
     port map (
@@ -1078,16 +1136,20 @@ spare_unused(0 to 1) <= tidn & tidn;
       mpw2_b      => mpw2_b,          
       scin     => debug_reg_scin,
       scout    => debug_reg_scout,
+      ---------------------------------------------
       din(0 to 3)  => is2_issue_sel(0 to 3),
       din(4)  => spare_l2(6),
                               
+      ---------------------------------------------
       dout(0 to 3) => is2_issue_sel_db(0 to 3),
       dout(4) => spare_l2(6)
 
+      ---------------------------------------------
       );
       
 spare_unused(7) <= tidn;
 
+----------------------------------------------------------------------------------
 
 
  
@@ -1101,12 +1163,14 @@ divsqrt_mode <= ((not i_afd_in_ucode_mode_or1d_b_t0) or
                  (not i_afd_in_ucode_mode_or1d_b_t2) or
                  (not i_afd_in_ucode_mode_or1d_b_t3));               
 
-        is2_insert_one_bubble    <= '0';  
+-- this inserts a bubble in the pipe following the fp operation
+        is2_insert_one_bubble    <= '0';  -- reserved
         spare_unused(09) <= is2_insert_one_bubble;
           
-        is2_insert_two_bubbles   <= '0';  
+        is2_insert_two_bubbles   <= '0';  -- reserved
         spare_unused(10) <= is2_insert_two_bubbles;
         
+ -- this inserts 3 bubbles in the pipe following the fp operation
         is2_insert_three_bubbles <= ((ifdp_is2_est_bubble3_t0 and is2_issue_sel(0)) or
                                      (ifdp_is2_est_bubble3_t1 and is2_issue_sel(1)) or
                                      (ifdp_is2_est_bubble3_t2 and is2_issue_sel(2)) or
@@ -1124,9 +1188,35 @@ skip_din(3) <= or_reduce(bubble_din(2 to 4));
 
 
 
+--@@ ESPRESSO TABLE START @@
+-- .i 5
+-- .o 3
+-- .ilb is2_insert_three_bubbles is2_insert_seven_bubbles bubble_dout(2) bubble_dout(3) bubble_dout(4)
+-- .ob bubble_din(2)  bubble_din(3) bubble_din(4)
+-- .type fd
+--#
+--#3 7 234   234
+-- #######################################################################
+-- 0 0 111   110
+-- 0 0 110   101
+-- 0 0 101   100
+-- 0 0 100   011
+-- 0 0 011   010
+-- 0 0 010   001
+-- 0 0 001   000
+-- 0 0 000   000
+--
+-- 1 0 ---   011
+-- 0 1 ---   111
+-- 1 1 ---   111
 
 
+-- #######################################################################
+-- .e
+--@@ ESPRESSO TABLE END @@
 
+--@@ ESPRESSO LOGIC START @@
+-- logic generated on: Mon May  5 10:46:28 2008
 bubble_din(2) <= (not is2_insert_three_bubbles and  bubble_dout(2)
 		 and  bubble_dout(3)) or
 		(not is2_insert_three_bubbles and  bubble_dout(2)
@@ -1143,6 +1233,8 @@ bubble_din(4) <= ( bubble_dout(2) and not bubble_dout(4)) or
 		( is2_insert_three_bubbles) or
 		( is2_insert_seven_bubbles);
 
+--@@ ESPRESSO LOGIC END @@
+--
 
 
 
@@ -1158,8 +1250,11 @@ is2_bubble_latch:  tri_rlmreg_p
       mpw2_b      => mpw2_b,          
       scin     => is2_bubble_latch_scin,
       scout    => is2_bubble_latch_scout,
+      ---------------------------------------------
       din(0 to 2)  => bubble_din,
+      ---------------------------------------------
       dout(0 to 2) => bubble_dout
+      ---------------------------------------------
     );
 
 
@@ -1175,9 +1270,13 @@ is2_skip_latch:  tri_rlmreg_p
       mpw2_b      => mpw2_b,          
       scin     => is2_skip_latch_scin,
       scout    => is2_skip_latch_scout,
+      ---------------------------------------------
       din(0 to 3)  => skip_din,
+      ---------------------------------------------
       dout(0 to 3) => skip_dout
+      ---------------------------------------------
     );
+----------------------------------------------------------------------------------
  
  iu_fu_is2_bypsel <= (i_afd_is2_bypsel_t0 and (0 to 5 => is2_issue_sel_buf4(0))) or   
                      (i_afd_is2_bypsel_t1 and (0 to 5 => is2_issue_sel_buf4(1))) or   
@@ -1207,6 +1306,7 @@ fu_iss_debug(0 to 23) <= highpri_v(0 to 3) & medpri_v(0 to 3) &
 
 
                    
+-- scan chain ***********************************************************************************
          
 is2v_scin(0 to 3) <= i_iss_si      & is2v_scout(0 to 2);
 mask_scin(0 to 7) <= is2v_scout(3) & mask_scout(0 to 6);
@@ -1228,10 +1328,4 @@ is2_skip_latch_scin <= is2_bubble_latch_scout(2) & is2_skip_latch_scout(0 to 2);
 i_iss_so  <= is2_skip_latch_scout(3) and an_ac_scan_dis_dc_b; 
 
 
-
-
-
-
 end iuq_axu_fu_iss;
-
-   

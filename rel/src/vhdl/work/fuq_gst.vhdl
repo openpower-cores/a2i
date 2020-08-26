@@ -10,6 +10,13 @@
 
 
 
+--==##########################################################################
+--==###  FUQ_GST.VHDL                                                #########
+--==###  side pipe for graphics estimates                            #########
+--==###  flogefp, fexptefp                                           #########
+--==###                                                              #########
+--==##########################################################################
+
 library ieee,ibm,support,tri,work;
    use ieee.std_logic_1164.all;
    use ibm.std_ulogic_unsigned.all;
@@ -24,33 +31,37 @@ library ieee,ibm,support,tri,work;
 entity fuq_gst is
   
 generic ( 
-        expand_type : integer  := 2 );
+        expand_type : integer  := 2 );-- 0 = ibm, 1 = non-ibm
 port (
        vdd                                       :inout power_logic;
        gnd                                       :inout power_logic;
-       clkoff_b                                  :in   std_ulogic; 
-       act_dis                                   :in   std_ulogic; 
-       flush                                     :in   std_ulogic; 
-       delay_lclkr                               :in   std_ulogic_vector(2 to 5); 
-       mpw1_b                                    :in   std_ulogic_vector(2 to 5); 
-       mpw2_b                                    :in   std_ulogic_vector(0 to 1); 
+       clkoff_b                                  :in   std_ulogic; -- tiup
+       act_dis                                   :in   std_ulogic; -- ??tidn??
+       flush                                     :in   std_ulogic; -- ??tidn??
+       delay_lclkr                               :in   std_ulogic_vector(2 to 5); -- tidn,
+       mpw1_b                                    :in   std_ulogic_vector(2 to 5); -- tidn,
+       mpw2_b                                    :in   std_ulogic_vector(0 to 1); -- tidn,
        sg_1                                      :in   std_ulogic;
        thold_1                                   :in   std_ulogic;
-       fpu_enable                                :in   std_ulogic; 
+       fpu_enable                                :in   std_ulogic; --dc_act
        nclk                                      :in   clk_logic;
-        f_gst_si                   :in  std_ulogic; 
-        f_gst_so                   :out std_ulogic; 
+        ----------------------------------------------------------------------------
+        f_gst_si                   :in  std_ulogic; --perv  scan
+        f_gst_so                   :out std_ulogic; --perv  scan
         rf1_act                    :in  std_ulogic; 
+        ----------------------------------------------------------------------------
         f_fmt_ex1_b_sign_gst       :in std_ulogic;
         f_fmt_ex1_b_expo_gst_b     :in std_ulogic_vector(01 to 13); 
         f_fmt_ex1_b_frac_gst       :in std_ulogic_vector(01 to 19);        
+        ----------------------------------------------------------------------------
         f_pic_ex1_floges           :in  std_ulogic;      
         f_pic_ex1_fexptes          :in  std_ulogic;        
+        ----------------------------------------------------------------------------
         f_gst_ex5_logexp_v         :out std_ulogic;  
-        f_gst_ex5_logexp_sign      :out std_ulogic;                   
-        f_gst_ex5_logexp_exp       :out std_ulogic_vector(01 to 11);  
-        f_gst_ex5_logexp_fract     :out std_ulogic_vector(00 to 19)   
-);      
+        f_gst_ex5_logexp_sign      :out std_ulogic;                   -- needs to be right off of a latch
+        f_gst_ex5_logexp_exp       :out std_ulogic_vector(01 to 11);  -- needs to be right off of a latch
+        f_gst_ex5_logexp_fract     :out std_ulogic_vector(00 to 19)   -- needs to be right off of a latch
+);      ----------------------------------------------------------------------------
 
 
 
@@ -59,6 +70,7 @@ port (
   
 end fuq_gst;
 
+--==################################################
 architecture fuq_gst of fuq_gst is
 
 constant tiup : std_ulogic := '1';
@@ -67,6 +79,7 @@ constant tidn : std_ulogic := '0';
 signal sg_0       :std_ulogic;
 signal thold_0_b , thold_0, forcee    :std_ulogic;
 
+------------------------------------------------------------------------
 
 
 
@@ -139,9 +152,9 @@ signal ex2_shamt,ex3_shamt, ex4_shamt :std_ulogic_vector(0 to 4);
 signal ex3_negate,ex4_negate, ex3_b_sign      : std_ulogic;
 
 signal ex2_mantissa_shlev0  :std_ulogic_vector(00 to 19);
-signal ex2_mantissa_shlev1  :std_ulogic_vector(00 to 22);  
-signal ex2_mantissa_shlev2  :std_ulogic_vector(00 to 34);  
-signal ex2_mantissa_shlev3  :std_ulogic_vector(00 to 50);  
+signal ex2_mantissa_shlev1  :std_ulogic_vector(00 to 22);  -- 0 to 3
+signal ex2_mantissa_shlev2  :std_ulogic_vector(00 to 34);  -- 0 to 12
+signal ex2_mantissa_shlev3  :std_ulogic_vector(00 to 50);  -- 0 to 16
 
 signal ex2_pow_int  :std_ulogic_vector(1 to 8) ;                                
 signal ex2_pow_frac  :std_ulogic_vector(1 to 11) ;
@@ -149,9 +162,9 @@ signal ex2_pow_frac  :std_ulogic_vector(1 to 11) ;
 
 
 signal ex4_mantissa_shlev0  :std_ulogic_vector(01 to 19);
-signal ex4_mantissa_shlev1  :std_ulogic_vector(01 to 22);  
-signal ex4_mantissa_shlev2  :std_ulogic_vector(01 to 34);  
-signal ex4_mantissa_shlev3  :std_ulogic_vector(01 to 50);  
+signal ex4_mantissa_shlev1  :std_ulogic_vector(01 to 22);  -- 0 to 3
+signal ex4_mantissa_shlev2  :std_ulogic_vector(01 to 34);  -- 0 to 12
+signal ex4_mantissa_shlev3  :std_ulogic_vector(01 to 50);  -- 0 to 16
 
 signal ex4_exponent_a_addend_b :std_ulogic_vector(01 to 11);
 signal ex4_exponent_b_addend_b :std_ulogic_vector(01 to 11);
@@ -180,6 +193,7 @@ signal l3_e00, l3_e01    :std_ulogic;
 
 signal ex4_f,ex4_f_b        :std_ulogic_vector(01 to 11);
  
+------------------------------------------------------------------------
 signal   eb1, eb2, eb3, eb4, eb5, eb6, eb7, eb8, eb9, eb10 : std_ulogic; 
 
 signal   ea4, ea5, ea6, ea7, ea8, ea9, ea10, ea11                 : std_ulogic;
@@ -236,6 +250,9 @@ signal ec6_if_s1, ec6_if_s20, ec6_if_s30, ec6_if_sx, ec6_if_s31, ec6_if_s21 :std
 
 
 begin
+--==##########################################
+--# pervasive
+--==##########################################
 
 
 unused <= ex2_b_biased_13exp(1) or ex2_b_biased_13exp(2) or 
@@ -310,6 +327,7 @@ unused <= ex2_b_biased_13exp(1) or ex2_b_biased_13exp(2) or
         thold_b      => thold_0_b );
 
 
+--==##########################################
 
 
 
@@ -326,6 +344,7 @@ unused <= ex2_b_biased_13exp(1) or ex2_b_biased_13exp(2) or
         sg               => sg_0, 
         scout            => act_so  ,                      
         scin             => act_si  ,                    
+        -------------------
         din(0)           => act_spare_unused(0),
         din(1)           => act_spare_unused(1),
         din(2)           => rf1_act,
@@ -334,6 +353,7 @@ unused <= ex2_b_biased_13exp(1) or ex2_b_biased_13exp(2) or
         din(5)           => ex3_act,
         din(6)           => act_spare_unused(2),
         din(7)           => act_spare_unused(3),
+        -------------------
         dout(0)          => act_spare_unused(0),
         dout(1)          => act_spare_unused(1),
         dout(2)          => ex1_act,
@@ -344,6 +364,7 @@ unused <= ex2_b_biased_13exp(1) or ex2_b_biased_13exp(2) or
         dout(7)          => act_spare_unused(3) );
 
 
+--==##########################################
 
 
 zeros <= (1 to 16 => tidn);
@@ -360,6 +381,7 @@ zeros <= (1 to 16 => tidn);
 
 
 
+  -----------------------------------------------------------------------
     ex2_gst_ctrl_lat :  tri_rlmreg_p generic map (expand_type => expand_type, width=> 2, needs_sreset => 0) port map ( 
         forcee => forcee,  
         delay_lclkr      => delay_lclkr(2),
@@ -367,21 +389,29 @@ zeros <= (1 to 16 => tidn);
         mpw2_b           => mpw2_b(0),
         vd               => vdd,   gd               => gnd,
         nclk             => nclk,  thold_b          => thold_0_b,  sg               => sg_0,
+        -------------------
         act              => ex1_act,
+        -------------------
         scout            => ex2_gst_ctrl_lat_scout,                       
         scin             => ex2_gst_ctrl_lat_scin,                   
+        -------------------
         din(00)          => ex1_floges,
         din(01)          => ex1_fexptes,
+        -------------------
         dout(00)         => ex2_floges,
         dout(01)         => ex2_fexptes 
         );
+      -----------------------------------------------------------------------
 
 
 
+------------------------------------------------------------------------
+------------------------------------------------------------------------
 
 
 f_fmt_ex1_b_expo_gst <= not f_fmt_ex1_b_expo_gst_b;
 
+  -----------------------------------------------------------------------
     ex2_gst_stage_lat:  tri_rlmreg_p generic map (expand_type => expand_type, width=> 33, needs_sreset => 0) port map ( 
         forcee => forcee,  
         delay_lclkr      => delay_lclkr(2),
@@ -389,13 +419,17 @@ f_fmt_ex1_b_expo_gst <= not f_fmt_ex1_b_expo_gst_b;
         mpw2_b           => mpw2_b(0),
         vd               => vdd,   gd               => gnd,
         nclk             => nclk,  thold_b          => thold_0_b,  sg               => sg_0,
+        -------------------
         act              => ex1_act,
+        -------------------
         scout            => ex2_gst_stage_lat_scout,                     
         scin             => ex2_gst_stage_lat_scin,                   
+        -------------------
         din(00)          => f_fmt_ex1_b_sign_gst,
         din(01 to 13)    => f_fmt_ex1_b_expo_gst,
         din(14 to 32)    => f_fmt_ex1_b_frac_gst,
 
+        -------------------
         dout(00)         => ex2_b_sign,          
         dout(01 to 13)   => ex2_b_biased_13exp,  
         dout(14 to 32)   => ex2_b_fract         
@@ -403,6 +437,9 @@ f_fmt_ex1_b_expo_gst <= not f_fmt_ex1_b_expo_gst_b;
         );
         
 
+--******************************************************************************
+--* LOG ESTIMATE CALCULATION, FRACTIONAL PORTION
+--******************************************************************************
 
 ex2_f(1 to 11) <= ex2_b_fract(1 to 11);
 
@@ -418,21 +455,22 @@ f8  <= ex2_f(8);
 f9  <= ex2_f(9);
 f10 <= ex2_f(10);
 
-s1   <= (not f1 and not f2 and not f3 and not f4 );    
-s2_0 <= (not f1 and not f2 and not f3 and     f4 ) or  
-        (not f1 and not f2 and     f3 and not f4 );    
-s3_0 <= (not f1 and not f2 and     f3 and     f4 ) or  
-        (not f1 and     f2 and not f3            );    
-sx   <= (not f1 and     f2 and     f3            )or   
-        (    f1 and not f2 and not f3 and not f4 );    
-s3_1 <= (    f1 and not f2 and not f3 and     f4 ) or  
-        (    f1 and not f2 and     f3            );    
-s2_1 <= (    f1 and     f2                       );    
+s1   <= (not f1 and not f2 and not f3 and not f4 );    --0
+s2_0 <= (not f1 and not f2 and not f3 and     f4 ) or  --1
+        (not f1 and not f2 and     f3 and not f4 );    --2
+s3_0 <= (not f1 and not f2 and     f3 and     f4 ) or  --3
+        (not f1 and     f2 and not f3            );    --4,5
+sx   <= (not f1 and     f2 and     f3            )or   --6,7
+        (    f1 and not f2 and not f3 and not f4 );    --8
+s3_1 <= (    f1 and not f2 and not f3 and     f4 ) or  --9
+        (    f1 and not f2 and     f3            );    --10,11
+s2_1 <= (    f1 and     f2                       );    --12,13,14,15
 
 s2 <= s2_0 or s2_1 ;
 s3 <= s3_0 or s3_1 ;
 
 
+--------------------------------------------------------------------------------
 
 c4 <= sx ;
 c5 <= s3_0 or s3_1 ;
@@ -492,6 +530,7 @@ a11 <= (s1   and     f10) or
        (s3_0 and     f8)  or 
        (s3_1 and not f8);
 
+--------------------------------------------------------------------------------
 
 ex2_a(4 to 11) <=  a4 & a5 & a6 & a7 & a8 & a9 & a10 & a11;
 ex2_c(4 to 11) <=  c4 & c5 & c6 & c7 & tidn & tidn & tidn & tidn;
@@ -660,9 +699,14 @@ ex2_c(4 to 11) <=  c4 & c5 & c6 & c7 & tidn & tidn & tidn & tidn;
 
 
 
+--------------------------------------------------------------------------------
+-- unbias the exponent
+--------------------------------------------------------------------------------
+-- bias is DP, so subtract 1023
 
 ex2_b_biased_11exp(1 to 11) <= ex2_b_biased_13exp(3 to 13);
 
+-- add -1023 (10000000001)
 
 ex2_b_ubexp_sum(01)       <= not ex2_b_biased_11exp(01);
 ex2_b_ubexp_sum(02 to 10) <=     ex2_b_biased_11exp(02 to 10);
@@ -717,21 +761,36 @@ ex2_b_ubexp_cout( 2) <= not( ex2_ube_g8_b( 2) or ex2_ube_g8_b(10) );
 ex2_b_ubexp(01 to 10) <= ex2_b_ubexp_sum(01 to 10) xor ex2_b_ubexp_cout(02 to 11);
 ex2_b_ubexp(11)       <= ex2_b_ubexp_sum(11);
 
+--------------------------------------------------------------------------------
 
-ex2_logadd11: entity work.fuq_gst_add11(fuq_gst_add11) port map(  
+ex2_logadd11: entity work.fuq_gst_add11(fuq_gst_add11) port map(  -- not really an 11 bit adder
        a_b(0 to 10) => ex2_log_a_addend_b(1 to 11),
        b_b(0 to 10) => ex2_log_b_addend_b(1 to 11),
+     --------------------------------------------------------
      s0(0 to 10)  => ex2_log_mantissa_precomp(9 to 19)
      );
+   -----------------------------------------------------------------------
 
 
   ex2_log_mantissa_precomp(1 to 8) <= ex2_b_ubexp(4 to 11);
 
+------------------------------------------------------------------------------------------------------------------------
+-- for fexptes, shift mantissa based on the exponent (un-normalize)
 
 ex2_mantissa_shlev0(00 to 19) <= tiup & ex2_b_fract(01 to 19);
 
 ex2_shamt(0 to 4) <= ex2_b_ubexp(1) & ex2_b_ubexp(08 to 11);
 
+--timing note: the shift amount comes after the adder to unbias the exponent.
+--             it would be faster to use the biased exponent but use the shift controls different.
+--
+--             1 2 3 4 5 6 7 8 9 A B
+--             0 1 1 1 1 1 1 1 1 1 1  bias =1023
+--             1 0 0 0 0 0 0 0 0 0 1  add -1023 to unbias
+--             for small shifts   unbiased 01 = biased 00
+--             for small shifts   unbiased 10 = biased 01
+--             for small shifts   unbiased 11 = biased 10
+--             for small shifts   unbiased 00 = biased 11
 
 
 ex2_powsh_no_sat_lft <= not ex2_b_ubexp(2) and  
@@ -788,6 +847,10 @@ ex2_pow_frac(1 to 11) <= ex2_mantissa_shlev3(16 to 26);
 ex2_mantissa_din(1 to 19) <= ((ex2_pow_int(1 to 8) & ex2_pow_frac(1 to 11)) and (1 to 19 => ex2_fexptes)) or
                              (ex2_log_mantissa_precomp(1 to 19)             and (1 to 19 => ex2_floges ));
 
+  -----------------------------------------------------------------------
+  -----------------------------------------------------------------------
+  -----------------------------------------------------------------------
+  -----------------------------------------------------------------------
     ex3_gst_ctrl_lat :  tri_rlmreg_p generic map (expand_type => expand_type, width=> 2, needs_sreset => 0) port map ( 
         forcee => forcee,  
         delay_lclkr      => delay_lclkr(3),
@@ -795,14 +858,19 @@ ex2_mantissa_din(1 to 19) <= ((ex2_pow_int(1 to 8) & ex2_pow_frac(1 to 11)) and 
         mpw2_b           => mpw2_b(0),
         vd               => vdd,   gd               => gnd,
         nclk             => nclk,  thold_b          => thold_0_b,  sg               => sg_0,
+        -------------------
         act              => ex2_act,
+        -------------------
         scout            => ex3_gst_ctrl_lat_scout,                       
         scin             => ex3_gst_ctrl_lat_scin,                   
+        -------------------
         din(00)          => ex2_floges,
         din(01)          => ex2_fexptes,
+        -------------------
         dout(00)         => ex3_floges,
         dout(01)         => ex3_fexptes
         );
+      -----------------------------------------------------------------------
 
     ex3_gst_stage_lat:  tri_rlmreg_p generic map (expand_type => expand_type, width => 20, needs_sreset => 0  ) port map ( 
         forcee => forcee,  
@@ -811,23 +879,33 @@ ex2_mantissa_din(1 to 19) <= ((ex2_pow_int(1 to 8) & ex2_pow_frac(1 to 11)) and 
         mpw2_b           => mpw2_b(0),
         vd               => vdd,   gd               => gnd,
         nclk             => nclk,  thold_b          => thold_0_b,  sg               => sg_0,
+        -------------------
         act              => ex2_act,
+        -------------------
         scout            => ex3_gst_stage_lat_scout,                     
         scin             => ex3_gst_stage_lat_scin,                   
+        -------------------
         din(00 to 18)    => ex2_mantissa_din,
         din(19)          => ex2_b_sign,
+        -------------------
         dout(00 to 18)   => ex3_mantissa_precomp,            
         dout(19)         => ex3_b_sign
 
         );
+      -----------------------------------------------------------------------
+      -----------------------------------------------------------------------
+      -----------------------------------------------------------------------
 
       
 ex3_mantissa_precomp_b <= not ex3_mantissa_precomp(1 to 19);
 
+  -----------------------------------------------------------------------
 ex3_log_inc: entity work.fuq_gst_inc19(fuq_gst_inc19) port map( 
      a(1 to 19) => ex3_mantissa_precomp_b(1 to 19),
+     --------------------------------------------------------
      o(1 to 19) => ex3_mantissa_neg(1 to 19)
      );
+   -----------------------------------------------------------------------
 
 ex3_negate <= (ex3_mantissa_precomp(1) and ex3_floges) or (ex3_fexptes and ex3_b_sign);
 
@@ -836,13 +914,17 @@ ex3_negate <= (ex3_mantissa_precomp(1) and ex3_floges) or (ex3_fexptes and ex3_b
 
 
 
+  -----------------------------------------------------------------------
 ex3_log_loa: entity work.fuq_gst_loa(fuq_gst_loa) port map( 
      a(1 to 19) => ex3_mantissa,
+     --------------------------------------------------------
      shamt(0 to 4) => ex3_shamt(0 to 4)
      );
+   -----------------------------------------------------------------------
 
 ex3_logof1_specialcase <= not or_reduce(ex3_shamt(0 to 4));
 
+  -----------------------------------------------------------------------
     ex4_gst_ctrl_lat :  tri_rlmreg_p generic map (expand_type => expand_type, width=> 4, needs_sreset => 0) port map ( 
         forcee => forcee,  
         delay_lclkr      => delay_lclkr(4),
@@ -850,13 +932,17 @@ ex3_logof1_specialcase <= not or_reduce(ex3_shamt(0 to 4));
         mpw2_b           => mpw2_b(0),
         vd               => vdd,   gd               => gnd,
         nclk             => nclk,  thold_b          => thold_0_b,  sg               => sg_0,
+        -------------------
         act              => ex3_act,
+        -------------------
         scout            => ex4_gst_ctrl_lat_scout,                       
         scin             => ex4_gst_ctrl_lat_scin,                   
+        -------------------
         din(00)          => ex3_floges,
         din(01)          => ex3_fexptes,
         din(02)          => ex3_negate,
         din(03)          => ex3_logof1_specialcase,
+        -------------------
         dout(00)         => ex4_floges,
         dout(01)         => ex4_fexptes,
         dout(02)         => ex4_negate,
@@ -871,15 +957,24 @@ ex3_logof1_specialcase <= not or_reduce(ex3_shamt(0 to 4));
         mpw2_b           => mpw2_b(0),
         vd               => vdd,   gd               => gnd,
         nclk             => nclk,  thold_b          => thold_0_b,  sg               => sg_0,
+        -------------------
         act              => ex3_act,
+        -------------------
         scout            => ex4_gst_stage_lat_scout,                     
         scin             => ex4_gst_stage_lat_scin,                   
+        -------------------
         din(00 to 18)    => ex3_mantissa,
         din(19 to 23)    => ex3_shamt,
+        -------------------
         dout(00 to 18)   => ex4_mantissa,            
         dout(19 to 23)   => ex4_shamt 
         );
+   -----------------------------------------------------------------------
+   -----------------------------------------------------------------------
+   -----------------------------------------------------------------------
 
+-- shift mantissa for log (shamt is set to zeros for exp)
+-- log mantissa gets normalized here
 
 
 
@@ -925,8 +1020,13 @@ ex4_mantissa_shlev3(01 to 50) <= (zeros(01 to 16) & (ex4_mantissa_shlev2(01 to 3
                                  
 ex4_log_mantissa_postsh(01 to 19) <= ex4_mantissa_shlev3(32 to 50);
 
+------------------------------------------------------------------------------------------------------------------------
+-- pow fract logic
 
 ex4_f(1 to 11) <= ex4_mantissa(9 to 19);
+-- ************************************
+-- ** vexptefp fract logic
+-- ************************************
 
      eb1 <= ex4_f(1);
      eb2 <= ex4_f(2);
@@ -941,17 +1041,33 @@ ex4_f(1 to 11) <= ex4_mantissa(9 to 19);
 
  ex4_f_b(1 to 11) <= not ex4_f(1 to 11);
     
+--0000 ^s2
+--0001 ^s2
+--0010 ^s2
+--0011 ^s2
+--0100 ^s3
+--0101 ^s3
+--0110 ^s3
+--0111  --
+--1000  --
+--1001  --
+--1010  s3
+--1011  s3
+--1100  s3
+--1101  s2
+--1110  s2
+--1111  s1
       
-   es2_0 <= ( not eb1 and not eb2                         )    ;
-   es3_0 <= ( not eb1 and     eb2 and not eb3             ) or  
-            ( not eb1 and     eb2 and     eb3 and not eb4 )    ;
-   esx   <= ( not eb1 and     eb2 and     eb3 and     eb4 ) or  
-            (     eb1 and not eb2 and not eb3             )    ;
-   es3_1 <= (     eb1 and not eb2 and     eb3             ) or  
-            (     eb1 and     eb2 and not eb3 and not eb4 )    ;
-   es2_1 <= (     eb1 and     eb2 and not eb3 and     eb4 ) or  
-            (     eb1 and     eb2 and     eb3 and not eb4 )    ;
-   es1   <= (     eb1 and     eb2 and     eb3 and     eb4 )    ;
+   es2_0 <= ( not eb1 and not eb2                         )    ;--0,1,2,3
+   es3_0 <= ( not eb1 and     eb2 and not eb3             ) or  --4,5
+            ( not eb1 and     eb2 and     eb3 and not eb4 )    ;--6
+   esx   <= ( not eb1 and     eb2 and     eb3 and     eb4 ) or  --7
+            (     eb1 and not eb2 and not eb3             )    ;--8,9
+   es3_1 <= (     eb1 and not eb2 and     eb3             ) or  --10,11
+            (     eb1 and     eb2 and not eb3 and not eb4 )    ;--12
+   es2_1 <= (     eb1 and     eb2 and not eb3 and     eb4 ) or  --13
+            (     eb1 and     eb2 and     eb3 and not eb4 )    ;--14
+   es1   <= (     eb1 and     eb2 and     eb3 and     eb4 )    ;--15
 
    es2 <= es2_0 or es2_1;
    es3 <= es3_0 or es3_1;
@@ -1076,6 +1192,7 @@ ex4_f(1 to 11) <= ex4_mantissa(9 to 19);
            (es3_1 and not eb8);
 
 
+--------------------------------------------------------------------------------
 
 
 
@@ -1166,20 +1283,22 @@ ex4_powf_b_addend_b <= not (ex4_fcarryin(1 to 11) );
 ex4_powfractadd11: entity work.fuq_gst_add11(fuq_gst_add11) port map( 
      a_b(0 to 10) => ex4_powf_a_addend_b,
      b_b(0 to 10) => ex4_powf_b_addend_b,
+     --------------------------------------------------------
      s0(0 to 10)  => ex4_pow_fract_b
      );
 
 ex4_pow_fract <= not ex4_pow_fract_b;
 
 
-ex4_log_dp_bias <= ("01111110111" and (1 to 11 => not ex4_logof1_specialcase)) or 
-                   ("11111111101" and (1 to 11 =>     ex4_logof1_specialcase));  
+------------------------------------------------------------------------------------------------------------------------
+ex4_log_dp_bias <= ("01111110111" and (1 to 11 => not ex4_logof1_specialcase)) or -- not (dp bias +9)
+                   ("11111111101" and (1 to 11 =>     ex4_logof1_specialcase));  -- results in exp of 000..1, which is zero
 
 ex4_log_a_addend_b(1 to 11) <= zeros(1 to 6) & ex4_shamt(0 to 4);
 ex4_log_b_addend_b(1 to 11) <= ex4_log_dp_bias;  
 
 ex4_pow_a_addend_b(1 to 11) <= not (ex4_mantissa(1) & ex4_mantissa(1) & ex4_mantissa(1) & ex4_mantissa(1 to 8));
-ex4_pow_b_addend_b(1 to 11) <= "10000000000";  
+ex4_pow_b_addend_b(1 to 11) <= "10000000000";  -- dp bias
 
 
 ex4_exponent_a_addend_b <= (ex4_log_a_addend_b and (1 to 11 => ex4_floges )) or
@@ -1188,12 +1307,15 @@ ex4_exponent_a_addend_b <= (ex4_log_a_addend_b and (1 to 11 => ex4_floges )) or
 ex4_exponent_b_addend_b <= (ex4_log_b_addend_b and (1 to 11 => ex4_floges )) or
                            (ex4_pow_b_addend_b and (1 to 11 => ex4_fexptes)) ;
 
+  -----------------------------------------------------------------------
 
 ex4_explogadd11: entity work.fuq_gst_add11(fuq_gst_add11) port map( 
      a_b(0 to 10) => ex4_exponent_a_addend_b,
      b_b(0 to 10) => ex4_exponent_b_addend_b,
+     --------------------------------------------------------
      s0(0 to 10)  => ex4_biased_exponent_result
      );
+   -----------------------------------------------------------------------
 
 
 
@@ -1208,6 +1330,9 @@ ex4_explogadd11: entity work.fuq_gst_add11(fuq_gst_add11) port map(
    ex4_fract_din <= (((not ex4_logof1_specialcase) & ex4_log_fract(1 to 19)) and (0 to 19 => ex4_floges )) or
                     ((tiup & ex4_pow_fract(1 to 11) & zeros(1 to 8))         and (0 to 19 => ex4_fexptes)) ;
 
+  -----------------------------------------------------------------------
+  -----------------------------------------------------------------------
+  -----------------------------------------------------------------------
     ex5_gst_ctrl_lat :  tri_rlmreg_p generic map (expand_type => expand_type, width=> 2, needs_sreset => 0) port map ( 
         forcee => forcee,  
         delay_lclkr      => delay_lclkr(5),
@@ -1215,11 +1340,15 @@ ex4_explogadd11: entity work.fuq_gst_add11(fuq_gst_add11) port map(
         mpw2_b           => mpw2_b(1),
         vd               => vdd,   gd               => gnd,
         nclk             => nclk,  thold_b          => thold_0_b,  sg               => sg_0,
+        -------------------
         act              => ex4_act,
+        -------------------
         scout            => ex5_gst_ctrl_lat_scout,                       
         scin             => ex5_gst_ctrl_lat_scin,                   
+        -------------------
         din(00)          => ex4_floges,
         din(01)          => ex4_fexptes,
+        -------------------
         dout(00)         => ex5_floges,
         dout(01)         => ex5_fexptes
         );
@@ -1233,12 +1362,16 @@ ex4_explogadd11: entity work.fuq_gst_add11(fuq_gst_add11) port map(
         mpw2_b           => mpw2_b(1),
         vd               => vdd,   gd               => gnd,
         nclk             => nclk,  thold_b          => thold_0_b,  sg               => sg_0,
+        -------------------
         act              => ex4_act,
+        -------------------
         scout            => ex5_gst_stage_lat_scout,                     
         scin             => ex5_gst_stage_lat_scin,                   
+        -------------------
         din(00)          => ex4_signbit_din,
         din(01 to 11)    => ex4_biased_exponent_result,
         din(12 to 31)    => ex4_fract_din,
+        -------------------
         dout(00)         => ex5_signbit,        
         dout(01 to 11)   => ex5_biased_exponent_result,
         dout(12 to 31)   => ex5_fract       
@@ -1246,6 +1379,9 @@ ex4_explogadd11: entity work.fuq_gst_add11(fuq_gst_add11) port map(
         );
 
         
+   -----------------------------------------------------------------------
+   -----------------------------------------------------------------------
+   -----------------------------------------------------------------------
 
 
         f_gst_ex5_logexp_sign      <= ex5_signbit;
@@ -1272,4 +1408,3 @@ f_gst_so <= act_so(0);
 
 
 end fuq_gst;
-

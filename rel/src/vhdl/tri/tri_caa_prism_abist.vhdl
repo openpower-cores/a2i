@@ -7,6 +7,9 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--
+--  Description: A2 Core ABIST Engine
+--
 library ieee, ibm;
 use ieee.std_logic_1164.all;
 use ibm.std_ulogic_support.all;
@@ -18,7 +21,7 @@ use tri.tri_latches_pkg.all;
 
 
 entity tri_caa_prism_abist is
-generic(expand_type     : integer := 1 );    
+generic(expand_type     : integer := 1 );    -- 0=ibm (Umbra), 1=non-ibm, 2=ibm (CDP)
 Port   (vdd                             : INOUT power_logic;
         gnd                             : INOUT power_logic;
         nclk                            : In    clk_logic;
@@ -37,12 +40,14 @@ Port   (vdd                             : INOUT power_logic;
         abist_sg                        : In    std_ulogic;
         abist_scan_in                   : In    std_ulogic;
         abist_scan_out                  : Out   std_ulogic;
+        -- LBIST + ABIST Engine Controls
         abist_done_in_dc                : In    std_ulogic;
         abist_done_out_dc               : Out   std_ulogic;
         abist_mode_dc                   : In    std_ulogic;
         abist_start_test                : In    std_ulogic;
         lbist_mode_dc                   : In    std_ulogic;
         lbist_ac_mode_dc                : In    std_ulogic;
+        -- ABIST Outputs
         abist_waddr_0                   : Out   std_ulogic_vector(0 to 9);
         abist_waddr_1                   : Out   std_ulogic_vector(0 to 9);
         abist_grf_wenb_0                : Out   std_ulogic;      
