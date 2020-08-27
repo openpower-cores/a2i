@@ -7,6 +7,52 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+-- ttypes handled:
+--  00 ifetch
+--  01 ifetch pre (may not occur?)
+--  08 load
+--  09 larx
+--  20 store
+--  29 stcx
+--  2A lwsync
+--  2B hwsync
+--  3A tlbsync (lwsync version)
+--  3F dcbi
+
+--  08 larx
+--  OB larx w/hint
+
+-- ttypes not handled:
+--  02 mmu_read (is it diff from load?)
+--  04 icbt
+--  05 dcbtst
+--  07 dcbt
+--  0D dcbtst
+--  0F dcbtls
+--  14 icbtls
+--  15 dcbtstls
+--- 17 dcbtls
+--  21 dcbz
+--  22 ditc
+--  24 icblc
+--  25 dcblc
+--  26 icswx
+--  27 icswx.
+--  2C mtspr_trace
+--  2D msgsnd
+--  2E ici
+--  2F dci
+--  32 mbar
+--  33 ptesync
+--  34 l1_load_hit
+--  35 dcbst
+--  36 dcbf
+--  37 dcbf
+--  3C tlbivax
+--  3D tlbi
+--  3E icbi
+--
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -19,9 +65,9 @@ entity a2l2_axi is
 	generic (
      threads                              : integer := 4;
      xu_real_data_add                     : integer := 42;     
-     st_data_32b_mode                     : integer := 1;   
+     st_data_32b_mode                     : integer := 1;      -- proc data/be size
      ac_st_data_32b_mode                  : integer := 1;
-     stores_32B                           : boolean := false;   
+     stores_32B                           : boolean := false;  -- does proc gen 32B stores
      lpid_width                           : integer := 8; 
      ld_queue_size                        : integer := 4;    
      st_queue_size                        : integer := 16;
@@ -125,7 +171,7 @@ architecture a2l2_axi of a2l2_axi is
 
 signal reload_d: A2L2RELOAD;
 signal reload_q: A2L2RELOAD;	
-   
+
 signal rld_seq_d      : std_logic_vector(0 to 4);
 signal rld_seq_q      : std_logic_vector(0 to 4);
 signal rld_dseq_d     : std_logic_vector(0 to 3);
@@ -220,13 +266,11 @@ signal axi_store_data_ready : std_logic;
 signal axi_store_data_valid : std_logic; 
 signal axi_store_data       : std_logic_vector(C_M00_AXI_DATA_WIDTH-1 downto 0);
 signal axi_store_data_be    : std_logic_vector(C_M00_AXI_DATA_WIDTH/8-1 downto 0); 
-
 signal axi_store_rsp_ready : std_logic;   
 signal axi_store_rsp_valid : std_logic;
 signal axi_store_rsp_id    : std_logic_vector(C_M00_AXI_ID_WIDTH-1 downto 0);
 signal axi_store_rsp_resp  : std_logic_vector(1 downto 0);
 signal store_complete      : std_logic;
-
 signal store_data_in       : std_logic_vector(0 to 127);
 signal store_be_in         : std_logic_vector(0 to 15);
   
@@ -457,8 +501,12 @@ end if;
 end process FF;
 
 
-
+------------------------------------------------------------------------------------------------------------
+-- Init
+-- credits are initially set in core
  
+------------------------------------------------------------------------------------------------------------
+-- Process request
 
 req_pwr_d <= ac_an_req_pwr_token; 
  
@@ -478,6 +526,61 @@ req_in.wimg <= ac_an_req_wimg_w & ac_an_req_wimg_i & ac_an_req_wimg_m & ac_an_re
 req_in.hwsync <= req_in.spec; 
 
 
+--tbl ReqDcd
+--
+--n req_in.valid                                                   req_in_load
+--n | req_in.ttype                                                 |req_in_store
+--n | |      req_in.thread                                         ||req_in_spec
+--n | |      |                                                     |||
+--n | |      |                                                     ||| larx_t
+--n | |      |                                                     ||| |    stcx_t
+--n | |      |                                                     ||| |    |    store_t
+--n | |      |                                                     ||| |    |    |
+--n | |      |                                                     ||| |    |    |
+--n | |      |                                                     ||| |    |    |
+--b | 012345 01                                                    ||| 0123 0123 0123
+--t i iiiiii ii                                                    ooo oooo oooo oooo
+--*-------------------------------------------------------------------------------------------------------------------
+--s 0 ------ --                                                    000 0000 0000 0000
+--* Loads ------------------------------------------------------------------------------------------------------------
+--s 1 000000 --                                                    100 0000 0000 0000                     * ifetch
+--s 1 000001 --                                                    100 0000 0000 0000                     * ifetch pre
+--s 1 001000 --                                                    100 0000 0000 0000                     * load
+--* Stores -----------------------------------------------------------------------------------------------------------
+--s 1 100000 00                                                    010 0000 0000 1000                     * store
+--s 1 100000 01                                                    010 0000 0000 0100                     * store
+--s 1 100000 10                                                    010 0000 0000 0010                     * store
+--s 1 100000 11                                                    010 0000 0000 0001                     * store
+--* Larx/Stcx --------------------------------------------------------------------------------------------------------
+--s 1 001001 00                                                    100 1000 0000 0000                     * larx
+--s 1 001001 01                                                    100 0100 0000 0000                     * larx
+--s 1 001001 10                                                    100 0010 0000 0000                     * larx
+--s 1 001001 11                                                    100 0001 0000 0000                     * larx
+--* 1 001011 00                                                    000 1000 0000 0000                     * larx hint 
+--* 1 001011 01                                                    000 0100 0000 0000                     * larx hint
+--* 1 001011 10                                                    000 0010 0000 0000                     * larx hint
+--* 1 001011 11                                                    000 0001 0000 0000                     * larx hint
+--s 1 101001 00                                                    010 0000 1000 0000                     * stcx
+--s 1 101001 01                                                    010 0000 0100 0000                     * stcx
+--s 1 101001 10                                                    010 0000 0010 0000                     * stcx
+--s 1 101001 11                                                    010 0000 0001 0000                     * stcx
+--* Specials ---------------------------------------------------------------------------------------------------------
+--s 1 101010 --                                                    011 0000 0000 0000                     * lwsync
+--s 1 101011 --                                                    011 0000 0000 0000                     * hwsync
+--s 1 111010 --                                                    011 0000 0000 0000                     * tlbsync
+--s 1 111111 --                                                    011 0000 0000 0000                     * dcbi
+--*-------------------------------------------------------------------------------------------------------------------
+--
+--tbl ReqDcd
+
+------------------------------------------------------------------------------------------------------------
+-- Load Request
+--
+-- push load to load queue
+--  head: oldest
+--  send: next to send
+--  data: next to receive data
+--  tail: next to write
     
 with req_in_load select
    ldq_tail_d <= inc(ldq_tail_q) when '1',
@@ -485,12 +588,13 @@ with req_in_load select
 
 ldq_write_sel <= req_in_load & ldq_tail_q;
    
+-- feedback
 gen_load_queue_fb: for i in 0 to 3 generate
    
    load_queue_fb(i).valid  <= load_queue_q(i).valid and not ldq_valid_rst(i);
    load_queue_fb(i).sent   <= (load_queue_q(i).sent or ldq_sent_set(i)) and not ldq_valid_rst(i);
    load_queue_fb(i).data   <= (load_queue_q(i).data or ldq_data_set(i)) and not ldq_data_rst(i);
-   load_queue_fb(i).dseq   <= "000";        
+   load_queue_fb(i).dseq   <= "000";        -- might use if interleaving data returns
    load_queue_fb(i).endian <= load_queue_q(i).endian;
    load_queue_fb(i).tag    <= load_queue_q(i).tag;
    load_queue_fb(i).len    <= load_queue_q(i).len;
@@ -505,7 +609,6 @@ gen_load_queue_fb: for i in 0 to 3 generate
 
    load_dep_d(i) <= gate_and(load_queue_set_dep(i), lhs_entry) or 
                     gate_and(not load_queue_set_dep(i) and not load_queue_rst_dep(i), load_dep_q(i));
-
    
 end generate;
   
@@ -536,8 +639,10 @@ with ldq_send_q select
              load_dep_q(2) when "10",
              load_dep_q(3) when others; 
 
+-- send next available load to axi if ready and no stall
 axi_load_valid <= ld_req.valid and not ld_req.sent and not ld_req_stall;
    
+-- i=0 is always 64B; i=1 uses len
 axi_load_ra_hi <= ld_req.ra(64-C_M00_AXI_ADDR_WIDTH to 57);
 with ld_req.wimg(1) select
    axi_load_ra_lo <= "000000"            when '0',
@@ -560,6 +665,7 @@ with ld_req.wimg(1) select
 
 axi_load_taken <= axi_load_valid and axi_load_ready;     
    
+-- sent: set when req accepted by axi
 ldq_sent_set(0) <= axi_load_taken and eq(ldq_send_q, "00");
 ldq_sent_set(1) <= axi_load_taken and eq(ldq_send_q, "01");
 ldq_sent_set(2) <= axi_load_taken and eq(ldq_send_q, "10");
@@ -569,6 +675,7 @@ with axi_load_taken select
    ldq_send_d <= inc(ldq_send_q) when '1',
                  ldq_send_q      when others;
     
+-- data: set when last xfer received from axi
 ldq_data_set(0) <= axi_load_data_last and eq(ldq_data_q, "00");
 ldq_data_set(1) <= axi_load_data_last and eq(ldq_data_q, "01");
 ldq_data_set(2) <= axi_load_data_last and eq(ldq_data_q, "10");
@@ -591,6 +698,11 @@ with ldq_count_sel select
 ldq_oflow <= eq(ldq_count_q, "100") and eq(ldq_count_sel, "10");
 ldq_uflow <= eq(ldq_count_q, "000") and eq(ldq_count_sel, "01");                  
 
+------------------------------------------------------------------------------------------------------------
+-- Load Data Receive
+--
+--  head: next to send
+--  tail: next to write
 
 load_data_ready_d <= '1';
 axi_load_data_ready <= load_data_ready_q;
@@ -600,6 +712,7 @@ with axi_load_data_valid select
                     rdataq_tail_q      when others;
    
   
+-- axi_load_data_resp: check
       
 gen_load_load_data_queue: for i in 0 to 63 generate
    rdataq_write_sel(i) <= axi_load_data_valid and eq(rdataq_tail_q, i);   
@@ -608,6 +721,20 @@ gen_load_load_data_queue: for i in 0 to 63 generate
                               load_data_queue_q(i)                                                                                               when others;
 end generate;                     
 
+------------------------------------------------------------------------------------------------------------
+-- Load Data Send
+--
+-- each 16B xfer uses top 4 entries, swizzled for LE/BE if necessary
+-- a2l2 supports 2 main modes of return: alternating or consecutive; it also allows variable gaps between pairs of xfers for 64B
+-- crit qw can be returned first; only certain qw ordering is allowed (pairs must be consecutive):
+--   0-1-2-3, 0-1-3-2
+--   1-0-2-3, 1-0-3-2
+--   2-3-0-1, 2-3-1-0
+--   3-2-0-1, 3-2-1-0
+-- gaps can be filled with other xfers
+--
+-- use 'consecutive' mode and crit first
+-- ra(58:59) selects first rdataq to send; then use 0-1-2-3, 1-0-2-3, 2-3-0-1, 3-2-0-1 patterns
 
 with ldq_head_q select
    rld_data_valid <= load_queue_q(0).valid and load_queue_q(0).data when "00",
@@ -638,16 +765,127 @@ reload_d.ue <= '0';
 reload_d.ee <= '0';                              
 reload_d.dump <= '0';
 
-rld_ready <= axi_load_data_last or rld_data_valid; 
+rld_ready <= rld_data_valid; -- fastpath needs to look at next entry if b2b: axi_load_data_last
 
+-- data: reset in d-1
 ldq_data_rst(0) <= start_rld_data and eq(ldq_head_q, "00");
 ldq_data_rst(1) <= start_rld_data and eq(ldq_head_q, "01");
 ldq_data_rst(2) <= start_rld_data and eq(ldq_head_q, "10");
 ldq_data_rst(3) <= start_rld_data and eq(ldq_head_q, "11");
 
+--tbl RldSeq
+--
+--n rld_seq_q                                                      rld_seq_d
+--n |                                                              |
+--n |     rld_ready                                                |     reload_d.coming
+--n |     | rld_crit_qw                                            |     |reload_d.valid
+--n |     | |  rld_single                                          |     ||reload_d.qw
+--n |     | |  |                                                   |     ||| reload_d.crit
+--n |     | |  |                                                   |     ||| | start_rld_data
+--n |     | |  |                                                   |     ||| | |
+--n |     | |  |                                                   |     ||| | |       rld_seq_err
+--b |     | |  |                                                   |     ||55| |       |
+--b 01234 | 01 |                                                   01234 ||89| |       |
+--t iiiii i ii i                                                   ooooo ooooo o       o
+--*-------------------------------------------------------------------------------------------------------------------
+--*-- Idle -----------------------------------------------------------------------------------------------------------
+--s 11111 0 -- -                                                   11111 00000 0       0
+--s 11111 1 00 0                                                   10000 10000 0       0
+--s 11111 1 01 0                                                   10010 10000 0       0
+--s 11111 1 10 0                                                   10100 10000 0       0
+--s 11111 1 11 0                                                   10110 10000 0       0
+--s 11111 1 -- 1                                                   00001 10000 0       0
+--*-- Single a -------------------------------------------------------------------------------------------------------
+--s 00001 - -- -                                                   00010 01000 0       0  * d-3
+--*-- Single b -------------------------------------------------------------------------------------------------------
+--s 00010 - -- -                                                   00011 00000 0       0  * d-2
+--*-- Single c -------------------------------------------------------------------------------------------------------
+--s 00011 - -- -                                                   11111 00000 1       0  * d-1
+--*-- Crit 0a --------------------------------------------------------------------------------------------------------
+--s 10000 - -- -                                                   10001 01001 0       0  * d-3
+--*-- Crit 0b --------------------------------------------------------------------------------------------------------
+--s 10001 - -- -                                                   11010 11010 0       0  * d-2
+--*-- Crit 1a --------------------------------------------------------------------------------------------------------
+--s 10010 - -- -                                                   10011 01011 0       0  * d-3
+--*-- Crit 1b --------------------------------------------------------------------------------------------------------
+--s 10011 - -- -                                                   11010 11000 0       0  * d-2
+--*-- Crit 2a --------------------------------------------------------------------------------------------------------
+--s 10100 - -- -                                                   10101 01101 0       0  * d-3
+--*-- Crit 2b --------------------------------------------------------------------------------------------------------
+--s 10101 - -- -                                                   11000 11110 0       0  * d-2
+--*-- Crit 3a --------------------------------------------------------------------------------------------------------
+--s 10110 - -- -                                                   10111 01111 0       0  * d-3
+--*-- Crit 3b --------------------------------------------------------------------------------------------------------
+--s 10111 - -- -                                                   11000 11100 0       0  * d-2
+--*-- 2nd 01a --------------------------------------------------------------------------------------------------------
+--s 11000 - -- -                                                   11001 01000 1       0  * d-1
+--*-- 2nd 01b --------------------------------------------------------------------------------------------------------
+--s 11001 - -- -                                                   11111 01010 0       0  * d+0  
+--*-- 2nd 23a --------------------------------------------------------------------------------------------------------
+--s 11010 - -- -                                                   11011 01100 1       0  * d-1
+--*-- 2nd 23b --------------------------------------------------------------------------------------------------------
+--s 11011 - -- -                                                   11111 01110 0       0  * d+0  
+--*-- ERROR ----------------------------------------------------------------------------------------------------------
+--s 00000 - -- -                                                   00000 00000 0       1
+--s 00100 - -- -                                                   00100 00000 0       1
+--s 00101 - -- -                                                   00101 00000 0       1
+--s 00110 - -- -                                                   00110 00000 0       1
+--s 00111 - -- -                                                   00111 00000 0       1
+--s 11100 - -- -                                                   11100 00000 0       1
+--s 11101 - -- -                                                   11101 00000 0       1
+--s 11110 - -- -                                                   11110 00000 0       1
+--*-------------------------------------------------------------------------------------------------------------------
+--tbl RldSeq
 
+--tbl RldDataSeq
+--
+--n rld_dseq_q                                                     rld_dseq_d
+--n |                                                              |
+--n |     start_rld_data                                           |    rld_data_qw
+--n |     | rld_crit_qw                                            |    |  rld_complete
+--n |     | |  rld_single                                          |    |  |
+--n |     | |  |                                                   |    |  |
+--n |     | |  |                                                   |    |  |
+--n |     | |  |                                                   |    |  |
+--n |     | |  |                                                   |    |  |
+--n |     | |  |                                                   |    |  |     rld_dseq_err
+--b 0123  | 01 |                                                   0123 01 |     |
+--t iiii  i ii i                                                   oooo oo o     o
+--*-------------------------------------------------------------------------------------------------------------------
+--*-- Idle -----------------------------------------------------------------------------------------------------------
+--s 1111  0 -- -                                                   1111 00 0     0  * zzz..zzz....
+--s 1111  1 00 0                                                   0001 00 0     0  * 0-1-2-3
+--s 1111  1 01 0                                                   0010 01 0     0  * 1-0-2-3
+--s 1111  1 10 0                                                   0011 10 0     0  * 2-3-0-1
+--s 1111  1 11 0                                                   0100 11 0     0  * 3-2-0-1
+--s 1111  1 -- 1                                                   1111 00 1     0  * single xfer
+--*-- 2nd 01 ---------------------------------------------------------------------------------------------------------
+--s 0001  - -- -                                                   1011 01 0     0  * d+0
+--*-- 2nd 10 ---------------------------------------------------------------------------------------------------------
+--s 0010  - -- -                                                   1011 00 0     0  * d+0
+--*-- 2nd 23 ---------------------------------------------------------------------------------------------------------
+--s 0011  - -- -                                                   1001 11 0     0  * d+0
+--*-- 2nd 32 ---------------------------------------------------------------------------------------------------------
+--s 0100  - -- -                                                   1001 10 0     0  * d+0
+--*-- 3rd 01 ---------------------------------------------------------------------------------------------------------
+--s 1001  - -- -                                                   1010 00 0     0  * d+1
+--*-- 4th 01 ---------------------------------------------------------------------------------------------------------
+--s 1010  - -- -                                                   1111 01 1     0  * d+2    
+--*-- 3rd 23 ---------------------------------------------------------------------------------------------------------
+--s 1011  - -- -                                                   1100 10 0     0  * d+1
+--*-- 4th 23 ---------------------------------------------------------------------------------------------------------
+--s 1100  - -- -                                                   1111 11 1     0  * d+2    
+--*-- ERROR ----------------------------------------------------------------------------------------------------------
+--s 0000  - -- -                                                   0000 00 0     1
+--s 0101  - -- -                                                   0101 00 0     1
+--s 0110  - -- -                                                   0110 00 0     1
+--s 0111  - -- -                                                   0111 00 0     1
+--s 1000  - -- -                                                   1000 00 0     1
+--s 1101  - -- -                                                   1101 00 0     1
+--s 1110  - -- -                                                   1110 00 0     1
+--*-------------------------------------------------------------------------------------------------------------------
+--tbl RldDataSeq
 
-   
 load_complete <= rld_complete; 
    
 ldq_valid_rst(0) <= rld_complete and eq(ldq_head_q, "00");
@@ -657,6 +895,7 @@ ldq_valid_rst(3) <= rld_complete and eq(ldq_head_q, "11");
    
 status_d.ld_pop <= rld_complete;      
 
+-- send reload
 an_ac_reld_data_coming <= reload_q.coming;
 an_ac_reld_data_vld <= reload_q.valid;   
 an_ac_reld_core_tag <= reload_q.tag;
@@ -667,6 +906,7 @@ an_ac_reld_ecc_err_ue <= reload_q.ue;
 an_ac_reld_l1_dump <= reload_q.dump;
 an_ac_reld_data <= reload_q.data; 
      
+-- misc outputs
 an_ac_req_ld_pop <= status_q.ld_pop;            
 an_ac_req_st_pop <= status_q.st_pop;
 an_ac_req_st_pop_thrd <= status_q.st_pop_thrd;
@@ -710,6 +950,16 @@ with rld_data_qw select
                     rld_data_qw2 when "10",                           
                     rld_data_qw3 when others;
 
+------------------------------------------------------------------------------------------------------------
+-- Store Request
+--
+-- push store to store queue
+--  head: oldest
+--  send: next to send
+--  data: next to send data
+--  tail: next to write
+--
+-- special stores are not sent to axi directly
 
 store_pwr_d <= ac_an_st_data_pwr_token;       
       
@@ -717,6 +967,7 @@ with req_in_store select
    stq_tail_d <= inc(stq_tail_q) when '1',
                  stq_tail_q      when others;
 
+-- feedback
 gen_store_queue_fb: for i in 0 to st_queue_size-1 generate
    
    store_queue_fb(i).valid  <= store_queue_q(i).valid and not stq_valid_rst(i);                          
@@ -740,6 +991,7 @@ gen_store_queue_fb: for i in 0 to st_queue_size-1 generate
    
 end generate;
 
+-- store queue
 gen_store_queue: for i in 0 to st_queue_size-1 generate
 
    store_queue_d(i) <= req_in when b(req_in_store and eq(stq_tail_q, i)) else store_queue_fb(i);
@@ -751,17 +1003,25 @@ axi_store_id <= "0000";
 st_req_send <= mux_queue(store_queue_q, stq_send_q);
 st_dep <= mux_queue(store_dep_q, stq_send_q);
 
+-- send next available store to axi if ready and no stall
 axi_store_valid <= st_req_send.valid and not st_req_send.spec and not st_req_send.sent; 
 axi_store_mod <= "000000000000";
 
+-- all 16B stores for now
 axi_store_ra <= st_req_send.ra(64-C_M00_AXI_ADDR_WIDTH to 59) & "0000";
 
+-- assume even if using 32B interface, all stores are 16B or less
+-- so can mux lo/hi data/be
+-- it appears the mux'ing is not necessary; the data is dup'd hi/lo (so far at least);
+--  BUT, the BE need to be looked at across all bits (need to mux based on bit 59)
 
 gen_store_len_16B: if st_data_32b_mode = 0 generate
    store_data_in <= ac_an_st_data;
    store_be_in <= ac_an_st_byte_enbl;
 end generate;   
 gen_store_len_32B: if st_data_32b_mode = 1 generate
+-- a2 only gens 16B stores
+-- but need to still pick data/BE from proper bytes
    with req_in.ra(59) select 
       store_data_in <= ac_an_st_data(128 to 255) when '1',
                        ac_an_st_data(0 to 127)   when others;
@@ -770,6 +1030,17 @@ gen_store_len_32B: if st_data_32b_mode = 1 generate
                      ac_an_st_byte_enbl(0 to 15)  when others;                       
 end generate; 
 
+-- special store handling
+--
+-- syncs:
+--  go through valid-send-data stages, then autocomplete
+--  hwsync:
+--    dep vs ldq (wait for older loads)
+--    stall self until head (wait for older stores)
+--    hold send pointer until complete (no younger store will be sent)
+--
+-- dcbi:
+--  like normal lwsync
 
 store_spec_valid <= st_req_send.valid and st_req_send.spec; 
 
@@ -781,6 +1052,7 @@ lwsync_valid <= store_spec_valid and
                  eq(st_req_send.ttype, TLBSYNC) or
                  eq(st_req_send.ttype, DCBI));                             
 
+-- store to axi, or spec
 store_taken <= ((axi_store_valid and axi_store_ready) or store_spec_valid) and not st_req_stall;
 
 gen_stq_sent: for i in 0 to st_queue_size-1 generate
@@ -789,10 +1061,14 @@ end generate;
 
 store_advance <= (store_taken and not hwsync_valid) or hwsync_complete;
 
+-- inc to next entry
 with store_advance select
    stq_send_d <= inc(stq_send_q) when '1',
                  stq_send_q      when others;
 
+------------------------------------------------------------------------------------------------------------
+-- Store Data
+--
 
 gen_store_data_queue: for i in 0 to st_queue_size-1 generate
    store_data_queue_d(i) <= (data => store_data_in, be => store_be_in) when b(req_in_store and eq(stq_tail_q, i)) else store_data_queue_q(i);
@@ -801,6 +1077,7 @@ end generate;
 st_req_data <= mux_queue(store_queue_q, stq_data_q);
 st_data <= mux_queue(store_data_queue_q, stq_data_q);
               
+-- send next available store data to axi if ready
 axi_store_data_valid <= st_req_data.valid and st_req_data.data and not st_req_data.spec;
 
 axi_store_data_taken <= axi_store_data_valid and axi_store_data_ready;               
@@ -813,7 +1090,7 @@ st_data_xfer_d <= gate_and(st_data_xfer_inc, inc(st_data_xfer_q)) or
                   gate_and(st_data_xfer_done, "000") or
                   gate_and(st_data_xfer_hold, st_data_xfer_q);                        
 
-
+-- this can be done smarter if BE are examined; transfer 4/8/16 based on hi/lo be
 gen_store_data_16B: if not stores_32B generate     
 
 axi_store_len <= "0010000";                    
@@ -869,14 +1146,19 @@ gen_store_data_rst: for i in 0 to st_queue_size-1 generate
    stq_data_rst(i) <= st_data_xfer_done and eq(stq_data_q, i);
 end generate;
 
+------------------------------------------------------------------------------------------------------------
+-- Store Resp
 
 store_rsp_ready_d <= '1';
 axi_store_rsp_ready <= store_rsp_ready_q;
 
+-- special ops, auto-resp
 lwsync_complete <= st_req_data.valid and st_req_data.data and st_req_data.spec and not st_req_data.hwsync;
 hwsync_complete <= st_req_data.valid and st_req_data.data and st_req_data.spec and st_req_data.hwsync and not st_req_stall;
 store_spec_complete <= lwsync_complete or hwsync_complete;
     
+-- check resp, pop stq entry, return credit
+-- spec complete can occur concurrently with normal responses, so need to send delayed when necessary
 store_rsp_complete <= (axi_store_rsp_valid and eq(axi_store_rsp_resp, "00"));
 store_complete <= store_rsp_complete or store_spec_complete;   
 
@@ -889,8 +1171,8 @@ with store_pop_pending_sel select
                          store_pop_pending_q      when others;                                                                                                                    
                       
 status_d.st_pop <= store_complete or store_pop_delayed;
-status_d.st_pop_thrd <= "000";    
-status_d.gather <= '0';           
+status_d.st_pop_thrd <= "000";    -- ditc only
+status_d.gather <= '0';           -- if store was merged into existing stq entry, use this to return credit
              
 with store_complete select
     stq_head_d <= inc(stq_head_q) when '1',
@@ -909,9 +1191,18 @@ end generate;
 stq_oflow <= eq(stq_count_q, st_queue_size) and req_in_store;
 stq_uflow <= eq(stq_count_q, 0) and store_complete;  
                        
+------------------------------------------------------------------------------------------------------------
+--
+-- Specials
 
-
-
+-- larx/stcx
+--  larx bypasses L1 cache (i.e. data is not used if it hits in the L1)
+--  if larx hits L1, then core invalidates line automatically, therefore, the L2 does NOT need to send back-invalidate for larx
+--  larx address is specifed to the 64B cache line; reservation granule is the 64B cacheline
+--  core will not send any newer instructions following larx from the same thread to L2 until larx is completed
+--  L2 tracks one reservation per thread
+--  reservation is set before core receives reload data
+--  reservation_vld signal (used for fast wake-up from wait state) must be visible at the A2 before lwarx data is returned
     
 stcx_store_t(0) <= stcx_t(0) or store_t(0);
 stcx_store_t(1) <= stcx_t(1) or store_t(1);
@@ -970,71 +1261,90 @@ status_d.stcx_pass(1) <= stcx_t(1) and resv_q(1).valid and resv_ra_hit(1);
 status_d.stcx_pass(2) <= stcx_t(2) and resv_q(2).valid and resv_ra_hit(2);                                         
 status_d.stcx_pass(3) <= stcx_t(3) and resv_q(3).valid and resv_ra_hit(3);   
 
+-- sync ack
 
 status_d.sync_ack(0) <= hwsync_complete and eq(st_req_data.ttype, HWSYNC) and eq(st_req_data.thread, "00");
 status_d.sync_ack(1) <= hwsync_complete and eq(st_req_data.ttype, HWSYNC) and eq(st_req_data.thread, "01");
 status_d.sync_ack(2) <= hwsync_complete and eq(st_req_data.ttype, HWSYNC) and eq(st_req_data.thread, "10");
 status_d.sync_ack(3) <= hwsync_complete and eq(st_req_data.ttype, HWSYNC) and eq(st_req_data.thread, "11");                                                              
                        
+------------------------------------------------------------------------------------------------------------
+-- Load/Store Ordering/Barriers
                
-
 req_p1_d <= req_in;
 
-ld_p1_entry_d <= req_in_load & ldq_head_q;
-st_p1_entry_d <= req_in_store & stq_head_q;
+-- save entry loaded, for setting dependency
+ld_p1_entry_d <= req_in_load & ldq_tail_q;
+st_p1_entry_d <= req_in_store & stq_tail_q;
 
+-- ld hit st
 gen_dep_addr_cmp_l: for i in 0 to st_queue_size-1 generate          
                                      
-req_p1_addr_hit_lhs(i) <= ld_p1_entry_q(0) and                             
-                          address_check(req_p1_q, store_queue_q(i)) and    
-                          (not stq_valid_rst(i));                          
+req_p1_addr_hit_lhs(i) <= ld_p1_entry_q(0) and                             -- ld req
+                          address_check(req_p1_q, store_queue_q(i)) and    -- stq hit
+                          (not stq_valid_rst(i));                          -- stq not completing
 
-req_p1_sync_lhs(i) <= ld_p1_entry_q(0) and                                 
-                      store_queue_q(i).valid and                           
-                      store_queue_q(i).hwsync and                          
-                      (not stq_valid_rst(i));                              
+req_p1_sync_lhs(i) <= ld_p1_entry_q(0) and                                 -- ld req
+                      store_queue_q(i).valid and                           -- entry valid
+                      store_queue_q(i).hwsync and                          -- hwsync
+                      (not stq_valid_rst(i));                              -- stq not completing
 
 req_p1_any_lhs(i) <= req_p1_addr_hit_lhs(i) or req_p1_sync_lhs(i);                         
 
 end generate;
 
+-- rotate to order
 lhs_ordered <= rotl(req_p1_any_lhs, ldq_head_q);
 
+-- pick youngest
 lhs_ordered_youngest <= right_one(lhs_ordered);
 
+-- rotate back to entry
 lhs_youngest <= rotr(lhs_ordered_youngest, ldq_head_q);
 
+-- encode
 lhs_entry <= gate_and(or_reduce(lhs_youngest), '1' & enc(lhs_youngest));
                                 
+-- st hit ld
 gen_dep_addr_cmp_s: for i in 0 to ld_queue_size-1 generate          
                                      
-req_p1_addr_hit_shl(i) <= st_p1_entry_q(0) and                             
-                          not req_p1_q.spec and                            
-                          address_check(req_p1_q, load_queue_q(i)) and     
-                          (not ldq_valid_rst(i));                          
+req_p1_addr_hit_shl(i) <= st_p1_entry_q(0) and                             -- st req
+                          not req_p1_q.spec and                            -- not special op
+                          address_check(req_p1_q, load_queue_q(i)) and     -- ldq hit
+                          (not ldq_valid_rst(i));                          -- ldq not completing
                           
-req_p1_sync_shl(i) <= st_p1_entry_q(0) and                                 
-                      load_queue_q(i).valid and                            
-                      req_p1_q.hwsync and                                  
-                      (not ldq_valid_rst(i));                              
+req_p1_sync_shl(i) <= st_p1_entry_q(0) and                                 -- st req
+                      load_queue_q(i).valid and                            -- entry valid
+                      req_p1_q.hwsync and                                  -- hwsync
+                      (not ldq_valid_rst(i));                              -- ldq not completing
                       
 req_p1_any_shl(i) <= req_p1_addr_hit_shl(i) or req_p1_sync_shl(i);                                           
 
 end generate;
 
+-- rotate to order
 shl_ordered <= rotl(req_p1_any_shl, stq_head_q);
 
+-- pick youngest
 shl_ordered_youngest <= right_one(shl_ordered);
 
+-- rotate back to entry
 shl_youngest <= rotr(shl_ordered_youngest, stq_head_q);
 
+-- encode
 shl_entry <= gate_and(or_reduce(shl_youngest), '1' & enc(shl_youngest));                         
 
+-- addr_hit/barrier ops:
+-- 1. block current cycle valid if req_p1 is head this cycle
+-- 2. set dep of req_p1 in queue to youngest hit of other queue
+-- 3. block head to axi if entry.dep set
+-- 4. reset entry.dep(s) when corresponding entry completes
 
 ld_req_stall <= lhs_entry(0) or ld_dep(0);
 st_req_stall <= shl_entry(0) or st_dep(0) or 
-                (st_req_data.hwsync and not eq(stq_send_q, stq_head_q));  
+                (st_req_data.hwsync and not eq(stq_send_q, stq_head_q));  -- hwsync waits until it is head
 
+-- set: reqp1 cycle
 gen_ldq_set_dep: for i in 0 to ld_queue_size-1 generate
 load_queue_set_dep(i) <= ld_p1_entry_q(0) and eq(ld_p1_entry_q(1 to clog2(ld_queue_size)), std_logic_vector(to_unsigned(i, 2))) and lhs_entry(0);
 end generate;
@@ -1043,6 +1353,7 @@ gen_stq_set_dep: for i in 0 to st_queue_size-1 generate
 store_queue_set_dep(i) <= st_p1_entry_q(0) and eq(st_p1_entry_q(1 to clog2(st_queue_size)), std_logic_vector(to_unsigned(i, 2))) and shl_entry(0);
 end generate;
 
+-- rst: comp cycle
 gen_ldq_rst_dep: for i in 0 to ld_queue_size-1 generate
 load_queue_rst_dep(i) <= store_complete and load_dep_q(i)(0) and eq(load_dep_q(i)(1 to clog2(st_queue_size)), stq_head_q);
 end generate;
@@ -1051,7 +1362,10 @@ gen_stq_rst_dep: for i in 0 to st_queue_size-1 generate
 store_queue_rst_dep(i) <= load_complete and store_dep_q(i)(0) and eq(store_dep_q(i)(1 to clog2(ld_queue_size)), ldq_head_q);
 end generate;
  
+--------------------------------------------------------------------------------------
+-- AXI Interface
 
+-- read req
 
 axi_load_ready  <= m00_axi_arready;
 m00_axi_arvalid <= axi_load_valid;   
@@ -1059,24 +1373,26 @@ m00_axi_arid  	 <= axi_load_id;
 m00_axi_araddr  <= axi_load_ra;
 	
 with axi_load_len select 
-   m00_axi_arlen <= x"00" when "0000001", 
-  	                 x"00" when "0000010", 
-                    x"00" when "0000100", 
-                    x"01" when "0001000", 
-                    x"03" when "0010000", 
-                    x"07" when "0100000", 
- 	                 x"0F" when "1000000", 
+   m00_axi_arlen <= x"00" when "0000001", -- 1B
+  	                 x"00" when "0000010", -- 2B
+                    x"00" when "0000100", -- 4B
+                    x"01" when "0001000", -- 8B   	
+                    x"03" when "0010000", -- 16B
+                    x"07" when "0100000", -- 32B
+ 	                 x"0F" when "1000000", -- 64B
  	                 x"00" when others;
    	               
 m00_axi_arsize  <= "010";
 m00_axi_arburst <= "01";
 	
+-- axi_read_mod stuff
 m00_axi_arlock  <= '0';
 m00_axi_arcache <= "0011";
 m00_axi_arprot	 <= "000";
 m00_axi_arqos	 <= x"0";
 m00_axi_aruser	 <= (others => '1');
 
+-- read resp
 
 m00_axi_rready      <= axi_load_data_ready;
 axi_load_data_valid <= m00_axi_rvalid;
@@ -1085,6 +1401,7 @@ axi_load_data       <= m00_axi_rdata;
 axi_load_data_resp  <= m00_axi_rresp;		
 axi_load_data_last  <= m00_axi_rlast;			
 	
+-- store req
 
 axi_store_ready <= m00_axi_awready;  
 m00_axi_awvalid <= axi_store_valid;
@@ -1092,19 +1409,21 @@ m00_axi_awid	 <= axi_store_id;
 m00_axi_awaddr	 <= axi_store_ra;
 
 with axi_store_len select 
-  m00_axi_awlen <= x"03" when "0010000", 
-                   x"07" when "0100000", 
+  m00_axi_awlen <= x"03" when "0010000", -- 16B
+                   x"07" when "0100000", -- 32B
                    x"00" when others;
    	                  
 m00_axi_awsize	 <= "010";
 m00_axi_awburst <= "01";
 	
+-- mod stuff
 m00_axi_awlock	 <= '0';
 m00_axi_awcache <= "0010";
 m00_axi_awprot	 <= "000";
 m00_axi_awqos	 <= x"0";
 m00_axi_awuser  <= (others => '1');
 	
+-- store data
    	
 axi_store_data_ready <= m00_axi_wready;
 m00_axi_wvalid <= axi_store_data_valid;
@@ -1113,12 +1432,15 @@ m00_axi_wstrb  <= axi_store_data_be;
 m00_axi_wlast	<= axi_store_data_last;
 m00_axi_wuser  <= (others => '0');
 
+-- store resp
 
 m00_axi_bready       <= axi_store_rsp_ready;
 axi_store_rsp_valid  <= m00_axi_bvalid;
 axi_store_rsp_id     <= m00_axi_bid;
 axi_store_rsp_resp   <= m00_axi_bresp;	
 
+------------------------------------------------------------------------------------------------------------
+-- Misc
 
 err_d(0) <= ldq_uflow;
 err_d(1) <= ldq_oflow;
@@ -1127,7 +1449,10 @@ err_d(3) <= stq_oflow;
 
 err <= err_q;
                       
+------------------------------------------------------------------------------------------------------------
+-- move along.
 
+--vtable ReqDcd
 req_in_load <= 
   (req_in.valid and not req_in.ttype(0) and not req_in.ttype(1) and not req_in.ttype(2) and not req_in.ttype(3) and not req_in.ttype(4) and not req_in.ttype(5)) or
   (req_in.valid and not req_in.ttype(0) and not req_in.ttype(1) and not req_in.ttype(2) and not req_in.ttype(3) and not req_in.ttype(4) and req_in.ttype(5)) or
@@ -1178,7 +1503,9 @@ store_t(2) <=
   (req_in.valid and req_in.ttype(0) and not req_in.ttype(1) and not req_in.ttype(2) and not req_in.ttype(3) and not req_in.ttype(4) and not req_in.ttype(5) and req_in.thread(0) and not req_in.thread(1));
 store_t(3) <= 
   (req_in.valid and req_in.ttype(0) and not req_in.ttype(1) and not req_in.ttype(2) and not req_in.ttype(3) and not req_in.ttype(4) and not req_in.ttype(5) and req_in.thread(0) and req_in.thread(1));
+--vtable ReqDcd
             
+--vtable RldSeq
 rld_seq_d(0) <= 
   (rld_seq_q(0) and rld_seq_q(1) and rld_seq_q(2) and rld_seq_q(3) and rld_seq_q(4) and not rld_ready) or
   (rld_seq_q(0) and rld_seq_q(1) and rld_seq_q(2) and rld_seq_q(3) and rld_seq_q(4) and rld_ready and not rld_crit_qw(0) and not rld_crit_qw(1) and not rld_single) or
@@ -1320,7 +1647,9 @@ rld_seq_err <=
   (rld_seq_q(0) and rld_seq_q(1) and rld_seq_q(2) and not rld_seq_q(3) and not rld_seq_q(4)) or
   (rld_seq_q(0) and rld_seq_q(1) and rld_seq_q(2) and not rld_seq_q(3) and rld_seq_q(4)) or
   (rld_seq_q(0) and rld_seq_q(1) and rld_seq_q(2) and rld_seq_q(3) and not rld_seq_q(4));
+--vtable RldSeq
 
+--vtable RldDataSeq
 rld_dseq_d(0) <= 
   (rld_dseq_q(0) and rld_dseq_q(1) and rld_dseq_q(2) and rld_dseq_q(3) and not start_rld_data) or
   (rld_dseq_q(0) and rld_dseq_q(1) and rld_dseq_q(2) and rld_dseq_q(3) and start_rld_data and rld_single) or
@@ -1400,6 +1729,7 @@ rld_dseq_err <=
   (rld_dseq_q(0) and not rld_dseq_q(1) and not rld_dseq_q(2) and not rld_dseq_q(3)) or
   (rld_dseq_q(0) and rld_dseq_q(1) and not rld_dseq_q(2) and rld_dseq_q(3)) or
   (rld_dseq_q(0) and rld_dseq_q(1) and rld_dseq_q(2) and not rld_dseq_q(3));
+--vtable RldDataSeq
 
 
 end a2l2_axi;

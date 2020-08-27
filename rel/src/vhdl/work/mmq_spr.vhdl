@@ -9,6 +9,11 @@
 
 			
 
+--********************************************************************
+--* TITLE: Memory Management Unit Special Purpose Registers
+--* NAME: mmq_spr.vhdl
+--*********************************************************************
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -383,12 +388,21 @@ constant Spr_Addr_LRATPS        : std_ulogic_vector(0 to 9) := "0101010111";
 constant Spr_Addr_EPTCFG        : std_ulogic_vector(0 to 9) := "0101011110";
 constant Spr_Addr_LPER          : std_ulogic_vector(0 to 9) := "0000111000";
 constant Spr_Addr_LPERU         : std_ulogic_vector(0 to 9) := "0000111001";
+-- MMUCFG: 32:35 resv, 36:39 LPIDSIZE=0x8, 40:46 RASIZE=0x2a, 47 LRAT bcfg, 48 TWC bcfg,
+--         49:52 resv, 53:57 PIDSIZE=0xd, 58:59 resv, 60:61 NTLBS=0b00, 62:63 MAVN=0b01
 constant Spr_Data_MMUCFG        : std_ulogic_vector(32 to 63) := "00001000010101011000001101000001";
+-- TLB0CFG: 32:39 ASSOC=0x04, 40:44 resv, 45 PT bcfg, 46 IND bcfg, 47 GTWE bcfg,
+--          48 IPROT=1, 49 resv, 50 HES=1, 51 resv, 52:63 NENTRY=0x200
 constant Spr_Data_TLB0CFG       : std_ulogic_vector(32 to 63) := "00000100000000001010001000000000";
+-- TLB0PS: 32:63 PS31-PS0=0x0010_4444 (PS20, PS14, PS10, PS6, PS2 = 1, others = 0)
 constant Spr_Data_TLB0PS        : std_ulogic_vector(32 to 63) := "00000000000100000100010001000100";
+-- LRATCFG: 32:39 ASSOC=0x00, 40:46 LASIZE=0x2a, 47:49 resv, 50 LPID=1, 51 resv, 52:63 NENTRY=0x008
 constant Spr_Data_LRATCFG       : std_ulogic_vector(32 to 63) := "00000000010101000010000000001000";
+-- LRATPS: 32:63 PS31-PS0=0x5154_4400 (PS30, PS28, PS24, PS22, PS20, PS18, PS14, PS10 = 1, others = 0)
 constant Spr_Data_LRATPS        : std_ulogic_vector(32 to 63) := "01010001010101000100010000000000";
+-- EPTCFG: 32:43 resv,  44:48 PS1=0x12, 49:53 SPS1=0x06, 54:58 PS0=0x0a, 59:63 SPS0=0x02
 constant Spr_Data_EPTCFG       : std_ulogic_vector(32 to 63) := "00000000000010010001100101000010";
+-- latches scan chain constants
 constant spr_ctl_in_offset             : natural := 0;
 constant spr_etid_in_offset            : natural := spr_ctl_in_offset + spr_ctl_width;
 constant spr_addr_in_offset            : natural := spr_etid_in_offset + spr_etid_width;
@@ -431,6 +445,7 @@ constant spr_mmu_act_offset         : natural := spare_a_offset + 32;
 constant spr_val_act_offset         : natural := spr_mmu_act_offset + thdid_width +1;
 constant cswitch_offset             : natural := spr_val_act_offset + 4;
 constant scan_right_0               : natural := cswitch_offset + 4 -1;
+-- MAS register constants
 constant spr_match_mmucsr0_offset           : natural := 0;
 constant spr_match_mmucfg_offset            : natural := spr_match_mmucsr0_offset + 1;
 constant spr_match_tlb0cfg_offset           : natural := spr_match_mmucfg_offset + 1;
@@ -619,6 +634,7 @@ constant lper_3_lps_offset         : natural := lper_3_alpn_offset   + real_addr
 constant spare_b_offset               : natural := lper_3_lps_offset + 4;
 constant cat_emf_act_offset         : natural := spare_b_offset + 64;
 constant scan_right_1                 : natural := cat_emf_act_offset + thdid_width -1;
+-- boot config scan bits
 constant mmucfg_offset              : natural := 0;
 constant tlb0cfg_offset             : natural := mmucfg_offset + 2;
 constant mmucr1_offset              : natural := tlb0cfg_offset + 3;
@@ -736,6 +752,7 @@ signal spr_match_mas56_64b  : std_ulogic;
 signal spr_match_mas73_64b  : std_ulogic;
 signal spr_match_mas81_64b  : std_ulogic;
 signal spr_match_64b, spr_match_64b_q        : std_ulogic;
+-- added input latches for timing with adding numerous mas regs
 signal spr_ctl_in_d, spr_ctl_in_q           : std_ulogic_vector(0 to spr_ctl_width-1);
 signal spr_etid_in_d, spr_etid_in_q         : std_ulogic_vector(0 to spr_etid_width-1);
 signal spr_addr_in_d, spr_addr_in_q         : std_ulogic_vector(0 to spr_addr_width-1);
@@ -885,6 +902,7 @@ signal lper_2_alpn_d,   lper_2_alpn_q             : std_ulogic_vector(64-real_ad
 signal lper_2_lps_d,   lper_2_lps_q               : std_ulogic_vector(60 to 63);
 signal lper_3_alpn_d,   lper_3_alpn_q             : std_ulogic_vector(64-real_addr_width to 51);
 signal lper_3_lps_d,   lper_3_lps_q               : std_ulogic_vector(60 to 63);
+-- timing nsl's
 signal iu_mm_ierat_mmucr0_q          : std_ulogic_vector(0 to 17);
 signal iu_mm_ierat_mmucr0_we_q       : std_ulogic_vector(0 to thdid_width-1);
 signal iu_mm_ierat_mmucr1_q          : std_ulogic_vector(0 to 3);
@@ -898,6 +916,7 @@ signal spare_b_q : std_ulogic_vector(0 to 63);
 signal unused_dc  :  std_ulogic_vector(0 to 13);
 -- synopsys translate_off
 -- synopsys translate_on
+-- Pervasive
 signal pc_sg_1         : std_ulogic;
 signal pc_sg_0         : std_ulogic;
 signal pc_fce_1        : std_ulogic;
@@ -960,6 +979,10 @@ spr_val_act <= spr_val_act_q(0) or spr_val_act_q(1) or spr_val_act_q(2) or spr_v
 spr_match_act <= spr_val_act_q(0) or spr_val_act_q(1) or mmucr2_act_override(5);
 spr_match_mas_act <= spr_val_act_q(0) or spr_val_act_q(1) or mmucr2_act_override(6);
 spr_mas_data_out_act <= spr_val_act_q(0) or mmucr2_act_override(6);
+-----------------------------------------------------------------------
+-- slow spr 
+-----------------------------------------------------------------------
+-- input latches for spr access
 spr_ctl_in_d(0)  <= xu_mm_slowspr_val;
 spr_ctl_in_d(1)  <= xu_mm_slowspr_rw;
 spr_ctl_in_d(2)  <= xu_mm_slowspr_done;
@@ -967,6 +990,7 @@ spr_etid_in_d <= xu_mm_slowspr_etid;
 spr_addr_in_d <= xu_mm_slowspr_addr;
 spr_addr_in_clone_d <= xu_mm_slowspr_addr;
 spr_data_in_d <= xu_mm_slowspr_data;
+-- internal select latches for spr access
 spr_ctl_int_d  <= spr_ctl_in_q;
 spr_etid_int_d <= spr_etid_in_q;
 spr_addr_int_d <= spr_addr_in_q;
@@ -1086,6 +1110,7 @@ pid0_d       <= spr_data_int_q(64-pid_width to 63) when (spr_match_pid0_q='1'   
 pid1_d       <= spr_data_int_q(64-pid_width to 63) when (spr_match_pid1_q='1'   and spr_ctl_int_q(1)=Spr_RW_Write) else pid1_q;
 pid2_d       <= spr_data_int_q(64-pid_width to 63) when (spr_match_pid2_q='1'   and spr_ctl_int_q(1)=Spr_RW_Write) else pid2_q;
 pid3_d       <= spr_data_int_q(64-pid_width to 63) when (spr_match_pid3_q='1'   and spr_ctl_int_q(1)=Spr_RW_Write) else pid3_q;
+-- mmucr0: 0-ExtClass, 1-TID_NZ, 2:3-GS/TS, 4:5-TLBSel, 6:19-TID
 mmucr0_0_d    <= spr_data_int_q(32) & or_reduce(spr_data_int_q(50 to 63)) & spr_data_int_q(34 to 37) & spr_data_int_q(50 to 63) 
                   when (spr_match_mmucr0_0_q='1'   and spr_ctl_int_q(1)=Spr_RW_Write) 
          else xu_mm_derat_mmucr0_q(0 to 3) & "11" & mmucr0_0_q(6   to 7) & xu_mm_derat_mmucr0_q(6 to 17) 
@@ -1162,6 +1187,14 @@ mmucr0_3_d    <= spr_data_int_q(32) & or_reduce(spr_data_int_q(50 to 63)) & spr_
          else iu_mm_ierat_mmucr0_q(0 to 3) & "10" & mmucr0_3_q(6   to 11) & iu_mm_ierat_mmucr0_q(10 to 17) 
                   when iu_mm_ierat_mmucr0_we_q(3)='1'
          else mmucr0_3_q;
+-- mmucr1: 0-IRRE, 1-DRRE, 2-REE, 3-CEE,
+--         4-Disable any context sync inst from invalidating extclass=0 erat entries,
+--         5-Disable isync inst from invalidating extclass=0 erat entries,
+--         6:7-IPEI, 8:9-DPEI, 10:11-TPEI, 12:13-ICTID/ITTID, 14:15-DCTID/DTTID,
+--         16-DCCD, 17-TLBWE_BINV, 18-TLBI_MSB, 19-TLBI_REJ,
+--         20-IERRDET, 21-DERRDET, 22-TERRDET, 23:31-EEN
+--    2) mmucr1: merge EEN bits into single field, seperate I/D/T ERRDET bits
+--    3) mmucr1: add ICTID, ITTID, DCTID, DTTID, TLBI_REJ, and TLBI_MSB bits
 mmucr1_d(0 to 16)    <= spr_data_int_q(32 to 48) when (spr_match_mmucr1_q='1' and spr_ctl_int_q(1)=Spr_RW_Write) else mmucr1_q(0 to 16);
 mmucr1_d(17)          <= (spr_data_int_q(49) and not cswitch_q(1))  when (spr_match_mmucr1_q='1' and spr_ctl_int_q(1)=Spr_RW_Write) else mmucr1_q(17);
 mmucr1_d(18 to 19)   <= spr_data_int_q(50 to 51) when (spr_match_mmucr1_q='1' and spr_ctl_int_q(1)=Spr_RW_Write) else mmucr1_q(18 to 19);
@@ -1183,7 +1216,9 @@ mmucr1_d(23 to 31)    <= (others => '0') when (spr_match_mmucr1_q='1' and spr_ct
                      else "0000" & xu_mm_derat_mmucr1_q when (xu_mm_derat_mmucr1_we_q='1' and mmucr1_q(20 to 22)="000")
                      else "00000" & iu_mm_ierat_mmucr1_q when (iu_mm_ierat_mmucr1_we_q='1' and mmucr1_q(20 to 22)="000") 
                      else mmucr1_q(23 to 31);
+-- mmucr2:
 mmucr2_d(0 to 31)    <= spr_data_int_q(32 to 63) when (spr_match_mmucr2_q='1' and spr_ctl_int_q(1)=Spr_RW_Write) else mmucr2_q(0 to 31);
+-- mmucr3:
 mmucr3_0_d      <= spr_data_int_q(64-mmucr3_width to 63) when (spr_match_mmucr3_0_q='1'   and spr_ctl_int_q(1)=Spr_RW_Write)
               else tlb_mmucr3_x & tlb_mmucr3_rc & tlb_mmucr3_extclass & tlb_mmucr3_class & tlb_mmucr3_wlc & tlb_mmucr3_resvattr & '0' & tlb_mmucr3_thdid
                       when ((tlb_mas_tlbsx_hit='1' or tlb_mas_tlbre='1') and tlb_mas_thdid(0)='1')   
@@ -2008,6 +2043,7 @@ mas8_3_tlpid_d         <= spr_data_int_q(56 to 63) when (spr_match_mas8_3_q='1' 
                      else lrat_mas8_tlpid when ( (lrat_mas_tlbsx_hit='1' or lrat_mas_tlbre='1') and lrat_mas_thdid(3)='1')
                      else mas8_3_tlpid_q;
 end generate gen64_mas_d;
+-- 0: val, 1: rw, 2: done
 spr_ctl_out_d(0)  <= spr_ctl_int_q(0);
 spr_ctl_out_d(1)  <= spr_ctl_int_q(1);
 spr_ctl_out_d(2)  <= spr_ctl_int_q(2) or spr_match_any_mmu_q;
@@ -2204,6 +2240,12 @@ mm_xu_derat_mmucr0_1         <= mmucr0_1_q;
 mm_xu_derat_mmucr0_2         <= mmucr0_2_q;
 mm_xu_derat_mmucr0_3         <= mmucr0_3_q;
 mm_xu_derat_mmucr1    <= mmucr1_q(1) & mmucr1_q(2 to 5) & mmucr1_q(8 to 9) & mmucr1_q(14 to 16);
+-- mmucr1: 0-IRRE, 1-DRRE, 2-REE, 3-CEE,
+--         4-Disable any context sync inst from invalidating extclass=0 erat entries,
+--         5-Disable isync inst from invalidating extclass=0 erat entries,
+--         6:7-IPEI, 8:9-DPEI, 10:11-TPEI, 12:13-ICTID/ITTID, 14:15-DCTID/DTTID,
+--         16-DCCD, 17-TLBWE_BINV, 18-TLBI_MSB, 19-TLBI_REJ,
+--         20-IERRDET, 21-DERRDET, 22-TERRDET, 23:31-EEN
 pid0           <= pid0_q;
 pid1           <= pid1_q;
 pid2           <= pid2_q;
@@ -2350,6 +2392,7 @@ mas8_3_tgs     <= mas8_3_tgs_q;
 mas8_3_vf     <= mas8_3_vf_q;
 mas8_3_tlpid     <= mas8_3_tlpid_q;
 mmucsr0_tlb0fi <= mmucsr0_tlb0fi_q;
+-- debug output formation
 spr_dbg_slowspr_val_int         <= spr_ctl_int_q(0);
 spr_dbg_slowspr_rw_int          <= spr_ctl_int_q(1);
 spr_dbg_slowspr_etid_int        <= spr_etid_int_q;
@@ -2403,6 +2446,10 @@ unused_dc(10) <= TLB_MAS6_SIND;
 unused_dc(11) <= or_reduce(LRAT_TAG4_HIT_ENTRY);
 unused_dc(12) <= or_reduce(bcfg_spare_q);
 unused_dc(13) <= or_reduce(bcfg_spare_q_b);
+--------------------------------------------------
+-- latches
+--------------------------------------------------
+-- slow spr daisy-chain latches
 spr_ctl_in_latch: tri_rlmreg_p
   generic map (width => spr_ctl_in_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2488,6 +2535,7 @@ spr_data_in_latch: tri_rlmreg_p
             scout   => sov_0(spr_data_in_offset to spr_data_in_offset+spr_data_in_q'length-1),
             din     => spr_data_in_d(64-spr_data_width to 63),
             dout    => spr_data_in_q(64-spr_data_width to 63)  );
+-- these are the spr internal select stage latches below
 spr_ctl_int_latch: tri_rlmreg_p
   generic map (width => spr_ctl_int_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2556,6 +2604,7 @@ spr_data_int_latch: tri_rlmreg_p
             scout   => sov_0(spr_data_int_offset to spr_data_int_offset+spr_data_int_q'length-1),
             din     => spr_data_int_d(64-spr_data_width to 63),
             dout    => spr_data_int_q(64-spr_data_width to 63)  );
+-- these are the spr out latches below
 spr_ctl_out_latch: tri_rlmreg_p
   generic map (width => spr_ctl_out_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2624,6 +2673,7 @@ spr_data_out_latch: tri_rlmreg_p
             scout   => sov_0(spr_data_out_offset to spr_data_out_offset+spr_data_out_q'length-1),
             din     => spr_data_out_d(64-spr_data_width to 63),
             dout    => spr_data_out_q(64-spr_data_width to 63)  );
+-- spr decode match latches for timing
 spr_match_any_mmu_latch: tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4120,6 +4170,7 @@ spr_match_64b_latch: tri_rlmlatch_p
             scout   => sov_1(spr_match_64b_offset),
             din     => spr_match_64b,
             dout    => spr_match_64b_q);
+-- internal mas data output register
 spr_mas_data_out_latch: tri_rlmreg_p
   generic map (width => spr_mas_data_out_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -4154,6 +4205,7 @@ spr_match_any_mas_latch: tri_rlmlatch_p
             scout   => sov_1(spr_match_any_mas_offset),
             din     => spr_match_any_mas,
             dout    => spr_match_any_mas_q);
+-- pid spr's
 pid0_latch:   tri_rlmreg_p
   generic map (width => pid0_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -6517,6 +6569,10 @@ cswitch_latch: tri_rlmreg_p
             scout   => sov_0(cswitch_offset to cswitch_offset+cswitch_q'length-1),
             din     => cswitch_q,
             dout    => cswitch_q  );
+-- cswitch0: 1=disable side affect of clearing I/D/TERRDET and EEN when reading mmucr1
+-- cswitch1: 1=disable mmucr1.tlbwe_binv bit (make it look like it is reserved per dd1)
+-- cswitch2: reserved
+-- cswitch3: reserved
 cat_emf_act_latch: tri_rlmreg_p
   generic map (width => cat_emf_act_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -6568,6 +6624,7 @@ spare_b_latch: tri_rlmreg_p
             scout   => sov_1(spare_b_offset to spare_b_offset+spare_b_q'length-1),
             din     => spare_b_q,
             dout    => spare_b_q  );
+-- non-scannable timing latches
 iu_mm_ierat_mmucr0_latch : tri_regk
   generic map (width => iu_mm_ierat_mmucr0_q'length, init => 0, expand_type => expand_type, needs_sreset => 0)
   port map (nclk    => nclk, vd => vdd, gd => gnd,
@@ -6654,6 +6711,10 @@ mm_erat_mmucr1_we_latch : tri_regk
             din(1)     => xu_mm_derat_mmucr1_we,
             dout(0)    => iu_mm_ierat_mmucr1_we_q,
             dout(1)    => xu_mm_derat_mmucr1_we_q);
+--------------------------------------------------
+-- scan only latches for boot config
+--  mmucr1, mmucr2, and mmucr3 also in boot config
+--------------------------------------------------
 mpg_bcfg_gen: if expand_type /= 1 generate
 mmucfg_47to48_latch: tri_slat_scan
   generic map (width => 2, init => std_ulogic_vector( to_unsigned( bcfg_mmucfg_value, 2 ) ), 
@@ -6742,6 +6803,64 @@ bcfg_spare_latch: tri_rlmreg_p
             din     => bcfg_spare_q,
             dout    => bcfg_spare_q  );
 end generate fpga_bcfg_gen;
+-- Latch counts
+-- 3319
+-- spr_ctl_in_q   3
+-- spr_etid_in_q  2
+-- spr_addr_in_q  10
+-- spr_data_in_q  64          79
+-- spr_ctl_int_q   3
+-- spr_etid_int_q  2
+-- spr_addr_int_q  10
+-- spr_data_int_q  64         79
+-- spr_ctl_out_q   3
+-- spr_etid_out_q  2
+-- spr_addr_out_q  10
+-- spr_data_out_q  64         79
+-- lper_ 0:3 _alpn_q  30 x 4
+-- lper_ 0:3 _lps_q    4 x 4  136
+-- pid 0:3 _q       14 x 4
+-- mmucr0_ 0:3 _q   20 x 4
+-- mmucr1_q         32
+-- mmucr2_q         32
+-- mmucr3_ 0:3 _q   15 x 4
+-- lpidr_q          8
+-- mmucsr0_tlb0fi_q 1        269
+-- mas0_<t>_atsel_q  1 x 4         : std_ulogic;
+-- mas0_<t>_esel_q   3 x 4         : std_ulogic_vector(0 to 2);
+-- mas0_<t>_hes_q    1 x 4             : std_ulogic;
+-- mas0_<t>_wq_q     2 x 4               : std_ulogic_vector(0 to 1);
+-- mas1_<t>_v_q      1 x 4                 : std_ulogic;
+-- mas1_<t>_iprot_q  1 x 4       : std_ulogic;
+-- mas1_<t>_tid_q   14 x 4             : std_ulogic_vector(0 to 13);
+-- mas1_<t>_ind_q    1 x 4             : std_ulogic;
+-- mas1_<t>_ts_q     1 x 4          : std_ulogic;
+-- mas1_<t>_tsize_q  4 x 4         : std_ulogic_vector(0 to 3);
+-- mas2_<t>_epn_q   52 x 4          : std_ulogic_vector(64-spr_data_width to 51);
+-- mas2_<t>_wimge_q  5 x 4       : std_ulogic_vector(0 to 4);
+-- mas3_<t>_rpnl_q  21 x 4         : std_ulogic_vector(32 to 52);
+-- mas3_<t>_ubits_q  4 x 4       : std_ulogic_vector(0 to 3);
+-- mas3_<t>_usxwr_q  6 x 4         : std_ulogic_vector(0 to 5);
+-- mas4_<t>_indd_q   1 x 4           : std_ulogic;
+-- mas4_<t>_tsized_q 4 x 4       : std_ulogic_vector(0 to 3);
+-- mas4_<t>_wimged_q 5 x 4     : std_ulogic_vector(0 to 4);
+-- mas5_<t>_sgs_q    1 x 4         : std_ulogic;
+-- mas5_<t>_slpid_q  8 x 4       : std_ulogic_vector(0 to 7);
+-- mas6_<t>_spid_q  14 x 4         : std_ulogic_vector(0 to 13);
+-- mas6_<t>_isize_q  4 x 4       : std_ulogic_vector(0 to 3);
+-- mas6_<t>_sind_q   1 x 4          : std_ulogic;
+-- mas6_<t>_sas_q    1 x 4         : std_ulogic;
+-- mas7_<t>_rpnu_q  10 x 4        : std_ulogic_vector(22 to 31);
+-- mas8_<t>_tgs_q    1 x 4         : std_ulogic;
+-- mas8_<t>_vf_q     1 x 4          : std_ulogic;
+-- mas8_<t>_tlpid_q  8 x 4       : std_ulogic_vector(0 to 7);
+--       subtotal  176 x 4 = 704
+----------------------------------------------------------------
+-- total                    1346
+--------------------------------------------------
+--------------------------------------------------
+-- thold/sg latches
+--------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 7, expand_type => expand_type)
   port map (vd          => vdd,
@@ -6814,8 +6933,13 @@ perv_lcbor_func_slp_nsl: tri_lcbor
             act_dis     => tidn,
             forcee => pc_func_slp_nsl_force,
             thold_b     => pc_func_slp_nsl_thold_0_b);
+-- these terms in the absence of another lcbor component
+--  that drives the thold_b and force into the bcfg_lcb for slat's
 pc_cfg_sl_thold_0_b <= NOT pc_cfg_sl_thold_0;
 pc_cfg_sl_force   <= pc_sg_0;
+--------------------------------------------------
+-- local clock buffer for boot config
+--------------------------------------------------
 bcfg_lcb: tri_lcbs
   generic map (expand_type => expand_type)
   port map (vd      => vdd,
@@ -6826,6 +6950,9 @@ bcfg_lcb: tri_lcbs
             thold_b     => pc_cfg_sl_thold_0_b,
             dclk        => lcb_dclk,
             lclk        => lcb_lclk  );
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv_0(0 to scan_right_0) <= sov_0(1 to scan_right_0) & ac_func_scan_in(0);
 ac_func_scan_out(0) <= sov_0(0);
 siv_1(0 to scan_right_1) <= sov_1(1 to scan_right_1) & ac_func_scan_in(1);
@@ -6833,4 +6960,3 @@ ac_func_scan_out(1) <= sov_1(0);
 bsiv(0 to boot_scan_right) <= bsov(1 to boot_scan_right) & ac_bcfg_scan_in;
 ac_bcfg_scan_out <= bsov(0);
 end mmq_spr;
-

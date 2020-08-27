@@ -7,7 +7,8 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
-
+-- a2i core plus a2l2_axi
+-- use this for the core-level wrapper
 
 library ieee; use ieee.std_logic_1164.all;
 library ibm;
@@ -34,29 +35,29 @@ entity a2x_axi is
    
       clk               : in std_logic;
       clk2x             : in std_logic;    
-      reset_n           : in std_logic;                        
-      thold             : in std_logic;                        
+      reset_n           : in std_logic;                        -- active low
+      thold             : in std_logic;                        -- normally 0
       
-      core_id           : in std_logic_vector(0 to 7);         
-      thread_stop       : in std_logic_vector(0 to 3);         
-      thread_running    : out std_logic_vector(0 to 3);        
+      core_id           : in std_logic_vector(0 to 7);         -- for multicore
+      thread_stop       : in std_logic_vector(0 to 3);         -- control
+      thread_running    : out std_logic_vector(0 to 3);        -- status
       
-      ext_mchk          : in std_logic_vector(0 to 3);         
-      ext_checkstop     : in std_logic;                        
-      debug_stop        : in  std_logic;                       
-      mchk              : out std_logic_vector(0 to 3);        
-      recov_err         : out std_logic_vector(0 to 2);        
-      checkstop         : out std_logic_vector(0 to 2);        
-      a2l2_axi_err      : out std_logic_vector(0 to 3);        
+      ext_mchk          : in std_logic_vector(0 to 3);         -- machine check
+      ext_checkstop     : in std_logic;                        -- checkstop
+      debug_stop        : in  std_logic;                       -- thread stop
+      mchk              : out std_logic_vector(0 to 3);        -- machine check
+      recov_err         : out std_logic_vector(0 to 2);        -- recoverable
+      checkstop         : out std_logic_vector(0 to 2);        -- checkstop
+      a2l2_axi_err      : out std_logic_vector(0 to 3);        --
       
-      crit_interrupt    : in std_logic_vector(0 to 3);         
-      ext_interrupt     : in std_logic_vector(0 to 3);         
-      perf_interrupt    : in std_logic_vector(0 to 3);         
+      crit_interrupt    : in std_logic_vector(0 to 3);         -- critical
+      ext_interrupt     : in std_logic_vector(0 to 3);         -- external
+      perf_interrupt    : in std_logic_vector(0 to 3);         -- performance
       
-      tb_update_enable  : in std_logic;                        
-      tb_update_pulse   : in std_logic;                        
+      tb_update_enable  : in std_logic;                        -- normally 1
+      tb_update_pulse   : in std_logic;                        -- tb clock if xucr0[tcs]=1 (must be <1/2 proc clk; tb pulse is 2x this clock)
       
-      scom_sat_id       : in std_logic_vector(0 to 3);         
+      scom_sat_id       : in std_logic_vector(0 to 3);         -- could split into acq and axi
       scom_dch_in       : in std_logic;
       scom_cch_in       : in std_logic;
       scom_dch_out      : out std_logic;
@@ -113,11 +114,14 @@ end a2x_axi;
 
 architecture a2x_axi of a2x_axi is
 
+  -- Common
   constant expand_type         : integer := 1;
   constant threads             : integer := 4;
+  -- XU
   constant xu_real_data_add    : integer := 42;
   constant st_data_32b_mode    : integer := 1;
   constant ac_st_data_32b_mode : integer := 1;
+  -- MM
   constant error_width         : integer := 3;
   constant expand_tlb_type     : integer := 2;
   constant extclass_width      : integer := 2;
@@ -128,7 +132,7 @@ architecture a2x_axi of a2x_axi is
   constant real_addr_width     : integer := 42;
  
 signal a2_nclk : clk_logic;
- 
+
 signal an_ac_sg_7              :  std_logic;
 signal an_ac_back_inv          :  std_logic;
 signal an_ac_back_inv_addr     :  std_logic_vector(22 to 63);
@@ -304,6 +308,7 @@ scdis_b            <= tidn;
 an_ac_ccenable_dc  <= tiup;
 an_ac_scan_type_dc <= tiup & tiup & tiup & tiup & tiup & tiup & tiup & tiup & tiup;   
 
+-- most/all of this can be removed from all logic for fpga
 an_ac_func_scan_in <= (others => '0');
 an_ac_regf_scan_in <= (others => '0');
 an_ac_bcfg_scan_in <= (others => '0');
@@ -329,23 +334,25 @@ an_ac_scan_diag_dc <= '0';
 an_ac_psro_enable_dc <= (others => '0');
 an_ac_ccflush_dc <= '0'; 
 
+-- misc
 an_ac_flh2l2_gate <= flh2l2_gate;
 an_ac_external_mchk <= ext_mchk;
 an_ac_checkstop <= ext_checkstop; 
 an_ac_debug_stop <= debug_stop;   
 an_ac_hang_pulse <= hang_pulse;
 thread_running <= ac_an_pm_thread_running;
-
+-- errors
 mchk           <= ac_an_machine_check;
 recov_err      <= ac_an_recov_err;
 checkstop      <= ac_an_local_checkstop;      
-
+-- scom
 an_ac_scom_sat_id <= scom_sat_id;
 node_scom_dch_in <= scom_dch_in;
 node_scom_cch_in <= scom_cch_in;
 scom_dch_out <= node_scom_dch_out;
 scom_cch_out <= node_scom_cch_out;
 
+-- smp and other a2l2_axi stuff
 an_ac_user_defined <= (others => '0');
 an_ac_req_spare_ctrl_a1 <= (others => '0');
 
@@ -459,8 +466,7 @@ acq: entity work.acq_soft(acq_soft)
       an_ac_dcfg_scan_in      => an_ac_dcfg_scan_in,
       an_ac_debug_stop        => an_ac_debug_stop,
       an_ac_external_mchk     => an_ac_external_mchk,
-      an_ac_fce_7             => an_ac_fce_7,
-     
+      an_ac_fce_7             => an_ac_fce_7,   
       an_ac_func_scan_in      => an_ac_func_scan_in,
       an_ac_gptr_scan_in      => an_ac_gptr_scan_in,
       an_ac_gsd_test_acmode_dc => an_ac_gsd_test_acmode_dc,
@@ -596,21 +602,21 @@ port map(
 		m00_axi_awaddr	 =>  m00_axi_awaddr,
 		m00_axi_awlen	 =>  m00_axi_awlen,
 		m00_axi_awsize	 =>  m00_axi_awsize,
-		m00_axi_awburst	 =>  m00_axi_awburst,
+		m00_axi_awburst =>  m00_axi_awburst,
 		m00_axi_awlock	 =>  m00_axi_awlock,
-		m00_axi_awcache	 =>  m00_axi_awcache,
+		m00_axi_awcache =>  m00_axi_awcache,
 		m00_axi_awprot	 =>  m00_axi_awprot,
 		m00_axi_awqos	 =>  m00_axi_awqos,
 		m00_axi_awuser	 =>  m00_axi_awuser,
-		m00_axi_awvalid	 =>  m00_axi_awvalid,
-		m00_axi_awready	 =>  m00_axi_awready,
+		m00_axi_awvalid =>  m00_axi_awvalid,
+		m00_axi_awready =>  m00_axi_awready,
 		m00_axi_wdata	 =>  m00_axi_wdata,
 		m00_axi_wstrb	 =>  m00_axi_wstrb,
 		m00_axi_wlast	 =>  m00_axi_wlast,
 		m00_axi_wuser	 =>  m00_axi_wuser,
 		m00_axi_wvalid	 =>  m00_axi_wvalid,
 		m00_axi_wready	 =>  m00_axi_wready,
-		m00_axi_bid	 =>  m00_axi_bid,
+		m00_axi_bid	    =>  m00_axi_bid,
 		m00_axi_bresp	 =>  m00_axi_bresp,
 		m00_axi_buser	 =>  m00_axi_buser,
 		m00_axi_bvalid	 =>  m00_axi_bvalid,
@@ -619,15 +625,15 @@ port map(
 		m00_axi_araddr	 =>  m00_axi_araddr,
 		m00_axi_arlen	 =>  m00_axi_arlen,
 		m00_axi_arsize	 =>  m00_axi_arsize,
-		m00_axi_arburst	 =>  m00_axi_arburst,
+		m00_axi_arburst =>  m00_axi_arburst,
 		m00_axi_arlock	 =>  m00_axi_arlock,
-		m00_axi_arcache	 =>  m00_axi_arcache,
+		m00_axi_arcache =>  m00_axi_arcache,
 		m00_axi_arprot	 =>  m00_axi_arprot,
 		m00_axi_arqos	 =>  m00_axi_arqos,
 		m00_axi_aruser	 =>  m00_axi_aruser,
-		m00_axi_arvalid	 =>  m00_axi_arvalid,
-		m00_axi_arready	 =>  m00_axi_arready,
-		m00_axi_rid	 =>  m00_axi_rid,
+		m00_axi_arvalid =>  m00_axi_arvalid,
+		m00_axi_arready =>  m00_axi_arready,
+		m00_axi_rid	    =>  m00_axi_rid,
 		m00_axi_rdata	 =>  m00_axi_rdata,
 		m00_axi_rresp	 =>  m00_axi_rresp,
 		m00_axi_rlast	 =>  m00_axi_rlast,

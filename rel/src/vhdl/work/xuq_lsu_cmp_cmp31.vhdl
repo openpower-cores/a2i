@@ -7,8 +7,12 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
+--  Description:  XU LSU Compare Logic
 
 
+-- ###################################################################
+-- ## Address decoder
+-- ###################################################################
 
 
 LIBRARY ieee;       USE ieee.std_logic_1164.all;
@@ -23,7 +27,7 @@ LIBRARY tri;        USE tri.tri_latches_pkg.all;
 LIBRARY clib ;
 
 entity xuq_lsu_cmp_cmp31 is
-generic( expand_type: integer := 2  ); 
+generic( expand_type: integer := 2  ); -- 0 - ibm tech, 1 - other );
 port(       
        d0                  :in  std_ulogic_vector(0 to 30);
        d1                  :in  std_ulogic_vector(0 to 30);
@@ -34,7 +38,7 @@ port(
 
 
 
-end xuq_lsu_cmp_cmp31; 
+end xuq_lsu_cmp_cmp31; -- ENTITY
 
 architecture xuq_lsu_cmp_cmp31 of xuq_lsu_cmp_cmp31 is
    constant tiup : std_ulogic := '1';
@@ -44,12 +48,6 @@ architecture xuq_lsu_cmp_cmp31 of xuq_lsu_cmp_cmp31 is
    signal eq03_b   : std_ulogic_vector(0 to 11);
    signal eq06     : std_ulogic_vector(0 to 5);
    signal eq18_b   : std_ulogic_vector(0 to 1);
-
-
-
-
-
-
 
 
 begin
@@ -80,9 +78,8 @@ begin
   u_eq18_00: eq18_b( 0) <= not( eq06(0) and eq06(1) and eq06(2) );
   u_eq18_01: eq18_b( 1) <= not( eq06(3) and eq06(4) and eq06(5) );
 
-  u_eq36_00: eq         <= not( eq18_b( 0) or  eq18_b( 1) ); 
+  u_eq36_00: eq         <= not( eq18_b( 0) or  eq18_b( 1) ); -- output
 
 
 
-end; 
-
+end; -- xuq_lsu_cmp_cmp31 ARCHITECTURE
