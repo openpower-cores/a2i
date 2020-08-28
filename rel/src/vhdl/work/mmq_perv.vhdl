@@ -25,7 +25,7 @@ library tri;
 use tri.tri_latches_pkg.all;
 
 entity mmq_perv is
-generic(expand_type : integer := 2 ); 
+generic(expand_type : integer := 2 ); -- 0 = ibm umbra, 1 = xilinx, 2 = ibm mpg
 port(
      vdd                        : inout power_logic;
      gnd                        : inout power_logic;
@@ -92,6 +92,7 @@ port(
      g8t_gptr_lcb_mpw2_dc_b              : out std_ulogic;
  
 
+    -- abist engine controls for arrays from pervasive
      pc_mm_abist_dcomp_g6t_2r    : in   std_ulogic_vector(0 to 3);
      pc_mm_abist_di_0            : in   std_ulogic_vector(0 to 3);
      pc_mm_abist_di_g6t_2r       : in   std_ulogic_vector(0 to 3);
@@ -119,8 +120,9 @@ port(
      pc_mm_abist_di_g6t_2r_q       : out   std_ulogic_vector(0 to 3);
      pc_mm_abist_g6t_r_wb_q        : out   std_ulogic;
 
+  -- BOLT-ON pervasive for asic
      pc_mm_bolt_sl_thold_3          : in    std_ulogic;
-     pc_mm_bo_enable_3              : in    std_ulogic; 
+     pc_mm_bo_enable_3              : in    std_ulogic; -- general bolt-on enable
      pc_mm_bolt_sl_thold_0          : out    std_ulogic;
      pc_mm_bo_enable_2              : out    std_ulogic; 
 
@@ -147,12 +149,12 @@ port(
      abst_scan_out_int     : in  std_ulogic_vector(0 to 1);
      abst_scan_out         : out std_ulogic_vector(0 to 1);
 
-     bcfg_scan_in          : in  std_ulogic; 
+     bcfg_scan_in          : in  std_ulogic; -- config latches that are setup same on all cores
      bcfg_scan_in_int      : out std_ulogic;
      bcfg_scan_out_int     : in  std_ulogic;
      bcfg_scan_out         : out std_ulogic;
 
-     ccfg_scan_in          : in  std_ulogic;  
+     ccfg_scan_in          : in  std_ulogic;  -- config latches that could be setup differently on multiple cores
      ccfg_scan_in_int      : out std_ulogic;
      ccfg_scan_out_int     : in  std_ulogic;
      ccfg_scan_out         : out std_ulogic;
@@ -170,6 +172,7 @@ port(
 -- synopsys translate_on
 
 end mmq_perv;
+----
 architecture mmq_perv of mmq_perv is
 
 signal tidn  : std_logic;
@@ -503,6 +506,7 @@ perv_g8t_gptr_lcbctrl: tri_lcbcntl_array_mac
             mpw2_dc_b      => g8t_gptr_lcb_mpw2_dc_b,
             scan_out       => gptr_scan_out_int);
 
+--never disable act pins, they are used functionally
 lcb_act_dis_dc <= '0';
 g8t_gptr_lcb_act_dis_dc <= '0';
 g6t_gptr_lcb_act_dis_dc <= '0';
@@ -523,6 +527,7 @@ bcfg_scan_out   <= bcfg_scan_out_q and tc_ac_scan_dis_dc_b;
 ccfg_scan_out   <= ccfg_scan_out_q and tc_ac_scan_dis_dc_b;
 dcfg_scan_out   <= dcfg_scan_out_q and tc_ac_scan_dis_dc_b;
 
+-- LCBs for scan only staging latches
 slat_force        <= pc_sg_0_int;
 abst_slat_thold_b <= NOT pc_abst_sl_thold_0_int;
 time_slat_thold_b <= NOT pc_time_sl_thold_0_int;
@@ -765,6 +770,9 @@ perv_lcbor_abst_sl: tri_lcbor
 
 
 
+-----------------------------------------------------------------------
+-- abist latches
+-----------------------------------------------------------------------
 
 abist_reg: tri_rlmreg_p
   generic map (init => 0, expand_type => expand_type, width => 42, needs_sreset => 0)
@@ -810,6 +818,7 @@ abist_siv             <= abist_sov(1 to abist_sov'right) & abst_scan_in_q(0);
 abst_scan_in_int(0)  <= abist_sov(0);
 abst_scan_in_int(1)  <= abst_scan_in_q(1);
 
+-- unused spare signal assignments
 unused_dc(0) <= PC_FCE_0_INT;
 unused_dc(1) <= PC_CFG_SLP_SL_THOLD_0_INT;
 unused_dc(2) <= PC_FUNC_NSL_THOLD_0_INT;
@@ -819,4 +828,3 @@ unused_dc(5) <= or_reduce(PC_FUNC_SLP_SL_FORCE_INT);
 
 
 end mmq_perv;
-

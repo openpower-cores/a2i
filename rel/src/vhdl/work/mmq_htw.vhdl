@@ -149,6 +149,7 @@ constant TLB_PgSize_16MB  : std_ulogic_vector(0 to 3) := "0111";
 constant TLB_PgSize_1MB   : std_ulogic_vector(0 to 3) := "0101";
 constant TLB_PgSize_64KB  : std_ulogic_vector(0 to 3) := "0011";
 constant TLB_PgSize_4KB   : std_ulogic_vector(0 to 3) := "0001";
+-- reserved for indirect entries
 constant ERAT_PgSize_256MB : std_ulogic_vector(0 to 2) := "100";
 constant TLB_PgSize_256MB : std_ulogic_vector(0 to 3) := "1001";
 constant HtwSeq_Idle  : std_ulogic_vector(0 to 1) := "00";
@@ -207,21 +208,25 @@ constant pte1_score_pending_offset   : natural := pte1_score_ibit_offset + 1;
 constant pte1_score_dataval_offset   : natural := pte1_score_pending_offset + 1;
 constant pte_load_ptr_offset         : natural := pte1_score_dataval_offset + 1;
 constant ptereload_ptr_offset        : natural := pte_load_ptr_offset + 1;
+--  ptereload_ptr_offset + 1 phase
 constant reld_core_tag_tm1_offset : natural := ptereload_ptr_offset + 1;
 constant reld_qw_tm1_offset       : natural := reld_core_tag_tm1_offset + 5;
 constant reld_crit_qw_tm1_offset  : natural := reld_qw_tm1_offset + 2;
 constant reld_ditc_tm1_offset     : natural := reld_crit_qw_tm1_offset + 1;
 constant reld_data_vld_tm1_offset : natural := reld_ditc_tm1_offset + 1;
+--  reld_data_vld_tm1_offset + 1 phase
 constant reld_core_tag_t_offset   : natural := reld_data_vld_tm1_offset + 1;
 constant reld_qw_t_offset         : natural := reld_core_tag_t_offset   + 5;
 constant reld_crit_qw_t_offset    : natural := reld_qw_t_offset   + 2;
 constant reld_ditc_t_offset       : natural := reld_crit_qw_t_offset   + 1;
 constant reld_data_vld_t_offset   : natural := reld_ditc_t_offset   + 1;
+--  reld_data_vld_t_offset + 1 phase
 constant reld_core_tag_tp1_offset : natural := reld_data_vld_t_offset + 1;
 constant reld_qw_tp1_offset       : natural := reld_core_tag_tp1_offset + 5;
 constant reld_crit_qw_tp1_offset  : natural := reld_qw_tp1_offset + 2;
 constant reld_ditc_tp1_offset     : natural := reld_crit_qw_tp1_offset + 1;
 constant reld_data_vld_tp1_offset : natural := reld_ditc_tp1_offset + 1;
+--  reld_data_vld_tp1_offset + 1 phase
 constant reld_core_tag_tp2_offset : natural := reld_data_vld_tp1_offset + 1;
 constant reld_qw_tp2_offset       : natural := reld_core_tag_tp2_offset + 5;
 constant reld_crit_qw_tp2_offset  : natural := reld_qw_tp2_offset + 2;
@@ -256,6 +261,7 @@ constant tagpos_ltwe     : natural  := 106;
 constant tagpos_lpte     : natural  := 107;
 constant tagpos_recform  : natural  := 108;
 constant tagpos_endflag  : natural  := 109;
+-- derat,ierat,tlbsx,tlbsrx,snoop,tlbre,tlbwe,ptereload
 constant tagpos_type_derat     : natural  := tagpos_type;
 constant tagpos_type_ierat     : natural  := tagpos_type+1;
 constant tagpos_type_tlbsx     : natural  := tagpos_type+2;
@@ -264,6 +270,7 @@ constant tagpos_type_snoop     : natural  := tagpos_type+4;
 constant tagpos_type_tlbre     : natural  := tagpos_type+5;
 constant tagpos_type_tlbwe     : natural  := tagpos_type+6;
 constant tagpos_type_ptereload : natural  := tagpos_type+7;
+-- state: 0:pr 1:gs 2:as 3:cm
 constant tagpos_pr             : natural  := tagpos_state;
 constant tagpos_gs             : natural  := tagpos_state+1;
 constant tagpos_as             : natural  := tagpos_state+2;
@@ -297,6 +304,7 @@ constant ptepos_size     : natural  := 52;
 constant ptepos_usxwr    : natural  := 56;
 constant ptepos_sw1      : natural  := 62;
 constant ptepos_valid    : natural  := 63;
+-- Latch signals
 signal htw_seq_d, htw_seq_q            : std_ulogic_vector(0 to 1);
 signal htw_inptr_d, htw_inptr_q      : std_ulogic_vector(0 to 1);
 signal htw_lsuptr_d, htw_lsuptr_q    : std_ulogic_vector(0 to 1);
@@ -345,22 +353,26 @@ signal tlb_htw_req3_way_d,   tlb_htw_req3_way_q    : std_ulogic_vector(tlb_word_
 signal tlb_htw_req3_tag_act    : std_ulogic;
 -- synopsys translate_off
 -- synopsys translate_on
+--  t minus 1 phase
 signal reld_core_tag_tm1_d, reld_core_tag_tm1_q : std_ulogic_vector(0 to 4);
 signal reld_qw_tm1_d, reld_qw_tm1_q             : std_ulogic_vector(0 to 1);
 signal reld_crit_qw_tm1_d, reld_crit_qw_tm1_q   : std_ulogic;
 signal reld_ditc_tm1_d, reld_ditc_tm1_q         : std_ulogic;
 signal reld_data_vld_tm1_d, reld_data_vld_tm1_q : std_ulogic;
+--  t   phase
 signal reld_core_tag_t_d,   reld_core_tag_t_q   : std_ulogic_vector(0 to 4);
 signal reld_qw_t_d,   reld_qw_t_q               : std_ulogic_vector(0 to 1);
 signal reld_crit_qw_t_d,   reld_crit_qw_t_q     : std_ulogic;
 signal reld_ditc_t_d,   reld_ditc_t_q           : std_ulogic;
 signal reld_data_vld_t_d,   reld_data_vld_t_q   : std_ulogic;
+--  t plus 1 phase
 signal reld_core_tag_tp1_d, reld_core_tag_tp1_q : std_ulogic_vector(0 to 4);
 signal reld_qw_tp1_d, reld_qw_tp1_q             : std_ulogic_vector(0 to 1);
 signal reld_crit_qw_tp1_d, reld_crit_qw_tp1_q   : std_ulogic;
 signal reld_ditc_tp1_d, reld_ditc_tp1_q         : std_ulogic;
 signal reld_data_vld_tp1_d, reld_data_vld_tp1_q : std_ulogic;
 signal reld_data_tp1_d, reld_data_tp1_q         : std_ulogic_vector(0 to 127);
+--  t plus 2 phase
 signal reld_core_tag_tp2_d, reld_core_tag_tp2_q : std_ulogic_vector(0 to 4);
 signal reld_qw_tp2_d, reld_qw_tp2_q             : std_ulogic_vector(0 to 1);
 signal reld_crit_qw_tp2_d, reld_crit_qw_tp2_q   : std_ulogic;
@@ -369,6 +381,7 @@ signal reld_data_vld_tp2_d, reld_data_vld_tp2_q : std_ulogic;
 signal reld_data_tp2_d, reld_data_tp2_q         : std_ulogic_vector(0 to 127);
 signal reld_ecc_err_tp2_d, reld_ecc_err_tp2_q       : std_ulogic;
 signal reld_ecc_err_ue_tp2_d, reld_ecc_err_ue_tp2_q : std_ulogic;
+--  t plus 3 phase
 signal pte0_reld_data_tp3_d, pte0_reld_data_tp3_q   : std_ulogic_vector(0 to 63);
 signal pte1_reld_data_tp3_d, pte1_reld_data_tp3_q   : std_ulogic_vector(0 to 63);
 signal htw_tag3_d, htw_tag3_q           : std_ulogic_vector(0 to tlb_tag_width-1);
@@ -377,6 +390,7 @@ signal htw_tag3_clr_resv_term7, htw_tag3_clr_resv_term8, htw_tag3_clr_resv_term9
 signal htw_tag4_clr_resv_d, htw_tag4_clr_resv_q   :  std_ulogic_vector(0 to thdid_width-1);
 signal htw_tag5_clr_resv_d, htw_tag5_clr_resv_q   :  std_ulogic_vector(0 to thdid_width-1);
 signal spare_a_q, spare_b_q   : std_ulogic_vector(0 to 15);
+-- logic signals
 signal htw_seq_idle            : std_ulogic;
 signal htw_seq_load_pteaddr    : std_ulogic;
 signal htw_quiesce_b           : std_ulogic_vector(0 to thdid_width-1);
@@ -461,6 +475,7 @@ signal pte1_reld_act  : std_ulogic;
 signal unused_dc  :  std_ulogic_vector(0 to 21);
 -- synopsys translate_off
 -- synopsys translate_on
+-- Pervasive
 signal pc_sg_1         : std_ulogic;
 signal pc_sg_0         : std_ulogic;
 signal pc_func_sl_thold_1        : std_ulogic;
@@ -475,8 +490,12 @@ signal siv_0                      : std_ulogic_vector(0 to scan_right_0);
 signal sov_0                      : std_ulogic_vector(0 to scan_right_0);
 signal siv_1                      : std_ulogic_vector(0 to scan_right_1);
 signal sov_1                      : std_ulogic_vector(0 to scan_right_1);
-  BEGIN 
+  BEGIN --@@ START OF EXECUTABLE CODE FOR MMQ_HTW
 
+-----------------------------------------------------------------------
+-- Logic
+-----------------------------------------------------------------------
+-- not quiesced
 htw_quiesce_b(0 TO thdid_width-1) <= 
  ( (0 to thdid_width-1 => tlb_htw_req0_valid_q) and tlb_htw_req0_tag_q(tagpos_thdid to tagpos_thdid+thdid_width-1) ) or
  ( (0 to thdid_width-1 => tlb_htw_req1_valid_q) and tlb_htw_req1_tag_q(tagpos_thdid to tagpos_thdid+thdid_width-1) ) or
@@ -489,6 +508,7 @@ tlb_htw_req_valid_vec  <=  (tlb_htw_req0_valid_q and (pte0_score_pending_q='0' o
                           (tlb_htw_req1_valid_q and (pte0_score_pending_q='0' or pte0_score_ptr_q/="01") and (pte1_score_pending_q='0' or pte1_score_ptr_q/="01")) &
                           (tlb_htw_req2_valid_q and (pte0_score_pending_q='0' or pte0_score_ptr_q/="10") and (pte1_score_pending_q='0' or pte1_score_ptr_q/="10")) &
                           (tlb_htw_req3_valid_q and (pte0_score_pending_q='0' or pte0_score_ptr_q/="11") and (pte1_score_pending_q='0' or pte1_score_ptr_q/="11"));
+-- HTW sequencer for servicing indirect tlb entry hits
 Htw_Sequencer: PROCESS (htw_seq_q, tlb_htw_req_valid_vec, tlb_htw_pte_machines_full, htw_lsu_req_taken)
 BEGIN
 htw_seq_load_pteaddr  <=  '0';
@@ -518,6 +538,7 @@ CASE htw_seq_q IS
     END CASE;
 END PROCESS Htw_Sequencer;
 htw_seq_idle  <=  '1' when htw_seq_q=HtwSeq_Idle else '0';
+-- PTE sequencer for servicing pte data reloads
 Pte0_Sequencer:   PROCESS (pte0_seq_q,   pte_load_ptr_q, ptereload_ptr_q, htw_lsu_req_taken, ptereload_req_taken,
                               pte0_score_pending_q,   pte0_score_dataval_q,   
                                pte0_score_error_q,   pte0_score_qwbeat_q,   pte0_score_ibit_q,   spare_b_q(0 to 2))
@@ -590,6 +611,7 @@ CASE pte0_seq_q   IS
     END CASE;
 END PROCESS Pte0_Sequencer;
 pte0_seq_idle    <=  '1' when pte0_seq_q=PteSeq_Idle   else '0';
+-- PTE sequencer for servicing pte data reloads
 Pte1_Sequencer:   PROCESS (pte1_seq_q,   pte_load_ptr_q, ptereload_ptr_q, htw_lsu_req_taken, ptereload_req_taken,
                               pte1_score_pending_q,   pte1_score_dataval_q,   
                                pte1_score_error_q,   pte1_score_qwbeat_q,   pte1_score_ibit_q,   spare_b_q(0 to 2))
@@ -662,6 +684,13 @@ CASE pte1_seq_q   IS
     END CASE;
 END PROCESS Pte1_Sequencer;
 pte1_seq_idle    <=  '1' when pte1_seq_q=PteSeq_Idle   else '0';
+--  tlb_way  IND=0    IND=1
+--   134      UX     SPSIZE0
+--   135      SX     SPSIZE1
+--   136      UW     SPSIZE2
+--   137      SW     SPSIZE3
+--   138      UR     PTRPN
+--   139      SR     PA52
 tlb_htw_req0_valid_d    <=   '1' when (tlb_htw_req_valid='1' and tlb_htw_req0_valid_q='0'   and htw_inptr_q="00")
                       else '0' when (pte0_reload_req_taken='1' and tlb_htw_req0_valid_q='1'   and pte0_score_ptr_q="00")
                       else '0' when (pte1_reload_req_taken='1' and tlb_htw_req0_valid_q='1'   and pte1_score_ptr_q="00")
@@ -670,17 +699,23 @@ tlb_htw_req0_pending_d    <=   '1' when (htw_lsu_req_taken='1' and tlb_htw_req0_
                       else '0' when (pte0_reload_req_taken='1' and tlb_htw_req0_pending_q='1'   and pte0_score_ptr_q="00")
                       else '0' when (pte1_reload_req_taken='1' and tlb_htw_req0_pending_q='1'   and pte1_score_ptr_q="00")
                       else tlb_htw_req0_pending_q;
+-- the  rpn  part of the tlb way
 tlb_htw_req0_way_d    <=  tlb_htw_req_way when (tlb_htw_req_valid='1' and tlb_htw_req0_valid_q='0'   and htw_inptr_q="00")
                    else tlb_htw_req0_way_q;
 tlb_htw_req0_tag_d(0 TO tagpos_wq-1) <=  tlb_htw_req_tag(0 to tagpos_wq-1) when (tlb_htw_req_valid='1' and tlb_htw_req0_valid_q='0'   and htw_inptr_q="00")
                    else tlb_htw_req0_tag_q(0   to tagpos_wq-1);
 tlb_htw_req0_tag_d(tagpos_wq+2 TO tlb_tag_width-1) <=  tlb_htw_req_tag(tagpos_wq+2 to tlb_tag_width-1) when (tlb_htw_req_valid='1' and tlb_htw_req0_valid_q='0'   and htw_inptr_q="00")
                    else tlb_htw_req0_tag_q(tagpos_wq+2   to tlb_tag_width-1);
+-- the WQ bits of the tag are re-purposed as reservation valid and duplicate bits
+--  set reservation valid at tlb handoff, clear when ptereload taken..
+--  or, clear reservation if tlbwe,ptereload,tlbi from another thread to avoid duplicates
+--  or, clear reservation when L2 UE for this reload
 tlb_htw_req0_tag_d(tagpos_wq) <=  '0' when ((htw_tag5_clr_resv_q(0)='1'   and tlb_tag5_except="0000") or tlb_htw_req0_clr_resv_ue='1')
                               else '1' when (tlb_htw_req_valid='1' and tlb_htw_req0_valid_q='0'   and htw_inptr_q="00")
                               else '0' when (pte0_reload_req_taken='1' and tlb_htw_req0_valid_q='1'   and pte0_score_ptr_q="00")
                               else '0' when (pte1_reload_req_taken='1' and tlb_htw_req0_valid_q='1'   and pte1_score_ptr_q="00")
                    else tlb_htw_req0_tag_q(tagpos_wq);
+--  spare, wq+1 is duplicate indicator in tlb_cmp, but would not make it to tlb handoff
 tlb_htw_req0_tag_d(tagpos_wq+1) <=  tlb_htw_req0_tag_q(tagpos_wq+1);
 tlb_htw_req0_tag_act    <=  tlb_delayed_act(24+0)   or tlb_htw_req0_valid_q;
 tlb_htw_req0_clr_resv_ue    <=  (pte0_seq_clr_resv_ue and Eq(pte0_score_ptr_q,"00")) or
@@ -693,6 +728,7 @@ pte_ra_0_spsize4K    <=  tlb_htw_req0_way_q(waypos_rpn   to waypos_rpn+rpn_width
                         tlb_htw_req0_tag_q(tagpos_epn+epn_width-8   to tagpos_epn+epn_width-1) & "000";
 pte_ra_0_spsize64K    <=  tlb_htw_req0_way_q(waypos_rpn   to waypos_rpn+rpn_width-4) & 
                          tlb_htw_req0_tag_q(tagpos_epn+epn_width-16   to tagpos_epn+epn_width-5) & "000";
+-- select based on SPSIZE
 pte_ra_0    <=  pte_ra_0_spsize64K   when tlb_htw_req0_way_q(waypos_usxwr   to waypos_usxwr+3)=TLB_PgSize_64KB
          else pte_ra_0_spsize4K;
 tlb_htw_req1_valid_d    <=   '1' when (tlb_htw_req_valid='1' and tlb_htw_req1_valid_q='0'   and htw_inptr_q="01")
@@ -703,17 +739,23 @@ tlb_htw_req1_pending_d    <=   '1' when (htw_lsu_req_taken='1' and tlb_htw_req1_
                       else '0' when (pte0_reload_req_taken='1' and tlb_htw_req1_pending_q='1'   and pte0_score_ptr_q="01")
                       else '0' when (pte1_reload_req_taken='1' and tlb_htw_req1_pending_q='1'   and pte1_score_ptr_q="01")
                       else tlb_htw_req1_pending_q;
+-- the  rpn  part of the tlb way
 tlb_htw_req1_way_d    <=  tlb_htw_req_way when (tlb_htw_req_valid='1' and tlb_htw_req1_valid_q='0'   and htw_inptr_q="01")
                    else tlb_htw_req1_way_q;
 tlb_htw_req1_tag_d(0 TO tagpos_wq-1) <=  tlb_htw_req_tag(0 to tagpos_wq-1) when (tlb_htw_req_valid='1' and tlb_htw_req1_valid_q='0'   and htw_inptr_q="01")
                    else tlb_htw_req1_tag_q(0   to tagpos_wq-1);
 tlb_htw_req1_tag_d(tagpos_wq+2 TO tlb_tag_width-1) <=  tlb_htw_req_tag(tagpos_wq+2 to tlb_tag_width-1) when (tlb_htw_req_valid='1' and tlb_htw_req1_valid_q='0'   and htw_inptr_q="01")
                    else tlb_htw_req1_tag_q(tagpos_wq+2   to tlb_tag_width-1);
+-- the WQ bits of the tag are re-purposed as reservation valid and duplicate bits
+--  set reservation valid at tlb handoff, clear when ptereload taken..
+--  or, clear reservation if tlbwe,ptereload,tlbi from another thread to avoid duplicates
+--  or, clear reservation when L2 UE for this reload
 tlb_htw_req1_tag_d(tagpos_wq) <=  '0' when ((htw_tag5_clr_resv_q(1)='1'   and tlb_tag5_except="0000") or tlb_htw_req1_clr_resv_ue='1')
                               else '1' when (tlb_htw_req_valid='1' and tlb_htw_req1_valid_q='0'   and htw_inptr_q="01")
                               else '0' when (pte0_reload_req_taken='1' and tlb_htw_req1_valid_q='1'   and pte0_score_ptr_q="01")
                               else '0' when (pte1_reload_req_taken='1' and tlb_htw_req1_valid_q='1'   and pte1_score_ptr_q="01")
                    else tlb_htw_req1_tag_q(tagpos_wq);
+--  spare, wq+1 is duplicate indicator in tlb_cmp, but would not make it to tlb handoff
 tlb_htw_req1_tag_d(tagpos_wq+1) <=  tlb_htw_req1_tag_q(tagpos_wq+1);
 tlb_htw_req1_tag_act    <=  tlb_delayed_act(24+1)   or tlb_htw_req1_valid_q;
 tlb_htw_req1_clr_resv_ue    <=  (pte0_seq_clr_resv_ue and Eq(pte0_score_ptr_q,"01")) or
@@ -736,12 +778,17 @@ tlb_htw_req2_pending_d    <=   '1' when (htw_lsu_req_taken='1' and tlb_htw_req2_
                       else '0' when (pte0_reload_req_taken='1' and tlb_htw_req2_pending_q='1'   and pte0_score_ptr_q="10")
                       else '0' when (pte1_reload_req_taken='1' and tlb_htw_req2_pending_q='1'   and pte1_score_ptr_q="10")
                       else tlb_htw_req2_pending_q;
+-- the  rpn  part of the tlb way
 tlb_htw_req2_way_d    <=  tlb_htw_req_way when (tlb_htw_req_valid='1' and tlb_htw_req2_valid_q='0'   and htw_inptr_q="10")
                    else tlb_htw_req2_way_q;
 tlb_htw_req2_tag_d(0 TO tagpos_wq-1) <=  tlb_htw_req_tag(0 to tagpos_wq-1) when (tlb_htw_req_valid='1' and tlb_htw_req2_valid_q='0'   and htw_inptr_q="10")
                    else tlb_htw_req2_tag_q(0   to tagpos_wq-1);
 tlb_htw_req2_tag_d(tagpos_wq+2 TO tlb_tag_width-1) <=  tlb_htw_req_tag(tagpos_wq+2 to tlb_tag_width-1) when (tlb_htw_req_valid='1' and tlb_htw_req2_valid_q='0'   and htw_inptr_q="10")
                    else tlb_htw_req2_tag_q(tagpos_wq+2   to tlb_tag_width-1);
+-- the WQ bits of the tag are re-purposed as reservation valid and duplicate bits
+--  set reservation valid at tlb handoff, clear when ptereload taken..
+--  or, clear reservation if tlbwe,ptereload,tlbi from another thread to avoid duplicates
+--  or, clear reservation when L2 UE for this reload
 tlb_htw_req2_tag_d(tagpos_wq) <=  '0' when ((htw_tag5_clr_resv_q(2)='1'   and tlb_tag5_except="0000") or tlb_htw_req2_clr_resv_ue='1')
                               else '1' when (tlb_htw_req_valid='1' and tlb_htw_req2_valid_q='0'   and htw_inptr_q="10")
                               else '0' when (pte0_reload_req_taken='1' and tlb_htw_req2_valid_q='1'   and pte0_score_ptr_q="10")
@@ -759,6 +806,7 @@ pte_ra_2_spsize4K    <=  tlb_htw_req2_way_q(waypos_rpn   to waypos_rpn+rpn_width
                         tlb_htw_req2_tag_q(tagpos_epn+epn_width-8   to tagpos_epn+epn_width-1) & "000";
 pte_ra_2_spsize64K    <=  tlb_htw_req2_way_q(waypos_rpn   to waypos_rpn+rpn_width-4) & 
                          tlb_htw_req2_tag_q(tagpos_epn+epn_width-16   to tagpos_epn+epn_width-5) & "000";
+-- select based on SPSIZE
 pte_ra_2    <=  pte_ra_2_spsize64K   when tlb_htw_req2_way_q(waypos_usxwr   to waypos_usxwr+3)=TLB_PgSize_64KB
          else pte_ra_2_spsize4K;
 tlb_htw_req3_valid_d    <=   '1' when (tlb_htw_req_valid='1' and tlb_htw_req3_valid_q='0'   and htw_inptr_q="11")
@@ -769,17 +817,23 @@ tlb_htw_req3_pending_d    <=   '1' when (htw_lsu_req_taken='1' and tlb_htw_req3_
                       else '0' when (pte0_reload_req_taken='1' and tlb_htw_req3_pending_q='1'   and pte0_score_ptr_q="11")
                       else '0' when (pte1_reload_req_taken='1' and tlb_htw_req3_pending_q='1'   and pte1_score_ptr_q="11")
                       else tlb_htw_req3_pending_q;
+-- the  rpn  part of the tlb way
 tlb_htw_req3_way_d    <=  tlb_htw_req_way when (tlb_htw_req_valid='1' and tlb_htw_req3_valid_q='0'   and htw_inptr_q="11")
                    else tlb_htw_req3_way_q;
 tlb_htw_req3_tag_d(0 TO tagpos_wq-1) <=  tlb_htw_req_tag(0 to tagpos_wq-1) when (tlb_htw_req_valid='1' and tlb_htw_req3_valid_q='0'   and htw_inptr_q="11")
                    else tlb_htw_req3_tag_q(0   to tagpos_wq-1);
 tlb_htw_req3_tag_d(tagpos_wq+2 TO tlb_tag_width-1) <=  tlb_htw_req_tag(tagpos_wq+2 to tlb_tag_width-1) when (tlb_htw_req_valid='1' and tlb_htw_req3_valid_q='0'   and htw_inptr_q="11")
                    else tlb_htw_req3_tag_q(tagpos_wq+2   to tlb_tag_width-1);
+-- the WQ bits of the tag are re-purposed as reservation valid and duplicate bits
+--  set reservation valid at tlb handoff, clear when ptereload taken..
+--  or, clear reservation if tlbwe,ptereload,tlbi from another thread to avoid duplicates
+--  or, clear reservation when L2 UE for this reload
 tlb_htw_req3_tag_d(tagpos_wq) <=  '0' when ((htw_tag5_clr_resv_q(3)='1'   and tlb_tag5_except="0000") or tlb_htw_req3_clr_resv_ue='1')
                               else '1' when (tlb_htw_req_valid='1' and tlb_htw_req3_valid_q='0'   and htw_inptr_q="11")
                               else '0' when (pte0_reload_req_taken='1' and tlb_htw_req3_valid_q='1'   and pte0_score_ptr_q="11")
                               else '0' when (pte1_reload_req_taken='1' and tlb_htw_req3_valid_q='1'   and pte1_score_ptr_q="11")
                    else tlb_htw_req3_tag_q(tagpos_wq);
+--  spare, wq+1 is duplicate indicator in tlb_cmp, but would not make it to tlb handoff
 tlb_htw_req3_tag_d(tagpos_wq+1) <=  tlb_htw_req3_tag_q(tagpos_wq+1);
 tlb_htw_req3_tag_act    <=  tlb_delayed_act(24+3)   or tlb_htw_req3_valid_q;
 tlb_htw_req3_clr_resv_ue    <=  (pte0_seq_clr_resv_ue and Eq(pte0_score_ptr_q,"11")) or
@@ -792,11 +846,37 @@ pte_ra_3_spsize4K    <=  tlb_htw_req3_way_q(waypos_rpn   to waypos_rpn+rpn_width
                         tlb_htw_req3_tag_q(tagpos_epn+epn_width-8   to tagpos_epn+epn_width-1) & "000";
 pte_ra_3_spsize64K    <=  tlb_htw_req3_way_q(waypos_rpn   to waypos_rpn+rpn_width-4) & 
                          tlb_htw_req3_tag_q(tagpos_epn+epn_width-16   to tagpos_epn+epn_width-5) & "000";
+-- select based on SPSIZE
 pte_ra_3    <=  pte_ra_3_spsize64K   when tlb_htw_req3_way_q(waypos_usxwr   to waypos_usxwr+3)=TLB_PgSize_64KB
          else pte_ra_3_spsize4K;
+-- tag forwarding from tlb_ctl, for reservation clear compares
 htw_tag3_d(0 TO tagpos_thdid-1) <=  tlb_tag2(0 to tagpos_thdid-1);
 htw_tag3_d(tagpos_thdid+thdid_width TO tlb_tag_width-1) <=  tlb_tag2(tagpos_thdid+thdid_width to tlb_tag_width-1);
 htw_tag3_d(tagpos_thdid TO tagpos_thdid+thdid_width-1) <=   tlb_tag2(tagpos_thdid to tagpos_thdid+thdid_width-1) and not(tlb_ctl_tag2_flush);
+--  reservation clear:
+--        (1) proc holding resv executes another tlbsrx. overwriting the old resv
+--        (2) any tlbivax snoop with gs,as,lpid,pid,sizemasked(epn,mas6.isize) matching resv.gs,as,lpid,pid,sizemasked(epn,mas6.isize)
+--             (note ind bit is not part of tlbivax criteria!!)
+--        (3) any proc sets mmucsr0.TLB0_FI=1 with lpidr matching resv.lpid
+--        (4) any proc executes tlbilx T=0 (all) with mas5.slpid matching resv.lpid
+--        (5) any proc executes tlbilx T=1 (pid) with mas5.slpid and mas6.spid matching resv.lpid,pid
+--        (6) any proc executes tlbilx T=3 (vpn) with mas gs,as,slpid,spid,sizemasked(epn,mas6.isize) matching
+--              resv.gs,as,lpid,pid,sizemasked(epn,mas6.isize)
+--              (note ind bit is not part of tlbilx criteria!!)
+--        (7) any proc executes tlbwe not causing exception and with (wq=00 always, or wq=01 and proc holds resv)
+--              and mas regs ind,tgs,ts,tlpid,tid,sizemasked(epn,mas1.tsize) match resv.ind,gs,as,lpid,pid,sizemasked(epn,mas1.tsize)
+--        (8) any page table reload not causing an exception (due to pt fault, tlb inelig, or lrat miss)
+--              and PTE's tag ind=0,tgs,ts,tlpid,tid,sizemasked(epn,pte.size) match resv.ind=0,gs,as,lpid,pid,sizemasked(epn.pte.size)
+--       A2-specific non-architected clear states
+--        (9) any proc executes tlbwe not causing exception and with (wq=10 clear, or wq=11 always (same as 00))
+--              and mas regs ind,tgs,ts,tlpid,tid,sizemasked(epn,mas1.tsize) match resv.ind,gs,as,lpid,pid,sizemasked(epn,mas1.tsize)
+--               (basically same as 7,
+--        (10) any proc executes tlbilx T=2 (gs) with mas5.sgs matching resv.gs
+--        (11) any proc executes tlbilx T=4 to 7 (class) with T(1:2) matching resv.class
+--  ttype <= tlbre & tlbwe & tlbsx & tlbsxr & tlbsrx;
+--  IS0: Local bit
+--  IS1/Class: 0=all, 1=tid, 2=gs, 3=vpn, 4=class0, 5=class1, 6=class2, 7=class3
+--  mas0.wq: 00=ignore reserv write always, 01=write if reserved, 10=clear reserv, 11=same as 00
 htw_tag3_clr_resv_term2(0) <=  '1' when (htw_tag3_q(tagpos_thdid to tagpos_thdid+thdid_width-1)/="0000" and
                                 htw_tag3_q(tagpos_type_snoop)='1' and htw_tag3_q(tagpos_is to tagpos_is+3)="0011" and 
                                 htw_resv0_tag3_lpid_match='1'   and htw_resv0_tag3_pid_match='1'   and htw_resv0_tag3_gs_match='1'   and 
@@ -987,6 +1067,8 @@ htw_resv0_tag3_epn_loc_match       <=  '1' when (htw_tag3_q(tagpos_epn to tagpos
                                             (htw_tag3_q(tagpos_epn to tagpos_epn+epn_width-13)=tlb_htw_req0_tag_q(tagpos_epn   to tagpos_epn+epn_width-13) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_16MB) or
                                             (htw_tag3_q(tagpos_epn to tagpos_epn+epn_width-19)=tlb_htw_req0_tag_q(tagpos_epn   to tagpos_epn+epn_width-19) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_1GB)
                             else '0';
+-- global match ignores certain upper epn bits that are not tranferred over bus
+-- fix me!!  use various upper nibbles dependent on pgsize and mmucr1.tlbi_msb
 htw_resv0_tag3_epn_glob_match       <=  '1' when (htw_tag3_q(tagpos_epn+31 to tagpos_epn+epn_width-1)=tlb_htw_req0_tag_q(tagpos_epn+31   to tagpos_epn+epn_width-1) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_4KB) or
                                             (htw_tag3_q(tagpos_epn+31 to tagpos_epn+epn_width-5)=tlb_htw_req0_tag_q(tagpos_epn+31   to tagpos_epn+epn_width-5) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_64KB) or
                                             (htw_tag3_q(tagpos_epn+31 to tagpos_epn+epn_width-9)=tlb_htw_req0_tag_q(tagpos_epn+31   to tagpos_epn+epn_width-9) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_1MB) or
@@ -1003,6 +1085,8 @@ htw_resv1_tag3_epn_loc_match       <=  '1' when (htw_tag3_q(tagpos_epn to tagpos
                                             (htw_tag3_q(tagpos_epn to tagpos_epn+epn_width-13)=tlb_htw_req1_tag_q(tagpos_epn   to tagpos_epn+epn_width-13) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_16MB) or
                                             (htw_tag3_q(tagpos_epn to tagpos_epn+epn_width-19)=tlb_htw_req1_tag_q(tagpos_epn   to tagpos_epn+epn_width-19) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_1GB)
                             else '0';
+-- global match ignores certain upper epn bits that are not tranferred over bus
+-- fix me!!  use various upper nibbles dependent on pgsize and mmucr1.tlbi_msb
 htw_resv1_tag3_epn_glob_match       <=  '1' when (htw_tag3_q(tagpos_epn+31 to tagpos_epn+epn_width-1)=tlb_htw_req1_tag_q(tagpos_epn+31   to tagpos_epn+epn_width-1) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_4KB) or
                                             (htw_tag3_q(tagpos_epn+31 to tagpos_epn+epn_width-5)=tlb_htw_req1_tag_q(tagpos_epn+31   to tagpos_epn+epn_width-5) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_64KB) or
                                             (htw_tag3_q(tagpos_epn+31 to tagpos_epn+epn_width-9)=tlb_htw_req1_tag_q(tagpos_epn+31   to tagpos_epn+epn_width-9) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_1MB) or
@@ -1019,6 +1103,8 @@ htw_resv2_tag3_epn_loc_match       <=  '1' when (htw_tag3_q(tagpos_epn to tagpos
                                             (htw_tag3_q(tagpos_epn to tagpos_epn+epn_width-13)=tlb_htw_req2_tag_q(tagpos_epn   to tagpos_epn+epn_width-13) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_16MB) or
                                             (htw_tag3_q(tagpos_epn to tagpos_epn+epn_width-19)=tlb_htw_req2_tag_q(tagpos_epn   to tagpos_epn+epn_width-19) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_1GB)
                             else '0';
+-- global match ignores certain upper epn bits that are not tranferred over bus
+-- fix me!!  use various upper nibbles dependent on pgsize and mmucr1.tlbi_msb
 htw_resv2_tag3_epn_glob_match       <=  '1' when (htw_tag3_q(tagpos_epn+31 to tagpos_epn+epn_width-1)=tlb_htw_req2_tag_q(tagpos_epn+31   to tagpos_epn+epn_width-1) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_4KB) or
                                             (htw_tag3_q(tagpos_epn+31 to tagpos_epn+epn_width-5)=tlb_htw_req2_tag_q(tagpos_epn+31   to tagpos_epn+epn_width-5) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_64KB) or
                                             (htw_tag3_q(tagpos_epn+31 to tagpos_epn+epn_width-9)=tlb_htw_req2_tag_q(tagpos_epn+31   to tagpos_epn+epn_width-9) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_1MB) or
@@ -1035,6 +1121,8 @@ htw_resv3_tag3_epn_loc_match       <=  '1' when (htw_tag3_q(tagpos_epn to tagpos
                                             (htw_tag3_q(tagpos_epn to tagpos_epn+epn_width-13)=tlb_htw_req3_tag_q(tagpos_epn   to tagpos_epn+epn_width-13) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_16MB) or
                                             (htw_tag3_q(tagpos_epn to tagpos_epn+epn_width-19)=tlb_htw_req3_tag_q(tagpos_epn   to tagpos_epn+epn_width-19) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_1GB)
                             else '0';
+-- global match ignores certain upper epn bits that are not tranferred over bus
+-- fix me!!  use various upper nibbles dependent on pgsize and mmucr1.tlbi_msb
 htw_resv3_tag3_epn_glob_match       <=  '1' when (htw_tag3_q(tagpos_epn+31 to tagpos_epn+epn_width-1)=tlb_htw_req3_tag_q(tagpos_epn+31   to tagpos_epn+epn_width-1) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_4KB) or
                                             (htw_tag3_q(tagpos_epn+31 to tagpos_epn+epn_width-5)=tlb_htw_req3_tag_q(tagpos_epn+31   to tagpos_epn+epn_width-5) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_64KB) or
                                             (htw_tag3_q(tagpos_epn+31 to tagpos_epn+epn_width-9)=tlb_htw_req3_tag_q(tagpos_epn+31   to tagpos_epn+epn_width-9) and htw_tag3_q(tagpos_size to tagpos_size+3)=TLB_PgSize_1MB) or
@@ -1057,6 +1145,8 @@ pte0_score_ibit_d    <=  tlb_htw_req0_way_q(waypos_wimge+1) when pte0_seq_score_
 pte0_score_pending_d      <=  '1' when pte0_seq_score_load='1'
                        else '0' when pte0_seq_score_done='1'
                        else pte0_score_pending_q;
+-- 4 quadword data beats being returned; entire CL repeated if any beat has ecc error
+--   ...beats need to be set regardless of ecc present..ecc and any qw happen simultaneously
 pte0_score_qwbeat_d(0) <=  '0' when pte0_seq_score_load='1'   or pte0_seq_data_retry='1'   
                        else '1' when (pte0_score_pending_q='1'   and reld_data_vld_tp2_q='1' and reld_ditc_tp2_q='0' 
                                    and reld_core_tag_tp2_q=Core_Tag0_Value   and reld_qw_tp2_q="00") 
@@ -1073,6 +1163,7 @@ pte0_score_qwbeat_d(3) <=  '0' when pte0_seq_score_load='1'   or pte0_seq_data_r
                        else '1' when (pte0_score_pending_q='1'   and reld_data_vld_tp2_q='1' and reld_ditc_tp2_q='0' 
                                    and reld_core_tag_tp2_q=Core_Tag0_Value   and reld_qw_tp2_q="11") 
                        else pte0_score_qwbeat_q(3);
+-- ecc error detection: bit0=ECC, bit1=UE, bit2=retry
 pte0_score_error_d(0) <=  '0' when pte0_seq_score_load='1'
                       else '1' when (pte0_score_pending_q='1'   and reld_data_vld_tp2_q='1' and reld_ditc_tp2_q='0' 
                                    and reld_core_tag_tp2_q=Core_Tag0_Value   
@@ -1107,6 +1198,8 @@ pte1_score_ibit_d    <=  tlb_htw_req0_way_q(waypos_wimge+1) when pte1_seq_score_
 pte1_score_pending_d      <=  '1' when pte1_seq_score_load='1'
                        else '0' when pte1_seq_score_done='1'
                        else pte1_score_pending_q;
+-- 4 quadword data beats being returned; entire CL repeated if any beat has ecc error
+--   ...beats need to be set regardless of ecc present..ecc and any qw happen simultaneously
 pte1_score_qwbeat_d(0) <=  '0' when pte1_seq_score_load='1'   or pte1_seq_data_retry='1'   
                        else '1' when (pte1_score_pending_q='1'   and reld_data_vld_tp2_q='1' and reld_ditc_tp2_q='0' 
                                    and reld_core_tag_tp2_q=Core_Tag1_Value   and reld_qw_tp2_q="00") 
@@ -1123,6 +1216,7 @@ pte1_score_qwbeat_d(3) <=  '0' when pte1_seq_score_load='1'   or pte1_seq_data_r
                        else '1' when (pte1_score_pending_q='1'   and reld_data_vld_tp2_q='1' and reld_ditc_tp2_q='0' 
                                    and reld_core_tag_tp2_q=Core_Tag1_Value   and reld_qw_tp2_q="11") 
                        else pte1_score_qwbeat_q(3);
+-- ecc error detection: bit0=ECC, bit1=UE, bit2=retry
 pte1_score_error_d(0) <=  '0' when pte1_seq_score_load='1'
                       else '1' when (pte1_score_pending_q='1'   and reld_data_vld_tp2_q='1' and reld_ditc_tp2_q='0' 
                                    and reld_core_tag_tp2_q=Core_Tag1_Value   
@@ -1141,6 +1235,11 @@ pte1_score_dataval_d    <=  '0' when pte1_seq_score_load='1'   or pte1_seq_data_
                                    and reld_crit_qw_tp2_q='1' and reld_qw_tp2_q=pte1_score_cl_offset_q(58   to 59) 
                                     and reld_core_tag_tp2_q=Core_Tag1_Value)
                      else pte1_score_dataval_q;
+-- pointers:
+--  htw_inptr:      tlb to htw incoming request queue pointer, 4 total
+--  htw_lsuptr:     htw to lru outgoing request queue pointer, 4 total
+--  pte_load_ptr:   pte machine pointer next to load, 2 total
+--  ptereload_ptr:  pte to tlb data reload select, 2 total
 htw_inptr_d  <=      "01" when htw_inptr_q="00" and tlb_htw_req0_valid_q='0' and tlb_htw_req1_valid_q='0' and tlb_htw_req_valid='1'
               else "10" when htw_inptr_q="00" and tlb_htw_req0_valid_q='0' and tlb_htw_req1_valid_q='1' and tlb_htw_req2_valid_q='0' and tlb_htw_req_valid='1'
               else "11" when htw_inptr_q="00" and tlb_htw_req0_valid_q='0' and tlb_htw_req1_valid_q='1' and tlb_htw_req2_valid_q='1' and tlb_htw_req3_valid_q='0' and tlb_htw_req_valid='1' 
@@ -1200,6 +1299,7 @@ ptereload_ptr_d  <=  '1' when ptereload_ptr_q='0' and ptereload_req_taken='1'
               else '0' when ptereload_ptr_q='1' and ptereload_req_taken='1'
               else '0' when ptereload_ptr_q='1' and pte0_reload_req_valid='1' and pte1_reload_req_valid='0'
               else ptereload_ptr_q;
+-- 0=tlbivax_op, 1=tlbi_complete, 2=mmu read with core_tag=01100, 3=mmu read with core_tag=01101
 htw_lsu_ttype_d  <=  "11" when (pte_load_ptr_q='1' and htw_seq_load_pteaddr='1')  
               else "10" when htw_seq_load_pteaddr='1' 
               else htw_lsu_ttype_q;
@@ -1231,11 +1331,14 @@ htw_lsu_ttype     <=  htw_lsu_ttype_q;
 htw_lsu_wimge     <=  htw_lsu_wimge_q;
 htw_lsu_u         <=  htw_lsu_u_q;
 htw_lsu_addr      <=  htw_lsu_addr_q;
+-- L2 data reload stages
+--  t minus 2 phase
 reld_core_tag_tm1_d  <=   an_ac_reld_core_tag;
 reld_qw_tm1_d        <=   an_ac_reld_qw;
 reld_crit_qw_tm1_d   <=   an_ac_reld_crit_qw;
 reld_ditc_tm1_d      <=   an_ac_reld_ditc;
 reld_data_vld_tm1_d  <=   an_ac_reld_data_vld;
+--  t minus 1 phase
 reld_core_tag_t_d  <=  reld_core_tag_tm1_q;
 reld_qw_t_d        <=  reld_qw_tm1_q;
 reld_crit_qw_t_d   <=  reld_crit_qw_tm1_q;
@@ -1247,12 +1350,14 @@ pte0_reld_for_me_tm1    <=  '1' when (reld_data_vld_tm1_q='1' and reld_ditc_tm1_
 pte1_reld_for_me_tm1    <=  '1' when (reld_data_vld_tm1_q='1' and reld_ditc_tm1_q='0' and reld_crit_qw_tm1_q='1' 
                                  and reld_qw_tm1_q=pte1_score_cl_offset_q(58   to 59) and reld_core_tag_tm1_q=Core_Tag1_Value)
                      else '0';
+--  t phase
 reld_core_tag_tp1_d  <=  reld_core_tag_t_q;
 reld_qw_tp1_d        <=  reld_qw_t_q;
 reld_crit_qw_tp1_d   <=  reld_crit_qw_t_q;
 reld_ditc_tp1_d      <=  reld_ditc_t_q;
 reld_data_vld_tp1_d  <=  reld_data_vld_t_q;
 reld_data_tp1_d      <=   an_ac_reld_data;
+--  t plus 1 phase
 reld_core_tag_tp2_d    <=  reld_core_tag_tp1_q;
 reld_qw_tp2_d          <=  reld_qw_tp1_q;
 reld_crit_qw_tp2_d     <=  reld_crit_qw_tp1_q;
@@ -1261,6 +1366,7 @@ reld_data_vld_tp2_d    <=  reld_data_vld_tp1_q;
 reld_data_tp2_d        <=  reld_data_tp1_q;
 reld_ecc_err_tp2_d     <=   an_ac_reld_ecc_err;
 reld_ecc_err_ue_tp2_d  <=   an_ac_reld_ecc_err_ue;
+--  t plus 2 phase
 pte0_reld_for_me_tp2    <=  '1' when (reld_data_vld_tp2_q='1' and reld_ditc_tp2_q='0' and reld_crit_qw_tp2_q='1' 
                                  and reld_qw_tp2_q=pte0_score_cl_offset_q(58   to 59) and reld_core_tag_tp2_q=Core_Tag0_Value)
                      else '0';
@@ -1276,6 +1382,7 @@ pte1_reld_data_tp3_d     <=  reld_data_tp2_q(0 to 63) when (pte1_reld_for_me_tp2
 reld_act  <=  (or_reduce(pte0_seq_q) or or_reduce(pte1_seq_q) or mmucr2_act_override) and xu_mm_ccr2_notlb_b;
 pte0_reld_act  <=  (or_reduce(pte0_seq_q) or mmucr2_act_override) and xu_mm_ccr2_notlb_b;
 pte1_reld_act  <=  (or_reduce(pte1_seq_q) or mmucr2_act_override) and xu_mm_ccr2_notlb_b;
+-- ptereload requests to tlb_ctl
 ptereload_req_valid  <=  '0' when (htw_tag4_clr_resv_q/="0000" or htw_tag5_clr_resv_q/="0000") 
                   else pte1_reload_req_valid when ptereload_ptr_q='1'
                   else pte0_reload_req_valid;
@@ -1318,6 +1425,7 @@ htw_dbg_pte1_score_pending_q      <=  pte1_score_pending_q;
 htw_dbg_pte1_score_ibit_q         <=  pte1_score_ibit_q;
 htw_dbg_pte1_score_dataval_q      <=  pte1_score_dataval_q;
 htw_dbg_pte1_reld_for_me_tm1      <=  pte1_reld_for_me_tm1;
+-- unused spare signal assignments
 unused_dc(0) <=  or_reduce(LCB_DELAY_LCLKR_DC(1 TO 4));
 unused_dc(1) <=  or_reduce(LCB_MPW1_DC_B(1 TO 4));
 unused_dc(2) <=  PC_FUNC_SL_FORCE;
@@ -1336,6 +1444,10 @@ unused_dc(14) <=  PTE0_RELD_ENABLE_LO_TP2 or PTE0_RELD_ENABLE_HI_TP2;
 unused_dc(15) <=  PTE1_RELD_ENABLE_LO_TP2 or PTE1_RELD_ENABLE_HI_TP2;
 unused_dc(16 TO 19) <=  tlb_htw_req0_pending_q & tlb_htw_req1_pending_q & tlb_htw_req2_pending_q & tlb_htw_req3_pending_q;
 unused_dc(20 TO 21) <=  htw_lsuptr_alt_d;
+-----------------------------------------------------------------------
+-- Latches
+-----------------------------------------------------------------------
+-- tlb request valid latches
 tlb_htw_req0_valid_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1353,6 +1465,7 @@ tlb_htw_req0_valid_latch:   tri_rlmlatch_p
             scout   => sov_0(tlb_htw_req0_valid_offset),
             din     => tlb_htw_req0_valid_d,
             dout    => tlb_htw_req0_valid_q);
+-- tlb request pending latches.. this req is loaded into a pte machine
 tlb_htw_req0_pending_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1370,6 +1483,7 @@ tlb_htw_req0_pending_latch:   tri_rlmlatch_p
             scout   => sov_0(tlb_htw_req0_pending_offset),
             din     => tlb_htw_req0_pending_d,
             dout    => tlb_htw_req0_pending_q);
+-- tlb request tag latches
 tlb_htw_req0_tag_latch:   tri_rlmreg_p
   generic map (width => tlb_htw_req0_tag_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1387,6 +1501,7 @@ tlb_htw_req0_tag_latch:   tri_rlmreg_p
             scout   => sov_0(tlb_htw_req0_tag_offset   to tlb_htw_req0_tag_offset+tlb_htw_req0_tag_q'length-1),
             din     => tlb_htw_req0_tag_d,
             dout    => tlb_htw_req0_tag_q    );
+-- tlb request tag latches
 tlb_htw_req0_way_latch:   tri_rlmreg_p
   generic map (width => tlb_htw_req0_way_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1404,6 +1519,7 @@ tlb_htw_req0_way_latch:   tri_rlmreg_p
             scout   => sov_0(tlb_htw_req0_way_offset   to tlb_htw_req0_way_offset+tlb_htw_req0_way_q'length-1),
             din     => tlb_htw_req0_way_d,
             dout    => tlb_htw_req0_way_q    );
+-- tlb request valid latches
 tlb_htw_req1_valid_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1421,6 +1537,7 @@ tlb_htw_req1_valid_latch:   tri_rlmlatch_p
             scout   => sov_0(tlb_htw_req1_valid_offset),
             din     => tlb_htw_req1_valid_d,
             dout    => tlb_htw_req1_valid_q);
+-- tlb request pending latches.. this req is loaded into a pte machine
 tlb_htw_req1_pending_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1438,6 +1555,7 @@ tlb_htw_req1_pending_latch:   tri_rlmlatch_p
             scout   => sov_0(tlb_htw_req1_pending_offset),
             din     => tlb_htw_req1_pending_d,
             dout    => tlb_htw_req1_pending_q);
+-- tlb request tag latches
 tlb_htw_req1_tag_latch:   tri_rlmreg_p
   generic map (width => tlb_htw_req1_tag_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1455,6 +1573,7 @@ tlb_htw_req1_tag_latch:   tri_rlmreg_p
             scout   => sov_0(tlb_htw_req1_tag_offset   to tlb_htw_req1_tag_offset+tlb_htw_req1_tag_q'length-1),
             din     => tlb_htw_req1_tag_d,
             dout    => tlb_htw_req1_tag_q    );
+-- tlb request tag latches
 tlb_htw_req1_way_latch:   tri_rlmreg_p
   generic map (width => tlb_htw_req1_way_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1472,6 +1591,7 @@ tlb_htw_req1_way_latch:   tri_rlmreg_p
             scout   => sov_0(tlb_htw_req1_way_offset   to tlb_htw_req1_way_offset+tlb_htw_req1_way_q'length-1),
             din     => tlb_htw_req1_way_d,
             dout    => tlb_htw_req1_way_q    );
+-- tlb request valid latches
 tlb_htw_req2_valid_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1489,6 +1609,7 @@ tlb_htw_req2_valid_latch:   tri_rlmlatch_p
             scout   => sov_0(tlb_htw_req2_valid_offset),
             din     => tlb_htw_req2_valid_d,
             dout    => tlb_htw_req2_valid_q);
+-- tlb request pending latches.. this req is loaded into a pte machine
 tlb_htw_req2_pending_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1506,6 +1627,7 @@ tlb_htw_req2_pending_latch:   tri_rlmlatch_p
             scout   => sov_0(tlb_htw_req2_pending_offset),
             din     => tlb_htw_req2_pending_d,
             dout    => tlb_htw_req2_pending_q);
+-- tlb request tag latches
 tlb_htw_req2_tag_latch:   tri_rlmreg_p
   generic map (width => tlb_htw_req2_tag_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1523,6 +1645,7 @@ tlb_htw_req2_tag_latch:   tri_rlmreg_p
             scout   => sov_0(tlb_htw_req2_tag_offset   to tlb_htw_req2_tag_offset+tlb_htw_req2_tag_q'length-1),
             din     => tlb_htw_req2_tag_d,
             dout    => tlb_htw_req2_tag_q    );
+-- tlb request tag latches
 tlb_htw_req2_way_latch:   tri_rlmreg_p
   generic map (width => tlb_htw_req2_way_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1540,6 +1663,7 @@ tlb_htw_req2_way_latch:   tri_rlmreg_p
             scout   => sov_0(tlb_htw_req2_way_offset   to tlb_htw_req2_way_offset+tlb_htw_req2_way_q'length-1),
             din     => tlb_htw_req2_way_d,
             dout    => tlb_htw_req2_way_q    );
+-- tlb request valid latches
 tlb_htw_req3_valid_latch:   tri_rlmlatch_p
   generic map (init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1574,6 +1698,7 @@ tlb_htw_req3_pending_latch:   tri_rlmlatch_p
             scout   => sov_0(tlb_htw_req3_pending_offset),
             din     => tlb_htw_req3_pending_d,
             dout    => tlb_htw_req3_pending_q);
+-- tlb request tag latches
 tlb_htw_req3_tag_latch:   tri_rlmreg_p
   generic map (width => tlb_htw_req3_tag_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -1591,6 +1716,7 @@ tlb_htw_req3_tag_latch:   tri_rlmreg_p
             scout   => sov_0(tlb_htw_req3_tag_offset   to tlb_htw_req3_tag_offset+tlb_htw_req3_tag_q'length-1),
             din     => tlb_htw_req3_tag_d,
             dout    => tlb_htw_req3_tag_q    );
+-- tlb request tag latches
 tlb_htw_req3_way_latch:   tri_rlmreg_p
   generic map (width => tlb_htw_req3_way_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2067,6 +2193,7 @@ ptereload_ptr_latch: tri_rlmlatch_p
             scout   => sov_1(ptereload_ptr_offset),
             din     => ptereload_ptr_d,
             dout    => ptereload_ptr_q);
+--  t minus 1 phase latches
 reld_core_tag_tm1_latch: tri_rlmreg_p
   generic map (width => reld_core_tag_tm1_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2152,6 +2279,7 @@ reld_data_vld_tm1_latch: tri_rlmlatch_p
             scout   => sov_1(reld_data_vld_tm1_offset),
             din     => reld_data_vld_tm1_d,
             dout    => reld_data_vld_tm1_q);
+--  t   phase latches
 reld_core_tag_t_latch:   tri_rlmreg_p
   generic map (width => reld_core_tag_t_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2237,6 +2365,7 @@ reld_data_vld_t_latch:   tri_rlmlatch_p
             scout   => sov_1(reld_data_vld_t_offset),
             din     => reld_data_vld_t_d,
             dout    => reld_data_vld_t_q);
+--  t plus 1 phase latches
 reld_core_tag_tp1_latch: tri_rlmreg_p
   generic map (width => reld_core_tag_tp1_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2339,6 +2468,7 @@ reld_data_tp1_latch: tri_rlmreg_p
             scout   => sov_1(reld_data_tp1_offset to reld_data_tp1_offset+reld_data_tp1_q'length-1),
             din     => reld_data_tp1_d,
             dout    => reld_data_tp1_q  );
+--  t plus 2 phase latches
 reld_core_tag_tp2_latch: tri_rlmreg_p
   generic map (width => reld_core_tag_tp2_q'length, init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2475,6 +2605,7 @@ reld_ecc_err_ue_tp2_latch: tri_rlmlatch_p
             scout   => sov_1(reld_ecc_err_ue_tp2_offset),
             din     => reld_ecc_err_ue_tp2_d,
             dout    => reld_ecc_err_ue_tp2_q);
+--  t plus 3 phase
 pte0_reld_data_tp3_latch:   tri_rlmreg_p
   generic map (width => pte0_reld_data_tp3_q'length,   init => 0, needs_sreset => 1, expand_type => expand_type)
   port map (vd      => vdd,
@@ -2577,6 +2708,9 @@ spare_b_latch: tri_rlmreg_p
             scout   => sov_1(spare_b_offset to spare_b_offset+spare_b_q'length-1),
             din     => spare_b_q,
             dout    => spare_b_q  );
+--------------------------------------------------
+-- thold/sg latches
+--------------------------------------------------
 perv_2to1_reg: tri_plat
   generic map (width => 3, expand_type => expand_type)
   port map (vd          => vdd,
@@ -2617,9 +2751,11 @@ perv_lcbor_func_slp_sl: tri_lcbor
             act_dis     => lcb_act_dis_dc,
             forcee => pc_func_slp_sl_force,
             thold_b     => pc_func_slp_sl_thold_0_b);
+-----------------------------------------------------------------------
+-- Scan
+-----------------------------------------------------------------------
 siv_0(0 TO scan_right_0) <=  sov_0(1 to scan_right_0) & ac_func_scan_in(0);
 ac_func_scan_out(0) <=  sov_0(0);
 siv_1(0 TO scan_right_1) <=  sov_1(1 to scan_right_1) & ac_func_scan_in(1);
 ac_func_scan_out(1) <=  sov_1(0);
 END MMQ_HTW;
-

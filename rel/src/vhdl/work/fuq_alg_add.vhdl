@@ -20,7 +20,7 @@ library ieee,ibm,support,tri,work;
  library clib ;
 
 entity fuq_alg_add is
-generic(       expand_type               : integer := 2  ); 
+generic(       expand_type               : integer := 2  ); -- 0 - ibm tech, 1 - other );
 port(
 
     vdd              : inout power_logic;                  
@@ -52,23 +52,23 @@ port(
        ex1_lvl2_shdcd008         :out std_ulogic ;
        ex1_lvl2_shdcd012         :out std_ulogic ;
 
-       ex1_lvl3_shdcd000         :out std_ulogic ;
-       ex1_lvl3_shdcd016         :out std_ulogic ;
-       ex1_lvl3_shdcd032         :out std_ulogic ;
-       ex1_lvl3_shdcd048         :out std_ulogic ;
-       ex1_lvl3_shdcd064         :out std_ulogic ;
-       ex1_lvl3_shdcd080         :out std_ulogic ;
-       ex1_lvl3_shdcd096         :out std_ulogic ;
-       ex1_lvl3_shdcd112         :out std_ulogic ;
-       ex1_lvl3_shdcd128         :out std_ulogic ;
-       ex1_lvl3_shdcd144         :out std_ulogic ;
-       ex1_lvl3_shdcd160         :out std_ulogic ;
-       ex1_lvl3_shdcd176         :out std_ulogic ;
-       ex1_lvl3_shdcd192         :out std_ulogic ;
-       ex1_lvl3_shdcd208         :out std_ulogic ;
-       ex1_lvl3_shdcd224         :out std_ulogic ;
-       ex1_lvl3_shdcd240         :out std_ulogic  
-); 
+       ex1_lvl3_shdcd000         :out std_ulogic ;-- 0000  +000
+       ex1_lvl3_shdcd016         :out std_ulogic ;-- 0001  +016
+       ex1_lvl3_shdcd032         :out std_ulogic ;-- 0010  +032
+       ex1_lvl3_shdcd048         :out std_ulogic ;-- 0011  +048
+       ex1_lvl3_shdcd064         :out std_ulogic ;-- 0100  +064
+       ex1_lvl3_shdcd080         :out std_ulogic ;-- 0101  +080
+       ex1_lvl3_shdcd096         :out std_ulogic ;-- 0110  +096
+       ex1_lvl3_shdcd112         :out std_ulogic ;-- 0111  +112
+       ex1_lvl3_shdcd128         :out std_ulogic ;-- 1000  +128
+       ex1_lvl3_shdcd144         :out std_ulogic ;-- 1001  +144
+       ex1_lvl3_shdcd160         :out std_ulogic ;-- 1010  +160
+       ex1_lvl3_shdcd176         :out std_ulogic ;-- 1011
+       ex1_lvl3_shdcd192         :out std_ulogic ;-- 1100  -064
+       ex1_lvl3_shdcd208         :out std_ulogic ;-- 1101  -048
+       ex1_lvl3_shdcd224         :out std_ulogic ;-- 1110  -032
+       ex1_lvl3_shdcd240         :out std_ulogic  -- 1111  -016
+); -------------------------------------------------------------------
 
 
 
@@ -212,38 +212,14 @@ architecture fuq_alg_add of fuq_alg_add is
   signal ex1_ack_s :std_ulogic_vector(1 to 13);
   signal ex1_ack_c :std_ulogic_vector(1 to 12);
 
-
-
-
-
-
-
  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 begin
 
+    -------------------------------------------------------
+    -- FOR simulation only : will not generate any logic
+    -------------------------------------------------------
 
 
     ex1_bsha_sim_p(1 to 12) <= ex1_alg_sx(1 to 12) xor ex1_alg_cx(1 to 12);
@@ -267,152 +243,168 @@ begin
     ex1_bsha_sim_c( 2) <= ex1_bsha_sim_g( 2) or (ex1_bsha_sim_p( 2) and ex1_bsha_sim_c( 3) );
 
 
+--==##############################################################
+--# ex1 logic
+--==##############################################################
+       -- for MADD operations SHA = (Ea+Ec+!Eb) + 1 -bias + 56
+       --                           (Ea+Ec+!Eb) + 57 +!bias + 1
+       --                           (Ea+Ec+!Eb) + 58 +!bias
+       -- 0_0011_1111_1111  bias = 1023
+       -- 1_1100_0000_0000 !bias
+       --          11_1010 58
+       -- -----------------------
+       -- 1_1100_0011_1010  ( !bias + 58 )
+       --
+       -- leading bit [1] is a sign bit, but the compressor creates bit 0.
+       -- 13 bits should be enough to hold the entire result, therefore throw away bit 0.
 
 
  a32_inv: ex1_a_expo_b(2 to 13) <= not f_byp_alg_ex1_a_expo(2 to 13);
  c32_inv: ex1_c_expo_b(2 to 13) <= not f_byp_alg_ex1_c_expo(2 to 13);
  b32_inv: ex1_b_expo_b(1 to 13) <= not f_byp_alg_ex1_b_expo(1 to 13); 
 
-sx01:  ex1_ack_s( 1) <= not( f_byp_alg_ex1_a_expo( 1) xor  f_byp_alg_ex1_c_expo( 1) ); 
-sx02:  ex1_ack_s( 2) <= not( f_byp_alg_ex1_a_expo( 2) xor  f_byp_alg_ex1_c_expo( 2) ); 
-sx03:  ex1_ack_s( 3) <= not( f_byp_alg_ex1_a_expo( 3) xor  f_byp_alg_ex1_c_expo( 3) ); 
-sx04:  ex1_ack_s( 4) <=    ( f_byp_alg_ex1_a_expo( 4) xor  f_byp_alg_ex1_c_expo( 4) ); 
-sx05:  ex1_ack_s( 5) <=    ( f_byp_alg_ex1_a_expo( 5) xor  f_byp_alg_ex1_c_expo( 5) ); 
-sx06:  ex1_ack_s( 6) <=    ( f_byp_alg_ex1_a_expo( 6) xor  f_byp_alg_ex1_c_expo( 6) ); 
-sx07:  ex1_ack_s( 7) <=    ( f_byp_alg_ex1_a_expo( 7) xor  f_byp_alg_ex1_c_expo( 7) ); 
-sx08:  ex1_ack_s( 8) <= not( f_byp_alg_ex1_a_expo( 8) xor  f_byp_alg_ex1_c_expo( 8) ); 
-sx09:  ex1_ack_s( 9) <= not( f_byp_alg_ex1_a_expo( 9) xor  f_byp_alg_ex1_c_expo( 9) ); 
-sx10:  ex1_ack_s(10) <= not( f_byp_alg_ex1_a_expo(10) xor  f_byp_alg_ex1_c_expo(10) ); 
-sx11:  ex1_ack_s(11) <=    ( f_byp_alg_ex1_a_expo(11) xor  f_byp_alg_ex1_c_expo(11) ); 
-sx12:  ex1_ack_s(12) <= not( f_byp_alg_ex1_a_expo(12) xor  f_byp_alg_ex1_c_expo(12) ); 
-sx13:  ex1_ack_s(13) <=    ( f_byp_alg_ex1_a_expo(13) xor  f_byp_alg_ex1_c_expo(13) ); 
+sx01:  ex1_ack_s( 1) <= not( f_byp_alg_ex1_a_expo( 1) xor  f_byp_alg_ex1_c_expo( 1) ); --K[ 1]==1
+sx02:  ex1_ack_s( 2) <= not( f_byp_alg_ex1_a_expo( 2) xor  f_byp_alg_ex1_c_expo( 2) ); --K[ 2]==1
+sx03:  ex1_ack_s( 3) <= not( f_byp_alg_ex1_a_expo( 3) xor  f_byp_alg_ex1_c_expo( 3) ); --K[ 3]==1
+sx04:  ex1_ack_s( 4) <=    ( f_byp_alg_ex1_a_expo( 4) xor  f_byp_alg_ex1_c_expo( 4) ); --K[ 4]==0
+sx05:  ex1_ack_s( 5) <=    ( f_byp_alg_ex1_a_expo( 5) xor  f_byp_alg_ex1_c_expo( 5) ); --K[ 5]==0
+sx06:  ex1_ack_s( 6) <=    ( f_byp_alg_ex1_a_expo( 6) xor  f_byp_alg_ex1_c_expo( 6) ); --K[ 6]==0
+sx07:  ex1_ack_s( 7) <=    ( f_byp_alg_ex1_a_expo( 7) xor  f_byp_alg_ex1_c_expo( 7) ); --K[ 7]==0
+sx08:  ex1_ack_s( 8) <= not( f_byp_alg_ex1_a_expo( 8) xor  f_byp_alg_ex1_c_expo( 8) ); --K[ 8]==1
+sx09:  ex1_ack_s( 9) <= not( f_byp_alg_ex1_a_expo( 9) xor  f_byp_alg_ex1_c_expo( 9) ); --K[ 9]==1  1
+sx10:  ex1_ack_s(10) <= not( f_byp_alg_ex1_a_expo(10) xor  f_byp_alg_ex1_c_expo(10) ); --K[10]==1  1
+sx11:  ex1_ack_s(11) <=    ( f_byp_alg_ex1_a_expo(11) xor  f_byp_alg_ex1_c_expo(11) ); --K[11]==0
+sx12:  ex1_ack_s(12) <= not( f_byp_alg_ex1_a_expo(12) xor  f_byp_alg_ex1_c_expo(12) ); --K[12]==1
+sx13:  ex1_ack_s(13) <=    ( f_byp_alg_ex1_a_expo(13) xor  f_byp_alg_ex1_c_expo(13) ); --K[13]==0
 
 
 
- cx01: ex1_ack_c( 1) <= not( ex1_a_expo_b( 2) and  ex1_c_expo_b( 2) ); 
- cx02: ex1_ack_c( 2) <= not( ex1_a_expo_b( 3) and  ex1_c_expo_b( 3) ); 
- cx03: ex1_ack_c( 3) <= not( ex1_a_expo_b( 4) or   ex1_c_expo_b( 4) ); 
- cx04: ex1_ack_c( 4) <= not( ex1_a_expo_b( 5) or   ex1_c_expo_b( 5) ); 
- cx05: ex1_ack_c( 5) <= not( ex1_a_expo_b( 6) or   ex1_c_expo_b( 6) ); 
- cx06: ex1_ack_c( 6) <= not( ex1_a_expo_b( 7) or   ex1_c_expo_b( 7) ); 
- cx07: ex1_ack_c( 7) <= not( ex1_a_expo_b( 8) and  ex1_c_expo_b( 8) ); 
- cx08: ex1_ack_c( 8) <= not( ex1_a_expo_b( 9) and  ex1_c_expo_b( 9) ); 
- cx09: ex1_ack_c( 9) <= not( ex1_a_expo_b(10) and  ex1_c_expo_b(10) ); 
- cx10: ex1_ack_c(10) <= not( ex1_a_expo_b(11) or   ex1_c_expo_b(11) ); 
- cx11: ex1_ack_c(11) <= not( ex1_a_expo_b(12) and  ex1_c_expo_b(12) ); 
- cx12: ex1_ack_c(12) <= not( ex1_a_expo_b(13) or   ex1_c_expo_b(13) ); 
+-- cx00: ex1_ack_c( 0) <= not( ex1_a_expo_b( 1) and  ex1_c_expo_b( 1) ); --K[ 1]==1 +or
+ cx01: ex1_ack_c( 1) <= not( ex1_a_expo_b( 2) and  ex1_c_expo_b( 2) ); --K[ 2]==1 +or
+ cx02: ex1_ack_c( 2) <= not( ex1_a_expo_b( 3) and  ex1_c_expo_b( 3) ); --K[ 3]==1 +or
+ cx03: ex1_ack_c( 3) <= not( ex1_a_expo_b( 4) or   ex1_c_expo_b( 4) ); --K[ 4]==0 +and
+ cx04: ex1_ack_c( 4) <= not( ex1_a_expo_b( 5) or   ex1_c_expo_b( 5) ); --K[ 5]==0 +and
+ cx05: ex1_ack_c( 5) <= not( ex1_a_expo_b( 6) or   ex1_c_expo_b( 6) ); --K[ 6]==0 +and
+ cx06: ex1_ack_c( 6) <= not( ex1_a_expo_b( 7) or   ex1_c_expo_b( 7) ); --K[ 7]==0 +and
+ cx07: ex1_ack_c( 7) <= not( ex1_a_expo_b( 8) and  ex1_c_expo_b( 8) ); --K[ 8]==1 +or
+ cx08: ex1_ack_c( 8) <= not( ex1_a_expo_b( 9) and  ex1_c_expo_b( 9) ); --K[ 9]==1 +or
+ cx09: ex1_ack_c( 9) <= not( ex1_a_expo_b(10) and  ex1_c_expo_b(10) ); --K[10]==1 +or
+ cx10: ex1_ack_c(10) <= not( ex1_a_expo_b(11) or   ex1_c_expo_b(11) ); --K[11]==0 +and
+ cx11: ex1_ack_c(11) <= not( ex1_a_expo_b(12) and  ex1_c_expo_b(12) ); --K[12]==1 +or
+ cx12: ex1_ack_c(12) <= not( ex1_a_expo_b(13) or   ex1_c_expo_b(13) ); --K[13]==0
 
 
  
   
 
 
-sha32_01: entity clib.c_prism_csa32  port map( 
+sha32_01: entity clib.c_prism_csa32  port map( -- fuq_csa32s_h2 MLT32_X1_A12TH
         vd               => vdd,
         gd               => gnd,
-        a                =>         ex1_b_expo_b(1)   ,
-        b                =>            ex1_ack_s(1)   ,
-        c                =>            ex1_ack_c(1)   ,
-        sum              =>           ex1_alg_sx(1)   ,
-        car              =>           ex1_alg_cx(0)  );
+        a                =>         ex1_b_expo_b(1)   ,--i--
+        b                =>            ex1_ack_s(1)   ,--i--
+        c                =>            ex1_ack_c(1)   ,--i--
+        sum              =>           ex1_alg_sx(1)   ,--o--
+        car              =>           ex1_alg_cx(0)  );--o--
 sha32_02: entity clib.c_prism_csa32  port map( 
         vd               => vdd,
         gd               => gnd,
-        a                =>         ex1_b_expo_b(2)   ,
-        b                =>            ex1_ack_s(2)   ,
-        c                =>            ex1_ack_c(2)   ,
-        sum              =>           ex1_alg_sx(2)   ,
-        car              =>           ex1_alg_cx(1)  );
+        a                =>         ex1_b_expo_b(2)   ,--i--
+        b                =>            ex1_ack_s(2)   ,--i--
+        c                =>            ex1_ack_c(2)   ,--i--
+        sum              =>           ex1_alg_sx(2)   ,--o--
+        car              =>           ex1_alg_cx(1)  );--o--
 sha32_03: entity clib.c_prism_csa32  port map(
         vd               => vdd,
         gd               => gnd,
-        a                =>         ex1_b_expo_b(3)   ,
-        b                =>            ex1_ack_s(3)   ,
-        c                =>            ex1_ack_c(3)   ,
-        sum              =>           ex1_alg_sx(3)   ,
-        car              =>           ex1_alg_cx(2)  );
+        a                =>         ex1_b_expo_b(3)   ,--i--
+        b                =>            ex1_ack_s(3)   ,--i--
+        c                =>            ex1_ack_c(3)   ,--i--
+        sum              =>           ex1_alg_sx(3)   ,--o--
+        car              =>           ex1_alg_cx(2)  );--o--
 sha32_04: entity clib.c_prism_csa32  port map( 
         vd               => vdd,
         gd               => gnd,
-        a                =>         ex1_b_expo_b(4)   ,
-        b                =>            ex1_ack_s(4)   ,
-        c                =>            ex1_ack_c(4)   ,
-        sum              =>           ex1_alg_sx(4)   ,
-        car              =>           ex1_alg_cx(3)  );
+        a                =>         ex1_b_expo_b(4)   ,--i--
+        b                =>            ex1_ack_s(4)   ,--i--
+        c                =>            ex1_ack_c(4)   ,--i--
+        sum              =>           ex1_alg_sx(4)   ,--o--
+        car              =>           ex1_alg_cx(3)  );--o--
 sha32_05: entity clib.c_prism_csa32  port map( 
         vd               => vdd,
         gd               => gnd,
-        a                =>         ex1_b_expo_b(5)   ,
-        b                =>            ex1_ack_s(5)   ,
-        c                =>            ex1_ack_c(5)   ,
-        sum              =>           ex1_alg_sx(5)   ,
-        car              =>           ex1_alg_cx(4)  );
+        a                =>         ex1_b_expo_b(5)   ,--i--
+        b                =>            ex1_ack_s(5)   ,--i--
+        c                =>            ex1_ack_c(5)   ,--i--
+        sum              =>           ex1_alg_sx(5)   ,--o--
+        car              =>           ex1_alg_cx(4)  );--o--
 sha32_06: entity clib.c_prism_csa32  port map( 
         vd               => vdd,
         gd               => gnd,
-        a                =>         ex1_b_expo_b(6)   ,
-        b                =>            ex1_ack_s(6)   ,
-        c                =>            ex1_ack_c(6)   ,
-        sum              =>           ex1_alg_sx(6)   ,
-        car              =>           ex1_alg_cx(5)  );
+        a                =>         ex1_b_expo_b(6)   ,--i--
+        b                =>            ex1_ack_s(6)   ,--i--
+        c                =>            ex1_ack_c(6)   ,--i--
+        sum              =>           ex1_alg_sx(6)   ,--o--
+        car              =>           ex1_alg_cx(5)  );--o--
 sha32_07: entity clib.c_prism_csa32  port map( 
         vd               => vdd,
         gd               => gnd,
-        a                =>         ex1_b_expo_b(7)   ,
-        b                =>            ex1_ack_s(7)   ,
-        c                =>            ex1_ack_c(7)   ,
-        sum              =>           ex1_alg_sx(7)   ,
-        car              =>           ex1_alg_cx(6)  );
+        a                =>         ex1_b_expo_b(7)   ,--i--
+        b                =>            ex1_ack_s(7)   ,--i--
+        c                =>            ex1_ack_c(7)   ,--i--
+        sum              =>           ex1_alg_sx(7)   ,--o--
+        car              =>           ex1_alg_cx(6)  );--o--
 sha32_08: entity clib.c_prism_csa32  port map( 
         vd               => vdd,
         gd               => gnd,
-        a                =>         ex1_b_expo_b(8)   ,
-        b                =>            ex1_ack_s(8)   ,
-        c                =>            ex1_ack_c(8)   ,
-        sum              =>           ex1_alg_sx(8)   ,
-        car              =>           ex1_alg_cx(7)  );
+        a                =>         ex1_b_expo_b(8)   ,--i--
+        b                =>            ex1_ack_s(8)   ,--i--
+        c                =>            ex1_ack_c(8)   ,--i--
+        sum              =>           ex1_alg_sx(8)   ,--o--
+        car              =>           ex1_alg_cx(7)  );--o--
 sha32_09: entity clib.c_prism_csa32  port map( 
         vd               => vdd,
         gd               => gnd,
-        a                =>         ex1_b_expo_b(9)   ,
-        b                =>            ex1_ack_s(9)   ,
-        c                =>            ex1_ack_c(9)   ,
-        sum              =>           ex1_alg_sx(9)   ,
-        car              =>           ex1_alg_cx(8)  );
+        a                =>         ex1_b_expo_b(9)   ,--i--
+        b                =>            ex1_ack_s(9)   ,--i--
+        c                =>            ex1_ack_c(9)   ,--i--
+        sum              =>           ex1_alg_sx(9)   ,--o--
+        car              =>           ex1_alg_cx(8)  );--o--
 sha32_10: entity clib.c_prism_csa32  port map( 
         vd               => vdd,
         gd               => gnd,
-        a                =>         ex1_b_expo_b(10)  ,
-        b                =>            ex1_ack_s(10)  ,
-        c                =>            ex1_ack_c(10)  ,
-        sum              =>           ex1_alg_sx(10)  ,
-        car              =>           ex1_alg_cx(9)  );
+        a                =>         ex1_b_expo_b(10)  ,--i--
+        b                =>            ex1_ack_s(10)  ,--i--
+        c                =>            ex1_ack_c(10)  ,--i--
+        sum              =>           ex1_alg_sx(10)  ,--o--
+        car              =>           ex1_alg_cx(9)  );--o--
 sha32_11: entity clib.c_prism_csa32  port map( 
         vd               => vdd,
         gd               => gnd,
-        a                =>         ex1_b_expo_b(11)  ,
-        b                =>            ex1_ack_s(11)  ,
-        c                =>            ex1_ack_c(11)  ,
-        sum              =>           ex1_alg_sx(11)  ,
-        car              =>           ex1_alg_cx(10) );
+        a                =>         ex1_b_expo_b(11)  ,--i--
+        b                =>            ex1_ack_s(11)  ,--i--
+        c                =>            ex1_ack_c(11)  ,--i--
+        sum              =>           ex1_alg_sx(11)  ,--o--
+        car              =>           ex1_alg_cx(10) );--o--
 sha32_12: entity clib.c_prism_csa32  port map( 
         vd               => vdd,
         gd               => gnd,
-        a                =>         ex1_b_expo_b(12)  ,
-        b                =>            ex1_ack_s(12)  ,
-        c                =>            ex1_ack_c(12)  ,
-        sum              =>           ex1_alg_sx(12)  ,
-        car              =>           ex1_alg_cx(11) );
+        a                =>         ex1_b_expo_b(12)  ,--i--
+        b                =>            ex1_ack_s(12)  ,--i--
+        c                =>            ex1_ack_c(12)  ,--i--
+        sum              =>           ex1_alg_sx(12)  ,--o--
+        car              =>           ex1_alg_cx(11) );--o--
 sha32_13: entity clib.c_prism_csa32  port map( 
         vd               => vdd,
         gd               => gnd,
-        a                =>         ex1_b_expo_b(13)  ,
-        b                =>            ex1_ack_s(13)  ,
-        c                =>            tidn           ,
-        sum              =>           ex1_alg_sx(13)  ,
-        car              =>           ex1_alg_cx(12) );
+        a                =>         ex1_b_expo_b(13)  ,--i--
+        b                =>            ex1_ack_s(13)  ,--i--
+        c                =>            tidn           ,--i--
+        sum              =>           ex1_alg_sx(13)  ,--o--
+        car              =>           ex1_alg_cx(12) );--o--
 
 
+       -- now finish the add (for sha==0 means shift 0)
 
 p1_01: ex1_alg_add_p( 1)   <= ex1_alg_sx( 1) xor ex1_alg_cx( 1);
 p1_02: ex1_alg_add_p( 2)   <= ex1_alg_sx( 2) xor ex1_alg_cx( 2);
@@ -451,37 +443,46 @@ t1_09:  ex1_alg_add_t_b( 9) <= not( ex1_alg_sx( 9) or  ex1_alg_cx( 9) );
 t1_10:  ex1_alg_add_t_b(10) <= not( ex1_alg_sx(10) or  ex1_alg_cx(10) );
 t1_11:  ex1_alg_add_t_b(11) <= not( ex1_alg_sx(11) or  ex1_alg_cx(11) );
 
+       -----------------------------------------------------------------------
+       -- 12:13 are a decode group  (12,13) are known before adder starts )
+       -----------------------------------------------------------------------
 
-g2_12:   ex1_g02_12         <= not ex1_alg_add_g_b(12);  
-g2_12b:  ex1_g02_12_b       <= not ex1_g02_12 ;          
+g2_12:   ex1_g02_12         <= not ex1_alg_add_g_b(12);  -- main carry chain
+g2_12b:  ex1_g02_12_b       <= not ex1_g02_12 ;          -- main carry chain
 
-res_13b: ex1_bsha_13_b      <= not ex1_alg_sx(13);       
-res_13:  ex1_bsha_13        <= not ex1_bsha_13_b ;       
+res_13b: ex1_bsha_13_b      <= not ex1_alg_sx(13);       -- direct from compressor
+res_13:  ex1_bsha_13        <= not ex1_bsha_13_b ;       -- to decoder  0/1/2/3
 res_12b: ex1_bsha_12_b      <= not ex1_alg_add_p(12);
-res_12:  ex1_bsha_12        <= not ex1_bsha_12_b ;       
+res_12:  ex1_bsha_12        <= not ex1_bsha_12_b ;       -- to decoder 0/1/2/3
 
 ci11nb:  ex1_lv2_ci11n_en_b <= not( ex1_sel_special_b and ex1_g02_12_b  );
 ci11pb:  ex1_lv2_ci11p_en_b <= not( ex1_sel_special_b and ex1_g02_12    );
-ci11n:   ex1_lv2_ci11n_en   <= not( ex1_lv2_ci11n_en_b  ); 
-ci11p:   ex1_lv2_ci11p_en   <= not( ex1_lv2_ci11p_en_b  ); 
+ci11n:   ex1_lv2_ci11n_en   <= not( ex1_lv2_ci11n_en_b  ); -- to decoder 0/4/8/12
+ci11p:   ex1_lv2_ci11p_en   <= not( ex1_lv2_ci11p_en_b  ); -- to decoder 0/4/8/12
 
+       -----------------------------------------------------------------------
+       -- 10:11 are a decode group, do not compute adder result (send signal direct to decode)
+       -----------------------------------------------------------------------
 
-g2_10: ex1_g02_10         <= not( ex1_alg_add_g_b(10) and (ex1_alg_add_t_b(10) or  ex1_alg_add_g_b(11)) );
-t2_10: ex1_t02_10         <= not(                          ex1_alg_add_t_b(10) or  ex1_alg_add_t_b(11)  );
-g4_10: ex1_g04_10_b       <= not( ex1_g02_10          or  (ex1_t02_10          and ex1_g02_12         ) );
+g2_10: ex1_g02_10         <= not( ex1_alg_add_g_b(10) and (ex1_alg_add_t_b(10) or  ex1_alg_add_g_b(11)) );--main carry chain
+t2_10: ex1_t02_10         <= not(                          ex1_alg_add_t_b(10) or  ex1_alg_add_t_b(11)  );--main carry chain
+g4_10: ex1_g04_10_b       <= not( ex1_g02_10          or  (ex1_t02_10          and ex1_g02_12         ) );--main carry chain
 
 g11x:  ex1_lv2_g11_x      <= not( ex1_alg_add_g_b(11) ); 
 g11b:  ex1_lv2_g11_b      <= not( ex1_lv2_g11_x       ); 
-g11:   ex1_lv2_g11        <= not( ex1_lv2_g11_b       ); 
+g11:   ex1_lv2_g11        <= not( ex1_lv2_g11_b       ); -- to decoder 0/4/8/12
 k11x:  ex1_lv2_k11_b      <= not( ex1_alg_add_t_b(11) );
-k11:   ex1_lv2_k11        <= not( ex1_lv2_k11_b       ); 
+k11:   ex1_lv2_k11        <= not( ex1_lv2_k11_b       ); -- to decoder 0/4/8/12
 p11b:  ex1_lv2_p11_b      <= not( ex1_alg_add_p(11)   ); 
-p11:   ex1_lv2_p11        <= not( ex1_lv2_p11_b       ); 
-p10b:  ex1_lv2_p10_b      <= not( ex1_alg_add_p(10)   ); 
-p10:   ex1_lv2_p10        <= not( ex1_lv2_p10_b       ); 
+p11:   ex1_lv2_p11        <= not( ex1_lv2_p11_b       ); -- to decoder 0/4/8/12
+p10b:  ex1_lv2_p10_b      <= not( ex1_alg_add_p(10)   ); -- to decoder 0/4/8/12
+p10:   ex1_lv2_p10        <= not( ex1_lv2_p10_b       ); -- to decoder 0/4/8/12
       
+       -----------------------------------------------------------------------
+       -- 6:9 are a decode group, not used until next cycle: (get add result then decode)
+       ------------------------------------------------------------------------
 
-g4x_10: ex1_g04_10  <= not ex1_g04_10_b ; 
+g4x_10: ex1_g04_10  <= not ex1_g04_10_b ; -- use this buffered of version to finish the local carry chain
 
 g2_06: ex1_g02_6   <= not( ex1_alg_add_g_b(6) and (ex1_alg_add_t_b(6) or  ex1_alg_add_g_b(7)) );
 g2_07: ex1_g02_7   <= not( ex1_alg_add_g_b(7) and (ex1_alg_add_t_b(7) or  ex1_alg_add_g_b(8)) );
@@ -501,7 +502,7 @@ t4_07b: ex1_t04_7_b <= not(                         ex1_t02_7          and ex1_t
 t4_08b: ex1_t04_8_b <= not(                                                ex1_t02_8           );
 t4_09b: ex1_t04_9_b <= not(                                                ex1_t02_9           );
 
-g8_06:  ex1_g08_6   <= not( ex1_g04_6_b        and (ex1_t04_6_b        or  ex1_g04_10_b      ) );
+g8_06:  ex1_g08_6   <= not( ex1_g04_6_b        and (ex1_t04_6_b        or  ex1_g04_10_b      ) );--main carry chain
 g4_07:  ex1_g04_7   <= not( ex1_g04_7_b );
 g4_08:  ex1_g04_8   <= not( ex1_g04_8_b );
 g4_09:  ex1_g04_9   <= not( ex1_g04_9_b );
@@ -514,10 +515,10 @@ c08:   ex1_alg_add_c_b(8)  <= not( ex1_g04_8 or (ex1_t04_8 and ex1_g04_10) );
 c09:   ex1_alg_add_c_b(9)  <= not( ex1_g04_9 or (ex1_t04_9 and ex1_g04_10) );
 c10:   ex1_alg_add_c_b(10) <= not(                             ex1_g04_10 ); 
 
-res_6: ex1_bsha_6  <= not( ex1_alg_add_p(6) xor ex1_alg_add_c_b(7)  );
-res_7: ex1_bsha_7  <= not( ex1_alg_add_p(7) xor ex1_alg_add_c_b(8)  );
-res_8: ex1_bsha_8  <= not( ex1_alg_add_p(8) xor ex1_alg_add_c_b(9)  );
-res_9: ex1_bsha_9  <= not( ex1_alg_add_p(9) xor ex1_alg_add_c_b(10) );
+res_6: ex1_bsha_6  <= not( ex1_alg_add_p(6) xor ex1_alg_add_c_b(7)  );--to multiple of 16 decoder
+res_7: ex1_bsha_7  <= not( ex1_alg_add_p(7) xor ex1_alg_add_c_b(8)  );--to multiple of 16 decoder
+res_8: ex1_bsha_8  <= not( ex1_alg_add_p(8) xor ex1_alg_add_c_b(9)  );--to multiple of 16 decoder
+res_9: ex1_bsha_9  <= not( ex1_alg_add_p(9) xor ex1_alg_add_c_b(10) );--to multiple of 16 decoder
 
 
 res_6i:  ex1_bsha_6_i  <= not ex1_bsha_6 ;
@@ -530,31 +531,40 @@ res_7o:  ex1_bsha_7_o  <= not ex1_bsha_7_i ;
 res_8o:  ex1_bsha_8_o  <= not ex1_bsha_8_i ;
 res_9o:  ex1_bsha_9_o  <= not ex1_bsha_9_i ;
     
+       -------------------------------------------------------------------------
+       -- Just need to know if  2/3/4/5 != 0000 for unf, produce that signal directly
+       -------------------------------------------------------------------------
 
-g2_02: ex1_g02_2    <= not( ex1_alg_add_g_b(2) and (ex1_alg_add_t_b(2) or  ex1_alg_add_g_b(3)) ); 
-g2_04: ex1_g02_4    <= not( ex1_alg_add_g_b(4) and (ex1_alg_add_t_b(4) or  ex1_alg_add_g_b(5)) ); 
+g2_02: ex1_g02_2    <= not( ex1_alg_add_g_b(2) and (ex1_alg_add_t_b(2) or  ex1_alg_add_g_b(3)) ); --for carry select
+g2_04: ex1_g02_4    <= not( ex1_alg_add_g_b(4) and (ex1_alg_add_t_b(4) or  ex1_alg_add_g_b(5)) ); --for carry select
 
-t2_02: ex1_t02_2    <= not(                        (ex1_alg_add_t_b(2) or  ex1_alg_add_t_b(3)) ); 
-t2_04: ex1_t02_4    <= not( ex1_alg_add_g_b(4) and (ex1_alg_add_t_b(4) or  ex1_alg_add_t_b(5)) ); 
+t2_02: ex1_t02_2    <= not(                        (ex1_alg_add_t_b(2) or  ex1_alg_add_t_b(3)) ); --for carry select
+t2_04: ex1_t02_4    <= not( ex1_alg_add_g_b(4) and (ex1_alg_add_t_b(4) or  ex1_alg_add_t_b(5)) ); --for carry select
 
-g4_02: ex1_g04_2_b  <= not( ex1_g02_2          or  (ex1_t02_2          and ex1_g02_4         ) ); 
-t4_02: ex1_t04_2_b  <= not( ex1_g02_2          or  (ex1_t02_2          and ex1_t02_4         ) ); 
+g4_02: ex1_g04_2_b  <= not( ex1_g02_2          or  (ex1_t02_2          and ex1_g02_4         ) ); --for carry select
+t4_02: ex1_t04_2_b  <= not( ex1_g02_2          or  (ex1_t02_2          and ex1_t02_4         ) ); --for carry select
 
 
-ones23:    ex1_ones_2t3_b <= not( ex1_alg_add_p(2) and ex1_alg_add_p(3) );
-ones45:    ex1_ones_4t5_b <= not( ex1_alg_add_p(4) and ex1_alg_add_p(5) );
-ones25:    ex1_ones_2t5   <= not( ex1_ones_2t3_b   or  ex1_ones_4t5_b   );
+ones23:    ex1_ones_2t3_b <= not( ex1_alg_add_p(2) and ex1_alg_add_p(3) );-- for unf calculation
+ones45:    ex1_ones_4t5_b <= not( ex1_alg_add_p(4) and ex1_alg_add_p(5) );-- for unf calculation
+ones25:    ex1_ones_2t5   <= not( ex1_ones_2t3_b   or  ex1_ones_4t5_b   );-- for unf calculation
 ones25_b:  ex1_ones_2t5_b <= not( ex1_ones_2t5 );
 
-z2b:       ex1_zero_2_b   <= not( ex1_alg_add_p(2) xor ex1_alg_add_t_b(3)  );
-z3b:       ex1_zero_3_b   <= not( ex1_alg_add_p(3) xor ex1_alg_add_t_b(4)  );
-z4b:       ex1_zero_4_b   <= not( ex1_alg_add_p(4) xor ex1_alg_add_t_b(5)  );
-z5:        ex1_zero_5     <= not( ex1_alg_add_p(5)                         );
-z5b:       ex1_zero_5_b   <= not( ex1_zero_5                               );
-z23:       ex1_zero_2t3   <= not( ex1_zero_2_b     or  ex1_zero_3_b        );
-z45:       ex1_zero_4t5   <= not( ex1_zero_4_b     or  ex1_zero_5_b        );
-z25b:      ex1_zero_2t5_b <= not( ex1_zero_2t3     and ex1_zero_4t5        );
+z2b:       ex1_zero_2_b   <= not( ex1_alg_add_p(2) xor ex1_alg_add_t_b(3)  );-- for unf calc
+z3b:       ex1_zero_3_b   <= not( ex1_alg_add_p(3) xor ex1_alg_add_t_b(4)  );-- for unf calc
+z4b:       ex1_zero_4_b   <= not( ex1_alg_add_p(4) xor ex1_alg_add_t_b(5)  );-- for unf calc
+z5:        ex1_zero_5     <= not( ex1_alg_add_p(5)                         );-- for unf calc
+z5b:       ex1_zero_5_b   <= not( ex1_zero_5                               );-- for unf calc
+z23:       ex1_zero_2t3   <= not( ex1_zero_2_b     or  ex1_zero_3_b        );-- for unf calc
+z45:       ex1_zero_4t5   <= not( ex1_zero_4_b     or  ex1_zero_5_b        );-- for unf calc
+z25b:      ex1_zero_2t5_b <= not( ex1_zero_2t3     and ex1_zero_4t5        );-- for unf calc
 
+       ----------------------------------------------------------------------------
+       -- [1] is really the sign bit .. needed to indicate ovf/underflow
+       -------------------------------------------------
+       -- finish shift underflow
+       -- if sha > 162 all the bits should become sticky and the aligner output should be zero
+       -- from 163:255 the shifter does this, so just need to detect the upper bits
 
 pco6:   pos_if_pco6   <=     ( ex1_alg_add_p(1) xor ex1_t04_2_b );
 nco6:   pos_if_nco6   <=     ( ex1_alg_add_p(1) xor ex1_g04_2_b );
@@ -565,20 +575,47 @@ unifnc: unf_if_nco6_b <= not( pos_if_nco6 and  ex1_zero_2t5_b );
 unifpc: unf_if_pco6_b <= not( pos_if_pco6 and  ex1_ones_2t5_b );
 
 g8_06b: ex1_g08_6_b     <= not ex1_g08_6 ;
-shap:   ex1_bsha_pos    <= not( (pos_if_pco6_b and ex1_g08_6) or (pos_if_nco6_b and ex1_g08_6_b) );
-shovb:   ex1_sh_ovf_b   <= not( (pos_if_pco6_b and ex1_g08_6) or (pos_if_nco6_b and ex1_g08_6_b) );
+shap:   ex1_bsha_pos    <= not( (pos_if_pco6_b and ex1_g08_6) or (pos_if_nco6_b and ex1_g08_6_b) );-- same as neg
+shovb:   ex1_sh_ovf_b   <= not( (pos_if_pco6_b and ex1_g08_6) or (pos_if_nco6_b and ex1_g08_6_b) );-- same as neg
 shun:   ex1_sh_unf_x    <= not( (unf_if_pco6_b and ex1_g08_6) or (unf_if_nco6_b and ex1_g08_6_b) ); 
 shan:   ex1_bsha_neg    <= not( ex1_bsha_pos );
 shan2:  ex1_bsha_neg_o  <= not( ex1_bsha_pos );
 shov:   ex1_sh_ovf      <= not( ex1_sh_ovf_b );
 
 
+       --==-------------------------------------------------------------------------------
+       --== decode for first level shifter (0/1/2/3)
+       --==-------------------------------------------------------------------------------
 
 d1_0:  ex1_lvl1_shdcd000_b <= not(  ex1_bsha_12_b and  ex1_bsha_13_b );
 d1_1:  ex1_lvl1_shdcd001_b <= not(  ex1_bsha_12_b and  ex1_bsha_13   );
 d1_2:  ex1_lvl1_shdcd002_b <= not(  ex1_bsha_12   and  ex1_bsha_13_b );
 d1_3:  ex1_lvl1_shdcd003_b <= not(  ex1_bsha_12   and  ex1_bsha_13   );
 
+       --==-------------------------------------------------------------------------------
+       --== decode for second level shifter (0/4/8/12)
+       --==-------------------------------------------------------------------------------
+       -- ex1_lvl2_shdcd000 <= not ex1_bsha(10) and not ex1_bsha(11) ;
+       -- ex1_lvl2_shdcd004 <= not ex1_bsha(10) and     ex1_bsha(11) ;
+       -- ex1_lvl2_shdcd008 <=     ex1_bsha(10) and not ex1_bsha(11) ;
+       -- ex1_lvl2_shdcd012 <=     ex1_bsha(10) and     ex1_bsha(11) ;
+       ----------------------------------------------------------------------
+       --   p10 (11) ci11  DCD           p10   (11) ci11 DCD
+       --   !p    k    0   00             !p    k    0   00
+       --   !P    p    0   01              p    g    0   00
+       --   !p    g    0   10              P    p    1   00
+       --
+       --    p    k    0   10             !P    p    0   01
+       --    P    p    0   11             !p    k    1   01
+       --    p    g    0   00              p    g    1   01
+       --
+       --   !p    k    1   01             !p    g    0   10
+       --   !P    p    1   10              p    k    0   10
+       --   !p    g    1   11             !P    p    1   10
+       --
+       --    p    k    1   11              P    p    0   11
+       --    P    p    1   00             !p    g    1   11
+       --    p    g    1   01              p    k    1   11
 
 d2_0pg0: ex1_lv2_0pg0_b <= not( ex1_lv2_p10_b and  ex1_lv2_g11 and  ex1_lv2_ci11n_en );
 d2_0pg1: ex1_lv2_0pg1_b <= not( ex1_lv2_p10_b and  ex1_lv2_g11 and  ex1_lv2_ci11p_en );
@@ -610,6 +647,9 @@ ii2_3: ex1_lvl2_shdcd012 <= not ex1_lvl2_shdcd012_b;
 
        
 
+       --==--------------------------------------------
+       --== decode to control ex2 shifting
+       --==--------------------------------------------
 
 i3_6:  ex1_bsha_6_b <= not ex1_bsha_6 ;
 i3_7:  ex1_bsha_7_b <= not ex1_bsha_7 ;
@@ -626,26 +666,22 @@ d89_1: ex1_89_dcd01_b <= not( ex1_bsha_8_b and ex1_bsha_9   and ex1_sel_special_
 d89_2: ex1_89_dcd10_b <= not( ex1_bsha_8   and ex1_bsha_9_b and ex1_sel_special_b );
 d89_3: ex1_89_dcd11_b <= not( ex1_bsha_8   and ex1_bsha_9   and ex1_sel_special_b );
 
-d3_00: ex1_lvl3_shdcd000 <= not(  ex1_67_dcd00_b or ex1_89_dcd00_b );
-d3_01: ex1_lvl3_shdcd016 <= not(  ex1_67_dcd00_b or ex1_89_dcd01_b );
-d3_02: ex1_lvl3_shdcd032 <= not(  ex1_67_dcd00_b or ex1_89_dcd10_b );
-d3_03: ex1_lvl3_shdcd048 <= not(  ex1_67_dcd00_b or ex1_89_dcd11_b );
-d3_04: ex1_lvl3_shdcd064 <= not(  ex1_67_dcd01_b or ex1_89_dcd00_b );
-d3_05: ex1_lvl3_shdcd080 <= not(  ex1_67_dcd01_b or ex1_89_dcd01_b );
-d3_06: ex1_lvl3_shdcd096 <= not(  ex1_67_dcd01_b or ex1_89_dcd10_b );
-d3_07: ex1_lvl3_shdcd112 <= not(  ex1_67_dcd01_b or ex1_89_dcd11_b );
-d3_08: ex1_lvl3_shdcd128 <= not(  ex1_67_dcd10_b or ex1_89_dcd00_b );
-d3_09: ex1_lvl3_shdcd144 <= not(  ex1_67_dcd10_b or ex1_89_dcd01_b );
-d3_10: ex1_lvl3_shdcd160 <= not(  ex1_67_dcd10_b or ex1_89_dcd10_b );
-d3_11: ex1_lvl3_shdcd176 <= not(  ex1_67_dcd10_b or ex1_89_dcd11_b );
-d3_12: ex1_lvl3_shdcd192 <= not(  ex1_67_dcd11_b or ex1_89_dcd00_b );
-d3_13: ex1_lvl3_shdcd208 <= not(  ex1_67_dcd11_b or ex1_89_dcd01_b );
-d3_14: ex1_lvl3_shdcd224 <= not(  ex1_67_dcd11_b or ex1_89_dcd10_b );
-d3_15: ex1_lvl3_shdcd240 <= not(  ex1_67_dcd11_b or ex1_89_dcd11_b );
+d3_00: ex1_lvl3_shdcd000 <= not(  ex1_67_dcd00_b or ex1_89_dcd00_b );-- 0000  +000
+d3_01: ex1_lvl3_shdcd016 <= not(  ex1_67_dcd00_b or ex1_89_dcd01_b );-- 0001  +016
+d3_02: ex1_lvl3_shdcd032 <= not(  ex1_67_dcd00_b or ex1_89_dcd10_b );-- 0010  +032
+d3_03: ex1_lvl3_shdcd048 <= not(  ex1_67_dcd00_b or ex1_89_dcd11_b );-- 0011  +048
+d3_04: ex1_lvl3_shdcd064 <= not(  ex1_67_dcd01_b or ex1_89_dcd00_b );-- 0100  +064
+d3_05: ex1_lvl3_shdcd080 <= not(  ex1_67_dcd01_b or ex1_89_dcd01_b );-- 0101  +080
+d3_06: ex1_lvl3_shdcd096 <= not(  ex1_67_dcd01_b or ex1_89_dcd10_b );-- 0110  +096
+d3_07: ex1_lvl3_shdcd112 <= not(  ex1_67_dcd01_b or ex1_89_dcd11_b );-- 0111  +112
+d3_08: ex1_lvl3_shdcd128 <= not(  ex1_67_dcd10_b or ex1_89_dcd00_b );-- 1000  +128
+d3_09: ex1_lvl3_shdcd144 <= not(  ex1_67_dcd10_b or ex1_89_dcd01_b );-- 1001  +144
+d3_10: ex1_lvl3_shdcd160 <= not(  ex1_67_dcd10_b or ex1_89_dcd10_b );-- 1010  +160
+d3_11: ex1_lvl3_shdcd176 <= not(  ex1_67_dcd10_b or ex1_89_dcd11_b );-- 1011
+d3_12: ex1_lvl3_shdcd192 <= not(  ex1_67_dcd11_b or ex1_89_dcd00_b );-- 1100  -064
+d3_13: ex1_lvl3_shdcd208 <= not(  ex1_67_dcd11_b or ex1_89_dcd01_b );-- 1101  -048
+d3_14: ex1_lvl3_shdcd224 <= not(  ex1_67_dcd11_b or ex1_89_dcd10_b );-- 1110  -032
+d3_15: ex1_lvl3_shdcd240 <= not(  ex1_67_dcd11_b or ex1_89_dcd11_b );-- 1111  -016
 
 
-end; 
-
-
-
-
+end; -- fuq_alg_add ARCHITECTURE

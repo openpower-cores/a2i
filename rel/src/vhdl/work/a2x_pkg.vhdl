@@ -21,7 +21,7 @@ constant c_st_queue_size : integer := 16;
 constant c_st_queue_bits : integer := 4;
 constant c_max_pointer : integer := 2;
 
-
+-- A2L2 ttypes
 constant IFETCH    : std_logic_vector(0 to 5) := "000000";
 constant IFETCHPRE : std_logic_vector(0 to 5) := "000001";
 constant LOAD      : std_logic_vector(0 to 5) := "001000";
@@ -125,10 +125,10 @@ end record;
 	
 type LOADQUEUE is array(0 to c_ld_queue_size-1) of A2L2REQUEST;
 type LOADDATAQUEUE is array(0 to 63) of std_logic_vector(0 to 31);   
-type LOADQUEUEDEP is array(0 to c_ld_queue_size-1) of std_logic_vector(0 to c_st_queue_bits);   
+type LOADQUEUEDEP is array(0 to c_ld_queue_size-1) of std_logic_vector(0 to c_st_queue_bits);   -- 0: valid
 type STOREQUEUE is array(0 to c_st_queue_size-1) of A2L2REQUEST;	
 type STOREDATAQUEUE is array(0 to c_st_queue_size-1) of A2L2STOREDATA;
-type STOREQUEUEDEP is array(0 to c_st_queue_size-1) of std_logic_vector(0 to c_ld_queue_bits);  
+type STOREQUEUEDEP is array(0 to c_st_queue_size-1) of std_logic_vector(0 to c_ld_queue_bits);  -- 0: valid
 type RESVARRAY is array(0 to 3) of A2L2RESV;
 
 function address_check(a: in A2L2REQUEST; b: in A2L2REQUEST) return std_logic;
@@ -145,6 +145,8 @@ end a2x_pkg;
 
 package body a2x_pkg is 
 
+----------------------------------------------------------------------
+-- Functions
 
 function or_reduce(slv: in std_logic_vector) return std_logic is
   variable res: std_logic := '0';
@@ -444,6 +446,9 @@ begin
   return res;
 end function;
 
+-- compare requests to determine if they overlap
+-- ra : start addr, byte-aligned
+-- len: number of bytes
 function address_check(a: in A2L2REQUEST; b: in A2L2REQUEST) return std_logic is
   variable res: std_logic := '0';
   variable a_start, a_end, b_start, b_end : unsigned(0 to a.ra'length-1);
@@ -479,4 +484,3 @@ begin
 end;                                                                    
                                                                                     
 end a2x_pkg;
-
