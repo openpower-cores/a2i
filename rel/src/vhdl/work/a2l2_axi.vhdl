@@ -196,10 +196,12 @@ signal ldq_count_d: std_logic_vector(0 to clog2(ld_queue_size));
 signal ldq_count_q: std_logic_vector(0 to clog2(ld_queue_size));
 signal load_dep_d: LOADQUEUEDEP;
 signal load_dep_q: LOADQUEUEDEP;
+signal rld_head : A2L2REQUEST;
 
 signal load_data_ready_d, load_data_ready_q : std_logic;
 signal load_data_queue_d  : LOADDATAQUEUE;
 signal load_data_queue_q  : LOADDATAQUEUE;
+
 signal rdataq_head_d      : std_logic_vector(0 to clog2(ld_queue_size*16)-1);
 signal rdataq_head_q      : std_logic_vector(0 to clog2(ld_queue_size*16)-1);
 signal rdataq_tail_d      : std_logic_vector(0 to clog2(ld_queue_size*16)-1);
@@ -285,7 +287,6 @@ signal req_in_load  : std_logic;
 signal load_len     : std_logic_vector(6 downto 0);
 signal ldq_oflow : std_logic;
 signal ldq_uflow : std_logic;
-signal ldq_write_sel: std_logic_vector(0 to 2);
 signal ldq_count_sel: std_logic_vector(0 to 1);
 signal axi_load_taken : std_logic;
 signal load_queue_clr : A2L2REQUEST;
@@ -295,14 +296,14 @@ signal ldq_valid_rst  : std_logic_vector(0 to ld_queue_size-1);
 signal ldq_sent_set   : std_logic_vector(0 to ld_queue_size-1);
 signal ldq_data_set   : std_logic_vector(0 to ld_queue_size-1);
 signal ldq_data_rst   : std_logic_vector(0 to ld_queue_size-1);
-signal rdataq_write_sel  : std_logic_vector(0 to 63);
+signal rdataq_write_sel : std_logic_vector(0 to ld_queue_size*16-1);
+signal rdataq_head_inc : std_logic_vector(0 to clog2(ld_queue_size*16)-1);   
 signal rld_single : std_logic;
 signal rld_ready : std_logic;
 signal rld_data_ready : std_logic;
 signal rld_tag : std_logic_vector(0 to 4);
 signal rld_len : std_logic_vector(0 to 2);
 signal rld_ra_lo : std_logic_vector(0 to 3);
-signal rld_endian : std_logic;
 signal rdataq_head_sel : std_logic_vector(0 to 1);
 signal rld_complete : std_logic;
 signal rld_crit_qw : std_logic_vector(0 to 1);
@@ -340,7 +341,6 @@ signal rld_data_qw3 : std_logic_vector(0 to 127);
 signal set_rld_spacing_cnt : std_logic;
 signal rst_rld_spacing_cnt : std_logic;
 signal rld_spacing_stall : std_logic;
-signal rdataq_head_inc : std_logic_vector(0 to clog2(ld_queue_size*16)-1);
 signal rld_seq_err : std_logic;
 signal rld_dseq_err : std_logic;
 signal rld_data_valid : std_logic;
@@ -385,11 +385,11 @@ signal store_queue_rst_dep : std_logic_vector(0 to st_queue_size-1);
 signal lhs_ordered : std_logic_vector(0 to st_queue_size-1);
 signal lhs_ordered_youngest : std_logic_vector(0 to st_queue_size-1);
 signal lhs_youngest : std_logic_vector(0 to st_queue_size-1);
-signal lhs_entry : std_logic_vector(0 to 1+clog2(st_queue_size-1)-1);
+signal lhs_entry : std_logic_vector(0 to 1+clog2(st_queue_size)-1);
 signal shl_ordered : std_logic_vector(0 to ld_queue_size-1);
 signal shl_ordered_youngest : std_logic_vector(0 to ld_queue_size-1);
 signal shl_youngest : std_logic_vector(0 to ld_queue_size-1);
-signal shl_entry : std_logic_vector(0 to 1+clog2(ld_queue_size-1)-1);
+signal shl_entry : std_logic_vector(0 to 1+clog2(ld_queue_size)-1);
 signal reload_clr : A2L2RELOAD;
 signal resv_clr : A2L2RESV;
 signal status_clr : A2L2STATUS;
@@ -442,7 +442,7 @@ if rising_edge(clk) then
       ldq_send_q <= (others => '0');
       ldq_data_q <= (others => '0');
       ldq_tail_q <= (others => '0');
-      for i in 0 to 63 loop
+      for i in 0 to ld_queue_size*16-1 loop
          load_data_queue_q(i) <= (others => '0');
       end loop;
       rdataq_head_q <= (others => '0');
@@ -451,7 +451,7 @@ if rising_edge(clk) then
       rld_spacing_q <= rld_spacing;
       rld_spacing_cnt_q <= (others => '0');
  	   store_pwr_q <= '0';
-      for i in 0 to 3 loop
+      for i in 0 to ld_queue_size-1 loop
          load_queue_q(i) <= load_queue_clr;
          load_dep_q(i) <= (others => '0');
       end loop;
@@ -488,7 +488,7 @@ if rising_edge(clk) then
 	   ldq_send_q <= ldq_send_d;
 	   ldq_data_q <= ldq_data_d;
 	   ldq_tail_q <= ldq_tail_d;
-      for i in 0 to 63 loop
+      for i in 0 to ld_queue_size*16-1 loop
          load_data_queue_q(i) <= load_data_queue_d(i);
       end loop;
       rdataq_head_q <= rdataq_head_d;
@@ -497,7 +497,7 @@ if rising_edge(clk) then
       rld_spacing_q <= rld_spacing_d;
       rld_spacing_cnt_q <= rld_spacing_cnt_d;
 	   store_pwr_q <= store_pwr_d;
-      for i in 0 to 3 loop
+      for i in 0 to ld_queue_size-1 loop
    	   load_queue_q(i) <= load_queue_d(i);
          load_dep_q(i) <= load_dep_d(i);
       end loop;
@@ -612,10 +612,8 @@ with req_in_load select
    ldq_tail_d <= inc(ldq_tail_q) when '1',
                  ldq_tail_q      when others;
 
-ldq_write_sel <= req_in_load & ldq_tail_q;
-
 -- feedback
-gen_load_queue_fb: for i in 0 to 3 generate
+gen_load_queue_fb: for i in 0 to ld_queue_size-1 generate
 
    load_queue_fb(i).valid  <= load_queue_q(i).valid and not ldq_valid_rst(i);
    load_queue_fb(i).sent   <= (load_queue_q(i).sent or ldq_sent_set(i)) and not ldq_valid_rst(i);
@@ -635,36 +633,18 @@ gen_load_queue_fb: for i in 0 to 3 generate
 
    load_dep_d(i) <= gate_and(load_queue_set_dep(i), lhs_entry) or
                     gate_and(not load_queue_set_dep(i) and not load_queue_rst_dep(i), load_dep_q(i));
-
-
 end generate;
 
-with ldq_write_sel select
-     load_queue_d(0) <= req_in           when "100",
-                        load_queue_fb(0) when others;
-with ldq_write_sel select
-     load_queue_d(1) <= req_in           when "101",
-                        load_queue_fb(1) when others;
-with ldq_write_sel select
-     load_queue_d(2) <= req_in           when "110",
-                        load_queue_fb(2) when others;
-with ldq_write_sel select
-     load_queue_d(3) <= req_in           when "111",
-                        load_queue_fb(3) when others;
+gen_load_queue: for i in 0 to ld_queue_size-1 generate
+
+   load_queue_d(i) <= req_in when b(req_in_load and eq(ldq_tail_q, i)) else load_queue_fb(i);
+
+end generate;                          
 
 axi_load_id <= "0000";
 
-with ldq_send_q select
-   ld_req <= load_queue_q(0) when "00",
-             load_queue_q(1) when "01",
-             load_queue_q(2) when "10",
-             load_queue_q(3) when others;
-
-with ldq_send_q select
-   ld_dep <= load_dep_q(0) when "00",
-             load_dep_q(1) when "01",
-             load_dep_q(2) when "10",
-             load_dep_q(3) when others;
+ld_req <= mux_queue(load_queue_q, ldq_send_q);
+ld_dep <= mux_queue(load_dep_q, ldq_send_q);   
 
 -- send next available load to axi if ready and no stall
 axi_load_valid <= ld_req.valid and not ld_req.sent and not ld_req_stall;
@@ -693,20 +673,18 @@ with ld_req.wimg(1) select
 axi_load_taken <= axi_load_valid and axi_load_ready;
 
 -- sent: set when req accepted by axi
-ldq_sent_set(0) <= axi_load_taken and eq(ldq_send_q, "00");
-ldq_sent_set(1) <= axi_load_taken and eq(ldq_send_q, "01");
-ldq_sent_set(2) <= axi_load_taken and eq(ldq_send_q, "10");
-ldq_sent_set(3) <= axi_load_taken and eq(ldq_send_q, "11");
+gen_ldq_sent: for i in 0 to ld_queue_size-1 generate
+   ldq_sent_set(i) <= axi_load_taken and eq(ldq_send_q, i); 
+end generate;             
 
 with axi_load_taken select
    ldq_send_d <= inc(ldq_send_q) when '1',
                  ldq_send_q      when others;
 
 -- data: set when last xfer received from axi
-ldq_data_set(0) <= axi_load_data_last and eq(ldq_data_q, "00");
-ldq_data_set(1) <= axi_load_data_last and eq(ldq_data_q, "01");
-ldq_data_set(2) <= axi_load_data_last and eq(ldq_data_q, "10");
-ldq_data_set(3) <= axi_load_data_last and eq(ldq_data_q, "11");
+gen_load_data_set: for i in 0 to ld_queue_size-1 generate
+   ldq_data_set(i) <= axi_load_data_last and eq(ldq_data_q, i);
+end generate;
 
 with axi_load_data_last select
    ldq_data_d <= inc(ldq_data_q) when '1',
@@ -722,8 +700,8 @@ with ldq_count_sel select
                   dec(ldq_count_q) when "01",
                   ldq_count_q      when others;
 
-ldq_oflow <= eq(ldq_count_q, "100") and eq(ldq_count_sel, "10");
-ldq_uflow <= eq(ldq_count_q, "000") and eq(ldq_count_sel, "01");
+ldq_oflow <= eq(ldq_count_q, ld_queue_size) and eq(ldq_count_sel, "10");
+ldq_uflow <= eq(ldq_count_q, 0) and eq(ldq_count_sel, "01"); 
 
 ------------------------------------------------------------------------------------------------------------
 -- Load Data Receive
@@ -741,7 +719,7 @@ with axi_load_data_valid select
 
 -- axi_load_data_resp: check
 
-gen_load_load_data_queue: for i in 0 to 63 generate
+gen_load_load_data_queue: for i in 0 to ld_queue_size*16-1 generate
    rdataq_write_sel(i) <= axi_load_data_valid and eq(rdataq_tail_q, i);
    with rdataq_write_sel(i) select
       load_data_queue_d(i) <= axi_load_data(7 downto 0) & axi_load_data(15 downto 8) & axi_load_data(23 downto 16) & axi_load_data(31 downto 24) when '1',
@@ -763,47 +741,14 @@ end generate;
 -- use 'consecutive' mode and crit first
 -- ra(58:59) selects first rdataq to send; then use 0-1-2-3, 1-0-2-3, 2-3-0-1, 3-2-0-1 patterns
 
-with ldq_head_q select
-   rld_data_valid <= load_queue_q(0).valid and load_queue_q(0).data when "00",
-                     load_queue_q(1).valid and load_queue_q(1).data when "01",
-                     load_queue_q(2).valid and load_queue_q(2).data when "10",
-                     load_queue_q(3).valid and load_queue_q(3).data when others;
+rld_head <= mux_queue(load_queue_q, ldq_head_q);
+rld_data_valid <= rld_head.valid and rld_head.data;
+rld_tag <= rld_head.tag;
+rld_single <= rld_head.wimg(1);
+rld_crit_qw <= rld_head.ra(58 to 59);
+rld_len <= rld_head.len;
+rld_ra_lo <= rld_head.ra(60 to 63);
 
-with ldq_head_q select
-   rld_tag <= load_queue_q(0).tag when "00",
-              load_queue_q(1).tag when "01",
-              load_queue_q(2).tag when "10",
-              load_queue_q(3).tag when others;
-
-with ldq_head_q select
-   rld_single <= load_queue_q(0).wimg(1) when "00",
-                 load_queue_q(1).wimg(1) when "01",
-                 load_queue_q(2).wimg(1) when "10",
-                 load_queue_q(3).wimg(1) when others;
-
-with ldq_head_q select
-   rld_crit_qw <= load_queue_q(0).ra(58 to 59) when "00",
-                  load_queue_q(1).ra(58 to 59) when "01",
-                  load_queue_q(2).ra(58 to 59) when "10",
-                  load_queue_q(3).ra(58 to 59) when others;
-
-with ldq_head_q select
-   rld_len <= load_queue_q(0).len when "00",
-              load_queue_q(1).len when "01",
-              load_queue_q(2).len when "10",
-              load_queue_q(3).len when others;
-
-with ldq_head_q select
-   rld_ra_lo <= load_queue_q(0).ra(60 to 63) when "00",
-                load_queue_q(1).ra(60 to 63) when "01",
-                load_queue_q(2).ra(60 to 63) when "10",
-                load_queue_q(3).ra(60 to 63) when others;
-
-with ldq_head_q select
-   rld_endian <= load_queue_q(0).endian when "00",
-                 load_queue_q(1).endian when "01",
-                 load_queue_q(2).endian when "10",
-                 load_queue_q(3).endian when others;
 
 reload_d.tag <= rld_tag;
 reload_d.ue <= '0';
@@ -823,11 +768,9 @@ rld_spacing_stall <= ne(rld_spacing_cnt_q, 0);
 rld_ready <= rld_data_valid and not rld_spacing_stall; -- entry ready; fastpath doesn't work without peeking at next entry for crit_qw,single for seq (or axi_load_data_last)
 
 -- data: reset in d-1
-ldq_data_rst(0) <= start_rld_data and eq(ldq_head_q, "00");
-ldq_data_rst(1) <= start_rld_data and eq(ldq_head_q, "01");
-ldq_data_rst(2) <= start_rld_data and eq(ldq_head_q, "10");
-ldq_data_rst(3) <= start_rld_data and eq(ldq_head_q, "11");
-
+gen_load_data_rst: for i in 0 to ld_queue_size-1 generate
+   ldq_data_rst(i) <= start_rld_data and eq(ldq_head_q, i);
+end generate;  
 
 --tbl RldSeq
 --
@@ -950,12 +893,11 @@ ldq_data_rst(3) <= start_rld_data and eq(ldq_head_q, "11");
 
 load_complete <= rld_complete;
 
-ldq_valid_rst(0) <= rld_complete and eq(ldq_head_q, "00");
-ldq_valid_rst(1) <= rld_complete and eq(ldq_head_q, "01");
-ldq_valid_rst(2) <= rld_complete and eq(ldq_head_q, "10");
-ldq_valid_rst(3) <= rld_complete and eq(ldq_head_q, "11");
+gen_ldq_valid_rst: for i in 0 to ld_queue_size-1 generate                  
+   ldq_valid_rst(i) <= load_complete and eq(ldq_head_q, i);   
+end generate;
 
-status_d.ld_pop <= rld_complete;
+status_d.ld_pop <= load_complete;
 
 -- send reload
 an_ac_reld_data_coming <= reload_q.coming;
@@ -1035,9 +977,6 @@ with rld_data_2_use_0 select
 with rld_single select
    rld_data_2_alg  <= rld_data_2_alg_single when '1',
                       rld_data_2            when others;
---with rld_single select
---   rld_data_2_alg_pre  <= rld_data_2_alg_single when '1',
---                          rld_data_2            when others;
 
 -- align to data3 if:
 --   len=1 and lo=C/D/E/F
@@ -1329,9 +1268,6 @@ stq_uflow <= eq(stq_count_q, 0) and store_complete;
 --
 -- Specials
 
-
--- change all these to use table outs for decodes
-
 -- larx/stcx
 --  larx bypasses L1 cache (i.e. data is not used if it hits in the L1)
 --  if larx hits L1, then core invalidates line automatically, therefore, the L2 does NOT need to send back-invalidate for larx
@@ -1481,7 +1417,6 @@ ld_req_stall <= lhs_entry(0) or ld_dep(0);
 st_req_stall <= shl_entry(0) or st_dep(0) or
                 (st_req_data.hwsync and not eq(stq_send_q, stq_head_q));  -- hwsync waits until it is head
 
--- set overrides rst
 -- set: reqp1 cycle
 gen_ldq_set_dep: for i in 0 to ld_queue_size-1 generate
 load_queue_set_dep(i) <= ld_p1_entry_q(0) and eq(ld_p1_entry_q(1 to clog2(ld_queue_size)), i) and lhs_entry(0);
