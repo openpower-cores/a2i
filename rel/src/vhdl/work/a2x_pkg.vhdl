@@ -16,7 +16,7 @@ package a2x_pkg is
 attribute dont_touch : string;
 
 constant c_ld_queue_size : integer := 4;   
-constant c_ld_queue_bits : integer := 2;  
+constant c_ld_queue_bits : integer := 2;    
 constant c_st_queue_size : integer := 16;
 constant c_st_queue_bits : integer := 4;
 constant c_max_pointer : integer := 2;
@@ -48,6 +48,10 @@ function eq(a: in std_logic_vector; b: in integer) return boolean;
 function eq(a: in std_logic_vector; b: in integer) return std_logic;
 function eq(a: in std_logic_vector; b: in std_logic_vector) return boolean;
 function eq(a: in std_logic_vector; b: in std_logic_vector) return std_logic;
+function ne(a: in std_logic_vector; b: in integer) return boolean;
+function ne(a: in std_logic_vector; b: in integer) return std_logic;
+function ne(a: in std_logic_vector; b: in std_logic_vector) return boolean;
+function ne(a: in std_logic_vector; b: in std_logic_vector) return std_logic;
 function gt(a: in std_logic_vector; b: in integer) return boolean;
 function gt(a: in std_logic_vector; b: in std_logic_vector) return boolean;
 function gt(a: in std_logic_vector; b: in std_logic_vector) return std_logic;
@@ -216,6 +220,42 @@ function eq(a: in std_logic_vector; b: in std_logic_vector) return std_logic is
   variable res: std_logic;
 begin
   if unsigned(a) = unsigned(b) then
+    res := '1';
+  else
+    res := '0';
+  end if;
+  return res;
+end function;
+
+function ne(a: in std_logic_vector; b: in integer) return boolean is
+  variable res: boolean;
+begin
+  res := unsigned(a) /= b;
+  return res;
+end function;
+
+function ne(a: in std_logic_vector; b: in integer) return std_logic is
+  variable res: std_logic;
+begin
+  if unsigned(a) /= b then
+   res := '1';
+  else
+   res := '0';
+  end if;
+  return res;
+end function;
+
+function ne(a: in std_logic_vector; b: in std_logic_vector) return boolean is
+  variable res: boolean;
+begin
+  res := unsigned(a) /= unsigned(b);
+  return res;
+end function;
+
+function ne(a: in std_logic_vector; b: in std_logic_vector) return std_logic is
+  variable res: std_logic;
+begin
+  if unsigned(a) /= unsigned(b) then
     res := '1';
   else
     res := '0';
@@ -447,16 +487,14 @@ begin
 end function;
 
 -- compare requests to determine if they overlap
--- ra : start addr, byte-aligned
--- len: number of bytes
 function address_check(a: in A2L2REQUEST; b: in A2L2REQUEST) return std_logic is
   variable res: std_logic := '0';
   variable a_start, a_end, b_start, b_end : unsigned(0 to a.ra'length-1);
 begin
    a_start := unsigned(a.ra);
-   a_end := unsigned(a.ra) + unsigned(a.len);
+   a_end := unsigned(a.ra) + 64;
    b_start := unsigned(b.ra);
-   b_end := unsigned(b.ra) + unsigned(b.len);
+   b_end := unsigned(b.ra) + 64;
    if ((a.valid = '1') and (a.spec = '0') and (b.valid = '1') and (b.spec = '0')) then       
       if ((a_start >= b_start) and (a_start <= b_end)) then
          res := '1';
@@ -484,3 +522,4 @@ begin
 end;                                                                    
                                                                                     
 end a2x_pkg;
+
