@@ -15,9 +15,6 @@ library ibm;
 use ibm.std_ulogic_support.all;
 use ibm.std_ulogic_function_support.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
-
 library UNIMACRO;
 use UNIMACRO.vcomponents.all;
 
