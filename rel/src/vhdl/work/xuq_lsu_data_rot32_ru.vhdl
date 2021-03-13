@@ -19,7 +19,6 @@ LIBRARY ibm;
 LIBRARY support;    
                     USE support.power_logic_pkg.all;
 LIBRARY tri;        USE tri.tri_latches_pkg.all;
-LIBRARY clib ;
 
 -- ##########################################################################################
 -- VHDL Contents

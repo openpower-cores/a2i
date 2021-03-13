@@ -7,7 +7,7 @@
 -- This README will be updated with additional information when OpenPOWER's 
 -- license is available.
 
-library ieee,ibm,support,tri;
+library ieee,support,tri;
 use ieee.std_logic_1164.all;
 use support.power_logic_pkg.all;
 use tri.tri_latches_pkg.all;

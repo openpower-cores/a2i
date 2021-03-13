@@ -9,7 +9,7 @@
 
 --  Description:  XU Exception Handler
 --
-library ieee,ibm,support,work,tri,clib;
+library ieee,ibm,support,work,tri;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use support.power_logic_pkg.all;
