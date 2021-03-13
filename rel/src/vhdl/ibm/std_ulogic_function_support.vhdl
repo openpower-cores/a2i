@@ -77,7 +77,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- Synopsys translate_off
   attribute btr_name            of gate : function is "AND" ;
-  attribute recursive_synthesis of gate : function is 1 ;
+  attribute recursive_synthesis of gate : function is true ;
   attribute pin_bit_information of gate : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
@@ -90,7 +90,7 @@ package std_ulogic_function_support is
     return std_ulogic               ;
   -- Synopsys translate_off
   attribute btr_name            of dot_and : function is "VHDL-DOTA" ;
-  attribute recursive_synthesis of dot_and : function is 1 ;
+  attribute recursive_synthesis of dot_and : function is true ;
   attribute pin_bit_information of dot_and : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
@@ -101,7 +101,7 @@ package std_ulogic_function_support is
     return std_ulogic                  ;
   -- synopsys translate_off
   attribute btr_name            of dot_or     : function is "VHDL-DOTO" ;
-  attribute recursive_synthesis of dot_or     : function is 1 ;
+  attribute recursive_synthesis of dot_or     : function is true ;
   attribute pin_bit_information of dot_or     : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
@@ -116,7 +116,7 @@ package std_ulogic_function_support is
     return bit                     ;
   -- Synopsys translate_off
   attribute btr_name            of clock_tree_dot : function is "VHDL-CDOT" ;
-  attribute recursive_synthesis of clock_tree_dot : function is 1 ;
+  attribute recursive_synthesis of clock_tree_dot : function is true ;
   attribute pin_bit_information of clock_tree_dot : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
@@ -140,7 +140,7 @@ package std_ulogic_function_support is
      );
   -- synopsys translate_off
   attribute btr_name            of terminator : procedure is "TERMINATOR";
-  attribute recursive_synthesis of terminator : procedure is 1 ;
+  attribute recursive_synthesis of terminator : procedure is true ;
   attribute pin_bit_information of terminator : procedure is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -167,7 +167,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector        ;
   -- synopsys translate_off
   attribute btr_name            of delay : function is "IDENT" ;
-  attribute recursive_synthesis of delay : function is 1 ;
+  attribute recursive_synthesis of delay : function is true ;
   attribute block_data          of delay : function is
     "SUB_FUNC=/DELAY/LOGIC_STYLE=/DIRECT/" ;
   attribute pin_bit_information of delay : function is
@@ -197,7 +197,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector        ;
   -- synopsys translate_off
   attribute btr_name            of buff : function is "IDENT" ;
-  attribute recursive_synthesis of buff : function is 1 ;
+  attribute recursive_synthesis of buff : function is true ;
   attribute block_data          of buff  : function is
     "LOGIC_STYLE=/DIRECT/" ;
   attribute pin_bit_information of buff : function is
@@ -227,7 +227,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of invert : function is "NOT" ;
-  attribute recursive_synthesis of invert : function is 1 ;
+  attribute recursive_synthesis of invert : function is true ;
   attribute pin_bit_information of invert : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -257,7 +257,7 @@ package std_ulogic_function_support is
     return std_ulogic ;
   -- synopsys translate_off
   attribute btr_name            of compare : function is "VHDL-COMPARE" ;
-  attribute recursive_synthesis of compare : function is 1 ;
+  attribute recursive_synthesis of compare : function is true ;
   attribute pin_bit_information of compare : function is
     (1 => ("   ","A0      ","INCR","PIN_BIT_SCALAR"),
      2 => ("   ","M0      ","INCR","PIN_BIT_SCALAR"),
@@ -278,7 +278,7 @@ package std_ulogic_function_support is
     return std_ulogic               ;
   -- synopsys translate_off
   attribute btr_name            of parity : function is "XOR" ;
-  attribute recursive_synthesis of parity : function is 1 ;
+  attribute recursive_synthesis of parity : function is true ;
   attribute pin_bit_information of parity : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -296,7 +296,7 @@ package std_ulogic_function_support is
 
   -- synopsys translate_off
   attribute btr_name            of parity_map : function is "XOR" ;
-  attribute recursive_synthesis of parity_map : function is 1 ;
+  attribute recursive_synthesis of parity_map : function is true ;
   attribute block_data          of parity_map : function is
     "LOGIC_STYLE=/DIRECT/" ;
   attribute pin_bit_information of parity_map : function is
@@ -318,7 +318,7 @@ package std_ulogic_function_support is
 
   -- synopsys translate_off
   attribute btr_name          of parity_gen_odd : function is "XNOR" ;
-  attribute recursive_synthesis of parity_gen_odd : function is 1;
+  attribute recursive_synthesis of parity_gen_odd : function is true;
   attribute pin_bit_information of parity_gen_odd : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -336,7 +336,7 @@ package std_ulogic_function_support is
     return std_ulogic               ;
   -- Synopsys translate_off
   attribute btr_name          of parity_gen_even : function is "XOR" ;
-  attribute recursive_synthesis of parity_gen_even : function is 1;
+  attribute recursive_synthesis of parity_gen_even : function is true;
   attribute pin_bit_information of parity_gen_even : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -354,7 +354,7 @@ package std_ulogic_function_support is
     return std_ulogic               ;
   -- Synopsys translate_off
   attribute btr_name          of is_parity_odd : function is "XOR" ;
-  attribute recursive_synthesis of is_parity_odd : function is 1;
+  attribute recursive_synthesis of is_parity_odd : function is true;
   attribute pin_bit_information of is_parity_odd : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -372,7 +372,7 @@ package std_ulogic_function_support is
     return std_ulogic               ;
   -- Synopsys translate_off
   attribute btr_name          of is_parity_even : function is "XNOR" ;
-  attribute recursive_synthesis of is_parity_even : function is 1;
+  attribute recursive_synthesis of is_parity_even : function is true;
   attribute pin_bit_information of is_parity_even : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -405,7 +405,7 @@ package std_ulogic_function_support is
      );
   -- synopsys translate_off
   attribute btr_name            of full_add : procedure is "VHDL-FA";
-  attribute recursive_synthesis of full_add : procedure is 1 ;
+  attribute recursive_synthesis of full_add : procedure is true ;
   attribute pin_bit_information of full_add : procedure is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -438,7 +438,7 @@ package std_ulogic_function_support is
     return std_ulogic    ;
   -- synopsys translate_off
   attribute btr_name            of tie_0 : function is "VHDL-TIDN" ;
-  attribute recursive_synthesis of tie_0 : function is 1 ;
+  attribute recursive_synthesis of tie_0 : function is true ;
   attribute block_data          of tie_0 : function is
     "LOGIC_STYLE=/DIRECT/" ;
   attribute pin_bit_information of tie_0 : function is
@@ -457,7 +457,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector          ;
   -- synopsys translate_off
   attribute btr_name            of vector_tie_0 : function is "VHDL-TIDN" ;
-  attribute recursive_synthesis of vector_tie_0 : function is 1 ;
+  attribute recursive_synthesis of vector_tie_0 : function is true ;
   attribute block_data          of vector_tie_0 : function is
     "LOGIC_STYLE=/DIRECT/" ;
   attribute pin_bit_information of vector_tie_0 : function is
@@ -476,7 +476,7 @@ package std_ulogic_function_support is
     return std_ulogic                 ;
   -- synopsys translate_off
   attribute btr_name            of tie_1    : function is "VHDL-TIUP" ;
-  attribute recursive_synthesis of tie_1    : function is 1 ;
+  attribute recursive_synthesis of tie_1    : function is true ;
   attribute block_data          of tie_1    : function is
     "LOGIC_STYLE=/DIRECT/" ;
   attribute pin_bit_information of tie_1 : function is
@@ -495,7 +495,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector          ;
   -- synopsys translate_off
   attribute btr_name            of vector_tie_1 : function is "VHDL-TIUP" ;
-  attribute recursive_synthesis of vector_tie_1 : function is 1 ;
+  attribute recursive_synthesis of vector_tie_1 : function is true ;
   attribute block_data          of vector_tie_1 : function is
     "LOGIC_STYLE=/DIRECT/" ;
   attribute pin_bit_information of vector_tie_1 : function is
@@ -519,7 +519,7 @@ package std_ulogic_function_support is
     return std_ulogic ;
   -- synopsys translate_off
   attribute btr_name            of and_reduce : function is "AND" ;
-  attribute recursive_synthesis of and_reduce : function is 1 ;
+  attribute recursive_synthesis of and_reduce : function is true ;
   attribute pin_bit_information of and_reduce : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -537,7 +537,7 @@ package std_ulogic_function_support is
     return std_ulogic ;
   -- synopsys translate_off
   attribute btr_name            of or_reduce : function is "OR" ;
-  attribute recursive_synthesis of or_reduce : function is 1 ;
+  attribute recursive_synthesis of or_reduce : function is true ;
   attribute pin_bit_information of or_reduce : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -555,7 +555,7 @@ package std_ulogic_function_support is
     return std_ulogic ;
   -- synopsys translate_off
   attribute btr_name            of nand_reduce : function is "NAND" ;
-  attribute recursive_synthesis of nand_reduce : function is 1 ;
+  attribute recursive_synthesis of nand_reduce : function is true ;
   attribute pin_bit_information of nand_reduce : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -573,7 +573,7 @@ package std_ulogic_function_support is
     return std_ulogic ;
   -- synopsys translate_off
   attribute btr_name            of nor_reduce : function is "NOR" ;
-  attribute recursive_synthesis of nor_reduce : function is 1 ;
+  attribute recursive_synthesis of nor_reduce : function is true ;
   attribute pin_bit_information of nor_reduce : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -591,7 +591,7 @@ package std_ulogic_function_support is
     return std_ulogic ;
   -- synopsys translate_off
   attribute btr_name            of xor_reduce : function is "XOR" ;
-  attribute recursive_synthesis of xor_reduce : function is 1 ;
+  attribute recursive_synthesis of xor_reduce : function is true ;
   attribute pin_bit_information of xor_reduce : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -609,7 +609,7 @@ package std_ulogic_function_support is
     return std_ulogic ;
   -- synopsys translate_off
   attribute btr_name            of xnor_reduce : function is "XNOR" ;
-  attribute recursive_synthesis of xnor_reduce : function is 1 ;
+  attribute recursive_synthesis of xnor_reduce : function is true ;
   attribute pin_bit_information of xnor_reduce : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -647,7 +647,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of gate_and : function is "AND" ;
-  attribute recursive_synthesis of gate_and : function is 1 ;
+  attribute recursive_synthesis of gate_and : function is true ;
   attribute pin_bit_information of gate_and : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -685,7 +685,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of gate_or : function is "OR" ;
-  attribute recursive_synthesis of gate_or : function is 1 ;
+  attribute recursive_synthesis of gate_or : function is true ;
   attribute pin_bit_information of gate_or : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -723,7 +723,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of gate_nand : function is "NAND" ;
-  attribute recursive_synthesis of gate_nand : function is 1 ;
+  attribute recursive_synthesis of gate_nand : function is true ;
   attribute pin_bit_information of gate_nand : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -761,7 +761,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of gate_nor : function is "NOR" ;
-  attribute recursive_synthesis of gate_nor : function is 1 ;
+  attribute recursive_synthesis of gate_nor : function is true ;
   attribute pin_bit_information of gate_nor : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -790,7 +790,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of gate_xor : function is "XOR" ;
-  attribute recursive_synthesis of gate_xor : function is 1 ;
+  attribute recursive_synthesis of gate_xor : function is true ;
   attribute pin_bit_information of gate_xor : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -819,7 +819,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of gate_xnor : function is "XNOR" ;
-  attribute recursive_synthesis of gate_xnor : function is 1 ;
+  attribute recursive_synthesis of gate_xnor : function is true ;
   attribute pin_bit_information of gate_xnor : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -851,7 +851,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of and_2 : function is "AND" ;
-  attribute recursive_synthesis of and_2 : function is 1 ;
+  attribute recursive_synthesis of and_2 : function is true ;
   attribute pin_bit_information of and_2 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -880,7 +880,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of or_2 : function is "OR" ;
-  attribute recursive_synthesis of or_2 : function is 1 ;
+  attribute recursive_synthesis of or_2 : function is true ;
   attribute pin_bit_information of or_2 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -909,7 +909,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nand_2 : function is "NAND" ;
-  attribute recursive_synthesis of nand_2 : function is 1 ;
+  attribute recursive_synthesis of nand_2 : function is true ;
   attribute pin_bit_information of nand_2 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -938,7 +938,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nor_2 : function is "NOR" ;
-  attribute recursive_synthesis of nor_2 : function is 1 ;
+  attribute recursive_synthesis of nor_2 : function is true ;
   attribute pin_bit_information of nor_2 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -967,7 +967,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of xor_2 : function is "XOR" ;
-  attribute recursive_synthesis of xor_2 : function is 1 ;
+  attribute recursive_synthesis of xor_2 : function is true ;
   attribute pin_bit_information of xor_2 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -996,7 +996,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of xnor_2 : function is "XNOR" ;
-  attribute recursive_synthesis of xnor_2 : function is 1 ;
+  attribute recursive_synthesis of xnor_2 : function is true ;
   attribute pin_bit_information of xnor_2 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1030,7 +1030,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of and_3 : function is "AND" ;
-  attribute recursive_synthesis of and_3 : function is 1 ;
+  attribute recursive_synthesis of and_3 : function is true ;
   attribute pin_bit_information of and_3 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1062,7 +1062,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of or_3 : function is "OR" ;
-  attribute recursive_synthesis of or_3 : function is 1 ;
+  attribute recursive_synthesis of or_3 : function is true ;
   attribute pin_bit_information of or_3 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1094,7 +1094,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nand_3 : function is "NAND" ;
-  attribute recursive_synthesis of nand_3 : function is 1 ;
+  attribute recursive_synthesis of nand_3 : function is true ;
   attribute pin_bit_information of nand_3 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1126,7 +1126,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nor_3 : function is "NOR" ;
-  attribute recursive_synthesis of nor_3 : function is 1 ;
+  attribute recursive_synthesis of nor_3 : function is true ;
   attribute pin_bit_information of nor_3 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1158,7 +1158,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of xor_3 : function is "XOR" ;
-  attribute recursive_synthesis of xor_3 : function is 1 ;
+  attribute recursive_synthesis of xor_3 : function is true ;
   attribute pin_bit_information of xor_3 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1190,7 +1190,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of xnor_3 : function is "XNOR" ;
-  attribute recursive_synthesis of xnor_3 : function is 1 ;
+  attribute recursive_synthesis of xnor_3 : function is true ;
   attribute pin_bit_information of xnor_3 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1226,7 +1226,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of and_4 : function is "AND" ;
-  attribute recursive_synthesis of and_4 : function is 1 ;
+  attribute recursive_synthesis of and_4 : function is true ;
   attribute pin_bit_information of and_4 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1261,7 +1261,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of or_4 : function is "OR" ;
-  attribute recursive_synthesis of or_4 : function is 1 ;
+  attribute recursive_synthesis of or_4 : function is true ;
   attribute pin_bit_information of or_4 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1296,7 +1296,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nand_4 : function is "NAND" ;
-  attribute recursive_synthesis of nand_4 : function is 1 ;
+  attribute recursive_synthesis of nand_4 : function is true ;
   attribute pin_bit_information of nand_4 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1331,7 +1331,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nor_4 : function is "NOR" ;
-  attribute recursive_synthesis of nor_4 : function is 1 ;
+  attribute recursive_synthesis of nor_4 : function is true ;
   attribute pin_bit_information of nor_4 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1371,7 +1371,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of and_5 : function is "AND" ;
-  attribute recursive_synthesis of and_5 : function is 1 ;
+  attribute recursive_synthesis of and_5 : function is true ;
   attribute pin_bit_information of and_5 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1409,7 +1409,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of or_5 : function is "OR" ;
-  attribute recursive_synthesis of or_5 : function is 1 ;
+  attribute recursive_synthesis of or_5 : function is true ;
   attribute pin_bit_information of or_5 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1447,7 +1447,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nand_5 : function is "NAND" ;
-  attribute recursive_synthesis of nand_5 : function is 1 ;
+  attribute recursive_synthesis of nand_5 : function is true ;
   attribute pin_bit_information of nand_5 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1485,7 +1485,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nor_5 : function is "NOR" ;
-  attribute recursive_synthesis of nor_5 : function is 1 ;
+  attribute recursive_synthesis of nor_5 : function is true ;
   attribute pin_bit_information of nor_5 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1527,7 +1527,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of and_6 : function is "AND" ;
-  attribute recursive_synthesis of and_6 : function is 1 ;
+  attribute recursive_synthesis of and_6 : function is true ;
   attribute pin_bit_information of and_6 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1568,7 +1568,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of or_6 : function is "OR" ;
-  attribute recursive_synthesis of or_6 : function is 1 ;
+  attribute recursive_synthesis of or_6 : function is true ;
   attribute pin_bit_information of or_6 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1609,7 +1609,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nand_6 : function is "NAND" ;
-  attribute recursive_synthesis of nand_6 : function is 1 ;
+  attribute recursive_synthesis of nand_6 : function is true ;
   attribute pin_bit_information of nand_6 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1650,7 +1650,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nor_6 : function is "NOR" ;
-  attribute recursive_synthesis of nor_6 : function is 1 ;
+  attribute recursive_synthesis of nor_6 : function is true ;
   attribute pin_bit_information of nor_6 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1696,7 +1696,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of and_7 : function is "AND" ;
-  attribute recursive_synthesis of and_7 : function is 1 ;
+  attribute recursive_synthesis of and_7 : function is true ;
   attribute pin_bit_information of and_7 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1740,7 +1740,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of or_7 : function is "OR" ;
-  attribute recursive_synthesis of or_7 : function is 1 ;
+  attribute recursive_synthesis of or_7 : function is true ;
   attribute pin_bit_information of or_7 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1784,7 +1784,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nand_7 : function is "NAND" ;
-  attribute recursive_synthesis of nand_7 : function is 1 ;
+  attribute recursive_synthesis of nand_7 : function is true ;
   attribute pin_bit_information of nand_7 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1828,7 +1828,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nor_7 : function is "NOR" ;
-  attribute recursive_synthesis of nor_7 : function is 1 ;
+  attribute recursive_synthesis of nor_7 : function is true ;
   attribute pin_bit_information of nor_7 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1877,7 +1877,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of and_8 : function is "AND" ;
-  attribute recursive_synthesis of and_8 : function is 1 ;
+  attribute recursive_synthesis of and_8 : function is true ;
   attribute pin_bit_information of and_8 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1924,7 +1924,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of or_8 : function is "OR" ;
-  attribute recursive_synthesis of or_8 : function is 1 ;
+  attribute recursive_synthesis of or_8 : function is true ;
   attribute pin_bit_information of or_8 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -1971,7 +1971,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nand_8 : function is "NAND" ;
-  attribute recursive_synthesis of nand_8 : function is 1 ;
+  attribute recursive_synthesis of nand_8 : function is true ;
   attribute pin_bit_information of nand_8 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -2018,7 +2018,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of nor_8 : function is "NOR" ;
-  attribute recursive_synthesis of nor_8 : function is 1 ;
+  attribute recursive_synthesis of nor_8 : function is true ;
   attribute pin_bit_information of nor_8 : function is
     (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
@@ -2048,7 +2048,7 @@ package std_ulogic_function_support is
     return  std_return_4 ;
   -- synopsys translate_off
   attribute btr_name            of decode_2to4 : function is "VHDL-DECODE";
-  attribute recursive_synthesis of decode_2to4 : function is 1 ;
+  attribute recursive_synthesis of decode_2to4 : function is true ;
   attribute pin_bit_information of decode_2to4 : function is
     (1 => ("   ","D1      ","DECR","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -2066,7 +2066,7 @@ package std_ulogic_function_support is
     return  std_return_8 ;
   -- synopsys translate_off
   attribute btr_name            of decode_3to8 : function is "VHDL-DECODE";
-  attribute recursive_synthesis of decode_3to8 : function is 1 ;
+  attribute recursive_synthesis of decode_3to8 : function is true ;
   attribute pin_bit_information of decode_3to8 : function is
     (1 => ("   ","D2      ","DECR","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -2084,7 +2084,7 @@ package std_ulogic_function_support is
     return  std_return_16 ;
   -- synopsys translate_off
   attribute btr_name            of decode_4to16 : function is "VHDL-DECODE";
-  attribute recursive_synthesis of decode_4to16 : function is 1 ;
+  attribute recursive_synthesis of decode_4to16 : function is true ;
   attribute pin_bit_information of decode_4to16 : function is
     (1 => ("   ","D3      ","DECR","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -2102,7 +2102,7 @@ package std_ulogic_function_support is
     return  std_return_32 ;
   -- synopsys translate_off
   attribute btr_name            of decode_5to32 : function is "VHDL-DECODE";
-  attribute recursive_synthesis of decode_5to32 : function is 1 ;
+  attribute recursive_synthesis of decode_5to32 : function is true ;
   attribute pin_bit_information of decode_5to32 : function is
     (1 => ("   ","D4      ","DECR","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),
@@ -2120,7 +2120,7 @@ package std_ulogic_function_support is
     return  std_return_64 ;
   -- synopsys translate_off
   attribute btr_name            of decode_6to64 : function is "VHDL-DECODE";
-  attribute recursive_synthesis of decode_6to64 : function is 1 ;
+  attribute recursive_synthesis of decode_6to64 : function is true ;
   attribute pin_bit_information of decode_6to64 : function is
     (1 => ("   ","D5      ","DECR","PIN_BIT_SCALAR"),
      2 => ("   ","PASS    ","    ","              "),

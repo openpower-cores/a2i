@@ -44,7 +44,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of mux_2to1 : function is "VHDL-MUX" ;
-  attribute recursive_synthesis of mux_2to1 : function is 1;
+  attribute recursive_synthesis of mux_2to1 : function is true;
   attribute pin_bit_information of mux_2to1 : function is
     (1 => ("   ","S0      ","DECR","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
@@ -79,7 +79,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of mux_4to1 : function is "VHDL-MUX" ;
-  attribute recursive_synthesis of mux_4to1 : function is 1;
+  attribute recursive_synthesis of mux_4to1 : function is true;
   attribute pin_bit_information of mux_4to1 : function is
     (1 => ("   ","S1      ","DECR","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
@@ -124,7 +124,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of mux_8to1 : function is "VHDL-MUX" ;
-  attribute recursive_synthesis of mux_8to1 : function is 1;
+  attribute recursive_synthesis of mux_8to1 : function is true;
   attribute pin_bit_information of mux_8to1 : function is
     (1 => ("   ","S2      ","DECR","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
@@ -161,7 +161,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of not_mux_2to1 : function is "VHDL-MUX" ;
-  attribute recursive_synthesis of not_mux_2to1 : function is 1;
+  attribute recursive_synthesis of not_mux_2to1 : function is true;
   attribute pin_bit_information of not_mux_2to1 : function is
     (1 => ("   ","S0      ","DECR","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
@@ -196,7 +196,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of not_mux_4to1 : function is "VHDL-MUX" ;
-  attribute recursive_synthesis of not_mux_4to1 : function is 1;
+  attribute recursive_synthesis of not_mux_4to1 : function is true;
   attribute pin_bit_information of not_mux_4to1 : function is
     (1 => ("   ","S1      ","DECR","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
@@ -241,7 +241,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name            of not_mux_8to1 : function is "VHDL-MUX" ;
-  attribute recursive_synthesis of not_mux_8to1 : function is 1;
+  attribute recursive_synthesis of not_mux_8to1 : function is true;
   attribute pin_bit_information of not_mux_8to1 : function is
     (1 => ("   ","S2      ","DECR","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
@@ -281,7 +281,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of select_1of2 : function is "VHDL-SELECT" ;
-  attribute recursive_synthesis of select_1of2 : function is 1;
+  attribute recursive_synthesis of select_1of2 : function is true;
   attribute pin_bit_information of select_1of2 : function is
     (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
@@ -319,7 +319,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of select_1of3 : function is "VHDL-SELECT" ;
-  attribute recursive_synthesis of select_1of3 : function is 1;
+  attribute recursive_synthesis of select_1of3 : function is true;
   attribute pin_bit_information of select_1of3 : function is
     (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
@@ -363,7 +363,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of select_1of4 : function is "VHDL-SELECT" ;
-  attribute recursive_synthesis of select_1of4 : function is 1;
+  attribute recursive_synthesis of select_1of4 : function is true;
   attribute pin_bit_information of select_1of4 : function is
     (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
@@ -425,7 +425,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of select_1of8 : function is "VHDL-SELECT" ;
-  attribute recursive_synthesis of select_1of8 : function is 1;
+  attribute recursive_synthesis of select_1of8 : function is true;
   attribute pin_bit_information of select_1of8 : function is
     (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
@@ -471,7 +471,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of not_select_1of2 : function is "VHDL-SELECT" ;
-  attribute recursive_synthesis of not_select_1of2 : function is 1;
+  attribute recursive_synthesis of not_select_1of2 : function is true;
   attribute pin_bit_information of not_select_1of2 : function is
     (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
@@ -509,7 +509,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of not_select_1of3 : function is "VHDL-SELECT" ;
-  attribute recursive_synthesis of not_select_1of3 : function is 1;
+  attribute recursive_synthesis of not_select_1of3 : function is true;
   attribute PIN_BIT_INFORMATION of not_select_1of3 : function is
     (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
@@ -553,7 +553,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of not_select_1of4 : function is "VHDL-SELECT" ;
-  attribute recursive_synthesis of not_select_1of4 : function is 1;
+  attribute recursive_synthesis of not_select_1of4 : function is true;
   attribute pin_bit_information of not_select_1of4 : function is
     (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
@@ -615,7 +615,7 @@ package std_ulogic_mux_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of not_select_1of8 : function is "VHDL-SELECT" ;
-  attribute recursive_synthesis of not_select_1of8 : function is 1;
+  attribute recursive_synthesis of not_select_1of8 : function is true;
   attribute pin_bit_information of not_select_1of8 : function is
     (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
