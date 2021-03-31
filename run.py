@@ -5,20 +5,17 @@
 from pathlib import Path
 from vunit import VUnit
 
-prj = VUnit.from_argv()
-
 _rel = Path(__file__).parent / "rel"
 
-library_names = ["support", "ibm", "clib", "tri"]
-for library_name in library_names:
-    prj.add_library(library_name).add_source_files(
-        _rel / f"src/vhdl/{library_name}/*.vhdl"
-    )
+prj = VUnit.from_argv()
+
+for libName in ["support", "ibm", "clib", "tri"]:
+    prj.add_library(libName).add_source_files(_rel / "src" / "vhdl" / f"{libName}" / "*.vhdl")
 
 # VUnit doesn't accept libraries named work. These files are compiled to the top library
-prj.add_library("top").add_source_files(_rel / "src/vhdl/work/*.vhdl")
+prj.add_library("top").add_source_files(_rel / "src" / "vhdl" / "work" / "*.vhdl")
 
 # Simulation only library containing VHDL mocks for Verilog UNIMACROs
-prj.add_library("unimacro").add_source_files(_rel / "sim/unimacro/*.vhdl")
+prj.add_library("unimacro").add_source_files(_rel / "sim" / "unimacro" / "*.vhdl")
 
 prj.main()
