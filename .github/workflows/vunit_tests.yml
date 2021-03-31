@@ -9,10 +9,26 @@ on:
 
 jobs:
 
-  Test:
+
+  Test-mcode:
     runs-on: ubuntu-latest
+    name: 'VUnit GHDL (mcode)'
     steps:
 
     - uses: actions/checkout@v2
 
     - uses: VUnit/vunit_action@master
+      with:
+        image: ghdl/vunit:mcode-master
+
+
+  Test-llvm:
+    runs-on: ubuntu-latest
+    name: 'VUnit GHDL (LLVM)'
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - uses: VUnit/vunit_action@master
+      with:
+        image: ghdl/vunit:llvm-master
