@@ -24,7 +24,6 @@ LIBRARY ibm;
 LIBRARY support;    
                     USE support.power_logic_pkg.all;
 LIBRARY tri;        USE tri.tri_latches_pkg.all;
-LIBRARY clib ;
 
 entity xuq_lsu_cmp_cmp36e is
 generic( expand_type: integer := 2  ); -- 0 - ibm tech, 1 - other );

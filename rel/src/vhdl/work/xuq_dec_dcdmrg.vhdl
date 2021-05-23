@@ -18,7 +18,6 @@ LIBRARY ibm;
 LIBRARY support;    
                     USE support.power_logic_pkg.all;
 LIBRARY tri;        USE tri.tri_latches_pkg.all;
-LIBRARY clib ;
 LIBRARY work;       USE work.xuq_pkg.all;
 
 entity xuq_dec_dcdmrg is

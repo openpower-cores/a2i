@@ -46,7 +46,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_2x1 : function is 1;
+  attribute recursive_synthesis of gate_ao_2x1 : function is true;
   attribute pin_bit_information of gate_ao_2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
@@ -76,7 +76,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_2x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_2x1 : function is 1;
+  attribute recursive_synthesis of ao_2x1 : function is true;
   attribute pin_bit_information of ao_2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -106,7 +106,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_2x1 : function is 1;
+  attribute recursive_synthesis of gate_aoi_2x1 : function is true;
   attribute pin_bit_information of gate_aoi_2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
@@ -136,7 +136,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_2x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_2x1 : function is 1;
+  attribute recursive_synthesis of aoi_2x1 : function is true;
   attribute pin_bit_information of aoi_2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -166,7 +166,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_2x1 : function is 1;
+  attribute recursive_synthesis of gate_oa_2x1 : function is true;
   attribute pin_bit_information of gate_oa_2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
@@ -196,7 +196,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_2x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_2x1 : function is 1;
+  attribute recursive_synthesis of oa_2x1 : function is true;
   attribute pin_bit_information of oa_2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -226,7 +226,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_2x1 : function is 1;
+  attribute recursive_synthesis of gate_oai_2x1 : function is true;
   attribute pin_bit_information of gate_oai_2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
@@ -256,7 +256,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_2x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_2x1 : function is 1;
+  attribute recursive_synthesis of oai_2x1 : function is true;
   attribute pin_bit_information of oai_2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -288,7 +288,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x2 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_2x2 : function is 1;
+  attribute recursive_synthesis of gate_ao_2x2 : function is true;
   attribute pin_bit_information of gate_ao_2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -321,7 +321,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_2x2 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_2x2 : function is 1;
+  attribute recursive_synthesis of ao_2x2 : function is true;
   attribute pin_bit_information of ao_2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -354,7 +354,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x2 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_2x2 : function is 1;
+  attribute recursive_synthesis of gate_aoi_2x2 : function is true;
   attribute pin_bit_information of gate_aoi_2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -387,7 +387,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_2x2 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_2x2 : function is 1;
+  attribute recursive_synthesis of aoi_2x2 : function is true;
   attribute pin_bit_information of aoi_2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -420,7 +420,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x2 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_2x2 : function is 1;
+  attribute recursive_synthesis of gate_oa_2x2 : function is true;
   attribute pin_bit_information of gate_oa_2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -453,7 +453,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_2x2 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_2x2 : function is 1;
+  attribute recursive_synthesis of oa_2x2 : function is true;
   attribute pin_bit_information of oa_2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -486,7 +486,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x2 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_2x2 : function is 1;
+  attribute recursive_synthesis of gate_oai_2x2 : function is true;
   attribute pin_bit_information of gate_oai_2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -519,7 +519,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_2x2 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_2x2 : function is 1;
+  attribute recursive_synthesis of oai_2x2 : function is true;
   attribute pin_bit_information of oai_2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -558,7 +558,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x1x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_2x1x1 : function is 1;
+  attribute recursive_synthesis of gate_ao_2x1x1 : function is true;
   attribute pin_bit_information of gate_ao_2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -591,7 +591,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_2x1x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_2x1x1 : function is 1;
+  attribute recursive_synthesis of ao_2x1x1 : function is true;
   attribute pin_bit_information of ao_2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -624,7 +624,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x1x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_2x1x1 : function is 1;
+  attribute recursive_synthesis of gate_aoi_2x1x1 : function is true;
   attribute pin_bit_information of gate_aoi_2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -657,7 +657,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_2x1x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_2x1x1 : function is 1;
+  attribute recursive_synthesis of aoi_2x1x1 : function is true;
   attribute pin_bit_information of aoi_2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -690,7 +690,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x1x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_2x1x1 : function is 1;
+  attribute recursive_synthesis of gate_oa_2x1x1 : function is true;
   attribute pin_bit_information of gate_oa_2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -723,7 +723,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_2x1x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_2x1x1 : function is 1;
+  attribute recursive_synthesis of oa_2x1x1 : function is true;
   attribute pin_bit_information of oa_2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -756,7 +756,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x1x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_2x1x1 : function is 1;
+  attribute recursive_synthesis of gate_oai_2x1x1 : function is true;
   attribute pin_bit_information of gate_oai_2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -789,7 +789,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_2x1x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_2x1x1 : function is 1;
+  attribute recursive_synthesis of oai_2x1x1 : function is true;
   attribute pin_bit_information of oai_2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -824,7 +824,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x2x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_2x2x1 : function is 1;
+  attribute recursive_synthesis of gate_ao_2x2x1 : function is true;
   attribute pin_bit_information of gate_ao_2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -860,7 +860,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_2x2x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_2x2x1 : function is 1;
+  attribute recursive_synthesis of ao_2x2x1 : function is true;
   attribute pin_bit_information of ao_2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -896,7 +896,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x2x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_2x2x1 : function is 1;
+  attribute recursive_synthesis of gate_aoi_2x2x1 : function is true;
   attribute pin_bit_information of gate_aoi_2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -932,7 +932,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_2x2x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_2x2x1 : function is 1;
+  attribute recursive_synthesis of aoi_2x2x1 : function is true;
   attribute pin_bit_information of aoi_2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -968,7 +968,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x2x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_2x2x1 : function is 1;
+  attribute recursive_synthesis of gate_oa_2x2x1 : function is true;
   attribute pin_bit_information of gate_oa_2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1004,7 +1004,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_2x2x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_2x2x1 : function is 1;
+  attribute recursive_synthesis of oa_2x2x1 : function is true;
   attribute pin_bit_information of oa_2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1040,7 +1040,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x2x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_2x2x1 : function is 1;
+  attribute recursive_synthesis of gate_oai_2x2x1 : function is true;
   attribute pin_bit_information of gate_oai_2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1076,7 +1076,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_2x2x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_2x2x1 : function is 1;
+  attribute recursive_synthesis of oai_2x2x1 : function is true;
   attribute pin_bit_information of oai_2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1114,7 +1114,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x2x2 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_2x2x2 : function is 1;
+  attribute recursive_synthesis of gate_ao_2x2x2 : function is true;
   attribute pin_bit_information of gate_ao_2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1153,7 +1153,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_2x2x2 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_2x2x2 : function is 1;
+  attribute recursive_synthesis of ao_2x2x2 : function is true;
   attribute pin_bit_information of ao_2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1192,7 +1192,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x2x2 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_2x2x2 : function is 1;
+  attribute recursive_synthesis of gate_aoi_2x2x2 : function is true;
   attribute pin_bit_information of gate_aoi_2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1231,7 +1231,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_2x2x2 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_2x2x2 : function is 1;
+  attribute recursive_synthesis of aoi_2x2x2 : function is true;
   attribute pin_bit_information of aoi_2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1270,7 +1270,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x2x2 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_2x2x2 : function is 1;
+  attribute recursive_synthesis of gate_oa_2x2x2 : function is true;
   attribute pin_bit_information of gate_oa_2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1309,7 +1309,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_2x2x2 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_2x2x2 : function is 1;
+  attribute recursive_synthesis of oa_2x2x2 : function is true;
   attribute pin_bit_information of oa_2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1348,7 +1348,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x2x2 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_2x2x2 : function is 1;
+  attribute recursive_synthesis of gate_oai_2x2x2 : function is true;
   attribute pin_bit_information of gate_oai_2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1387,7 +1387,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_2x2x2 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_2x2x2 : function is 1;
+  attribute recursive_synthesis of oai_2x2x2 : function is true;
   attribute pin_bit_information of oai_2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1430,7 +1430,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x1x1x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_2x1x1x1 : function is 1;
+  attribute recursive_synthesis of gate_ao_2x1x1x1 : function is true;
   attribute pin_bit_information of gate_ao_2x1x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1466,7 +1466,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_2x1x1x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_2x1x1x1 : function is 1;
+  attribute recursive_synthesis of ao_2x1x1x1 : function is true;
   attribute pin_bit_information of ao_2x1x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1502,7 +1502,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x1x1x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_2x1x1x1 : function is 1;
+  attribute recursive_synthesis of gate_aoi_2x1x1x1 : function is true;
   attribute pin_bit_information of gate_aoi_2x1x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1538,7 +1538,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_2x1x1x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_2x1x1x1 : function is 1;
+  attribute recursive_synthesis of aoi_2x1x1x1 : function is true;
   attribute pin_bit_information of aoi_2x1x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1574,7 +1574,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x1x1x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_2x1x1x1 : function is 1;
+  attribute recursive_synthesis of gate_oa_2x1x1x1 : function is true;
   attribute pin_bit_information of gate_oa_2x1x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1610,7 +1610,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_2x1x1x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_2x1x1x1 : function is 1;
+  attribute recursive_synthesis of oa_2x1x1x1 : function is true;
   attribute pin_bit_information of oa_2x1x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1646,7 +1646,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x1x1x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_2x1x1x1 : function is 1;
+  attribute recursive_synthesis of gate_oai_2x1x1x1 : function is true;
   attribute pin_bit_information of gate_oai_2x1x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1682,7 +1682,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_2x1x1x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_2x1x1x1 : function is 1;
+  attribute recursive_synthesis of oai_2x1x1x1 : function is true;
   attribute pin_bit_information of oai_2x1x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1720,7 +1720,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x2x1x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_2x2x1x1 : function is 1;
+  attribute recursive_synthesis of gate_ao_2x2x1x1 : function is true;
   attribute pin_bit_information of gate_ao_2x2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1759,7 +1759,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_2x2x1x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_2x2x1x1 : function is 1;
+  attribute recursive_synthesis of ao_2x2x1x1 : function is true;
   attribute pin_bit_information of ao_2x2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1798,7 +1798,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x2x1x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_2x2x1x1 : function is 1;
+  attribute recursive_synthesis of gate_aoi_2x2x1x1 : function is true;
   attribute pin_bit_information of gate_aoi_2x2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1837,7 +1837,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_2x2x1x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_2x2x1x1 : function is 1;
+  attribute recursive_synthesis of aoi_2x2x1x1 : function is true;
   attribute pin_bit_information of aoi_2x2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1876,7 +1876,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x2x1x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_2x2x1x1 : function is 1;
+  attribute recursive_synthesis of gate_oa_2x2x1x1 : function is true;
   attribute pin_bit_information of gate_oa_2x2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1915,7 +1915,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_2x2x1x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_2x2x1x1 : function is 1;
+  attribute recursive_synthesis of oa_2x2x1x1 : function is true;
   attribute pin_bit_information of oa_2x2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1954,7 +1954,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x2x1x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_2x2x1x1 : function is 1;
+  attribute recursive_synthesis of gate_oai_2x2x1x1 : function is true;
   attribute pin_bit_information of gate_oai_2x2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -1993,7 +1993,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_2x2x1x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_2x2x1x1 : function is 1;
+  attribute recursive_synthesis of oai_2x2x1x1 : function is true;
   attribute pin_bit_information of oai_2x2x1x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2034,7 +2034,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x2x2x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_2x2x2x1 : function is 1;
+  attribute recursive_synthesis of gate_ao_2x2x2x1 : function is true;
   attribute pin_bit_information of gate_ao_2x2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2076,7 +2076,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_2x2x2x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_2x2x2x1 : function is 1;
+  attribute recursive_synthesis of ao_2x2x2x1 : function is true;
   attribute pin_bit_information of ao_2x2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2118,7 +2118,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x2x2x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_2x2x2x1 : function is 1;
+  attribute recursive_synthesis of gate_aoi_2x2x2x1 : function is true;
   attribute pin_bit_information of gate_aoi_2x2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2160,7 +2160,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_2x2x2x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_2x2x2x1 : function is 1;
+  attribute recursive_synthesis of aoi_2x2x2x1 : function is true;
   attribute pin_bit_information of aoi_2x2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2202,7 +2202,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x2x2x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_2x2x2x1 : function is 1;
+  attribute recursive_synthesis of gate_oa_2x2x2x1 : function is true;
   attribute pin_bit_information of gate_oa_2x2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2244,7 +2244,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_2x2x2x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_2x2x2x1 : function is 1;
+  attribute recursive_synthesis of oa_2x2x2x1 : function is true;
   attribute pin_bit_information of oa_2x2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2286,7 +2286,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x2x2x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_2x2x2x1 : function is 1;
+  attribute recursive_synthesis of gate_oai_2x2x2x1 : function is true;
   attribute pin_bit_information of gate_oai_2x2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2328,7 +2328,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_2x2x2x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_2x2x2x1 : function is 1;
+  attribute recursive_synthesis of oai_2x2x2x1 : function is true;
   attribute pin_bit_information of oai_2x2x2x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2372,7 +2372,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x2x2x2 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_2x2x2x2 : function is 1;
+  attribute recursive_synthesis of gate_ao_2x2x2x2 : function is true;
   attribute pin_bit_information of gate_ao_2x2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2417,7 +2417,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_2x2x2x2 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_2x2x2x2 : function is 1;
+  attribute recursive_synthesis of ao_2x2x2x2 : function is true;
   attribute pin_bit_information of ao_2x2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2462,7 +2462,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x2x2x2 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_2x2x2x2 : function is 1;
+  attribute recursive_synthesis of gate_aoi_2x2x2x2 : function is true;
   attribute pin_bit_information of gate_aoi_2x2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2507,7 +2507,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_2x2x2x2 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_2x2x2x2 : function is 1;
+  attribute recursive_synthesis of aoi_2x2x2x2 : function is true;
   attribute pin_bit_information of aoi_2x2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2552,7 +2552,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x2x2x2 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_2x2x2x2 : function is 1;
+  attribute recursive_synthesis of gate_oa_2x2x2x2 : function is true;
   attribute pin_bit_information of gate_oa_2x2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2597,7 +2597,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_2x2x2x2 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_2x2x2x2 : function is 1;
+  attribute recursive_synthesis of oa_2x2x2x2 : function is true;
   attribute pin_bit_information of oa_2x2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2642,7 +2642,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x2x2x2 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_2x2x2x2 : function is 1;
+  attribute recursive_synthesis of gate_oai_2x2x2x2 : function is true;
   attribute pin_bit_information of gate_oai_2x2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2687,7 +2687,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_2x2x2x2 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_2x2x2x2 : function is 1;
+  attribute recursive_synthesis of oai_2x2x2x2 : function is true;
   attribute pin_bit_information of oai_2x2x2x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2730,7 +2730,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_3x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_3x1 : function is 1;
+  attribute recursive_synthesis of gate_ao_3x1 : function is true;
   attribute pin_bit_information of gate_ao_3x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2763,7 +2763,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_3x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_3x1 : function is 1;
+  attribute recursive_synthesis of ao_3x1 : function is true;
   attribute pin_bit_information of ao_3x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2796,7 +2796,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_3x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_3x1 : function is 1;
+  attribute recursive_synthesis of gate_aoi_3x1 : function is true;
   attribute pin_bit_information of gate_aoi_3x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2829,7 +2829,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_3x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_3x1 : function is 1;
+  attribute recursive_synthesis of aoi_3x1 : function is true;
   attribute pin_bit_information of aoi_3x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2862,7 +2862,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_3x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_3x1 : function is 1;
+  attribute recursive_synthesis of gate_oa_3x1 : function is true;
   attribute pin_bit_information of gate_oa_3x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2895,7 +2895,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_3x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_3x1 : function is 1;
+  attribute recursive_synthesis of oa_3x1 : function is true;
   attribute pin_bit_information of oa_3x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2928,7 +2928,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_3x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_3x1 : function is 1;
+  attribute recursive_synthesis of gate_oai_3x1 : function is true;
   attribute pin_bit_information of gate_oai_3x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2961,7 +2961,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_3x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_3x1 : function is 1;
+  attribute recursive_synthesis of oai_3x1 : function is true;
   attribute pin_bit_information of oai_3x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -2996,7 +2996,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_3x2 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_3x2 : function is 1;
+  attribute recursive_synthesis of gate_ao_3x2 : function is true;
   attribute pin_bit_information of gate_ao_3x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3032,7 +3032,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_3x2 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_3x2 : function is 1;
+  attribute recursive_synthesis of ao_3x2 : function is true;
   attribute pin_bit_information of ao_3x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3068,7 +3068,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_3x2 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_3x2 : function is 1;
+  attribute recursive_synthesis of gate_aoi_3x2 : function is true;
   attribute pin_bit_information of gate_aoi_3x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3104,7 +3104,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_3x2 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_3x2 : function is 1;
+  attribute recursive_synthesis of aoi_3x2 : function is true;
   attribute pin_bit_information of aoi_3x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3140,7 +3140,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_3x2 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_3x2 : function is 1;
+  attribute recursive_synthesis of gate_oa_3x2 : function is true;
   attribute pin_bit_information of gate_oa_3x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3176,7 +3176,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_3x2 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_3x2 : function is 1;
+  attribute recursive_synthesis of oa_3x2 : function is true;
   attribute pin_bit_information of oa_3x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3212,7 +3212,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_3x2 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_3x2 : function is 1;
+  attribute recursive_synthesis of gate_oai_3x2 : function is true;
   attribute pin_bit_information of gate_oai_3x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3248,7 +3248,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_3x2 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_3x2 : function is 1;
+  attribute recursive_synthesis of oai_3x2 : function is true;
   attribute pin_bit_information of oai_3x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3286,7 +3286,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_3x3 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_3x3 : function is 1;
+  attribute recursive_synthesis of gate_ao_3x3 : function is true;
   attribute pin_bit_information of gate_ao_3x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3325,7 +3325,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_3x3 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_3x3 : function is 1;
+  attribute recursive_synthesis of ao_3x3 : function is true;
   attribute pin_bit_information of ao_3x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3364,7 +3364,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_3x3 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_3x3 : function is 1;
+  attribute recursive_synthesis of gate_aoi_3x3 : function is true;
   attribute pin_bit_information of gate_aoi_3x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3403,7 +3403,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_3x3 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_3x3 : function is 1;
+  attribute recursive_synthesis of aoi_3x3 : function is true;
   attribute pin_bit_information of aoi_3x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3442,7 +3442,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_3x3 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_3x3 : function is 1;
+  attribute recursive_synthesis of gate_oa_3x3 : function is true;
   attribute pin_bit_information of gate_oa_3x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3481,7 +3481,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_3x3 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_3x3 : function is 1;
+  attribute recursive_synthesis of oa_3x3 : function is true;
   attribute pin_bit_information of oa_3x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3520,7 +3520,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_3x3 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_3x3 : function is 1;
+  attribute recursive_synthesis of gate_oai_3x3 : function is true;
   attribute pin_bit_information of gate_oai_3x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3559,7 +3559,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_3x3 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_3x3 : function is 1;
+  attribute recursive_synthesis of oai_3x3 : function is true;
   attribute pin_bit_information of oai_3x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3602,7 +3602,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_4x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_4x1 : function is 1;
+  attribute recursive_synthesis of gate_ao_4x1 : function is true;
   attribute pin_bit_information of gate_ao_4x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3638,7 +3638,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_4x1 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_4x1 : function is 1;
+  attribute recursive_synthesis of ao_4x1 : function is true;
   attribute pin_bit_information of ao_4x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3674,7 +3674,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_4x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_4x1 : function is 1;
+  attribute recursive_synthesis of gate_aoi_4x1 : function is true;
   attribute pin_bit_information of gate_aoi_4x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3710,7 +3710,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_4x1 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_4x1 : function is 1;
+  attribute recursive_synthesis of aoi_4x1 : function is true;
   attribute pin_bit_information of aoi_4x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3746,7 +3746,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_4x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_4x1 : function is 1;
+  attribute recursive_synthesis of gate_oa_4x1 : function is true;
   attribute pin_bit_information of gate_oa_4x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3782,7 +3782,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_4x1 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_4x1 : function is 1;
+  attribute recursive_synthesis of oa_4x1 : function is true;
   attribute pin_bit_information of oa_4x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3818,7 +3818,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_4x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_4x1 : function is 1;
+  attribute recursive_synthesis of gate_oai_4x1 : function is true;
   attribute pin_bit_information of gate_oai_4x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3854,7 +3854,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_4x1 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_4x1 : function is 1;
+  attribute recursive_synthesis of oai_4x1 : function is true;
   attribute pin_bit_information of oai_4x1 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3892,7 +3892,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_4x2 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_4x2 : function is 1;
+  attribute recursive_synthesis of gate_ao_4x2 : function is true;
   attribute pin_bit_information of gate_ao_4x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3931,7 +3931,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_4x2 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_4x2 : function is 1;
+  attribute recursive_synthesis of ao_4x2 : function is true;
   attribute pin_bit_information of ao_4x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -3970,7 +3970,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_4x2 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_4x2 : function is 1;
+  attribute recursive_synthesis of gate_aoi_4x2 : function is true;
   attribute pin_bit_information of gate_aoi_4x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4009,7 +4009,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_4x2 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_4x2 : function is 1;
+  attribute recursive_synthesis of aoi_4x2 : function is true;
   attribute pin_bit_information of aoi_4x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4048,7 +4048,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_4x2 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_4x2 : function is 1;
+  attribute recursive_synthesis of gate_oa_4x2 : function is true;
   attribute pin_bit_information of gate_oa_4x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4087,7 +4087,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_4x2 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_4x2 : function is 1;
+  attribute recursive_synthesis of oa_4x2 : function is true;
   attribute pin_bit_information of oa_4x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4126,7 +4126,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_4x2 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_4x2 : function is 1;
+  attribute recursive_synthesis of gate_oai_4x2 : function is true;
   attribute pin_bit_information of gate_oai_4x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4165,7 +4165,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_4x2 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_4x2 : function is 1;
+  attribute recursive_synthesis of oai_4x2 : function is true;
   attribute pin_bit_information of oai_4x2 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4206,7 +4206,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_4x3 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_4x3 : function is 1;
+  attribute recursive_synthesis of gate_ao_4x3 : function is true;
   attribute pin_bit_information of gate_ao_4x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4248,7 +4248,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_4x3 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_4x3 : function is 1;
+  attribute recursive_synthesis of ao_4x3 : function is true;
   attribute pin_bit_information of ao_4x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4290,7 +4290,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_4x3 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_4x3 : function is 1;
+  attribute recursive_synthesis of gate_aoi_4x3 : function is true;
   attribute pin_bit_information of gate_aoi_4x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4332,7 +4332,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_4x3 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_4x3 : function is 1;
+  attribute recursive_synthesis of aoi_4x3 : function is true;
   attribute pin_bit_information of aoi_4x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4374,7 +4374,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_4x3 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_4x3 : function is 1;
+  attribute recursive_synthesis of gate_oa_4x3 : function is true;
   attribute pin_bit_information of gate_oa_4x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4416,7 +4416,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_4x3 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_4x3 : function is 1;
+  attribute recursive_synthesis of oa_4x3 : function is true;
   attribute pin_bit_information of oa_4x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4458,7 +4458,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_4x3 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_4x3 : function is 1;
+  attribute recursive_synthesis of gate_oai_4x3 : function is true;
   attribute pin_bit_information of gate_oai_4x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4500,7 +4500,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_4x3 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_4x3 : function is 1;
+  attribute recursive_synthesis of oai_4x3 : function is true;
   attribute pin_bit_information of oai_4x3 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4544,7 +4544,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_ao_4x4 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of gate_ao_4x4 : function is 1;
+  attribute recursive_synthesis of gate_ao_4x4 : function is true;
   attribute pin_bit_information of gate_ao_4x4 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4589,7 +4589,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of ao_4x4 : function is "VHDL-AO" ;
-  attribute recursive_synthesis of ao_4x4 : function is 1;
+  attribute recursive_synthesis of ao_4x4 : function is true;
   attribute pin_bit_information of ao_4x4 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4634,7 +4634,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_4x4 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of gate_aoi_4x4 : function is 1;
+  attribute recursive_synthesis of gate_aoi_4x4 : function is true;
   attribute pin_bit_information of gate_aoi_4x4 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4679,7 +4679,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of aoi_4x4 : function is "VHDL-AOI" ;
-  attribute recursive_synthesis of aoi_4x4 : function is 1;
+  attribute recursive_synthesis of aoi_4x4 : function is true;
   attribute pin_bit_information of aoi_4x4 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4724,7 +4724,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oa_4x4 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of gate_oa_4x4 : function is 1;
+  attribute recursive_synthesis of gate_oa_4x4 : function is true;
   attribute pin_bit_information of gate_oa_4x4 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4769,7 +4769,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oa_4x4 : function is "VHDL-OA" ;
-  attribute recursive_synthesis of oa_4x4 : function is 1;
+  attribute recursive_synthesis of oa_4x4 : function is true;
   attribute pin_bit_information of oa_4x4 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4814,7 +4814,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of gate_oai_4x4 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of gate_oai_4x4 : function is 1;
+  attribute recursive_synthesis of gate_oai_4x4 : function is true;
   attribute pin_bit_information of gate_oai_4x4 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
@@ -4859,7 +4859,7 @@ package std_ulogic_ao_support is
      ) return std_ulogic_vector ;
   -- synopsys translate_off
   attribute btr_name   of oai_4x4 : function is "VHDL-OAI" ;
-  attribute recursive_synthesis of oai_4x4 : function is 1;
+  attribute recursive_synthesis of oai_4x4 : function is true;
   attribute pin_bit_information of oai_4x4 : function is
     (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
      2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),

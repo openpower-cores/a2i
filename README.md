@@ -1,3 +1,5 @@
+![](https://github.com/openpower-cores/a2i/workflows/VUnit%20Tests/badge.svg)
+
 # A2I
 
 ## The Project
@@ -8,7 +10,7 @@ See [Project Info](rel/readme.md) for details.
 ## The Core
 The [A2I core](rel/doc/A2_BGQ.pdf) was created as a high-frequency four-threaded design, optimized for throughput and targeted for 3+ GHz in 45nm technology.
 
-It is a 27 FO4 implementation, with an in-order pipeline supporting 1-4 threads.  It fully supports Power ISA 2.06 using Book III-E.  The core was also designed to support pluggable implementations of MMU and AXU logic macros.  This includes elimination of the MMU and using ERAT-only mode for translation/protection.  
+It is a 27 FO4 implementation, with an in-order pipeline supporting 1-4 threads.  It fully supports Power ISA 2.06 using Book III-E.  The core was also designed to support pluggable implementations of MMU and AXU logic macros.  This includes elimination of the MMU and using ERAT-only mode for translation/protection.
 
 ## The History
 
@@ -27,7 +29,7 @@ There may be uses for this core where a full feature-set is needed, and its limi
 
 The design of the A2L2 interface (core-to-L2/nest) is straightforward, and offers multiple configurable options for data interfacing.  There is also some configurability for handling certain Power-specific features (core vs. L2).
 
-The ability to add an AXU that is tightly-coupled to the core enables many possibilities for special-purpose designs, like an open distributed Web 3.0 hardware/software system integrating streaming encryption, blockchain, semantic query, etc. 
+The ability to add an AXU that is tightly-coupled to the core enables many possibilities for special-purpose designs, like an open distributed Web 3.0 hardware/software system integrating streaming encryption, blockchain, semantic query, etc.
 
 ### Technology Scaling
 

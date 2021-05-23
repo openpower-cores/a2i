@@ -17,7 +17,6 @@
 
 library ieee; use ieee.std_logic_1164.all;
               use ieee.numeric_std.all;
-library ibm; 
 library support; 
                  use support.power_logic_pkg.all;
 library tri; use tri.tri_latches_pkg.all;

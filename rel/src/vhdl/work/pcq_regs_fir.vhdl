@@ -14,7 +14,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-library ibm,clib;
+library ibm;
 use ibm.std_ulogic_support.all;
 use ibm.std_ulogic_function_support.all;
 use ibm.std_ulogic_unsigned.all;

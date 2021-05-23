@@ -9,7 +9,7 @@
 
 --  Description:  XU Package
 --
-library ieee,ibm;
+library ieee;
 use ieee.std_logic_1164.all;
 
 package xuq_pkg is

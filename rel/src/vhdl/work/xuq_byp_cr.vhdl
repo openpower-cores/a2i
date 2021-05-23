@@ -9,7 +9,7 @@
 
 --  Description:  XU Bypass Unit
 --
-library ieee,ibm,support,tri,clib,work;
+library ieee,ibm,support,tri,work;
 use ieee.std_logic_1164.all;
 use ibm.std_ulogic_function_support.all;
 use tri.tri_latches_pkg.all;

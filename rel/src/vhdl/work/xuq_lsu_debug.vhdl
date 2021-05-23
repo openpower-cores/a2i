@@ -9,7 +9,7 @@
 
 --  Description:  LSU Debug Event Muxing
 --
-library ieee,ibm,support,work,tri,clib;
+library ieee,ibm,support,work,tri;
 use ieee.std_logic_1164.all;
 use support.power_logic_pkg.all;
 use tri.tri_latches_pkg.all;
