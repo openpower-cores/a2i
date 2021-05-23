@@ -12,9 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: srt32/git-actions@v0.0.3
-        with:
-          args: git update-index --chmod=+x run.py
       - uses: VUnit/vunit_action@master
         with:
           cmd: python3 ./run.py
