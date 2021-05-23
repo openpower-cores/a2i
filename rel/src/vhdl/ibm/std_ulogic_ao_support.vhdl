@@ -38,7 +38,7 @@ package std_ulogic_ao_support is
   function gate_ao_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
-     gate1 : std_ulogic 
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -59,7 +59,7 @@ package std_ulogic_ao_support is
   function ao_2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -68,7 +68,7 @@ package std_ulogic_ao_support is
   function ao_2x1
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -89,7 +89,7 @@ package std_ulogic_ao_support is
   function gate_aoi_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -98,7 +98,7 @@ package std_ulogic_ao_support is
   function gate_aoi_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -119,7 +119,7 @@ package std_ulogic_ao_support is
   function aoi_2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -128,7 +128,7 @@ package std_ulogic_ao_support is
   function aoi_2x1
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -149,7 +149,7 @@ package std_ulogic_ao_support is
   function gate_oa_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -158,7 +158,7 @@ package std_ulogic_ao_support is
   function gate_oa_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -179,7 +179,7 @@ package std_ulogic_ao_support is
   function oa_2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -188,7 +188,7 @@ package std_ulogic_ao_support is
   function oa_2x1
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -209,7 +209,7 @@ package std_ulogic_ao_support is
   function gate_oai_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -218,7 +218,7 @@ package std_ulogic_ao_support is
   function gate_oai_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -239,7 +239,7 @@ package std_ulogic_ao_support is
   function oai_2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -248,7 +248,7 @@ package std_ulogic_ao_support is
   function oai_2x1
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -270,7 +270,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic  
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -280,7 +280,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic_vector  
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -303,7 +303,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -313,7 +313,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -336,7 +336,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic  
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -346,7 +346,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic_vector  
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -369,7 +369,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -379,7 +379,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -402,7 +402,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic  
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -412,7 +412,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic_vector  
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -435,7 +435,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -445,7 +445,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -468,7 +468,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic  
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -478,7 +478,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic_vector  
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -501,7 +501,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -511,7 +511,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -540,7 +540,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -550,7 +550,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -568,12 +568,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function ao_2x1x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -583,7 +583,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -601,12 +601,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_2x1x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -616,7 +616,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -634,12 +634,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_2x1x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -649,7 +649,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -667,12 +667,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_2x1x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -682,7 +682,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -700,12 +700,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_2x1x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -715,7 +715,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -733,12 +733,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_2x1x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -748,7 +748,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -766,12 +766,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_2x1x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -781,7 +781,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -799,13 +799,13 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_ao_2x2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -816,7 +816,7 @@ package std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -835,13 +835,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function ao_2x2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -852,7 +852,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -871,13 +871,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_2x2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -888,7 +888,7 @@ package std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -907,13 +907,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_2x2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -924,7 +924,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -943,13 +943,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_2x2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -960,7 +960,7 @@ package std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -979,13 +979,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_2x2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -996,7 +996,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1015,13 +1015,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_2x2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1032,7 +1032,7 @@ package std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1051,13 +1051,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_2x2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1068,7 +1068,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1087,14 +1087,14 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_ao_2x2x2
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic  
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1106,7 +1106,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic_vector  
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1126,14 +1126,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function ao_2x2x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in2b  : std_ulogic  
+     in2b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1145,7 +1145,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in2b  : std_ulogic_vector  
+     in2b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1165,14 +1165,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_2x2x2
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic  
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1184,7 +1184,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic_vector  
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1204,14 +1204,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_2x2x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in2b  : std_ulogic  
+     in2b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1223,7 +1223,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in2b  : std_ulogic_vector  
+     in2b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1243,14 +1243,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_2x2x2
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic  
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1262,7 +1262,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic_vector  
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1282,14 +1282,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_2x2x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in2b  : std_ulogic  
+     in2b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1301,7 +1301,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in2b  : std_ulogic_vector  
+     in2b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1321,14 +1321,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_2x2x2
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic  
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1340,7 +1340,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic_vector  
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1360,14 +1360,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_2x2x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in2b  : std_ulogic  
+     in2b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1379,7 +1379,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in2b  : std_ulogic_vector  
+     in2b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1399,7 +1399,7 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   -- =============================================================
   -- 2x4 input Port AO/OA Gates
   -- =============================================================
@@ -1411,7 +1411,7 @@ package std_ulogic_ao_support is
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1422,7 +1422,7 @@ package std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1441,13 +1441,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function ao_2x1x1x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1458,7 +1458,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1477,13 +1477,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_2x1x1x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1494,7 +1494,7 @@ package std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1513,13 +1513,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_2x1x1x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1530,7 +1530,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1549,13 +1549,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_2x1x1x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1566,7 +1566,7 @@ package std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1585,13 +1585,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_2x1x1x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1602,7 +1602,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1621,13 +1621,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_2x1x1x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1638,7 +1638,7 @@ package std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1657,13 +1657,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_2x1x1x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1674,7 +1674,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1693,14 +1693,14 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_ao_2x2x1x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1712,7 +1712,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1732,14 +1732,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-   
+
   function ao_2x2x1x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1751,7 +1751,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1771,14 +1771,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_2x2x1x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1790,7 +1790,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1810,14 +1810,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_2x2x1x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1829,7 +1829,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1849,14 +1849,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_2x2x1x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1868,7 +1868,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1888,14 +1888,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_2x2x1x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1907,7 +1907,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1927,14 +1927,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_2x2x1x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1946,7 +1946,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1966,14 +1966,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_2x2x1x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -1985,7 +1985,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2005,7 +2005,7 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_ao_2x2x2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
@@ -2013,7 +2013,7 @@ package std_ulogic_ao_support is
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2026,7 +2026,7 @@ package std_ulogic_ao_support is
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2047,7 +2047,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function ao_2x2x2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -2055,7 +2055,7 @@ package std_ulogic_ao_support is
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2068,7 +2068,7 @@ package std_ulogic_ao_support is
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2089,7 +2089,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_2x2x2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
@@ -2097,7 +2097,7 @@ package std_ulogic_ao_support is
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2110,7 +2110,7 @@ package std_ulogic_ao_support is
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2131,7 +2131,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_2x2x2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -2139,7 +2139,7 @@ package std_ulogic_ao_support is
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2152,7 +2152,7 @@ package std_ulogic_ao_support is
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2173,7 +2173,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_2x2x2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
@@ -2181,7 +2181,7 @@ package std_ulogic_ao_support is
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2194,7 +2194,7 @@ package std_ulogic_ao_support is
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2215,7 +2215,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_2x2x2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -2223,7 +2223,7 @@ package std_ulogic_ao_support is
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2236,7 +2236,7 @@ package std_ulogic_ao_support is
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2257,7 +2257,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_2x2x2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
@@ -2265,7 +2265,7 @@ package std_ulogic_ao_support is
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2278,7 +2278,7 @@ package std_ulogic_ao_support is
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2299,7 +2299,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_2x2x2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -2307,7 +2307,7 @@ package std_ulogic_ao_support is
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2320,7 +2320,7 @@ package std_ulogic_ao_support is
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2341,7 +2341,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_ao_2x2x2x2
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
@@ -2350,7 +2350,7 @@ package std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic  
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2364,7 +2364,7 @@ package std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic_vector  
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2386,7 +2386,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function ao_2x2x2x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -2395,7 +2395,7 @@ package std_ulogic_ao_support is
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
      in3a  : std_ulogic ;
-     in3b  : std_ulogic  
+     in3b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2409,7 +2409,7 @@ package std_ulogic_ao_support is
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
      in3a  : std_ulogic_vector ;
-     in3b  : std_ulogic_vector  
+     in3b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2431,7 +2431,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_2x2x2x2
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
@@ -2440,7 +2440,7 @@ package std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic  
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2454,7 +2454,7 @@ package std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic_vector  
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2476,7 +2476,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_2x2x2x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -2485,7 +2485,7 @@ package std_ulogic_ao_support is
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
      in3a  : std_ulogic ;
-     in3b  : std_ulogic  
+     in3b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2499,7 +2499,7 @@ package std_ulogic_ao_support is
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
      in3a  : std_ulogic_vector ;
-     in3b  : std_ulogic_vector  
+     in3b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2521,7 +2521,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_2x2x2x2
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
@@ -2530,7 +2530,7 @@ package std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic  
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2544,7 +2544,7 @@ package std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic_vector  
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2566,7 +2566,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_2x2x2x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -2575,7 +2575,7 @@ package std_ulogic_ao_support is
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
      in3a  : std_ulogic ;
-     in3b  : std_ulogic  
+     in3b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2589,7 +2589,7 @@ package std_ulogic_ao_support is
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
      in3a  : std_ulogic_vector ;
-     in3b  : std_ulogic_vector  
+     in3b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2611,7 +2611,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_2x2x2x2
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
@@ -2620,7 +2620,7 @@ package std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic  
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2634,7 +2634,7 @@ package std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic_vector  
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2656,7 +2656,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_2x2x2x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -2665,7 +2665,7 @@ package std_ulogic_ao_support is
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
      in3a  : std_ulogic ;
-     in3b  : std_ulogic  
+     in3b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2679,7 +2679,7 @@ package std_ulogic_ao_support is
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
      in3a  : std_ulogic_vector ;
-     in3b  : std_ulogic_vector  
+     in3b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2701,7 +2701,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   -- =============================================================
   -- 3 input Port AO/OA Gates
   -- =============================================================
@@ -2712,7 +2712,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2722,7 +2722,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2740,12 +2740,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function ao_3x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2755,7 +2755,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2773,12 +2773,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_3x1
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2788,7 +2788,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2806,12 +2806,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_3x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2821,7 +2821,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2839,12 +2839,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_3x1
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2854,7 +2854,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2872,12 +2872,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_3x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2887,7 +2887,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2905,12 +2905,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_3x1
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2920,7 +2920,7 @@ package std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2938,12 +2938,12 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_3x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2953,7 +2953,7 @@ package std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2971,13 +2971,13 @@ package std_ulogic_ao_support is
      6 => ("   ","PASS    ","    ","              "),
      7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_ao_3x2
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -2988,7 +2988,7 @@ package std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3007,13 +3007,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function ao_3x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3024,7 +3024,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3043,13 +3043,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_3x2
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3060,7 +3060,7 @@ package std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3079,13 +3079,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_3x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3096,7 +3096,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3115,13 +3115,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_3x2
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3132,7 +3132,7 @@ package std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3151,13 +3151,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_3x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3168,7 +3168,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3187,13 +3187,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_3x2
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3204,7 +3204,7 @@ package std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3223,13 +3223,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_3x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3240,7 +3240,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3259,14 +3259,14 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_ao_3x3
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3278,7 +3278,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3298,14 +3298,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function ao_3x3
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3317,7 +3317,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3337,14 +3337,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_3x3
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3356,7 +3356,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3376,14 +3376,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_3x3
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3395,7 +3395,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3415,14 +3415,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_3x3
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3434,7 +3434,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3454,14 +3454,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_3x3
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3473,7 +3473,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3493,14 +3493,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_3x3
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3512,7 +3512,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3532,14 +3532,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_3x3
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3551,7 +3551,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3571,7 +3571,7 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   -- =============================================================
   -- 4 input Port AO/OA Gates
   -- =============================================================
@@ -3583,7 +3583,7 @@ package std_ulogic_ao_support is
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3594,7 +3594,7 @@ package std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3613,13 +3613,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function ao_4x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3630,7 +3630,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3649,13 +3649,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_4x1
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3666,7 +3666,7 @@ package std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3685,13 +3685,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_4x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3702,7 +3702,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3721,13 +3721,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_4x1
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3738,7 +3738,7 @@ package std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3757,13 +3757,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_4x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3774,7 +3774,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3793,13 +3793,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_4x1
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3810,7 +3810,7 @@ package std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3829,13 +3829,13 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_4x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3846,7 +3846,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3865,14 +3865,14 @@ package std_ulogic_ao_support is
      7 => ("   ","PASS    ","    ","              "),
      8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_ao_4x2
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3884,7 +3884,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3904,14 +3904,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function ao_4x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3923,7 +3923,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3943,14 +3943,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_4x2
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3962,7 +3962,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -3982,14 +3982,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_4x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4001,7 +4001,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4021,14 +4021,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_4x2
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4040,7 +4040,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4060,14 +4060,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_4x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4079,7 +4079,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4099,14 +4099,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_4x2
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4118,7 +4118,7 @@ package std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4138,14 +4138,14 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_4x2
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4157,7 +4157,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4177,7 +4177,7 @@ package std_ulogic_ao_support is
      8 => ("   ","PASS    ","    ","              "),
      9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_ao_4x3
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
@@ -4185,7 +4185,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4198,7 +4198,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4219,7 +4219,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function ao_4x3
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -4227,7 +4227,7 @@ package std_ulogic_ao_support is
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4240,7 +4240,7 @@ package std_ulogic_ao_support is
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4261,7 +4261,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_4x3
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
@@ -4269,7 +4269,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4282,7 +4282,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4303,7 +4303,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_4x3
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -4311,7 +4311,7 @@ package std_ulogic_ao_support is
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4324,7 +4324,7 @@ package std_ulogic_ao_support is
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4345,7 +4345,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_4x3
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
@@ -4353,7 +4353,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4366,7 +4366,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4387,7 +4387,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_4x3
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -4395,7 +4395,7 @@ package std_ulogic_ao_support is
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4408,7 +4408,7 @@ package std_ulogic_ao_support is
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4429,7 +4429,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_4x3
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
@@ -4437,7 +4437,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4450,7 +4450,7 @@ package std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4471,7 +4471,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_4x3
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -4479,7 +4479,7 @@ package std_ulogic_ao_support is
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4492,7 +4492,7 @@ package std_ulogic_ao_support is
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4513,7 +4513,7 @@ package std_ulogic_ao_support is
      9 => ("   ","PASS    ","    ","              "),
      10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_ao_4x4
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
@@ -4522,7 +4522,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4536,7 +4536,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4558,7 +4558,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function ao_4x4
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -4567,7 +4567,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in1c  : std_ulogic ;
-     in1d  : std_ulogic  
+     in1d  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4581,7 +4581,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in1c  : std_ulogic_vector ;
-     in1d  : std_ulogic_vector  
+     in1d  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4603,7 +4603,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_aoi_4x4
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
@@ -4612,7 +4612,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4626,7 +4626,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4648,7 +4648,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function aoi_4x4
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -4657,7 +4657,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in1c  : std_ulogic ;
-     in1d  : std_ulogic  
+     in1d  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4671,7 +4671,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in1c  : std_ulogic_vector ;
-     in1d  : std_ulogic_vector  
+     in1d  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4693,7 +4693,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oa_4x4
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
@@ -4702,7 +4702,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4716,7 +4716,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4738,7 +4738,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oa_4x4
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -4747,7 +4747,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in1c  : std_ulogic ;
-     in1d  : std_ulogic  
+     in1d  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4761,7 +4761,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in1c  : std_ulogic_vector ;
-     in1d  : std_ulogic_vector  
+     in1d  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4783,7 +4783,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function gate_oai_4x4
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
@@ -4792,7 +4792,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4806,7 +4806,7 @@ package std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4828,7 +4828,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
   function oai_4x4
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
@@ -4837,7 +4837,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in1c  : std_ulogic ;
-     in1d  : std_ulogic  
+     in1d  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4851,7 +4851,7 @@ package std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in1c  : std_ulogic_vector ;
-     in1d  : std_ulogic_vector  
+     in1d  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4873,7 +4873,7 @@ package std_ulogic_ao_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
-  
+
 end std_ulogic_ao_support;
 
 package body std_ulogic_ao_support is
@@ -4883,7 +4883,7 @@ package body std_ulogic_ao_support is
   function gate_ao_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4905,7 +4905,7 @@ package body std_ulogic_ao_support is
   function gate_ao_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4928,7 +4928,7 @@ package body std_ulogic_ao_support is
   function ao_2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4950,7 +4950,7 @@ package body std_ulogic_ao_support is
   function ao_2x1
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4972,7 +4972,7 @@ package body std_ulogic_ao_support is
   function gate_aoi_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -4994,7 +4994,7 @@ package body std_ulogic_ao_support is
   function gate_aoi_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5017,7 +5017,7 @@ package body std_ulogic_ao_support is
   function aoi_2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5039,7 +5039,7 @@ package body std_ulogic_ao_support is
   function aoi_2x1
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5061,7 +5061,7 @@ package body std_ulogic_ao_support is
   function gate_oa_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5083,7 +5083,7 @@ package body std_ulogic_ao_support is
   function gate_oa_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5106,7 +5106,7 @@ package body std_ulogic_ao_support is
   function oa_2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5128,7 +5128,7 @@ package body std_ulogic_ao_support is
   function oa_2x1
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5150,7 +5150,7 @@ package body std_ulogic_ao_support is
   function gate_oai_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5172,7 +5172,7 @@ package body std_ulogic_ao_support is
   function gate_oai_2x1
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5195,7 +5195,7 @@ package body std_ulogic_ao_support is
   function oai_2x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5217,7 +5217,7 @@ package body std_ulogic_ao_support is
   function oai_2x1
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5240,7 +5240,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic  
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5263,7 +5263,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic_vector  
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5287,7 +5287,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5310,7 +5310,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5333,7 +5333,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic  
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5356,7 +5356,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic_vector  
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5380,7 +5380,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5403,7 +5403,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5426,7 +5426,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic  
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5449,7 +5449,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic_vector  
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5473,7 +5473,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5496,7 +5496,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5519,7 +5519,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic  
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5542,7 +5542,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1   : std_ulogic_vector  
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5566,7 +5566,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5589,7 +5589,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5616,7 +5616,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5641,7 +5641,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5666,7 +5666,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5689,7 +5689,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5714,7 +5714,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5739,7 +5739,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5764,7 +5764,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5787,7 +5787,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5812,7 +5812,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5837,7 +5837,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5862,7 +5862,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5885,7 +5885,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5910,7 +5910,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5935,7 +5935,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5960,7 +5960,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -5983,7 +5983,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6009,7 +6009,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6035,7 +6035,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6061,7 +6061,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6087,7 +6087,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6113,7 +6113,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6139,7 +6139,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6165,7 +6165,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6191,7 +6191,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6217,7 +6217,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6243,7 +6243,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6269,7 +6269,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6295,7 +6295,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6321,7 +6321,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6347,7 +6347,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
-     gate2 : std_ulogic  
+     gate2 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6373,7 +6373,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in2a  : std_ulogic  
+     in2a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6399,7 +6399,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in2a  : std_ulogic_vector  
+     in2a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6426,7 +6426,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic  
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6453,7 +6453,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic_vector  
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6480,7 +6480,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in2b  : std_ulogic  
+     in2b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6507,7 +6507,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in2b  : std_ulogic_vector  
+     in2b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6534,7 +6534,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic  
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6561,7 +6561,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic_vector  
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6588,7 +6588,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in2b  : std_ulogic  
+     in2b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6615,7 +6615,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in2b  : std_ulogic_vector  
+     in2b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6642,7 +6642,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic  
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6669,7 +6669,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic_vector  
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6696,7 +6696,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in2b  : std_ulogic  
+     in2b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6723,7 +6723,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in2b  : std_ulogic_vector  
+     in2b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6750,7 +6750,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic  
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6777,7 +6777,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     in2   : std_ulogic_vector  
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6804,7 +6804,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in2b  : std_ulogic  
+     in2b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6831,7 +6831,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in2b  : std_ulogic_vector  
+     in2b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6861,7 +6861,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6888,7 +6888,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6909,13 +6909,13 @@ package body std_ulogic_ao_support is
 	      ( 0 to in0'length-1 => gate3 ) ;
     return result ;
   end gate_ao_2x1x1x1 ;
-  
+
   function ao_2x1x1x1
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6942,7 +6942,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6969,7 +6969,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -6996,7 +6996,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7023,7 +7023,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7050,7 +7050,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7077,7 +7077,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7104,7 +7104,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7131,7 +7131,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7158,7 +7158,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7185,7 +7185,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7212,7 +7212,7 @@ package body std_ulogic_ao_support is
      in0   : std_ulogic_vector ;
      gate1 : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7239,7 +7239,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in1a  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7266,7 +7266,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7294,7 +7294,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7322,7 +7322,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7350,7 +7350,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7378,7 +7378,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7406,7 +7406,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7434,7 +7434,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7462,7 +7462,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7490,7 +7490,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7518,7 +7518,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7546,7 +7546,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7574,7 +7574,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7602,7 +7602,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7630,7 +7630,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7658,7 +7658,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7686,7 +7686,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7714,7 +7714,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7743,7 +7743,7 @@ package body std_ulogic_ao_support is
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7772,7 +7772,7 @@ package body std_ulogic_ao_support is
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7801,7 +7801,7 @@ package body std_ulogic_ao_support is
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7830,7 +7830,7 @@ package body std_ulogic_ao_support is
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7859,7 +7859,7 @@ package body std_ulogic_ao_support is
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7888,7 +7888,7 @@ package body std_ulogic_ao_support is
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7917,7 +7917,7 @@ package body std_ulogic_ao_support is
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7946,7 +7946,7 @@ package body std_ulogic_ao_support is
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -7975,7 +7975,7 @@ package body std_ulogic_ao_support is
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8004,7 +8004,7 @@ package body std_ulogic_ao_support is
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8033,7 +8033,7 @@ package body std_ulogic_ao_support is
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8062,7 +8062,7 @@ package body std_ulogic_ao_support is
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8091,7 +8091,7 @@ package body std_ulogic_ao_support is
      in1   : std_ulogic ;
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8120,7 +8120,7 @@ package body std_ulogic_ao_support is
      in1   : std_ulogic_vector ;
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
-     gate3 : std_ulogic  
+     gate3 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8149,7 +8149,7 @@ package body std_ulogic_ao_support is
      in1b  : std_ulogic ;
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
-     in3a  : std_ulogic  
+     in3a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8178,7 +8178,7 @@ package body std_ulogic_ao_support is
      in1b  : std_ulogic_vector ;
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
-     in3a  : std_ulogic_vector  
+     in3a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8208,7 +8208,7 @@ package body std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic  
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8238,7 +8238,7 @@ package body std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic_vector  
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8268,7 +8268,7 @@ package body std_ulogic_ao_support is
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
      in3a  : std_ulogic ;
-     in3b  : std_ulogic  
+     in3b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8298,7 +8298,7 @@ package body std_ulogic_ao_support is
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
      in3a  : std_ulogic_vector ;
-     in3b  : std_ulogic_vector  
+     in3b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8328,7 +8328,7 @@ package body std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic  
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8358,7 +8358,7 @@ package body std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic_vector  
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8388,7 +8388,7 @@ package body std_ulogic_ao_support is
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
      in3a  : std_ulogic ;
-     in3b  : std_ulogic  
+     in3b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8418,7 +8418,7 @@ package body std_ulogic_ao_support is
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
      in3a  : std_ulogic_vector ;
-     in3b  : std_ulogic_vector  
+     in3b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8448,7 +8448,7 @@ package body std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic  
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8478,7 +8478,7 @@ package body std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic_vector  
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8508,7 +8508,7 @@ package body std_ulogic_ao_support is
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
      in3a  : std_ulogic ;
-     in3b  : std_ulogic  
+     in3b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8538,7 +8538,7 @@ package body std_ulogic_ao_support is
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
      in3a  : std_ulogic_vector ;
-     in3b  : std_ulogic_vector  
+     in3b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8568,7 +8568,7 @@ package body std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic  
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8598,7 +8598,7 @@ package body std_ulogic_ao_support is
      gate2 : std_ulogic ;
      in2   : std_ulogic_vector ;
      gate3 : std_ulogic ;
-     in3   : std_ulogic_vector  
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8628,7 +8628,7 @@ package body std_ulogic_ao_support is
      in2a  : std_ulogic ;
      in2b  : std_ulogic ;
      in3a  : std_ulogic ;
-     in3b  : std_ulogic  
+     in3b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8658,7 +8658,7 @@ package body std_ulogic_ao_support is
      in2a  : std_ulogic_vector ;
      in2b  : std_ulogic_vector ;
      in3a  : std_ulogic_vector ;
-     in3b  : std_ulogic_vector  
+     in3b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8688,7 +8688,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8712,7 +8712,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8736,7 +8736,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8760,7 +8760,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8784,7 +8784,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8808,7 +8808,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8832,7 +8832,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8856,7 +8856,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8880,7 +8880,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8904,7 +8904,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8928,7 +8928,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8952,7 +8952,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8976,7 +8976,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -8992,7 +8992,7 @@ package body std_ulogic_ao_support is
     variable result     : std_ulogic ;
   begin
     result := not( ( gate0 or in0a or in0b ) and
-		   ( gate1 ) ) ; 
+		   ( gate1 ) ) ;
     return result ;
   end gate_oai_3x1 ;
 
@@ -9000,7 +9000,7 @@ package body std_ulogic_ao_support is
     (gate0 : std_ulogic ;
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9016,7 +9016,7 @@ package body std_ulogic_ao_support is
     variable result     : std_ulogic_vector (0 to in0a'length-1);
   begin
     result := not( ( ( 0 to in0a'length-1 => gate0 ) or in0a or in0b ) and
-		   ( 0 to in0a'length-1 => gate1 ) ) ; 
+		   ( 0 to in0a'length-1 => gate1 ) ) ;
     return result ;
   end gate_oai_3x1 ;
 
@@ -9024,7 +9024,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9048,7 +9048,7 @@ package body std_ulogic_ao_support is
     (in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9073,7 +9073,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9098,7 +9098,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9123,7 +9123,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9148,7 +9148,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9173,7 +9173,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9198,7 +9198,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9223,7 +9223,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9248,7 +9248,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9273,7 +9273,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9298,7 +9298,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9323,7 +9323,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9348,7 +9348,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9373,7 +9373,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9398,7 +9398,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9423,7 +9423,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9448,7 +9448,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9474,7 +9474,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9500,7 +9500,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9526,7 +9526,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9552,7 +9552,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9578,7 +9578,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9604,7 +9604,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9630,7 +9630,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9656,7 +9656,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9682,7 +9682,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9708,7 +9708,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9734,7 +9734,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9760,7 +9760,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9786,7 +9786,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9812,7 +9812,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9838,7 +9838,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9864,7 +9864,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9893,7 +9893,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9918,7 +9918,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9943,7 +9943,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9968,7 +9968,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -9993,7 +9993,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10018,7 +10018,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10043,7 +10043,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10068,7 +10068,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10093,7 +10093,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10118,7 +10118,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10143,7 +10143,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10168,7 +10168,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10193,7 +10193,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic ;
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10218,7 +10218,7 @@ package body std_ulogic_ao_support is
      in0a  : std_ulogic_vector ;
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
-     gate1 : std_ulogic  
+     gate1 : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10243,7 +10243,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10268,7 +10268,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10294,7 +10294,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10320,7 +10320,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10346,7 +10346,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10372,7 +10372,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10398,7 +10398,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10424,7 +10424,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10450,7 +10450,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10476,7 +10476,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10502,7 +10502,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10528,7 +10528,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10554,7 +10554,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10580,7 +10580,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10606,7 +10606,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic ;
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic  
+     in1a  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10632,7 +10632,7 @@ package body std_ulogic_ao_support is
      in0b  : std_ulogic_vector ;
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
-     in1a  : std_ulogic_vector  
+     in1a  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10658,7 +10658,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic ;
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10684,7 +10684,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10711,7 +10711,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10738,7 +10738,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10765,7 +10765,7 @@ package body std_ulogic_ao_support is
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10792,7 +10792,7 @@ package body std_ulogic_ao_support is
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10819,7 +10819,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10846,7 +10846,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10873,7 +10873,7 @@ package body std_ulogic_ao_support is
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10900,7 +10900,7 @@ package body std_ulogic_ao_support is
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10927,7 +10927,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10954,7 +10954,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -10981,7 +10981,7 @@ package body std_ulogic_ao_support is
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11008,7 +11008,7 @@ package body std_ulogic_ao_support is
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11035,7 +11035,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
-     in1b  : std_ulogic  
+     in1b  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11062,7 +11062,7 @@ package body std_ulogic_ao_support is
      in0c  : std_ulogic_vector ;
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
-     in1b  : std_ulogic_vector  
+     in1b  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11089,7 +11089,7 @@ package body std_ulogic_ao_support is
      in0d  : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11116,7 +11116,7 @@ package body std_ulogic_ao_support is
      in0d  : std_ulogic_vector ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11144,7 +11144,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11172,7 +11172,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11200,7 +11200,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in1c  : std_ulogic ;
-     in1d  : std_ulogic  
+     in1d  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11228,7 +11228,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in1c  : std_ulogic_vector ;
-     in1d  : std_ulogic_vector  
+     in1d  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11256,7 +11256,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11284,7 +11284,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11312,7 +11312,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in1c  : std_ulogic ;
-     in1d  : std_ulogic  
+     in1d  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11340,7 +11340,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in1c  : std_ulogic_vector ;
-     in1d  : std_ulogic_vector  
+     in1d  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11368,7 +11368,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11396,7 +11396,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11424,7 +11424,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in1c  : std_ulogic ;
-     in1d  : std_ulogic  
+     in1d  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11452,7 +11452,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in1c  : std_ulogic_vector ;
-     in1d  : std_ulogic_vector  
+     in1d  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11480,7 +11480,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
-     in1c  : std_ulogic  
+     in1c  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11508,7 +11508,7 @@ package body std_ulogic_ao_support is
      gate1 : std_ulogic ;
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
-     in1c  : std_ulogic_vector  
+     in1c  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11536,7 +11536,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic ;
      in1b  : std_ulogic ;
      in1c  : std_ulogic ;
-     in1d  : std_ulogic  
+     in1d  : std_ulogic
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""
@@ -11564,7 +11564,7 @@ package body std_ulogic_ao_support is
      in1a  : std_ulogic_vector ;
      in1b  : std_ulogic_vector ;
      in1c  : std_ulogic_vector ;
-     in1d  : std_ulogic_vector  
+     in1d  : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : string := ""
      ;blkdata : string := ""

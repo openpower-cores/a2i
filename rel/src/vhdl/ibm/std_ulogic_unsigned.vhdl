@@ -52,7 +52,7 @@ package std_ulogic_unsigned is
   function "<="( l : std_ulogic_vector; r : natural)          return boolean;
   function ">" ( l : std_ulogic_vector; r : natural)          return boolean;
   function ">="( l : std_ulogic_vector; r : natural)          return boolean;
-  
+
   function "=" ( l : natural;          r : std_ulogic_vector) return std_ulogic;
   function "/="( l : natural;          r : std_ulogic_vector) return std_ulogic;
   function "<" ( l : natural;          r : std_ulogic_vector) return std_ulogic;
@@ -75,7 +75,7 @@ package std_ulogic_unsigned is
            (1 => ("   ","A0      ","INCR","PIN_BIT_SCALAR"),
             2 => ("   ","10      ","INCR","PIN_BIT_SCALAR"));
   -- synopsys translate_on
-  
+
   -- synopsys translate_off
   function to_std_ulogic_vector( d : natural; w : positive ) return std_ulogic_vector;
   attribute type_convert        of to_std_ulogic_vector : function is true;
@@ -84,7 +84,7 @@ package std_ulogic_unsigned is
            (1 => ("   ","A0      ","INCR","PIN_BIT_SCALAR"),
             2 => ("   ","10      ","INCR","PIN_BIT_SCALAR"));
   -- synopsys translate_on
-  
+
 end std_ulogic_unsigned;
 
 package body std_ulogic_unsigned is
@@ -131,7 +131,7 @@ package body std_ulogic_unsigned is
            result := std_ulogic_vector( UNSIGNED(L) + 1 );
         else
            result := L;
-        end if; 
+        end if;
         return result ;
     end;
 
@@ -143,7 +143,7 @@ package body std_ulogic_unsigned is
            result := std_ulogic_vector( UNSIGNED(R) + 1 );
         else
            result := R;
-        end if; 
+        end if;
         return result ;
     end;
 
@@ -217,130 +217,130 @@ package body std_ulogic_unsigned is
   begin
     return l = unsigned(r);
   end "=";
-  
+
   function "/="( l : natural;          r : std_ulogic_vector) return boolean is
   begin
     return l /= unsigned(r);
   end "/=";
-  
+
   function "<" ( l : natural;          r : std_ulogic_vector) return boolean is
   begin
     return l < unsigned(r);
   end "<";
-  
+
   function "<="( l : natural;          r : std_ulogic_vector) return boolean is
   begin
     return l <= unsigned(r);
   end "<=";
-  
+
   function ">" ( l : natural;          r : std_ulogic_vector) return boolean is
   begin
     return l > unsigned(r);
   end ">";
-  
+
   function ">="( l : natural;          r : std_ulogic_vector) return boolean is
   begin
     return l >= unsigned(r);
   end ">=";
-  
+
   function "=" ( l : std_ulogic_vector; r : natural)          return boolean is
   begin
     return unsigned(l) = r;
   end "=";
-  
+
   function "/="( l : std_ulogic_vector; r : natural)          return boolean is
   begin
     return unsigned(l) /= r;
   end "/=";
-  
+
   function "<" ( l : std_ulogic_vector; r : natural)          return boolean is
   begin
     return unsigned(l) < r;
   end "<";
-  
+
   function "<="( l : std_ulogic_vector; r : natural)          return boolean is
   begin
     return unsigned(l) <= r;
   end "<=";
-  
+
   function ">" ( l : std_ulogic_vector; r : natural)          return boolean is
   begin
     return unsigned(l) > r;
   end ">";
-  
+
   function ">="( l : std_ulogic_vector; r : natural)          return boolean is
   begin
     return unsigned(l) >= r;
   end ">=";
-  
+
   function "=" ( l : natural;          r : std_ulogic_vector) return std_ulogic is
   begin
     return tconv( l = unsigned(r) );
   end "=";
-  
+
   function "/="( l : natural;          r : std_ulogic_vector) return std_ulogic is
   begin
     return tconv( l /= unsigned(r) );
   end "/=";
-  
+
   function "<" ( l : natural;          r : std_ulogic_vector) return std_ulogic is
   begin
     return tconv( l < unsigned(r) );
   end "<";
-  
+
   function "<="( l : natural;          r : std_ulogic_vector) return std_ulogic is
   begin
     return tconv( l <= unsigned(r) );
   end "<=";
-  
+
   function ">" ( l : natural;          r : std_ulogic_vector) return std_ulogic is
   begin
     return tconv( l > unsigned(r) );
   end ">";
-  
+
   function ">="( l : natural;          r : std_ulogic_vector) return std_ulogic is
   begin
     return tconv( l >= unsigned(r) );
   end ">=";
-  
+
   function "=" ( l : std_ulogic_vector; r : natural)          return std_ulogic is
   begin
     return tconv( unsigned(l) = r );
   end "=";
-  
+
   function "/="( l : std_ulogic_vector; r : natural)          return std_ulogic is
   begin
     return tconv( unsigned(l) /= r );
   end "/=";
-  
+
   function "<" ( l : std_ulogic_vector; r : natural)          return std_ulogic is
   begin
     return tconv( unsigned(l) < r );
   end "<";
-  
+
   function "<="( l : std_ulogic_vector; r : natural)          return std_ulogic is
   begin
     return tconv( unsigned(l) <= r );
   end "<=";
-  
+
   function ">" ( l : std_ulogic_vector; r : natural)          return std_ulogic is
   begin
     return tconv( unsigned(l) > r );
   end ">";
-  
+
   function ">="( l : std_ulogic_vector; r : natural)          return std_ulogic is
   begin
     return tconv( unsigned(l) >= r );
   end ">=";
-  
+
   function to_integer( d : std_ulogic_vector ) return natural is
   begin
     return tconv( d );
   end to_integer;
-  
+
   function to_std_ulogic_vector( d : natural; w : positive ) return std_ulogic_vector is
   begin
     return tconv( d, w );
   end to_std_ulogic_vector;
-  
+
 end std_ulogic_unsigned;

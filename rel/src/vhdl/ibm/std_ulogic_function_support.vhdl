@@ -124,7 +124,7 @@ package std_ulogic_function_support is
 
   --  Generic Terminator
   procedure terminator
-    (in0   : in std_ulogic              
+    (in0   : in std_ulogic
      -- synopsys translate_off
       ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -132,7 +132,7 @@ package std_ulogic_function_support is
      );
 
   procedure terminator
-    (in0   : in std_ulogic_vector       
+    (in0   : in std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -149,7 +149,7 @@ package std_ulogic_function_support is
 
   --  Generic Delay
   function delay
-    (in0   : std_ulogic              
+    (in0   : std_ulogic
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -158,7 +158,7 @@ package std_ulogic_function_support is
     return std_ulogic               ;
 
   function delay
-    (in0   : std_ulogic_vector       
+    (in0   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -179,7 +179,7 @@ package std_ulogic_function_support is
 
   --  Generic Buffer
   function buff
-    (in0   : std_ulogic              
+    (in0   : std_ulogic
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -188,7 +188,7 @@ package std_ulogic_function_support is
     return std_ulogic               ;
 
   function buff
-    (in0   : std_ulogic_vector       
+    (in0   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -209,7 +209,7 @@ package std_ulogic_function_support is
 
   -- Invert single bit
   function invert
-    (in0   : std_ulogic 
+    (in0   : std_ulogic
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -238,7 +238,7 @@ package std_ulogic_function_support is
   -- Compare single bit
   function compare
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -269,7 +269,7 @@ package std_ulogic_function_support is
   --  Parity Functions
   --  General XOR_Tree Building Parity Function
   function parity
-    (in0   : std_ulogic_vector           
+    (in0   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -286,7 +286,7 @@ package std_ulogic_function_support is
      4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
   function parity_map
-    (in0   : std_ulogic_vector       
+    (in0   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -386,7 +386,7 @@ package std_ulogic_function_support is
      add_2 : in  std_ulogic     ;
      cryin : in  std_ulogic     ;
      signal sum   : out std_ulogic     ;
-     signal carry : out std_ulogic     
+     signal carry : out std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -397,7 +397,7 @@ package std_ulogic_function_support is
      add_2 : in  std_ulogic_vector ;
      cryin : in  std_ulogic_vector ;
      signal sum   : out std_ulogic_vector ;
-     signal carry : out std_ulogic_vector 
+     signal carry : out std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -486,7 +486,7 @@ package std_ulogic_function_support is
   -- Synopsys translate_on
 
   function vector_tie_1
-    (width : integer        := 1 
+    (width : integer        := 1
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -629,7 +629,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   function gate_and
     (gate  : std_ulogic ;
-     in0   : std_ulogic 
+     in0   : std_ulogic
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -667,7 +667,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   function gate_or
     (gate  : std_ulogic ;
-     in0   : std_ulogic 
+     in0   : std_ulogic
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -705,7 +705,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   function gate_nand
     (gate  : std_ulogic ;
-     in0   : std_ulogic 
+     in0   : std_ulogic
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -743,7 +743,7 @@ package std_ulogic_function_support is
     return std_ulogic_vector ;
   function gate_nor
     (gate  : std_ulogic ;
-     in0   : std_ulogic 
+     in0   : std_ulogic
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -772,7 +772,7 @@ package std_ulogic_function_support is
 
   function gate_xor
     (gate  : std_ulogic ;
-     in0   : std_ulogic 
+     in0   : std_ulogic
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -801,7 +801,7 @@ package std_ulogic_function_support is
 
   function gate_xnor
     (gate  : std_ulogic ;
-     in0   : std_ulogic 
+     in0   : std_ulogic
      -- synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -827,13 +827,13 @@ package std_ulogic_function_support is
      4 => ("   ","PASS    ","    ","              "),
      5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
-  
+
   -- Vectored primitive <gate> 2 input functions
   -- Single bit case
   -- Multiple vectors logically <gate>ed bitwise
   function and_2
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -842,7 +842,7 @@ package std_ulogic_function_support is
     return std_ulogic ;
   function and_2
     (in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -862,7 +862,7 @@ package std_ulogic_function_support is
 
   function or_2
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -871,7 +871,7 @@ package std_ulogic_function_support is
     return std_ulogic ;
   function or_2
     (in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -891,7 +891,7 @@ package std_ulogic_function_support is
 
   function nand_2
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -900,7 +900,7 @@ package std_ulogic_function_support is
     return std_ulogic ;
   function nand_2
     (in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -920,7 +920,7 @@ package std_ulogic_function_support is
 
   function nor_2
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -929,7 +929,7 @@ package std_ulogic_function_support is
     return std_ulogic ;
   function nor_2
     (in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -949,7 +949,7 @@ package std_ulogic_function_support is
 
   function xor_2
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -958,7 +958,7 @@ package std_ulogic_function_support is
     return std_ulogic ;
   function xor_2
     (in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -978,7 +978,7 @@ package std_ulogic_function_support is
 
   function xnor_2
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -987,7 +987,7 @@ package std_ulogic_function_support is
     return std_ulogic ;
   function xnor_2
     (in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1010,7 +1010,7 @@ package std_ulogic_function_support is
   function and_3
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1021,7 +1021,7 @@ package std_ulogic_function_support is
   function and_3
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1043,7 +1043,7 @@ package std_ulogic_function_support is
   function or_3
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1053,7 +1053,7 @@ package std_ulogic_function_support is
   function or_3
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1075,7 +1075,7 @@ package std_ulogic_function_support is
   function nand_3
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1085,7 +1085,7 @@ package std_ulogic_function_support is
   function nand_3
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1107,7 +1107,7 @@ package std_ulogic_function_support is
   function nor_3
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1117,7 +1117,7 @@ package std_ulogic_function_support is
   function nor_3
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1139,7 +1139,7 @@ package std_ulogic_function_support is
   function xor_3
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1149,7 +1149,7 @@ package std_ulogic_function_support is
   function xor_3
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1171,7 +1171,7 @@ package std_ulogic_function_support is
   function xnor_3
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1181,7 +1181,7 @@ package std_ulogic_function_support is
   function xnor_3
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1206,7 +1206,7 @@ package std_ulogic_function_support is
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
      in2   : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1217,7 +1217,7 @@ package std_ulogic_function_support is
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1241,7 +1241,7 @@ package std_ulogic_function_support is
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
      in2   : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1252,7 +1252,7 @@ package std_ulogic_function_support is
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1276,7 +1276,7 @@ package std_ulogic_function_support is
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
      in2   : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1287,7 +1287,7 @@ package std_ulogic_function_support is
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1311,7 +1311,7 @@ package std_ulogic_function_support is
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
      in2   : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1322,7 +1322,7 @@ package std_ulogic_function_support is
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1350,7 +1350,7 @@ package std_ulogic_function_support is
      in1   : std_ulogic ;
      in2   : std_ulogic ;
      in3   : std_ulogic ;
-     in4   : std_ulogic 
+     in4   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1362,7 +1362,7 @@ package std_ulogic_function_support is
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
-     in4   : std_ulogic_vector 
+     in4   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1388,7 +1388,7 @@ package std_ulogic_function_support is
      in1   : std_ulogic ;
      in2   : std_ulogic ;
      in3   : std_ulogic ;
-     in4   : std_ulogic 
+     in4   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1400,7 +1400,7 @@ package std_ulogic_function_support is
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
-     in4   : std_ulogic_vector 
+     in4   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1426,7 +1426,7 @@ package std_ulogic_function_support is
      in1   : std_ulogic ;
      in2   : std_ulogic ;
      in3   : std_ulogic ;
-     in4   : std_ulogic 
+     in4   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1438,7 +1438,7 @@ package std_ulogic_function_support is
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
-     in4   : std_ulogic_vector 
+     in4   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1464,7 +1464,7 @@ package std_ulogic_function_support is
      in1   : std_ulogic ;
      in2   : std_ulogic ;
      in3   : std_ulogic ;
-     in4   : std_ulogic 
+     in4   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1476,7 +1476,7 @@ package std_ulogic_function_support is
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
-     in4   : std_ulogic_vector 
+     in4   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1505,7 +1505,7 @@ package std_ulogic_function_support is
      in2   : std_ulogic ;
      in3   : std_ulogic ;
      in4   : std_ulogic ;
-     in5   : std_ulogic 
+     in5   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1518,7 +1518,7 @@ package std_ulogic_function_support is
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
-     in5   : std_ulogic_vector 
+     in5   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1546,7 +1546,7 @@ package std_ulogic_function_support is
      in2   : std_ulogic ;
      in3   : std_ulogic ;
      in4   : std_ulogic ;
-     in5   : std_ulogic 
+     in5   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1559,7 +1559,7 @@ package std_ulogic_function_support is
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
-     in5   : std_ulogic_vector 
+     in5   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1587,7 +1587,7 @@ package std_ulogic_function_support is
      in2   : std_ulogic ;
      in3   : std_ulogic ;
      in4   : std_ulogic ;
-     in5   : std_ulogic 
+     in5   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1600,7 +1600,7 @@ package std_ulogic_function_support is
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
-     in5   : std_ulogic_vector 
+     in5   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1628,7 +1628,7 @@ package std_ulogic_function_support is
      in2   : std_ulogic ;
      in3   : std_ulogic ;
      in4   : std_ulogic ;
-     in5   : std_ulogic 
+     in5   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1641,7 +1641,7 @@ package std_ulogic_function_support is
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
-     in5   : std_ulogic_vector 
+     in5   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1673,7 +1673,7 @@ package std_ulogic_function_support is
      in3   : std_ulogic ;
      in4   : std_ulogic ;
      in5   : std_ulogic ;
-     in6   : std_ulogic 
+     in6   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1687,7 +1687,7 @@ package std_ulogic_function_support is
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
-     in6   : std_ulogic_vector 
+     in6   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1717,7 +1717,7 @@ package std_ulogic_function_support is
      in3   : std_ulogic ;
      in4   : std_ulogic ;
      in5   : std_ulogic ;
-     in6   : std_ulogic 
+     in6   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1731,7 +1731,7 @@ package std_ulogic_function_support is
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
-     in6   : std_ulogic_vector 
+     in6   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1761,7 +1761,7 @@ package std_ulogic_function_support is
      in3   : std_ulogic ;
      in4   : std_ulogic ;
      in5   : std_ulogic ;
-     in6   : std_ulogic 
+     in6   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1775,7 +1775,7 @@ package std_ulogic_function_support is
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
-     in6   : std_ulogic_vector 
+     in6   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1805,7 +1805,7 @@ package std_ulogic_function_support is
      in3   : std_ulogic ;
      in4   : std_ulogic ;
      in5   : std_ulogic ;
-     in6   : std_ulogic 
+     in6   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1819,7 +1819,7 @@ package std_ulogic_function_support is
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
-     in6   : std_ulogic_vector 
+     in6   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1853,7 +1853,7 @@ package std_ulogic_function_support is
      in4   : std_ulogic ;
      in5   : std_ulogic ;
      in6   : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1868,7 +1868,7 @@ package std_ulogic_function_support is
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
      in6   : std_ulogic_vector ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1900,7 +1900,7 @@ package std_ulogic_function_support is
      in4   : std_ulogic ;
      in5   : std_ulogic ;
      in6   : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1915,7 +1915,7 @@ package std_ulogic_function_support is
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
      in6   : std_ulogic_vector ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1947,7 +1947,7 @@ package std_ulogic_function_support is
      in4   : std_ulogic ;
      in5   : std_ulogic ;
      in6   : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1962,7 +1962,7 @@ package std_ulogic_function_support is
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
      in6   : std_ulogic_vector ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -1994,7 +1994,7 @@ package std_ulogic_function_support is
      in4   : std_ulogic ;
      in5   : std_ulogic ;
      in6   : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2009,7 +2009,7 @@ package std_ulogic_function_support is
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
      in6   : std_ulogic_vector ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2032,7 +2032,7 @@ package std_ulogic_function_support is
      10 => ("   ","PASS    ","    ","              "),
      11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
-  
+
   function decode( code  : std_ulogic_vector ) return  std_ulogic_vector;
   -- Synopsys translate_off
   attribute functionality of decode: function is "DECODER";
@@ -2057,7 +2057,7 @@ package std_ulogic_function_support is
   -- Synopsys translate_on
 
   function decode_3to8
-    (code  : std_ulogic_vector(0 to 2) 
+    (code  : std_ulogic_vector(0 to 2)
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2075,7 +2075,7 @@ package std_ulogic_function_support is
   -- Synopsys translate_on
 
   function decode_4to16
-    (code  : std_ulogic_vector(0 to 3) 
+    (code  : std_ulogic_vector(0 to 3)
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2093,7 +2093,7 @@ package std_ulogic_function_support is
   -- Synopsys translate_on
 
   function decode_5to32
-    (code  : std_ulogic_vector(0 to 4) 
+    (code  : std_ulogic_vector(0 to 4)
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2111,7 +2111,7 @@ package std_ulogic_function_support is
   -- Synopsys translate_on
 
   function decode_6to64
-    (code  : std_ulogic_vector(0 to 5) 
+    (code  : std_ulogic_vector(0 to 5)
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2160,7 +2160,7 @@ package body std_ulogic_function_support is
 
   --  Generic Terminator
   procedure terminator
-    (in0     : in std_ulogic         
+    (in0     : in std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2168,18 +2168,18 @@ package body std_ulogic_function_support is
      )
   is
     variable result     : std_ulogic ;
-  -- synopsys translate_off 
+  -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-  -- Synopsys translate_on 
+  -- Synopsys translate_on
   begin
     result := in0 ;
   end terminator ;
 
   procedure terminator
-    (in0     : in std_ulogic_vector    
+    (in0     : in std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2187,19 +2187,19 @@ package body std_ulogic_function_support is
      )
   is
     variable result     : std_ulogic_vector (0 to in0'length-1);
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1);
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result := in0 ;
   end terminator ;
 
   --  Generic Delay
   function delay
-    (in0   : std_ulogic             
+    (in0   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2208,12 +2208,12 @@ package body std_ulogic_function_support is
     return std_ulogic
   is
     variable result     : std_ulogic ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     -- initialize variable attribute values
     result  := in0;
@@ -2221,7 +2221,7 @@ package body std_ulogic_function_support is
   end delay ;
 
   function delay
-    (in0   : std_ulogic_vector      
+    (in0   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2230,19 +2230,19 @@ package body std_ulogic_function_support is
     return std_ulogic_vector
   is
     variable result     : std_ulogic_vector (0 to in0'length-1);
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result  := in0;
     return result;
   end delay ;
 
   function buff
-    (in0   : std_ulogic             
+    (in0   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2251,19 +2251,19 @@ package body std_ulogic_function_support is
     return std_ulogic
   is
     variable result     : std_ulogic ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result  := in0;
     return result;
   end buff  ;
 
   function buff
-    (in0   : std_ulogic_vector      
+    (in0   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2272,12 +2272,12 @@ package body std_ulogic_function_support is
     return std_ulogic_vector
   is
     variable result     : std_ulogic_vector (0 to in0'length-1);
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result  := in0;
     return result;
@@ -2285,7 +2285,7 @@ package body std_ulogic_function_support is
 
 -- inverter single bit
   function invert
-    (in0   : std_ulogic 
+    (in0   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2294,12 +2294,12 @@ package body std_ulogic_function_support is
      return std_ulogic
   is
     variable result     : std_ulogic;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result  := not in0;
     return result;
@@ -2316,12 +2316,12 @@ package body std_ulogic_function_support is
      return std_ulogic_vector
   is
     variable result     : std_ulogic_vector (0 to in0'length-1);
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result  := not in0;
     return result;
@@ -2330,7 +2330,7 @@ package body std_ulogic_function_support is
   -- Comparator
   function compare
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2339,12 +2339,12 @@ package body std_ulogic_function_support is
      return std_ulogic
   is
     variable result     : std_ulogic ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result  := in0 = in1 ;
     return result;
@@ -2362,12 +2362,12 @@ package body std_ulogic_function_support is
      return std_ulogic
   is
     variable result     : std_ulogic ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result  := in0 = in1 ;
     return result;
@@ -2375,7 +2375,7 @@ package body std_ulogic_function_support is
 
   --  General XOR_Tree Building Parity Function
   function parity
-    (In0   : std_ulogic_vector           
+    (In0   : std_ulogic_vector
   -- Synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -2383,12 +2383,12 @@ package body std_ulogic_function_support is
      )
     return Std_uLogic
   is
-    -- Synopsys translate_off 
+    -- Synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- Synopsys translate_on 
+    -- Synopsys translate_on
     variable result : std_ulogic;
   begin
     result := in0(in0'low);
@@ -2400,7 +2400,7 @@ package body std_ulogic_function_support is
 
   --  Specific Size Parity Block Map Function
   function parity_map
-    (In0   : std_ulogic_vector      
+    (In0   : std_ulogic_vector
      -- Synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -2423,9 +2423,9 @@ package body std_ulogic_function_support is
     return result;
   end parity_map ;
 
--- Parity gneration/checking functions  
+-- Parity gneration/checking functions
   function parity_gen_odd
-    (in0   : std_ulogic_vector      
+    (in0   : std_ulogic_vector
   -- Synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -2433,12 +2433,12 @@ package body std_ulogic_function_support is
      )
     return std_ulogic
   is
-    -- Synopsys translate_off 
+    -- Synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- Synopsys translate_on 
+    -- Synopsys translate_on
     variable result : std_ulogic;
   begin
     result := in0(in0'low);
@@ -2449,7 +2449,7 @@ package body std_ulogic_function_support is
   end parity_gen_odd ;
 
   function parity_gen_even
-    (in0   : std_ulogic_vector      
+    (in0   : std_ulogic_vector
   -- Synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -2457,12 +2457,12 @@ package body std_ulogic_function_support is
      )
     return std_ulogic
   is
-    -- Synopsys translate_off 
+    -- Synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- Synopsys translate_on 
+    -- Synopsys translate_on
     variable result : std_ulogic;
   begin
     result := in0(in0'low);
@@ -2473,7 +2473,7 @@ package body std_ulogic_function_support is
   end parity_gen_even ;
 
   function is_parity_odd
-    (in0   : std_ulogic_vector      
+    (in0   : std_ulogic_vector
   -- Synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -2481,12 +2481,12 @@ package body std_ulogic_function_support is
      )
     return std_ulogic
   is
-    -- Synopsys translate_off 
+    -- Synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- Synopsys translate_on 
+    -- Synopsys translate_on
     variable result : std_ulogic;
   begin
     result := in0(in0'low);
@@ -2497,7 +2497,7 @@ package body std_ulogic_function_support is
   end is_parity_odd ;
 
   function is_parity_even
-    (in0   : std_ulogic_vector      
+    (in0   : std_ulogic_vector
      -- Synopsys translate_off
      ;btr   : in String                 :=""
      ;blkdata  : in String              :=""
@@ -2505,12 +2505,12 @@ package body std_ulogic_function_support is
      )
     return std_ulogic
   is
-    -- Synopsys translate_off 
+    -- Synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- Synopsys translate_on 
+    -- Synopsys translate_on
     variable result : std_ulogic;
   begin
     result := in0(in0'low);
@@ -2522,7 +2522,7 @@ package body std_ulogic_function_support is
 
   function and_reduce
     (in0   : std_ulogic_vector
-  -- synopsys translate_off 
+  -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
   -- synopsys translate_on
@@ -2530,12 +2530,12 @@ package body std_ulogic_function_support is
      return std_ulogic
   is
     variable result     : std_ulogic ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result := in0(in0'left) ;
     for i in in0'range loop
@@ -2556,11 +2556,11 @@ package body std_ulogic_function_support is
   is
     variable result     : std_ulogic ;
     variable block_data : string(1 to 1) ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result := in0(in0'left) ;
     for i in in0'range loop
@@ -2580,12 +2580,12 @@ package body std_ulogic_function_support is
      return std_ulogic
   is
     variable result     : std_ulogic ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result := in0(in0'left) ;
     for i in in0'range loop
@@ -2605,12 +2605,12 @@ package body std_ulogic_function_support is
      return std_ulogic
   is
     variable result     : std_ulogic ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result := in0(in0'left) ;
     for i in in0'range loop
@@ -2630,12 +2630,12 @@ package body std_ulogic_function_support is
      return std_ulogic
   is
     variable result     : std_ulogic ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result := '0' ;
     for i in in0'range loop
@@ -2655,12 +2655,12 @@ package body std_ulogic_function_support is
      return std_ulogic
   is
     variable result     : std_ulogic ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result := '0' ;
     for i in in0'range loop
@@ -2672,7 +2672,7 @@ package body std_ulogic_function_support is
 
   function  gate_and
     (gate  : std_ulogic ;
-     in0   : std_ulogic 
+     in0   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2681,12 +2681,12 @@ package body std_ulogic_function_support is
      return std_ulogic
   is
     variable result : std_ulogic ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result := gate and   in0 ;
     return result;
@@ -2717,7 +2717,7 @@ package body std_ulogic_function_support is
 
   function  gate_or
     (gate  : std_ulogic ;
-     in0   : std_ulogic 
+     in0   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2726,12 +2726,12 @@ package body std_ulogic_function_support is
      return std_ulogic
   is
     variable result : std_ulogic ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result := gate or    in0 ;
     return result;
@@ -2762,7 +2762,7 @@ package body std_ulogic_function_support is
 
   function  gate_nand
     (gate  : std_ulogic ;
-     in0   : std_ulogic 
+     in0   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2771,12 +2771,12 @@ package body std_ulogic_function_support is
      return std_ulogic
   is
     variable result : std_ulogic ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result := gate nand  in0 ;
     return result;
@@ -2792,12 +2792,12 @@ package body std_ulogic_function_support is
      )
      return std_ulogic_vector
   is
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
     variable result     : std_ulogic_vector(0 to in0'length-1);
     subtype vec_length is std_ulogic_vector(0 to in0'length-1);
   begin
@@ -2807,7 +2807,7 @@ package body std_ulogic_function_support is
 
   function  gate_nor
     (gate  : std_ulogic ;
-     in0   : std_ulogic 
+     in0   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2816,12 +2816,12 @@ package body std_ulogic_function_support is
      return std_ulogic
   is
     variable result : std_ulogic;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result := gate nor   in0 ;
     return result;
@@ -2837,13 +2837,13 @@ package body std_ulogic_function_support is
      )
      return std_ulogic_vector
   is
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
-    variable result     : std_ulogic_vector(0 to in0'length-1); 
+    -- synopsys translate_on
+    variable result     : std_ulogic_vector(0 to in0'length-1);
     subtype vec_length is std_ulogic_vector(0 to in0'length-1);
   begin
     result := in0 nor vec_length'(0 to in0'length-1 => gate) ;
@@ -2852,7 +2852,7 @@ package body std_ulogic_function_support is
 
   function  gate_xor
     (gate  : std_ulogic ;
-     in0   : std_ulogic 
+     in0   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -2861,12 +2861,12 @@ package body std_ulogic_function_support is
      return std_ulogic
   is
     variable result : std_ulogic ;
-    -- synopsys translate_off 
+    -- synopsys translate_off
     variable block_data : string(1 to 1) ;
     attribute dynamic_block_data of block_data : variable is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
-    -- synopsys translate_on 
+    -- synopsys translate_on
   begin
     result := gate xor   in0 ;
     return result;
@@ -2897,7 +2897,7 @@ package body std_ulogic_function_support is
 
   function  gate_xnor
     (gate  : std_ulogic ;
-     in0   : std_ulogic 
+     in0   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3022,7 +3022,7 @@ package body std_ulogic_function_support is
     end loop;
     result := in0 and vec_length'(0 to in0'length-1 => gate_int) ;
     result := not result ;
-    return result; 
+    return result;
   end gate_nand;
 
   function gate_nor
@@ -3056,7 +3056,7 @@ package body std_ulogic_function_support is
 
   function xor_2
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3078,7 +3078,7 @@ package body std_ulogic_function_support is
 
   function xor_2
     (in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3101,7 +3101,7 @@ package body std_ulogic_function_support is
   function xor_3
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3124,7 +3124,7 @@ package body std_ulogic_function_support is
   function xor_3
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3146,7 +3146,7 @@ package body std_ulogic_function_support is
 
   function xnor_2
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3168,7 +3168,7 @@ package body std_ulogic_function_support is
 
   function xnor_2
     (in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3191,7 +3191,7 @@ package body std_ulogic_function_support is
   function xnor_3
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3214,7 +3214,7 @@ package body std_ulogic_function_support is
   function xnor_3
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3236,7 +3236,7 @@ package body std_ulogic_function_support is
 
   function and_2
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3258,7 +3258,7 @@ package body std_ulogic_function_support is
 
   function and_2
     (in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3281,7 +3281,7 @@ package body std_ulogic_function_support is
   function and_3
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3304,7 +3304,7 @@ package body std_ulogic_function_support is
   function and_3
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3328,7 +3328,7 @@ package body std_ulogic_function_support is
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
      in2   : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3352,7 +3352,7 @@ package body std_ulogic_function_support is
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3377,7 +3377,7 @@ package body std_ulogic_function_support is
      in1   : std_ulogic ;
      in2   : std_ulogic ;
      in3   : std_ulogic ;
-     in4   : std_ulogic 
+     in4   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3402,7 +3402,7 @@ package body std_ulogic_function_support is
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
-     in4   : std_ulogic_vector 
+     in4   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3428,7 +3428,7 @@ package body std_ulogic_function_support is
      in2   : std_ulogic ;
      in3   : std_ulogic ;
      in4   : std_ulogic ;
-     in5   : std_ulogic 
+     in5   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3454,7 +3454,7 @@ package body std_ulogic_function_support is
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
-     in5   : std_ulogic_vector 
+     in5   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3481,7 +3481,7 @@ package body std_ulogic_function_support is
      in3   : std_ulogic ;
      in4   : std_ulogic ;
      in5   : std_ulogic ;
-     in6   : std_ulogic 
+     in6   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3508,7 +3508,7 @@ package body std_ulogic_function_support is
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
-     in6   : std_ulogic_vector 
+     in6   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3536,7 +3536,7 @@ package body std_ulogic_function_support is
      in4   : std_ulogic ;
      in5   : std_ulogic ;
      in6   : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3564,7 +3564,7 @@ package body std_ulogic_function_support is
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
      in6   : std_ulogic_vector ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3586,7 +3586,7 @@ package body std_ulogic_function_support is
 
   function or_2
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3608,7 +3608,7 @@ package body std_ulogic_function_support is
 
   function or_2
     (in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3631,7 +3631,7 @@ package body std_ulogic_function_support is
   function or_3
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3654,7 +3654,7 @@ package body std_ulogic_function_support is
   function or_3
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3678,7 +3678,7 @@ package body std_ulogic_function_support is
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
      in2   : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3702,7 +3702,7 @@ package body std_ulogic_function_support is
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3727,7 +3727,7 @@ package body std_ulogic_function_support is
      in1   : std_ulogic ;
      in2   : std_ulogic ;
      in3   : std_ulogic ;
-     in4   : std_ulogic 
+     in4   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3752,7 +3752,7 @@ package body std_ulogic_function_support is
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
-     in4   : std_ulogic_vector 
+     in4   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3778,7 +3778,7 @@ package body std_ulogic_function_support is
      in2   : std_ulogic ;
      in3   : std_ulogic ;
      in4   : std_ulogic ;
-     in5   : std_ulogic 
+     in5   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3804,7 +3804,7 @@ package body std_ulogic_function_support is
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
-     in5   : std_ulogic_vector 
+     in5   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3831,7 +3831,7 @@ package body std_ulogic_function_support is
      in3   : std_ulogic ;
      in4   : std_ulogic ;
      in5   : std_ulogic ;
-     in6   : std_ulogic 
+     in6   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3858,7 +3858,7 @@ package body std_ulogic_function_support is
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
-     in6   : std_ulogic_vector 
+     in6   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3886,7 +3886,7 @@ package body std_ulogic_function_support is
      in4   : std_ulogic ;
      in5   : std_ulogic ;
      in6   : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3914,7 +3914,7 @@ package body std_ulogic_function_support is
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
      in6   : std_ulogic_vector ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3936,7 +3936,7 @@ package body std_ulogic_function_support is
 
   function nand_2
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3958,7 +3958,7 @@ package body std_ulogic_function_support is
 
   function nand_2
     (in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -3981,7 +3981,7 @@ package body std_ulogic_function_support is
   function nand_3
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4004,7 +4004,7 @@ package body std_ulogic_function_support is
   function nand_3
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4028,7 +4028,7 @@ package body std_ulogic_function_support is
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
      in2   : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4052,7 +4052,7 @@ package body std_ulogic_function_support is
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4077,7 +4077,7 @@ package body std_ulogic_function_support is
      in1   : std_ulogic ;
      in2   : std_ulogic ;
      in3   : std_ulogic ;
-     in4   : std_ulogic 
+     in4   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4102,7 +4102,7 @@ package body std_ulogic_function_support is
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
-     in4   : std_ulogic_vector 
+     in4   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4128,7 +4128,7 @@ package body std_ulogic_function_support is
      in2   : std_ulogic ;
      in3   : std_ulogic ;
      in4   : std_ulogic ;
-     in5   : std_ulogic 
+     in5   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4154,7 +4154,7 @@ package body std_ulogic_function_support is
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
-     in5   : std_ulogic_vector 
+     in5   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4181,7 +4181,7 @@ package body std_ulogic_function_support is
      in3   : std_ulogic ;
      in4   : std_ulogic ;
      in5   : std_ulogic ;
-     in6   : std_ulogic 
+     in6   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4208,7 +4208,7 @@ package body std_ulogic_function_support is
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
-     in6   : std_ulogic_vector 
+     in6   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4236,7 +4236,7 @@ package body std_ulogic_function_support is
      in4   : std_ulogic ;
      in5   : std_ulogic ;
      in6   : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4264,7 +4264,7 @@ package body std_ulogic_function_support is
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
      in6   : std_ulogic_vector ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4286,7 +4286,7 @@ package body std_ulogic_function_support is
 
   function nor_2
     (in0   : std_ulogic ;
-     in1   : std_ulogic 
+     in1   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4308,7 +4308,7 @@ package body std_ulogic_function_support is
 
   function nor_2
     (in0   : std_ulogic_vector ;
-     in1   : std_ulogic_vector 
+     in1   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4331,7 +4331,7 @@ package body std_ulogic_function_support is
   function nor_3
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
-     in2   : std_ulogic 
+     in2   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4354,7 +4354,7 @@ package body std_ulogic_function_support is
   function nor_3
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
-     in2   : std_ulogic_vector 
+     in2   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4378,7 +4378,7 @@ package body std_ulogic_function_support is
     (in0   : std_ulogic ;
      in1   : std_ulogic ;
      in2   : std_ulogic ;
-     in3   : std_ulogic 
+     in3   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4402,7 +4402,7 @@ package body std_ulogic_function_support is
     (in0   : std_ulogic_vector ;
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
-     in3   : std_ulogic_vector 
+     in3   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4427,7 +4427,7 @@ package body std_ulogic_function_support is
      in1   : std_ulogic ;
      in2   : std_ulogic ;
      in3   : std_ulogic ;
-     in4   : std_ulogic 
+     in4   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4452,7 +4452,7 @@ package body std_ulogic_function_support is
      in1   : std_ulogic_vector ;
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
-     in4   : std_ulogic_vector 
+     in4   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4478,7 +4478,7 @@ package body std_ulogic_function_support is
      in2   : std_ulogic ;
      in3   : std_ulogic ;
      in4   : std_ulogic ;
-     in5   : std_ulogic 
+     in5   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4504,7 +4504,7 @@ package body std_ulogic_function_support is
      in2   : std_ulogic_vector ;
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
-     in5   : std_ulogic_vector 
+     in5   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4531,7 +4531,7 @@ package body std_ulogic_function_support is
      in3   : std_ulogic ;
      in4   : std_ulogic ;
      in5   : std_ulogic ;
-     in6   : std_ulogic 
+     in6   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4558,7 +4558,7 @@ package body std_ulogic_function_support is
      in3   : std_ulogic_vector ;
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
-     in6   : std_ulogic_vector 
+     in6   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4586,7 +4586,7 @@ package body std_ulogic_function_support is
      in4   : std_ulogic ;
      in5   : std_ulogic ;
      in6   : std_ulogic ;
-     in7   : std_ulogic 
+     in7   : std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4614,7 +4614,7 @@ package body std_ulogic_function_support is
      in4   : std_ulogic_vector ;
      in5   : std_ulogic_vector ;
      in6   : std_ulogic_vector ;
-     in7   : std_ulogic_vector 
+     in7   : std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4655,7 +4655,7 @@ package body std_ulogic_function_support is
   end tie_0;
 
   function vector_tie_0
-    (width : integer        := 1 
+    (width : integer        := 1
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4698,7 +4698,7 @@ package body std_ulogic_function_support is
   end tie_1;
 
   function vector_tie_1
-    (width : integer        := 1 
+    (width : integer        := 1
      -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4739,7 +4739,7 @@ package body std_ulogic_function_support is
   end decode;
 
   function decode_2to4
-    (code  : std_ulogic_vector(0 to 1) 
+    (code  : std_ulogic_vector(0 to 1)
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4766,7 +4766,7 @@ package body std_ulogic_function_support is
   end decode_2to4;
 
   function decode_3to8
-    (code  : std_ulogic_vector(0 to 2) 
+    (code  : std_ulogic_vector(0 to 2)
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4797,7 +4797,7 @@ package body std_ulogic_function_support is
   end decode_3to8;
 
   function decode_4to16
-    (code  : std_ulogic_vector(0 to 3) 
+    (code  : std_ulogic_vector(0 to 3)
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4836,7 +4836,7 @@ package body std_ulogic_function_support is
   end decode_4to16;
 
   function decode_5to32
-    (code  : std_ulogic_vector(0 to 4) 
+    (code  : std_ulogic_vector(0 to 4)
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4850,7 +4850,7 @@ package body std_ulogic_function_support is
       "CUE_BTR=/" & btr & "/" &
       blkdata ;
     -- synopsys translate_on
-    variable result : std_ulogic_vector(0 to 31) ; 
+    variable result : std_ulogic_vector(0 to 31) ;
   begin
     case  code is
       when "00000"  => result := "10000000000000000000000000000000";
@@ -4891,7 +4891,7 @@ package body std_ulogic_function_support is
   end decode_5to32;
 
   function decode_6to64
-    (code  : std_ulogic_vector(0 to 5) 
+    (code  : std_ulogic_vector(0 to 5)
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -4983,7 +4983,7 @@ package body std_ulogic_function_support is
      add_2 : in  std_ulogic     ;
      cryin : in  std_ulogic     ;
      signal sum   : out std_ulogic     ;
-     signal carry : out std_ulogic     
+     signal carry : out std_ulogic
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -5008,7 +5008,7 @@ package body std_ulogic_function_support is
      add_2 : in  std_ulogic_vector ;
      cryin : in  std_ulogic_vector ;
      signal sum   : out std_ulogic_vector ;
-     signal carry : out std_ulogic_vector 
+     signal carry : out std_ulogic_vector
   -- synopsys translate_off
      ;btr   : in string                 :=""
      ;blkdata  : in string              :=""
@@ -5026,10 +5026,10 @@ package body std_ulogic_function_support is
   begin
     -- synopsys translate_off
     assert (add_1'length = add_2'length)
-      report "Addends of Full_Add are not the same length." 
+      report "Addends of Full_Add are not the same length."
       severity error;
     assert (add_1'length = cryin'length) and (add_2'length = cryin'length)
-      report "Addends of Full_Add are not the same length as the CryIn." 
+      report "Addends of Full_Add are not the same length as the CryIn."
       severity error;
     -- synopsys translate_on
     sum_result   :=  add_1 xor add_2 xor  cryin;
