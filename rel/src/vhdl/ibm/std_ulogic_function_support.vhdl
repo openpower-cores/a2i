@@ -78,10 +78,11 @@ package std_ulogic_function_support is
   -- Synopsys translate_off
   attribute btr_name            of gate : function is "AND" ;
   attribute recursive_synthesis of gate : function is true ;
-  attribute pin_bit_information of gate : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     3 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   3 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   --  Dot Functions
@@ -91,9 +92,10 @@ package std_ulogic_function_support is
   -- Synopsys translate_off
   attribute btr_name            of dot_and : function is "VHDL-DOTA" ;
   attribute recursive_synthesis of dot_and : function is true ;
-  attribute pin_bit_information of dot_and : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of dot_and : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function dot_or
@@ -102,9 +104,10 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of dot_or     : function is "VHDL-DOTO" ;
   attribute recursive_synthesis of dot_or     : function is true ;
-  attribute pin_bit_information of dot_or     : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of dot_or     : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function clock_tree_dot
@@ -117,9 +120,10 @@ package std_ulogic_function_support is
   -- Synopsys translate_off
   attribute btr_name            of clock_tree_dot : function is "VHDL-CDOT" ;
   attribute recursive_synthesis of clock_tree_dot : function is true ;
-  attribute pin_bit_information of clock_tree_dot : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of clock_tree_dot : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   --  Generic Terminator
@@ -141,10 +145,11 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of terminator : procedure is "TERMINATOR";
   attribute recursive_synthesis of terminator : procedure is true ;
-  attribute pin_bit_information of terminator : procedure is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of terminator : procedure is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "));
   -- Synopsys translate_on
 
   --  Generic Delay
@@ -170,11 +175,12 @@ package std_ulogic_function_support is
   attribute recursive_synthesis of delay : function is true ;
   attribute block_data          of delay : function is
     "SUB_FUNC=/DELAY/LOGIC_STYLE=/DIRECT/" ;
-  attribute pin_bit_information of delay : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of delay : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   --  Generic Buffer
@@ -200,11 +206,12 @@ package std_ulogic_function_support is
   attribute recursive_synthesis of buff : function is true ;
   attribute block_data          of buff  : function is
     "LOGIC_STYLE=/DIRECT/" ;
-  attribute pin_bit_information of buff : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of buff : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   -- Invert single bit
@@ -228,11 +235,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of invert : function is "NOT" ;
   attribute recursive_synthesis of invert : function is true ;
-  attribute pin_bit_information of invert : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of invert : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   -- Compare single bit
@@ -258,12 +266,13 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of compare : function is "VHDL-COMPARE" ;
   attribute recursive_synthesis of compare : function is true ;
-  attribute pin_bit_information of compare : function is
-    (1 => ("   ","A0      ","INCR","PIN_BIT_SCALAR"),
-     2 => ("   ","M0      ","INCR","PIN_BIT_SCALAR"),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","EQ      ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of compare : function is
+  --  (1 => ("   ","A0      ","INCR","PIN_BIT_SCALAR"),
+  --   2 => ("   ","M0      ","INCR","PIN_BIT_SCALAR"),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","EQ      ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   --  Parity Functions
@@ -279,11 +288,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of parity : function is "XOR" ;
   attribute recursive_synthesis of parity : function is true ;
-  attribute pin_bit_information of parity : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of parity : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
   function parity_map
     (in0   : std_ulogic_vector
@@ -299,11 +309,12 @@ package std_ulogic_function_support is
   attribute recursive_synthesis of parity_map : function is true ;
   attribute block_data          of parity_map : function is
     "LOGIC_STYLE=/DIRECT/" ;
-  attribute pin_bit_information of parity_map : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of parity_map : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   -- Parity gneration/checking functions
@@ -319,11 +330,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name          of parity_gen_odd : function is "XNOR" ;
   attribute recursive_synthesis of parity_gen_odd : function is true;
-  attribute pin_bit_information of parity_gen_odd : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of parity_gen_odd : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function parity_gen_even
@@ -337,11 +349,12 @@ package std_ulogic_function_support is
   -- Synopsys translate_off
   attribute btr_name          of parity_gen_even : function is "XOR" ;
   attribute recursive_synthesis of parity_gen_even : function is true;
-  attribute pin_bit_information of parity_gen_even : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of parity_gen_even : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function is_parity_odd
@@ -355,11 +368,12 @@ package std_ulogic_function_support is
   -- Synopsys translate_off
   attribute btr_name          of is_parity_odd : function is "XOR" ;
   attribute recursive_synthesis of is_parity_odd : function is true;
-  attribute pin_bit_information of is_parity_odd : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of is_parity_odd : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function is_parity_even
@@ -373,11 +387,12 @@ package std_ulogic_function_support is
   -- Synopsys translate_off
   attribute btr_name          of is_parity_even : function is "XNOR" ;
   attribute recursive_synthesis of is_parity_even : function is true;
-  attribute pin_bit_information of is_parity_even : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of is_parity_even : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   --  Full Adder
@@ -406,14 +421,15 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of full_add : procedure is "VHDL-FA";
   attribute recursive_synthesis of full_add : procedure is true ;
-  attribute pin_bit_information of full_add : procedure is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","CIN     ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","SUM     ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","COUT    ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of full_add : procedure is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","CIN     ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","SUM     ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","COUT    ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "));
   -- Synopsys translate_on
 
   --  Ripple Adder function
@@ -441,10 +457,11 @@ package std_ulogic_function_support is
   attribute recursive_synthesis of tie_0 : function is true ;
   attribute block_data          of tie_0 : function is
     "LOGIC_STYLE=/DIRECT/" ;
-  attribute pin_bit_information of tie_0 : function is
-    (1 => ("   ","PASS    ","    ","              "),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","ZERO    ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of tie_0 : function is
+  --  (1 => ("   ","PASS    ","    ","              "),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","ZERO    ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function vector_tie_0
@@ -460,11 +477,12 @@ package std_ulogic_function_support is
   attribute recursive_synthesis of vector_tie_0 : function is true ;
   attribute block_data          of vector_tie_0 : function is
     "LOGIC_STYLE=/DIRECT/" ;
-  attribute pin_bit_information of vector_tie_0 : function is
-    (1 => ("   ","IGNR    ","    ","              "),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","ZERO    ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of vector_tie_0 : function is
+  --  (1 => ("   ","IGNR    ","    ","              "),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","ZERO    ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function tie_1
@@ -479,10 +497,11 @@ package std_ulogic_function_support is
   attribute recursive_synthesis of tie_1    : function is true ;
   attribute block_data          of tie_1    : function is
     "LOGIC_STYLE=/DIRECT/" ;
-  attribute pin_bit_information of tie_1 : function is
-    (1 => ("   ","PASS    ","    ","              "),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","ONE     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of tie_1 : function is
+  --  (1 => ("   ","PASS    ","    ","              "),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","ONE     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function vector_tie_1
@@ -498,11 +517,12 @@ package std_ulogic_function_support is
   attribute recursive_synthesis of vector_tie_1 : function is true ;
   attribute block_data          of vector_tie_1 : function is
     "LOGIC_STYLE=/DIRECT/" ;
-  attribute pin_bit_information of vector_tie_1 : function is
-    (1 => ("   ","IGNR    ","    ","              "),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","ONE     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of vector_tie_1 : function is
+  --  (1 => ("   ","IGNR    ","    ","              "),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","ONE     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function reverse
@@ -520,11 +540,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of and_reduce : function is "AND" ;
   attribute recursive_synthesis of and_reduce : function is true ;
-  attribute pin_bit_information of and_reduce : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of and_reduce : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function or_reduce
@@ -538,11 +559,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of or_reduce : function is "OR" ;
   attribute recursive_synthesis of or_reduce : function is true ;
-  attribute pin_bit_information of or_reduce : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of or_reduce : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function nand_reduce
@@ -556,11 +578,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nand_reduce : function is "NAND" ;
   attribute recursive_synthesis of nand_reduce : function is true ;
-  attribute pin_bit_information of nand_reduce : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nand_reduce : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function nor_reduce
@@ -574,11 +597,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nor_reduce : function is "NOR" ;
   attribute recursive_synthesis of nor_reduce : function is true ;
-  attribute pin_bit_information of nor_reduce : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nor_reduce : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function xor_reduce
@@ -592,11 +616,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of xor_reduce : function is "XOR" ;
   attribute recursive_synthesis of xor_reduce : function is true ;
-  attribute pin_bit_information of xor_reduce : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of xor_reduce : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function xnor_reduce
@@ -610,11 +635,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of xnor_reduce : function is "XNOR" ;
   attribute recursive_synthesis of xnor_reduce : function is true ;
-  attribute pin_bit_information of xnor_reduce : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of xnor_reduce : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","OUT     ","SAME","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   -- Vector of gating bits gating a single vector of data bits
@@ -648,12 +674,13 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of gate_and : function is "AND" ;
   attribute recursive_synthesis of gate_and : function is true ;
-  attribute pin_bit_information of gate_and : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_and : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function gate_or
@@ -686,12 +713,13 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of gate_or : function is "OR" ;
   attribute recursive_synthesis of gate_or : function is true ;
-  attribute pin_bit_information of gate_or : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_or : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function gate_nand
@@ -724,12 +752,13 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of gate_nand : function is "NAND" ;
   attribute recursive_synthesis of gate_nand : function is true ;
-  attribute pin_bit_information of gate_nand : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_nand : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function gate_nor
@@ -762,12 +791,13 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of gate_nor : function is "NOR" ;
   attribute recursive_synthesis of gate_nor : function is true ;
-  attribute pin_bit_information of gate_nor : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_nor : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function gate_xor
@@ -791,12 +821,13 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of gate_xor : function is "XOR" ;
   attribute recursive_synthesis of gate_xor : function is true ;
-  attribute pin_bit_information of gate_xor : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_xor : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function gate_xnor
@@ -820,12 +851,13 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of gate_xnor : function is "XNOR" ;
   attribute recursive_synthesis of gate_xnor : function is true ;
-  attribute pin_bit_information of gate_xnor : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_xnor : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   -- Vectored primitive <gate> 2 input functions
@@ -852,12 +884,13 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of and_2 : function is "AND" ;
   attribute recursive_synthesis of and_2 : function is true ;
-  attribute pin_bit_information of and_2 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of and_2 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function or_2
@@ -881,12 +914,13 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of or_2 : function is "OR" ;
   attribute recursive_synthesis of or_2 : function is true ;
-  attribute pin_bit_information of or_2 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of or_2 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nand_2
@@ -910,12 +944,13 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nand_2 : function is "NAND" ;
   attribute recursive_synthesis of nand_2 : function is true ;
-  attribute pin_bit_information of nand_2 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nand_2 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nor_2
@@ -939,12 +974,13 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nor_2 : function is "NOR" ;
   attribute recursive_synthesis of nor_2 : function is true ;
-  attribute pin_bit_information of nor_2 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nor_2 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function xor_2
@@ -968,12 +1004,13 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of xor_2 : function is "XOR" ;
   attribute recursive_synthesis of xor_2 : function is true ;
-  attribute pin_bit_information of xor_2 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of xor_2 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function xnor_2
@@ -997,12 +1034,13 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of xnor_2 : function is "XNOR" ;
   attribute recursive_synthesis of xnor_2 : function is true ;
-  attribute pin_bit_information of xnor_2 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of xnor_2 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   -- Vectored primitive <gate> 3 input functions
@@ -1031,13 +1069,14 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of and_3 : function is "AND" ;
   attribute recursive_synthesis of and_3 : function is true ;
-  attribute pin_bit_information of and_3 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of and_3 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function or_3
@@ -1063,13 +1102,14 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of or_3 : function is "OR" ;
   attribute recursive_synthesis of or_3 : function is true ;
-  attribute pin_bit_information of or_3 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of or_3 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nand_3
@@ -1095,13 +1135,14 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nand_3 : function is "NAND" ;
   attribute recursive_synthesis of nand_3 : function is true ;
-  attribute pin_bit_information of nand_3 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nand_3 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nor_3
@@ -1127,13 +1168,14 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nor_3 : function is "NOR" ;
   attribute recursive_synthesis of nor_3 : function is true ;
-  attribute pin_bit_information of nor_3 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nor_3 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function xor_3
@@ -1159,13 +1201,14 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of xor_3 : function is "XOR" ;
   attribute recursive_synthesis of xor_3 : function is true ;
-  attribute pin_bit_information of xor_3 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of xor_3 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function xnor_3
@@ -1191,13 +1234,14 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of xnor_3 : function is "XNOR" ;
   attribute recursive_synthesis of xnor_3 : function is true ;
-  attribute pin_bit_information of xnor_3 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of xnor_3 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   -- Vectored primitive <gate> 4 input functions
@@ -1227,14 +1271,15 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of and_4 : function is "AND" ;
   attribute recursive_synthesis of and_4 : function is true ;
-  attribute pin_bit_information of and_4 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of and_4 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function or_4
@@ -1262,14 +1307,15 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of or_4 : function is "OR" ;
   attribute recursive_synthesis of or_4 : function is true ;
-  attribute pin_bit_information of or_4 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of or_4 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nand_4
@@ -1297,14 +1343,15 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nand_4 : function is "NAND" ;
   attribute recursive_synthesis of nand_4 : function is true ;
-  attribute pin_bit_information of nand_4 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nand_4 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nor_4
@@ -1332,14 +1379,15 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nor_4 : function is "NOR" ;
   attribute recursive_synthesis of nor_4 : function is true ;
-  attribute pin_bit_information of nor_4 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nor_4 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   -- Vectored primitive <gate> 5 input functions
@@ -1372,15 +1420,16 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of and_5 : function is "AND" ;
   attribute recursive_synthesis of and_5 : function is true ;
-  attribute pin_bit_information of and_5 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of and_5 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function or_5
@@ -1410,15 +1459,16 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of or_5 : function is "OR" ;
   attribute recursive_synthesis of or_5 : function is true ;
-  attribute pin_bit_information of or_5 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of or_5 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nand_5
@@ -1448,15 +1498,16 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nand_5 : function is "NAND" ;
   attribute recursive_synthesis of nand_5 : function is true ;
-  attribute pin_bit_information of nand_5 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nand_5 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nor_5
@@ -1486,15 +1537,16 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nor_5 : function is "NOR" ;
   attribute recursive_synthesis of nor_5 : function is true ;
-  attribute pin_bit_information of nor_5 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nor_5 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   -- Vectored primitive <gate> 6 input functions
@@ -1528,16 +1580,17 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of and_6 : function is "AND" ;
   attribute recursive_synthesis of and_6 : function is true ;
-  attribute pin_bit_information of and_6 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of and_6 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function or_6
@@ -1569,16 +1622,17 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of or_6 : function is "OR" ;
   attribute recursive_synthesis of or_6 : function is true ;
-  attribute pin_bit_information of or_6 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of or_6 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nand_6
@@ -1610,16 +1664,17 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nand_6 : function is "NAND" ;
   attribute recursive_synthesis of nand_6 : function is true ;
-  attribute pin_bit_information of nand_6 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nand_6 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nor_6
@@ -1651,16 +1706,17 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nor_6 : function is "NOR" ;
   attribute recursive_synthesis of nor_6 : function is true ;
-  attribute pin_bit_information of nor_6 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nor_6 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   -- Vectored primitive <gate> 7 input functions
@@ -1697,17 +1753,18 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of and_7 : function is "AND" ;
   attribute recursive_synthesis of and_7 : function is true ;
-  attribute pin_bit_information of and_7 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of and_7 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function or_7
@@ -1741,17 +1798,18 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of or_7 : function is "OR" ;
   attribute recursive_synthesis of or_7 : function is true ;
-  attribute pin_bit_information of or_7 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of or_7 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nand_7
@@ -1785,17 +1843,18 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nand_7 : function is "NAND" ;
   attribute recursive_synthesis of nand_7 : function is true ;
-  attribute pin_bit_information of nand_7 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nand_7 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nor_7
@@ -1829,17 +1888,18 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nor_7 : function is "NOR" ;
   attribute recursive_synthesis of nor_7 : function is true ;
-  attribute pin_bit_information of nor_7 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nor_7 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   -- Vectored primitive <gate> 8 input functions
@@ -1878,18 +1938,19 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of and_8 : function is "AND" ;
   attribute recursive_synthesis of and_8 : function is true ;
-  attribute pin_bit_information of and_8 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of and_8 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function or_8
@@ -1925,18 +1986,19 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of or_8 : function is "OR" ;
   attribute recursive_synthesis of or_8 : function is true ;
-  attribute pin_bit_information of or_8 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of or_8 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nand_8
@@ -1972,18 +2034,19 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nand_8 : function is "NAND" ;
   attribute recursive_synthesis of nand_8 : function is true ;
-  attribute pin_bit_information of nand_8 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nand_8 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function nor_8
@@ -2019,18 +2082,19 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of nor_8 : function is "NOR" ;
   attribute recursive_synthesis of nor_8 : function is true ;
-  attribute pin_bit_information of nor_8 : function is
-    (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of nor_8 : function is
+  --  (1 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","IN      ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- Synopsys translate_on
 
   function decode( code  : std_ulogic_vector ) return  std_ulogic_vector;
@@ -2049,11 +2113,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of decode_2to4 : function is "VHDL-DECODE";
   attribute recursive_synthesis of decode_2to4 : function is true ;
-  attribute pin_bit_information of decode_2to4 : function is
-    (1 => ("   ","D1      ","DECR","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","F0      ","INCR","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of decode_2to4 : function is
+  --  (1 => ("   ","D1      ","DECR","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","F0      ","INCR","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function decode_3to8
@@ -2067,11 +2132,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of decode_3to8 : function is "VHDL-DECODE";
   attribute recursive_synthesis of decode_3to8 : function is true ;
-  attribute pin_bit_information of decode_3to8 : function is
-    (1 => ("   ","D2      ","DECR","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","F0      ","INCR","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of decode_3to8 : function is
+  --  (1 => ("   ","D2      ","DECR","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","F0      ","INCR","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function decode_4to16
@@ -2085,11 +2151,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of decode_4to16 : function is "VHDL-DECODE";
   attribute recursive_synthesis of decode_4to16 : function is true ;
-  attribute pin_bit_information of decode_4to16 : function is
-    (1 => ("   ","D3      ","DECR","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","F0      ","INCR","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of decode_4to16 : function is
+  --  (1 => ("   ","D3      ","DECR","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","F0      ","INCR","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function decode_5to32
@@ -2103,11 +2170,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of decode_5to32 : function is "VHDL-DECODE";
   attribute recursive_synthesis of decode_5to32 : function is true ;
-  attribute pin_bit_information of decode_5to32 : function is
-    (1 => ("   ","D4      ","DECR","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","F0      ","INCR","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of decode_5to32 : function is
+  --  (1 => ("   ","D4      ","DECR","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","F0      ","INCR","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
   function decode_6to64
@@ -2121,11 +2189,12 @@ package std_ulogic_function_support is
   -- synopsys translate_off
   attribute btr_name            of decode_6to64 : function is "VHDL-DECODE";
   attribute recursive_synthesis of decode_6to64 : function is true ;
-  attribute pin_bit_information of decode_6to64 : function is
-    (1 => ("   ","D5      ","DECR","PIN_BIT_SCALAR"),
-     2 => ("   ","PASS    ","    ","              "),
-     3 => ("   ","PASS    ","    ","              "),
-     4 => ("   ","F0      ","INCR","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of decode_6to64 : function is
+  --  (1 => ("   ","D5      ","DECR","PIN_BIT_SCALAR"),
+  --   2 => ("   ","PASS    ","    ","              "),
+  --   3 => ("   ","PASS    ","    ","              "),
+  --   4 => ("   ","F0      ","INCR","PIN_BIT_SCALAR"));
   -- Synopsys translate_on
 
 end std_ulogic_function_support;

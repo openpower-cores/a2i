@@ -47,13 +47,14 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_2x1 : function is true;
-  attribute pin_bit_information of gate_ao_2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_2x1
@@ -77,13 +78,14 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_2x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_2x1 : function is true;
-  attribute pin_bit_information of ao_2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_2x1
@@ -107,13 +109,14 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_2x1 : function is true;
-  attribute pin_bit_information of gate_aoi_2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_2x1
@@ -137,13 +140,14 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_2x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_2x1 : function is true;
-  attribute pin_bit_information of aoi_2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_2x1
@@ -167,13 +171,14 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_2x1 : function is true;
-  attribute pin_bit_information of gate_oa_2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_2x1
@@ -197,13 +202,14 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_2x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_2x1 : function is true;
-  attribute pin_bit_information of oa_2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_2x1
@@ -227,13 +233,14 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_2x1 : function is true;
-  attribute pin_bit_information of gate_oai_2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_2x1
@@ -257,13 +264,14 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_2x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_2x1 : function is true;
-  attribute pin_bit_information of oai_2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_ao_2x2
@@ -289,14 +297,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x2 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_2x2 : function is true;
-  attribute pin_bit_information of gate_ao_2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_2x2
@@ -322,14 +331,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_2x2 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_2x2 : function is true;
-  attribute pin_bit_information of ao_2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_2x2
@@ -355,14 +365,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x2 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_2x2 : function is true;
-  attribute pin_bit_information of gate_aoi_2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_2x2
@@ -388,14 +399,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_2x2 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_2x2 : function is true;
-  attribute pin_bit_information of aoi_2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_2x2
@@ -421,14 +433,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x2 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_2x2 : function is true;
-  attribute pin_bit_information of gate_oa_2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_2x2
@@ -454,14 +467,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_2x2 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_2x2 : function is true;
-  attribute pin_bit_information of oa_2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_2x2
@@ -487,14 +501,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x2 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_2x2 : function is true;
-  attribute pin_bit_information of gate_oai_2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_2x2
@@ -520,14 +535,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_2x2 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_2x2 : function is true;
-  attribute pin_bit_information of oai_2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   -- =============================================================
@@ -559,14 +575,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x1x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_2x1x1 : function is true;
-  attribute pin_bit_information of gate_ao_2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_2x1x1
@@ -592,14 +609,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_2x1x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_2x1x1 : function is true;
-  attribute pin_bit_information of ao_2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_2x1x1
@@ -625,14 +643,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x1x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_2x1x1 : function is true;
-  attribute pin_bit_information of gate_aoi_2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_2x1x1
@@ -658,14 +677,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_2x1x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_2x1x1 : function is true;
-  attribute pin_bit_information of aoi_2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_2x1x1
@@ -691,14 +711,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x1x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_2x1x1 : function is true;
-  attribute pin_bit_information of gate_oa_2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_2x1x1
@@ -724,14 +745,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_2x1x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_2x1x1 : function is true;
-  attribute pin_bit_information of oa_2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_2x1x1
@@ -757,14 +779,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x1x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_2x1x1 : function is true;
-  attribute pin_bit_information of gate_oai_2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_2x1x1
@@ -790,14 +813,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_2x1x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_2x1x1 : function is true;
-  attribute pin_bit_information of oai_2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_ao_2x2x1
@@ -825,15 +849,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x2x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_2x2x1 : function is true;
-  attribute pin_bit_information of gate_ao_2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_2x2x1
@@ -861,15 +886,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_2x2x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_2x2x1 : function is true;
-  attribute pin_bit_information of ao_2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_2x2x1
@@ -897,15 +923,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x2x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_2x2x1 : function is true;
-  attribute pin_bit_information of gate_aoi_2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_2x2x1
@@ -933,15 +960,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_2x2x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_2x2x1 : function is true;
-  attribute pin_bit_information of aoi_2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_2x2x1
@@ -969,15 +997,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x2x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_2x2x1 : function is true;
-  attribute pin_bit_information of gate_oa_2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_2x2x1
@@ -1005,15 +1034,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_2x2x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_2x2x1 : function is true;
-  attribute pin_bit_information of oa_2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_2x2x1
@@ -1041,15 +1071,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x2x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_2x2x1 : function is true;
-  attribute pin_bit_information of gate_oai_2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_2x2x1
@@ -1077,15 +1108,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_2x2x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_2x2x1 : function is true;
-  attribute pin_bit_information of oai_2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_ao_2x2x2
@@ -1115,16 +1147,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x2x2 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_2x2x2 : function is true;
-  attribute pin_bit_information of gate_ao_2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_2x2x2
@@ -1154,16 +1187,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_2x2x2 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_2x2x2 : function is true;
-  attribute pin_bit_information of ao_2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_2x2x2
@@ -1193,16 +1227,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x2x2 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_2x2x2 : function is true;
-  attribute pin_bit_information of gate_aoi_2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_2x2x2
@@ -1232,16 +1267,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_2x2x2 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_2x2x2 : function is true;
-  attribute pin_bit_information of aoi_2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_2x2x2
@@ -1271,16 +1307,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x2x2 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_2x2x2 : function is true;
-  attribute pin_bit_information of gate_oa_2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_2x2x2
@@ -1310,16 +1347,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_2x2x2 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_2x2x2 : function is true;
-  attribute pin_bit_information of oa_2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_2x2x2
@@ -1349,16 +1387,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x2x2 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_2x2x2 : function is true;
-  attribute pin_bit_information of gate_oai_2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_2x2x2
@@ -1388,16 +1427,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_2x2x2 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_2x2x2 : function is true;
-  attribute pin_bit_information of oai_2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   -- =============================================================
@@ -1431,15 +1471,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x1x1x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_2x1x1x1 : function is true;
-  attribute pin_bit_information of gate_ao_2x1x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_2x1x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_2x1x1x1
@@ -1467,15 +1508,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_2x1x1x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_2x1x1x1 : function is true;
-  attribute pin_bit_information of ao_2x1x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_2x1x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_2x1x1x1
@@ -1503,15 +1545,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x1x1x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_2x1x1x1 : function is true;
-  attribute pin_bit_information of gate_aoi_2x1x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_2x1x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_2x1x1x1
@@ -1539,15 +1582,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_2x1x1x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_2x1x1x1 : function is true;
-  attribute pin_bit_information of aoi_2x1x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_2x1x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_2x1x1x1
@@ -1575,15 +1619,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x1x1x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_2x1x1x1 : function is true;
-  attribute pin_bit_information of gate_oa_2x1x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_2x1x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_2x1x1x1
@@ -1611,15 +1656,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_2x1x1x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_2x1x1x1 : function is true;
-  attribute pin_bit_information of oa_2x1x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_2x1x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_2x1x1x1
@@ -1647,15 +1693,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x1x1x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_2x1x1x1 : function is true;
-  attribute pin_bit_information of gate_oai_2x1x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_2x1x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_2x1x1x1
@@ -1683,15 +1730,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_2x1x1x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_2x1x1x1 : function is true;
-  attribute pin_bit_information of oai_2x1x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_2x1x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_ao_2x2x1x1
@@ -1721,16 +1769,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x2x1x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_2x2x1x1 : function is true;
-  attribute pin_bit_information of gate_ao_2x2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_2x2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_2x2x1x1
@@ -1760,16 +1809,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_2x2x1x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_2x2x1x1 : function is true;
-  attribute pin_bit_information of ao_2x2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_2x2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_2x2x1x1
@@ -1799,16 +1849,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x2x1x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_2x2x1x1 : function is true;
-  attribute pin_bit_information of gate_aoi_2x2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_2x2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_2x2x1x1
@@ -1838,16 +1889,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_2x2x1x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_2x2x1x1 : function is true;
-  attribute pin_bit_information of aoi_2x2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_2x2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_2x2x1x1
@@ -1877,16 +1929,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x2x1x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_2x2x1x1 : function is true;
-  attribute pin_bit_information of gate_oa_2x2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_2x2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_2x2x1x1
@@ -1916,16 +1969,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_2x2x1x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_2x2x1x1 : function is true;
-  attribute pin_bit_information of oa_2x2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_2x2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_2x2x1x1
@@ -1955,16 +2009,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x2x1x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_2x2x1x1 : function is true;
-  attribute pin_bit_information of gate_oai_2x2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_2x2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_2x2x1x1
@@ -1994,16 +2049,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_2x2x1x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_2x2x1x1 : function is true;
-  attribute pin_bit_information of oai_2x2x1x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_2x2x1x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_ao_2x2x2x1
@@ -2035,17 +2091,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x2x2x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_2x2x2x1 : function is true;
-  attribute pin_bit_information of gate_ao_2x2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_2x2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_2x2x2x1
@@ -2077,17 +2134,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_2x2x2x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_2x2x2x1 : function is true;
-  attribute pin_bit_information of ao_2x2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_2x2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_2x2x2x1
@@ -2119,17 +2177,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x2x2x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_2x2x2x1 : function is true;
-  attribute pin_bit_information of gate_aoi_2x2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_2x2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_2x2x2x1
@@ -2161,17 +2220,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_2x2x2x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_2x2x2x1 : function is true;
-  attribute pin_bit_information of aoi_2x2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_2x2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_2x2x2x1
@@ -2203,17 +2263,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x2x2x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_2x2x2x1 : function is true;
-  attribute pin_bit_information of gate_oa_2x2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_2x2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_2x2x2x1
@@ -2245,17 +2306,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_2x2x2x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_2x2x2x1 : function is true;
-  attribute pin_bit_information of oa_2x2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_2x2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_2x2x2x1
@@ -2287,17 +2349,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x2x2x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_2x2x2x1 : function is true;
-  attribute pin_bit_information of gate_oai_2x2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_2x2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_2x2x2x1
@@ -2329,17 +2392,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_2x2x2x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_2x2x2x1 : function is true;
-  attribute pin_bit_information of oai_2x2x2x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_2x2x2x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_ao_2x2x2x2
@@ -2373,18 +2437,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_2x2x2x2 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_2x2x2x2 : function is true;
-  attribute pin_bit_information of gate_ao_2x2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_2x2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_2x2x2x2
@@ -2418,18 +2483,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_2x2x2x2 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_2x2x2x2 : function is true;
-  attribute pin_bit_information of ao_2x2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_2x2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_2x2x2x2
@@ -2463,18 +2529,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_2x2x2x2 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_2x2x2x2 : function is true;
-  attribute pin_bit_information of gate_aoi_2x2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_2x2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_2x2x2x2
@@ -2508,18 +2575,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_2x2x2x2 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_2x2x2x2 : function is true;
-  attribute pin_bit_information of aoi_2x2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_2x2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_2x2x2x2
@@ -2553,18 +2621,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_2x2x2x2 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_2x2x2x2 : function is true;
-  attribute pin_bit_information of gate_oa_2x2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_2x2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_2x2x2x2
@@ -2598,18 +2667,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_2x2x2x2 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_2x2x2x2 : function is true;
-  attribute pin_bit_information of oa_2x2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_2x2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_2x2x2x2
@@ -2643,18 +2713,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_2x2x2x2 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_2x2x2x2 : function is true;
-  attribute pin_bit_information of gate_oai_2x2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
-     8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_2x2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_SCALAR"),
+  --   8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_2x2x2x2
@@ -2688,18 +2759,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_2x2x2x2 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_2x2x2x2 : function is true;
-  attribute pin_bit_information of oai_2x2x2x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_2x2x2x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","C       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","D       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   -- =============================================================
@@ -2731,14 +2803,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_3x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_3x1 : function is true;
-  attribute pin_bit_information of gate_ao_3x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_3x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_3x1
@@ -2764,14 +2837,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_3x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_3x1 : function is true;
-  attribute pin_bit_information of ao_3x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_3x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_3x1
@@ -2797,14 +2871,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_3x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_3x1 : function is true;
-  attribute pin_bit_information of gate_aoi_3x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_3x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_3x1
@@ -2830,14 +2905,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_3x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_3x1 : function is true;
-  attribute pin_bit_information of aoi_3x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_3x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_3x1
@@ -2863,14 +2939,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_3x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_3x1 : function is true;
-  attribute pin_bit_information of gate_oa_3x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_3x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_3x1
@@ -2896,14 +2973,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_3x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_3x1 : function is true;
-  attribute pin_bit_information of oa_3x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_3x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_3x1
@@ -2929,14 +3007,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_3x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_3x1 : function is true;
-  attribute pin_bit_information of gate_oai_3x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_3x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_3x1
@@ -2962,14 +3041,15 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_3x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_3x1 : function is true;
-  attribute pin_bit_information of oai_3x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_3x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_ao_3x2
@@ -2997,15 +3077,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_3x2 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_3x2 : function is true;
-  attribute pin_bit_information of gate_ao_3x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_3x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_3x2
@@ -3033,15 +3114,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_3x2 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_3x2 : function is true;
-  attribute pin_bit_information of ao_3x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_3x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_3x2
@@ -3069,15 +3151,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_3x2 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_3x2 : function is true;
-  attribute pin_bit_information of gate_aoi_3x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_3x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_3x2
@@ -3105,15 +3188,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_3x2 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_3x2 : function is true;
-  attribute pin_bit_information of aoi_3x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_3x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_3x2
@@ -3141,15 +3225,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_3x2 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_3x2 : function is true;
-  attribute pin_bit_information of gate_oa_3x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_3x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_3x2
@@ -3177,15 +3262,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_3x2 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_3x2 : function is true;
-  attribute pin_bit_information of oa_3x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_3x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_3x2
@@ -3213,15 +3299,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_3x2 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_3x2 : function is true;
-  attribute pin_bit_information of gate_oai_3x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_3x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_3x2
@@ -3249,15 +3336,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_3x2 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_3x2 : function is true;
-  attribute pin_bit_information of oai_3x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_3x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_ao_3x3
@@ -3287,16 +3375,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_3x3 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_3x3 : function is true;
-  attribute pin_bit_information of gate_ao_3x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_3x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_3x3
@@ -3326,16 +3415,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_3x3 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_3x3 : function is true;
-  attribute pin_bit_information of ao_3x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_3x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_3x3
@@ -3365,16 +3455,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_3x3 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_3x3 : function is true;
-  attribute pin_bit_information of gate_aoi_3x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_3x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_3x3
@@ -3404,16 +3495,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_3x3 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_3x3 : function is true;
-  attribute pin_bit_information of aoi_3x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_3x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_3x3
@@ -3443,16 +3535,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_3x3 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_3x3 : function is true;
-  attribute pin_bit_information of gate_oa_3x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_3x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_3x3
@@ -3482,16 +3575,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_3x3 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_3x3 : function is true;
-  attribute pin_bit_information of oa_3x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_3x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_3x3
@@ -3521,16 +3615,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_3x3 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_3x3 : function is true;
-  attribute pin_bit_information of gate_oai_3x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_3x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_3x3
@@ -3560,16 +3655,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_3x3 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_3x3 : function is true;
-  attribute pin_bit_information of oai_3x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_3x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   -- =============================================================
@@ -3603,15 +3699,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_4x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_4x1 : function is true;
-  attribute pin_bit_information of gate_ao_4x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_4x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_4x1
@@ -3639,15 +3736,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_4x1 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_4x1 : function is true;
-  attribute pin_bit_information of ao_4x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_4x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_4x1
@@ -3675,15 +3773,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_4x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_4x1 : function is true;
-  attribute pin_bit_information of gate_aoi_4x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_4x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_4x1
@@ -3711,15 +3810,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_4x1 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_4x1 : function is true;
-  attribute pin_bit_information of aoi_4x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_4x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_4x1
@@ -3747,15 +3847,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_4x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_4x1 : function is true;
-  attribute pin_bit_information of gate_oa_4x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_4x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_4x1
@@ -3783,15 +3884,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_4x1 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_4x1 : function is true;
-  attribute pin_bit_information of oa_4x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_4x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_4x1
@@ -3819,15 +3921,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_4x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_4x1 : function is true;
-  attribute pin_bit_information of gate_oai_4x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_4x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_4x1
@@ -3855,15 +3958,16 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_4x1 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_4x1 : function is true;
-  attribute pin_bit_information of oai_4x1 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_4x1 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_ao_4x2
@@ -3893,16 +3997,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_4x2 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_4x2 : function is true;
-  attribute pin_bit_information of gate_ao_4x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_4x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_4x2
@@ -3932,16 +4037,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_4x2 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_4x2 : function is true;
-  attribute pin_bit_information of ao_4x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_4x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_4x2
@@ -3971,16 +4077,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_4x2 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_4x2 : function is true;
-  attribute pin_bit_information of gate_aoi_4x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_4x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_4x2
@@ -4010,16 +4117,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_4x2 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_4x2 : function is true;
-  attribute pin_bit_information of aoi_4x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_4x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_4x2
@@ -4049,16 +4157,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_4x2 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_4x2 : function is true;
-  attribute pin_bit_information of gate_oa_4x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_4x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_4x2
@@ -4088,16 +4197,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_4x2 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_4x2 : function is true;
-  attribute pin_bit_information of oa_4x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_4x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_4x2
@@ -4127,16 +4237,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_4x2 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_4x2 : function is true;
-  attribute pin_bit_information of gate_oai_4x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_4x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_4x2
@@ -4166,16 +4277,17 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_4x2 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_4x2 : function is true;
-  attribute pin_bit_information of oai_4x2 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_4x2 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_ao_4x3
@@ -4207,17 +4319,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_4x3 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_4x3 : function is true;
-  attribute pin_bit_information of gate_ao_4x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_4x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_4x3
@@ -4249,17 +4362,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_4x3 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_4x3 : function is true;
-  attribute pin_bit_information of ao_4x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_4x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_4x3
@@ -4291,17 +4405,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_4x3 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_4x3 : function is true;
-  attribute pin_bit_information of gate_aoi_4x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_4x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_4x3
@@ -4333,17 +4448,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_4x3 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_4x3 : function is true;
-  attribute pin_bit_information of aoi_4x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_4x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_4x3
@@ -4375,17 +4491,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_4x3 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_4x3 : function is true;
-  attribute pin_bit_information of gate_oa_4x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_4x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_4x3
@@ -4417,17 +4534,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_4x3 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_4x3 : function is true;
-  attribute pin_bit_information of oa_4x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_4x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_4x3
@@ -4459,17 +4577,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_4x3 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_4x3 : function is true;
-  attribute pin_bit_information of gate_oai_4x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_4x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_4x3
@@ -4501,17 +4620,18 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_4x3 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_4x3 : function is true;
-  attribute pin_bit_information of oai_4x3 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_4x3 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_ao_4x4
@@ -4545,18 +4665,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_ao_4x4 : function is "VHDL-AO" ;
   attribute recursive_synthesis of gate_ao_4x4 : function is true;
-  attribute pin_bit_information of gate_ao_4x4 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_ao_4x4 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function ao_4x4
@@ -4590,18 +4711,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of ao_4x4 : function is "VHDL-AO" ;
   attribute recursive_synthesis of ao_4x4 : function is true;
-  attribute pin_bit_information of ao_4x4 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of ao_4x4 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_aoi_4x4
@@ -4635,18 +4757,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_aoi_4x4 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of gate_aoi_4x4 : function is true;
-  attribute pin_bit_information of gate_aoi_4x4 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_aoi_4x4 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function aoi_4x4
@@ -4680,18 +4803,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of aoi_4x4 : function is "VHDL-AOI" ;
   attribute recursive_synthesis of aoi_4x4 : function is true;
-  attribute pin_bit_information of aoi_4x4 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of aoi_4x4 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oa_4x4
@@ -4725,18 +4849,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oa_4x4 : function is "VHDL-OA" ;
   attribute recursive_synthesis of gate_oa_4x4 : function is true;
-  attribute pin_bit_information of gate_oa_4x4 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oa_4x4 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oa_4x4
@@ -4770,18 +4895,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oa_4x4 : function is "VHDL-OA" ;
   attribute recursive_synthesis of oa_4x4 : function is true;
-  attribute pin_bit_information of oa_4x4 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oa_4x4 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function gate_oai_4x4
@@ -4815,18 +4941,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of gate_oai_4x4 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of gate_oai_4x4 : function is true;
-  attribute pin_bit_information of gate_oai_4x4 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of gate_oai_4x4 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function oai_4x4
@@ -4860,18 +4987,19 @@ package std_ulogic_ao_support is
   -- synopsys translate_off
   attribute btr_name   of oai_4x4 : function is "VHDL-OAI" ;
   attribute recursive_synthesis of oai_4x4 : function is true;
-  attribute pin_bit_information of oai_4x4 : function is
-    (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of oai_4x4 : function is
+  --  (1 => ("   ","A       ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","A       ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","B       ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","B       ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
 end std_ulogic_ao_support;

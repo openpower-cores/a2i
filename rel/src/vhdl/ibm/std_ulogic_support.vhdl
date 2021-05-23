@@ -212,9 +212,10 @@ package std_ulogic_support is
   -------------------------------------------------------------------
 
   attribute btr_name         of tconv  : function is "PASS";
-  attribute pin_bit_information of tconv : function is
-           (1 => ("   ","A0      ","INCR","PIN_BIT_SCALAR"),
-            2 => ("   ","10      ","INCR","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of tconv : function is
+  --         (1 => ("   ","A0      ","INCR","PIN_BIT_SCALAR"),
+  --          2 => ("   ","10      ","INCR","PIN_BIT_SCALAR"));
 -- Synopsys translate_on
 
   --============================================================================

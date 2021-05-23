@@ -71,18 +71,20 @@ package std_ulogic_unsigned is
   -- synopsys translate_off
   attribute type_convert        of to_integer : function is true;
   attribute btr_name            of to_integer : function is "PASS";
-  attribute pin_bit_information of to_integer : function is
-           (1 => ("   ","A0      ","INCR","PIN_BIT_SCALAR"),
-            2 => ("   ","10      ","INCR","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of to_integer : function is
+  --         (1 => ("   ","A0      ","INCR","PIN_BIT_SCALAR"),
+  --          2 => ("   ","10      ","INCR","PIN_BIT_SCALAR"));
   -- synopsys translate_on
 
   -- synopsys translate_off
   function to_std_ulogic_vector( d : natural; w : positive ) return std_ulogic_vector;
   attribute type_convert        of to_std_ulogic_vector : function is true;
   attribute btr_name            of to_std_ulogic_vector : function is "PASS";
-  attribute pin_bit_information of to_std_ulogic_vector : function is
-           (1 => ("   ","A0      ","INCR","PIN_BIT_SCALAR"),
-            2 => ("   ","10      ","INCR","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of to_std_ulogic_vector : function is
+  --         (1 => ("   ","A0      ","INCR","PIN_BIT_SCALAR"),
+  --          2 => ("   ","10      ","INCR","PIN_BIT_SCALAR"));
   -- synopsys translate_on
 
 end std_ulogic_unsigned;
