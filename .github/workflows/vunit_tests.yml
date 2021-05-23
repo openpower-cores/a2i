@@ -8,10 +8,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+
+  Test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: VUnit/vunit_action@master
-        with:
-          cmd: python3 ./run.py
+
+    - uses: actions/checkout@v2
+
+    - uses: VUnit/vunit_action@master
