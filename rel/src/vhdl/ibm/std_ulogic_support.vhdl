@@ -26,8 +26,8 @@ package std_ulogic_support is
   attribute dc_allow: boolean;
   attribute type_convert: boolean;
   attribute recursive_synthesis: boolean;
-  attribute functionality: string;  
-  attribute btr_name: string;  
+  attribute functionality: string;
+  attribute btr_name: string;
   attribute block_data: string;
   type pbi_el_t is array(0 to 3) of string;
   type pbi_t is array(integer range <>) of pbi_el_t;
@@ -212,9 +212,10 @@ package std_ulogic_support is
   -------------------------------------------------------------------
 
   attribute btr_name         of tconv  : function is "PASS";
-  attribute pin_bit_information of tconv : function is
-           (1 => ("   ","A0      ","INCR","PIN_BIT_SCALAR"),
-            2 => ("   ","10      ","INCR","PIN_BIT_SCALAR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of tconv : function is
+  --         (1 => ("   ","A0      ","INCR","PIN_BIT_SCALAR"),
+  --          2 => ("   ","10      ","INCR","PIN_BIT_SCALAR"));
 -- Synopsys translate_on
 
   --============================================================================
@@ -231,7 +232,7 @@ package std_ulogic_support is
 --==============================================================
   -- Shift and Rotate Functions
 --==============================================================
- 
+
   -- Id: S.1
   function shift_left (arg: std_ulogic_vector; count: natural) return std_ulogic_vector;
   -- Result subtype: std_ulogic_vector(ARG'LENGTH-1 downto 0)
@@ -255,12 +256,12 @@ package std_ulogic_support is
   function rotate_right (arg: std_ulogic_vector; count: natural) return std_ulogic_vector;
   -- Result subtype: std_ulogic_vector(ARG'LENGTH-1 downto 0)
   -- Result: Performs a rotate-right of an std_ulogic_vector vector COUNT times.
-  
+
   -- Id: S.9
   function "sll" (arg: std_ulogic_vector; count: integer) return std_ulogic_vector;
   -- Result subtype: std_ulogic_vector(ARG'LENGTH-1 downto 0)
   -- Result: SHIFT_LEFT(ARG, COUNT)
- 
+
   -- Id: S.11
   function "srl" (arg: std_ulogic_vector; count: integer) return std_ulogic_vector;
   -- Result subtype: std_ulogic_vector(ARG'LENGTH-1 downto 0)
@@ -270,7 +271,7 @@ package std_ulogic_support is
   function "rol" (arg: std_ulogic_vector; count: integer) return std_ulogic_vector;
   -- Result subtype: std_ulogic_vector(ARG'LENGTH-1 downto 0)
   -- Result: ROTATE_LEFT(ARG, COUNT)
-  
+
   -- Id: S.15
   function "ror" (arg: std_ulogic_vector; count: integer) return std_ulogic_vector;
   -- Result subtype: std_ulogic_vector(ARG'LENGTH-1 downto 0)
@@ -632,7 +633,7 @@ package body std_ulogic_support is
   function eq( l,r : std_ulogic_vector)  return std_ulogic  is
       variable result        : std_ulogic ;
   begin
-    result := std_match( l, r ) ; 
+    result := std_match( l, r ) ;
     --result := (l ?= r);
     return result;
   end eq;
@@ -653,8 +654,8 @@ package body std_ulogic_support is
     result := unsigned(l) > unsigned(r);
     if (result = true ) then
        return '1' ;
-    else 
-       return '0'; 
+    else
+       return '0';
     end if ;
   end gt;
 
@@ -666,8 +667,8 @@ package body std_ulogic_support is
     result := unsigned(l) >= unsigned(r);
     if (result = true ) then
        return '1' ;
-    else 
-       return '0'; 
+    else
+       return '0';
     end if ;
   end ge;
 
@@ -679,8 +680,8 @@ package body std_ulogic_support is
     result := unsigned(l) < unsigned(r);
     if (result = true ) then
        return '1' ;
-    else 
-       return '0'; 
+    else
+       return '0';
     end if ;
   end lt;
 
@@ -692,8 +693,8 @@ package body std_ulogic_support is
     result := unsigned(l) <= unsigned(r);
     if (result = true ) then
        return '1' ;
-    else 
-       return '0'; 
+    else
+       return '0';
     end if ;
   end le;
 
@@ -789,9 +790,9 @@ package body std_ulogic_support is
   -- pragma built_in SYN_UNSIGNED_TO_INTEGER
   begin
   -- Synopsys translate_off
-     int_result := 0;  
-     int_exp    := 0;  
-     new_value  := b;  
+     int_result := 0;
+     int_exp    := 0;
+     new_value  := b;
      for i in new_value'length to 1 loop
         if b(i)='1' then
            int_result := int_result + (2**int_exp);
@@ -986,7 +987,7 @@ package body std_ulogic_support is
     variable result : bit_vector(w-1 downto 0) ;
     variable ib     : integer;
     variable test   : integer;
-    -- pragma built_in SYN_INTEGER_TO_UNSIGNED  
+    -- pragma built_in SYN_INTEGER_TO_UNSIGNED
   begin
     if n < 0 then
       result := (others => '0');
@@ -1136,7 +1137,7 @@ package body std_ulogic_support is
   -------------------------------------------------------------------
 -- Synopsys translate_off
   function TConv  ( s : string ) return integer is
-    variable result : integer ; 
+    variable result : integer ;
     alias si : string( s'length downto 1 ) is s;
     variable invalid : boolean ;
   begin
@@ -1547,7 +1548,7 @@ package body std_ulogic_support is
       end case;
   end;
 
--- Synopsys translate_off 
+-- Synopsys translate_off
   function tconv  ( s : std_ulogic ) return character is
   begin
      case s is
@@ -1562,9 +1563,9 @@ package body std_ulogic_support is
         when others => return('X');
      end case;
   end;
--- Synopsys translate_on 
+-- Synopsys translate_on
 
--- Synopsys translate_off 
+-- Synopsys translate_off
   function tconv  ( s : std_ulogic ) return string is
   begin
      case s is
@@ -1579,7 +1580,7 @@ package body std_ulogic_support is
         when others => return("X");
      end case;
   end;
--- Synopsys translate_on 
+-- Synopsys translate_on
 
   function tconv  ( s : std_ulogic ) return integer is
   -- pragma built_in SYN_UNSIGNED_TO_INTEGER
@@ -1666,7 +1667,7 @@ package body std_ulogic_support is
      int_exp    := 0;
      invalid    := false ;
      new_value  := s ;
-     for i in new_value'length downto 1 loop 
+     for i in new_value'length downto 1 loop
         case new_value(i) is
            when '1' => int_result := int_result + (2**int_exp);
            when '0' => null;
@@ -2271,7 +2272,7 @@ package body std_ulogic_support is
   -- Id: M.1a
   function std_match (l, r: std_ulogic) return std_ulogic is
   begin
-    if (l ?= r) then    
+    if (l ?= r) then
        return '1' ;
     else
        return '0' ;
@@ -2282,9 +2283,9 @@ package body std_ulogic_support is
   function std_match (l, r: std_ulogic_vector) return std_ulogic is
     variable result : boolean ;
   begin
-    if (l ?= r) then    
+    if (l ?= r) then
        return '1' ;
-    else 
+    else
        return '0' ;
     end if;
   end std_match;
@@ -2549,7 +2550,7 @@ package body std_ulogic_support is
       is
     constant arg_l: integer := arg'length-1;
     alias xarg: std_ulogic_vector(arg_l downto 0) is arg;
-    variable result: std_ulogic_vector(arg_l downto 0) ; 
+    variable result: std_ulogic_vector(arg_l downto 0) ;
     variable countm: integer;
     -- pragma built_in SYN_ROLU
   begin
@@ -2603,7 +2604,7 @@ package body std_ulogic_support is
     return std_ulogic_vector( xsrl( std_ulogic_vector(arg), count ) );
   end shift_right;
 
- 
+
   -- Id: S.5
   function rotate_left (arg: std_ulogic_vector; count: natural) return std_ulogic_vector is
     -- pragma built_in SYN_ROLU
@@ -2672,7 +2673,7 @@ package body std_ulogic_support is
 
 --==============================================================
   --End Shift and Rotate Functions
---============================================================== 
+--==============================================================
 
 end std_ulogic_support ;
 

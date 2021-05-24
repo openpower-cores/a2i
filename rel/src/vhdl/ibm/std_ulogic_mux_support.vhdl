@@ -45,13 +45,14 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name            of mux_2to1 : function is "VHDL-MUX" ;
   attribute recursive_synthesis of mux_2to1 : function is true;
-  attribute pin_bit_information of mux_2to1 : function is
-    (1 => ("   ","S0      ","DECR","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of mux_2to1 : function is
+  --  (1 => ("   ","S0      ","DECR","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function mux_4to1
@@ -80,15 +81,16 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name            of mux_4to1 : function is "VHDL-MUX" ;
   attribute recursive_synthesis of mux_4to1 : function is true;
-  attribute pin_bit_information of mux_4to1 : function is
-    (1 => ("   ","S1      ","DECR","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of mux_4to1 : function is
+  --  (1 => ("   ","S1      ","DECR","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function mux_8to1
@@ -125,19 +127,20 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name            of mux_8to1 : function is "VHDL-MUX" ;
   attribute recursive_synthesis of mux_8to1 : function is true;
-  attribute pin_bit_information of mux_8to1 : function is
-    (1 => ("   ","S2      ","DECR","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","D4      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D5      ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","D6      ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","D7      ","SAME","PIN_BIT_VECTOR"),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","PASS    ","    ","              "),
-     12 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of mux_8to1 : function is
+  --  (1 => ("   ","S2      ","DECR","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","D4      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D5      ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","D6      ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","D7      ","SAME","PIN_BIT_VECTOR"),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","PASS    ","    ","              "),
+  --   12 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function not_mux_2to1
@@ -162,13 +165,14 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name            of not_mux_2to1 : function is "VHDL-MUX" ;
   attribute recursive_synthesis of not_mux_2to1 : function is true;
-  attribute pin_bit_information of not_mux_2to1 : function is
-    (1 => ("   ","S0      ","DECR","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","PASS    ","    ","              "),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of not_mux_2to1 : function is
+  --  (1 => ("   ","S0      ","DECR","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","PASS    ","    ","              "),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function not_mux_4to1
@@ -197,15 +201,16 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name            of not_mux_4to1 : function is "VHDL-MUX" ;
   attribute recursive_synthesis of not_mux_4to1 : function is true;
-  attribute pin_bit_information of not_mux_4to1 : function is
-    (1 => ("   ","S1      ","DECR","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of not_mux_4to1 : function is
+  --  (1 => ("   ","S1      ","DECR","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function not_mux_8to1
@@ -242,19 +247,20 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name            of not_mux_8to1 : function is "VHDL-MUX" ;
   attribute recursive_synthesis of not_mux_8to1 : function is true;
-  attribute pin_bit_information of not_mux_8to1 : function is
-    (1 => ("   ","S2      ","DECR","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     4 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
-     6 => ("   ","D4      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","D5      ","SAME","PIN_BIT_VECTOR"),
-     8 => ("   ","D6      ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","D7      ","SAME","PIN_BIT_VECTOR"),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","PASS    ","    ","              "),
-     12 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of not_mux_8to1 : function is
+  --  (1 => ("   ","S2      ","DECR","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   4 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
+  --   6 => ("   ","D4      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","D5      ","SAME","PIN_BIT_VECTOR"),
+  --   8 => ("   ","D6      ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","D7      ","SAME","PIN_BIT_VECTOR"),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","PASS    ","    ","              "),
+  --   12 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   -- Primitive selector input functions
@@ -282,14 +288,15 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name   of select_1of2 : function is "VHDL-SELECT" ;
   attribute recursive_synthesis of select_1of2 : function is true;
-  attribute pin_bit_information of select_1of2 : function is
-    (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of select_1of2 : function is
+  --  (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function select_1of3
@@ -320,16 +327,17 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name   of select_1of3 : function is "VHDL-SELECT" ;
   attribute recursive_synthesis of select_1of3 : function is true;
-  attribute pin_bit_information of select_1of3 : function is
-    (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","S2      ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of select_1of3 : function is
+  --  (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","S2      ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function select_1of4
@@ -364,18 +372,19 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name   of select_1of4 : function is "VHDL-SELECT" ;
   attribute recursive_synthesis of select_1of4 : function is true;
-  attribute pin_bit_information of select_1of4 : function is
-    (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","S2      ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","S3      ","SAME","PIN_BIT_SCALAR"),
-     8 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of select_1of4 : function is
+  --  (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","S2      ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","S3      ","SAME","PIN_BIT_SCALAR"),
+  --   8 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function select_1of8
@@ -426,26 +435,27 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name   of select_1of8 : function is "VHDL-SELECT" ;
   attribute recursive_synthesis of select_1of8 : function is true;
-  attribute pin_bit_information of select_1of8 : function is
-    (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","S2      ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","S3      ","SAME","PIN_BIT_SCALAR"),
-     8 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","S4      ","SAME","PIN_BIT_SCALAR"),
-     10 => ("   ","D4      ","SAME","PIN_BIT_VECTOR"),
-     11 => ("   ","S5      ","SAME","PIN_BIT_SCALAR"),
-     12 => ("   ","D5      ","SAME","PIN_BIT_VECTOR"),
-     13 => ("   ","S6      ","SAME","PIN_BIT_SCALAR"),
-     14 => ("   ","D6      ","SAME","PIN_BIT_VECTOR"),
-     15 => ("   ","S7      ","SAME","PIN_BIT_SCALAR"),
-     16 => ("   ","D7      ","SAME","PIN_BIT_VECTOR"),
-     17 => ("   ","PASS    ","    ","              "),
-     18 => ("   ","PASS    ","    ","              "),
-     19 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of select_1of8 : function is
+  --  (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","S2      ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","S3      ","SAME","PIN_BIT_SCALAR"),
+  --   8 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","S4      ","SAME","PIN_BIT_SCALAR"),
+  --   10 => ("   ","D4      ","SAME","PIN_BIT_VECTOR"),
+  --   11 => ("   ","S5      ","SAME","PIN_BIT_SCALAR"),
+  --   12 => ("   ","D5      ","SAME","PIN_BIT_VECTOR"),
+  --   13 => ("   ","S6      ","SAME","PIN_BIT_SCALAR"),
+  --   14 => ("   ","D6      ","SAME","PIN_BIT_VECTOR"),
+  --   15 => ("   ","S7      ","SAME","PIN_BIT_SCALAR"),
+  --   16 => ("   ","D7      ","SAME","PIN_BIT_VECTOR"),
+  --   17 => ("   ","PASS    ","    ","              "),
+  --   18 => ("   ","PASS    ","    ","              "),
+  --   19 => ("   ","OUT     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function not_select_1of2
@@ -472,14 +482,15 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name   of not_select_1of2 : function is "VHDL-SELECT" ;
   attribute recursive_synthesis of not_select_1of2 : function is true;
-  attribute pin_bit_information of not_select_1of2 : function is
-    (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","PASS    ","    ","              "),
-     6 => ("   ","PASS    ","    ","              "),
-     7 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of not_select_1of2 : function is
+  --  (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","PASS    ","    ","              "),
+  --   6 => ("   ","PASS    ","    ","              "),
+  --   7 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function not_select_1of3
@@ -510,16 +521,17 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name   of not_select_1of3 : function is "VHDL-SELECT" ;
   attribute recursive_synthesis of not_select_1of3 : function is true;
-  attribute PIN_BIT_INFORMATION of not_select_1of3 : function is
-    (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","S2      ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","PASS    ","    ","              "),
-     8 => ("   ","PASS    ","    ","              "),
-     9 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute PIN_BIT_INFORMATION of not_select_1of3 : function is
+  --  (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","S2      ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","PASS    ","    ","              "),
+  --   8 => ("   ","PASS    ","    ","              "),
+  --   9 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function not_select_1of4
@@ -554,18 +566,19 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name   of not_select_1of4 : function is "VHDL-SELECT" ;
   attribute recursive_synthesis of not_select_1of4 : function is true;
-  attribute pin_bit_information of not_select_1of4 : function is
-    (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","S2      ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","S3      ","SAME","PIN_BIT_SCALAR"),
-     8 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","PASS    ","    ","              "),
-     10 => ("   ","PASS    ","    ","              "),
-     11 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of not_select_1of4 : function is
+  --  (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","S2      ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","S3      ","SAME","PIN_BIT_SCALAR"),
+  --   8 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","PASS    ","    ","              "),
+  --   10 => ("   ","PASS    ","    ","              "),
+  --   11 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
   function not_select_1of8
@@ -616,26 +629,27 @@ package std_ulogic_mux_support is
   -- synopsys translate_off
   attribute btr_name   of not_select_1of8 : function is "VHDL-SELECT" ;
   attribute recursive_synthesis of not_select_1of8 : function is true;
-  attribute pin_bit_information of not_select_1of8 : function is
-    (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
-     2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
-     3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
-     4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
-     5 => ("   ","S2      ","SAME","PIN_BIT_SCALAR"),
-     6 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
-     7 => ("   ","S3      ","SAME","PIN_BIT_SCALAR"),
-     8 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
-     9 => ("   ","S4      ","SAME","PIN_BIT_SCALAR"),
-     10 => ("   ","D4      ","SAME","PIN_BIT_VECTOR"),
-     11 => ("   ","S5      ","SAME","PIN_BIT_SCALAR"),
-     12 => ("   ","D5      ","SAME","PIN_BIT_VECTOR"),
-     13 => ("   ","S6      ","SAME","PIN_BIT_SCALAR"),
-     14 => ("   ","D6      ","SAME","PIN_BIT_VECTOR"),
-     15 => ("   ","S7      ","SAME","PIN_BIT_SCALAR"),
-     16 => ("   ","D7      ","SAME","PIN_BIT_VECTOR"),
-     17 => ("   ","PASS    ","    ","              "),
-     18 => ("   ","PASS    ","    ","              "),
-     19 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
+  -- FIXME: GHDL with LLVM backend crashes here (see https://github.com/ghdl/ghdl/issues/1772)
+  --attribute pin_bit_information of not_select_1of8 : function is
+  --  (1 => ("   ","S0      ","SAME","PIN_BIT_SCALAR"),
+  --   2 => ("   ","D0      ","SAME","PIN_BIT_VECTOR"),
+  --   3 => ("   ","S1      ","SAME","PIN_BIT_SCALAR"),
+  --   4 => ("   ","D1      ","SAME","PIN_BIT_VECTOR"),
+  --   5 => ("   ","S2      ","SAME","PIN_BIT_SCALAR"),
+  --   6 => ("   ","D2      ","SAME","PIN_BIT_VECTOR"),
+  --   7 => ("   ","S3      ","SAME","PIN_BIT_SCALAR"),
+  --   8 => ("   ","D3      ","SAME","PIN_BIT_VECTOR"),
+  --   9 => ("   ","S4      ","SAME","PIN_BIT_SCALAR"),
+  --   10 => ("   ","D4      ","SAME","PIN_BIT_VECTOR"),
+  --   11 => ("   ","S5      ","SAME","PIN_BIT_SCALAR"),
+  --   12 => ("   ","D5      ","SAME","PIN_BIT_VECTOR"),
+  --   13 => ("   ","S6      ","SAME","PIN_BIT_SCALAR"),
+  --   14 => ("   ","D6      ","SAME","PIN_BIT_VECTOR"),
+  --   15 => ("   ","S7      ","SAME","PIN_BIT_SCALAR"),
+  --   16 => ("   ","D7      ","SAME","PIN_BIT_VECTOR"),
+  --   17 => ("   ","PASS    ","    ","              "),
+  --   18 => ("   ","PASS    ","    ","              "),
+  --   19 => ("   ","INV     ","SAME","PIN_BIT_VECTOR"));
   -- synopsys translate_on
 
 end std_ulogic_mux_support;
