@@ -1,13 +1,18 @@
 name: VUnit Tests
-on: [push, pull_request]
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 0 * * 5'
+  workflow_dispatch:
+
 jobs:
-  test:
+
+  Test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: srt32/git-actions@v0.0.3
-        with:
-          args: git update-index --chmod=+x run.py
-      - uses: VUnit/vunit_action@master
-        with:
-          cmd: python3 ./run.py
+
+    - uses: actions/checkout@v2
+
+    - uses: VUnit/vunit_action@master
