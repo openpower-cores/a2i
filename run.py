@@ -18,4 +18,8 @@ prj.add_library("top").add_source_files(_rel / "src" / "vhdl" / "work" / "*.vhdl
 # Simulation only library containing VHDL mocks for Verilog UNIMACROs
 prj.add_library("unimacro").add_source_files(_rel / "sim" / "unimacro" / "*.vhdl")
 
+# The code isn't strictly compliant with the VHDL standard which causes some simulators
+# to fail compilation. In GHDL these errors can be relaxed to warnings.
+prj.set_compile_option("ghdl.a_flags", ["-frelaxed"])
+
 prj.main()
