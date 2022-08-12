@@ -1,5 +1,14 @@
 ![](https://github.com/openpower-cores/a2i/workflows/VUnit%20Tests/badge.svg)
 
+-----------------------------------------
+This repo has been archived and relocated.
+
+The new home is: https://git.openpower.foundation/cores/a2i
+
+It is mirrored at: https://github.com/OpenPOWERFoundation/a2i
+
+-----------------------------------------
+
 # A2I
 
 ## NOTICE
